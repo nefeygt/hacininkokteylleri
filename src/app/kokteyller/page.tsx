@@ -7,7 +7,7 @@ import CocktailCard from "@/components/CocktailCard";
 import CocktailModal from "@/components/CocktailModal";
 import type { Cocktail } from "@/data/cocktails";
 
-const baseAlcohols = ["Tümü", "Vodka", "Cin", "Rom", "Viski", "Tekila"];
+const baseAlcohols = ["Tümü", "Votka", "Cin", "Rom", "Viski", "Tekila"];
 const flavors = ["Tümü", "Tatlı", "Ekşi", "Acı", "Baharatlı"];
 const ingredientFilters = [
   "Nane",
@@ -19,6 +19,28 @@ const ingredientFilters = [
   "Aquafaba",
   "Campari",
 ];
+
+const alcoholAliases: Record<string, string[]> = {
+  votka: ["vodka"],
+  vodka: ["votka"],
+  cin: ["gin"],
+  gin: ["cin"],
+  rom: ["rum"],
+  rum: ["rom"],
+};
+
+function expandSearchTerms(query: string): string[] {
+  const q = query.toLowerCase();
+  const terms = [q];
+  for (const [key, aliases] of Object.entries(alcoholAliases)) {
+    if (q.includes(key)) {
+      for (const alias of aliases) {
+        terms.push(q.replace(key, alias));
+      }
+    }
+  }
+  return terms;
+}
 
 export default function KokteylerPage() {
   const [search, setSearch] = useState("");
@@ -52,12 +74,17 @@ export default function KokteylerPage() {
   const filtered = useMemo(() => {
     return cocktails.filter((c) => {
       if (search) {
-        const q = search.toLowerCase();
-        const matchesSearch =
-          c.name.toLowerCase().includes(q) ||
-          c.subtitle.toLowerCase().includes(q) ||
-          c.tags.some((t) => t.toLowerCase().includes(q)) ||
-          c.ingredients.some((ing) => ing.name.toLowerCase().includes(q));
+        const searchTerms = expandSearchTerms(search);
+        const searchable = [
+          c.name.toLowerCase(),
+          c.subtitle.toLowerCase(),
+          c.baseAlcohol.toLowerCase(),
+          ...c.tags.map((t) => t.toLowerCase()),
+          ...c.ingredients.map((ing) => ing.name.toLowerCase()),
+        ];
+        const matchesSearch = searchTerms.some((q) =>
+          searchable.some((s) => s.includes(q))
+        );
         if (!matchesSearch) return false;
       }
 
