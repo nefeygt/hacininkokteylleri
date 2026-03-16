@@ -42,7 +42,7 @@ const cocktails: Cocktail[] = [
     flavor: "Ekşi",
     tags: ["Votka", "Kuzu Kulağı", "Elma", "Ferah"],
     color: "#4ade80",
-    imageUrl: "/images/cocktails/kuzu-kulagi-devrimi.jpg",
+    imageUrl: "/images/cocktails/kuzu-kulagi-devrimi.png",
     ingredients: [
       { name: "Vodka", amount: 6, unit: "cl", iconType: "shot" },
       { name: "Limon Suyu", amount: 6, unit: "cl", iconType: "shot" },
@@ -68,7 +68,7 @@ const cocktails: Cocktail[] = [
     flavor: "Ferah",
     tags: ["Cin", "Salatalık", "Tonik", "Ferah"],
     color: "#dcfce7",
-    imageUrl: "/images/cocktails/ferah-manifesto.jpg",
+    imageUrl: "/images/cocktails/ferah-manifesto.png",
     ingredients: [
       { name: "Cin", amount: 6, unit: "cl", iconType: "shot" },
       { name: "Limon Suyu", amount: 6, unit: "cl", iconType: "shot" },
@@ -93,7 +93,7 @@ const cocktails: Cocktail[] = [
     flavor: "Tatlı-Ekşi",
     tags: ["Votka", "Elma", "Kolay"],
     color: "#fef08a",
-    imageUrl: "/images/cocktails/sovyet-elmasi.jpg",
+    imageUrl: "/images/cocktails/sovyet-elmasi.png",
     ingredients: [
       { name: "Vodka", amount: 6, unit: "cl", iconType: "shot" },
       { name: "Elma Suyu", amount: 10, unit: "cl", iconType: "topup" },
@@ -115,7 +115,7 @@ const cocktails: Cocktail[] = [
     flavor: "Tatlı-Ekşi",
     tags: ["Votka", "Mavi", "Narenciye"],
     color: "#3b82f6",
-    imageUrl: "/images/cocktails/mavi-isci.jpg",
+    imageUrl: "/images/cocktails/mavi-isci.png",
     ingredients: [
       { name: "Vodka", amount: 6, unit: "cl", iconType: "shot" },
       { name: "Limon Suyu", amount: 4, unit: "cl", iconType: "shot" },
@@ -135,7 +135,7 @@ const cocktails: Cocktail[] = [
     flavor: "Acı-Tatlı",
     tags: ["Aperol", "Şampanya", "Ferah", "Klasik"],
     color: "#f97316",
-    imageUrl: "/images/cocktails/aperol-spritz.jpg",
+    imageUrl: "/images/cocktails/aperol-spritz.png",
     ingredients: [
       { name: "Aperol", amount: 5, unit: "cl", iconType: "shot" },
       { name: "Şampanya (Prosecco)", amount: 8, unit: "cl", iconType: "topup" },
@@ -157,7 +157,7 @@ const cocktails: Cocktail[] = [
     flavor: "Ekşi",
     tags: ["Rom", "Klasik", "Lime"],
     color: "#ecfccb",
-    imageUrl: "/images/cocktails/hemingway-daiquiri.jpg",
+    imageUrl: "/images/cocktails/hemingway-daiquiri.png",
     ingredients: [
       { name: "Beyaz Rom", amount: 5, unit: "cl", iconType: "shot" },
       { name: "Lime Suyu", amount: 3, unit: "cl", iconType: "shot" },
@@ -176,7 +176,7 @@ const cocktails: Cocktail[] = [
     flavor: "Tatlı",
     tags: ["Shot", "Tatlı", "Görsel"],
     color: "#ef4444",
-    imageUrl: "/images/cocktails/zombie-brain.jpg",
+    imageUrl: "/images/cocktails/zombie-brain.png",
     ingredients: [
       { name: "Şeftali Likörü", amount: 2, unit: "cl", iconType: "shot" },
       { name: "Baileys", amount: 1.5, unit: "cl", iconType: "dash" },
@@ -201,7 +201,7 @@ const cocktails: Cocktail[] = [
     flavor: "Ferah",
     tags: ["Rom", "Nane", "Klasik", "Ferah"],
     color: "#bbf7d0",
-    imageUrl: "/images/cocktails/kuba-mojito.jpg",
+    imageUrl: "/images/cocktails/kuba-mojito.png",
     ingredients: [
       { name: "Beyaz Rom", amount: 6, unit: "cl", iconType: "shot" },
       { name: "Lime Suyu", amount: 3, unit: "cl", iconType: "shot" },
@@ -226,7 +226,7 @@ const cocktails: Cocktail[] = [
     flavor: "Ekşi",
     tags: ["Cin", "Salatalık", "Kompleks"],
     color: "#86efac",
-    imageUrl: "/images/cocktails/rabbit-b.jpg",
+    imageUrl: "/images/cocktails/rabbit-b.png",
     ingredients: [
       { name: "Cin", amount: 6, unit: "cl", iconType: "shot" },
       { name: "Sweet & Sour", amount: 6, unit: "cl", iconType: "shot" },
@@ -247,7 +247,7 @@ const cocktails: Cocktail[] = [
     flavor: "Tatlı",
     tags: ["Shot", "Kahve", "Tatlı"],
     color: "#78350f",
-    imageUrl: "/images/cocktails/b-52.jpg",
+    imageUrl: "/images/cocktails/b52.png",
     ingredients: [
       { name: "Kahlua", amount: 2, unit: "cl", iconType: "shot" },
       { name: "Baileys", amount: 2, unit: "cl", iconType: "shot" },
@@ -266,7 +266,7 @@ const cocktails: Cocktail[] = [
     flavor: "Ekşi-Tatlı",
     tags: ["Votka", "Lime", "Klasik"],
     color: "#e2e8f0",
-    imageUrl: "/images/cocktails/caipiroska.jpg",
+    imageUrl: "/images/cocktails/caipiroska.png",
     ingredients: [
       { name: "Vodka", amount: 5, unit: "cl", iconType: "shot" },
       { name: "Lime (Dilimlenmiş)", amount: 1, unit: "adet", iconType: "slice" },
@@ -285,7 +285,7 @@ const cocktails: Cocktail[] = [
     flavor: "Meyveli",
     tags: ["Votka", "Cranberry", "Klasik"],
     color: "#f43f5e",
-    imageUrl: "/images/cocktails/cosmopolitan.jpg",
+    imageUrl: "/images/cocktails/cosmopolitan.png",
     ingredients: [
       { name: "Vodka", amount: 5, unit: "cl", iconType: "shot" },
       { name: "Portakal Likörü", amount: 1.5, unit: "cl", iconType: "dash" },
@@ -305,7 +305,7 @@ const cocktails: Cocktail[] = [
     flavor: "Tatlı",
     tags: ["Rom", "Kola", "Klasik"],
     color: "#451a03",
-    imageUrl: "/images/cocktails/cuba-libre.jpg",
+    imageUrl: "/images/cocktails/cuba-libre.png",
     ingredients: [
       { name: "Rom", amount: 5, unit: "cl", iconType: "shot" },
       { name: "Kola", amount: 12, unit: "cl", iconType: "topup" },
@@ -324,7 +324,7 @@ const cocktails: Cocktail[] = [
     flavor: "Baharatlı",
     tags: ["Vodka", "Zencefil", "Lime", "Klasik"],
     color: "#c87533",
-    imageUrl: "/images/cocktails/moscow-mule.jpg",
+    imageUrl: "/images/cocktails/moscow-mule.png",
     ingredients: [
       { name: "Vodka", amount: 6, unit: "cl", iconType: "shot" },
       { name: "Lime Suyu", amount: 3, unit: "cl", iconType: "shot" },
@@ -344,7 +344,7 @@ const cocktails: Cocktail[] = [
     flavor: "Tropikal",
     tags: ["Votka", "Rom", "Ananas", "Mavi"],
     color: "#06b6d4",
-    imageUrl: "/images/cocktails/blue-hawaii.jpg",
+    imageUrl: "/images/cocktails/blue-hawaii.png",
     ingredients: [
       { name: "Vodka", amount: 5, unit: "cl", iconType: "shot" },
       { name: "Beyaz Rom", amount: 3, unit: "cl", iconType: "shot" },
@@ -364,7 +364,7 @@ const cocktails: Cocktail[] = [
     flavor: "Meyveli",
     tags: ["Cin", "Çilek", "Ferah"],
     color: "#f43f5e",
-    imageUrl: "/images/cocktails/cin-cilegi.jpg",
+    imageUrl: "/images/cocktails/cin-cilegi.png",
     ingredients: [
       { name: "Cin", amount: 5, unit: "cl", iconType: "shot" },
       { name: "Çilek", amount: 5, unit: "adet", iconType: "slice" },
@@ -385,7 +385,7 @@ const cocktails: Cocktail[] = [
     flavor: "Ekşi-Tatlı",
     tags: ["Votka", "Greyfurt", "Meyveli"],
     color: "#fca5a5",
-    imageUrl: "/images/cocktails/sea-breeze.jpg",
+    imageUrl: "/images/cocktails/sea-breeze.png",
     ingredients: [
       { name: "Vodka", amount: 6, unit: "cl", iconType: "shot" },
       { name: "Cranberry Suyu", amount: 9, unit: "cl", iconType: "topup" },
@@ -404,7 +404,7 @@ const cocktails: Cocktail[] = [
     flavor: "Kahve",
     tags: ["Votka", "Kahve", "Enerji"],
     color: "#27272a",
-    imageUrl: "/images/cocktails/espresso-martini.jpg",
+    imageUrl: "/images/cocktails/espresso-martini.png",
     ingredients: [
       { name: "Vodka", amount: 3, unit: "cl", iconType: "shot" },
       { name: "Kahve Likörü (Kahlua)", amount: 3, unit: "cl", iconType: "shot" },
@@ -424,7 +424,7 @@ const cocktails: Cocktail[] = [
     flavor: "Tatlı-Ekşi",
     tags: ["Cin", "Tatlı", "Klasik"],
     color: "#fde047",
-    imageUrl: "/images/cocktails/bees-knees.jpg",
+    imageUrl: "/images/cocktails/bees-knees.png",
     ingredients: [
       { name: "Cin", amount: 6, unit: "cl", iconType: "shot" },
       { name: "Limon Suyu", amount: 3, unit: "cl", iconType: "shot" },
@@ -443,7 +443,7 @@ const cocktails: Cocktail[] = [
     flavor: "Tatlı",
     tags: ["Votka", "Kahve", "Süt"],
     color: "#d6d3d1",
-    imageUrl: "/images/cocktails/black-russian.jpg",
+    imageUrl: "/images/cocktails/black-white-russian.png",
     ingredients: [
       { name: "Vodka", amount: 4, unit: "cl", iconType: "shot" },
       { name: "Kahve Likörü", amount: 2, unit: "cl", iconType: "shot" },
@@ -463,7 +463,7 @@ const cocktails: Cocktail[] = [
     flavor: "Ekşi",
     tags: ["Viski", "Klasik", "Yumurta"],
     color: "#fcd34d",
-    imageUrl: "/images/cocktails/klasik-viski-sour.jpg",
+    imageUrl: "/images/cocktails/klasik-viski-sour.png",
     ingredients: [
       { name: "Viski", amount: 6, unit: "cl", iconType: "shot" },
       { name: "Limon Suyu", amount: 4, unit: "cl", iconType: "shot" },
@@ -488,7 +488,7 @@ const cocktails: Cocktail[] = [
     flavor: "Kahve",
     tags: ["Viski", "Kahve", "Sıcak", "Tatlı"],
     color: "#451a03",
-    imageUrl: "/images/cocktails/irish-coffee.jpg",
+    imageUrl: "/images/cocktails/irish-coffee.png",
     ingredients: [
       { name: "İrlanda Viskisi", amount: 3, unit: "cl", iconType: "shot" },
       { name: "Şeker Şurubu", amount: 1.5, unit: "cl", iconType: "spoon" },
@@ -508,7 +508,7 @@ const cocktails: Cocktail[] = [
     flavor: "Kompleks",
     tags: ["Viski", "Çay", "Parti Boyu"],
     color: "#b45309",
-    imageUrl: "/images/cocktails/irish-whistea.jpg",
+    imageUrl: "/images/cocktails/irish-whistea.png",
     ingredients: [
       { name: "İrlanda Viskisi", amount: 350, unit: "ml", iconType: "topup" },
       { name: "Elma Suyu", amount: 1000, unit: "ml", iconType: "topup" },
@@ -536,7 +536,7 @@ const cocktails: Cocktail[] = [
     flavor: "Ekşi-Baharatlı",
     tags: ["Tekila", "Nane", "Tonik"],
     color: "#fef08a",
-    imageUrl: "/images/cocktails/hecho-en-mexico.jpg",
+    imageUrl: "/images/cocktails/hecho-en-mexico.png",
     ingredients: [
       { name: "Tekila", amount: 6, unit: "cl", iconType: "shot" },
       { name: "Limon Suyu", amount: 4, unit: "cl", iconType: "shot" },
@@ -557,7 +557,7 @@ const cocktails: Cocktail[] = [
     flavor: "Ekşi",
     tags: ["Votka", "Mavi", "Köpüklü", "Vegan"],
     color: "#1d4ed8",
-    imageUrl: "/images/cocktails/nox.jpg",
+    imageUrl: "/images/cocktails/nox.png",
     ingredients: [
       { name: "Vodka", amount: 4, unit: "cl", iconType: "shot" },
       { name: "Portakal Likörü", amount: 4, unit: "cl", iconType: "shot" },
@@ -578,7 +578,7 @@ const cocktails: Cocktail[] = [
     flavor: "Bitkisel",
     tags: ["Cin", "Adaçayı", "Kompleks"],
     color: "#a3e635",
-    imageUrl: "/images/cocktails/smokey-sage.jpg",
+    imageUrl: "/images/cocktails/smokey-sage.png",
     ingredients: [
       { name: "Cin", amount: 6, unit: "cl", iconType: "shot" },
       { name: "Sweet & Sour", amount: 6, unit: "cl", iconType: "shot" },
@@ -597,7 +597,7 @@ const cocktails: Cocktail[] = [
     flavor: "Tatlı-Ekşi",
     tags: ["Cin", "Krema", "Yumurta", "Kompleks"],
     color: "#f8fafc",
-    imageUrl: "/images/cocktails/ramos-gin-fizz.jpg",
+    imageUrl: "/images/cocktails/ramos-gin-fizz.png",
     ingredients: [
       { name: "Cin", amount: 6, unit: "cl", iconType: "shot" },
       { name: "Limon Suyu", amount: 3, unit: "cl", iconType: "shot" },
@@ -624,7 +624,7 @@ const cocktails: Cocktail[] = [
     flavor: "Ekşi",
     tags: ["Cin", "Klasik", "Yumurta"],
     color: "#fefce8",
-    imageUrl: "/images/cocktails/white-lady.jpg",
+    imageUrl: "/images/cocktails/white-lady.png",
     ingredients: [
       { name: "Cin", amount: 4, unit: "cl", iconType: "shot" },
       { name: "Portakal Likörü", amount: 2, unit: "cl", iconType: "shot" },
@@ -645,7 +645,7 @@ const cocktails: Cocktail[] = [
     flavor: "Tatlı",
     tags: ["Malibu", "Ananas", "Tropikal"],
     color: "#fca5a5",
-    imageUrl: "/images/cocktails/malibu-bay-breeze.jpg",
+    imageUrl: "/images/cocktails/malibu-bay-breeze.png",
     ingredients: [
       { name: "Malibu", amount: 5, unit: "cl", iconType: "shot" },
       { name: "Cranberry Suyu", amount: 6, unit: "cl", iconType: "topup" },
@@ -664,7 +664,7 @@ const cocktails: Cocktail[] = [
     flavor: "Tatlı-Meyveli",
     tags: ["Votka", "Tekila", "Şeftali", "Klasik"],
     color: "#fb923c",
-    imageUrl: "/images/cocktails/sex-on-the-beach.jpg",
+    imageUrl: "/images/cocktails/sex-on-the-beach.png",
     ingredients: [
       { name: "Tekila", amount: 2, unit: "cl", iconType: "shot" },
       { name: "Vodka", amount: 2, unit: "cl", iconType: "shot" },
@@ -685,7 +685,7 @@ const cocktails: Cocktail[] = [
     flavor: "Ekşi",
     tags: ["Votka", "Kuzu Kulağı", "Kompleks"],
     color: "#4ade80",
-    imageUrl: "/images/cocktails/kuzu-kulagi-sour.jpg",
+    imageUrl: "/images/cocktails/kuzu-kulagi-sour.png",
     ingredients: [
       { name: "Vodka", amount: 4, unit: "cl", iconType: "shot" },
       { name: "Portakal Likörü", amount: 2, unit: "cl", iconType: "shot" },
@@ -707,7 +707,7 @@ const cocktails: Cocktail[] = [
     flavor: "Tatlı",
     tags: ["Tekila", "Portakal", "Görsel"],
     color: "#f59e0b",
-    imageUrl: "/images/cocktails/tekila-sunrise.jpg",
+    imageUrl: "/images/cocktails/tekila-sunrise.png",
     ingredients: [
       { name: "Tekila", amount: 6, unit: "cl", iconType: "shot" },
       { name: "Portakal Suyu", amount: 9, unit: "cl", iconType: "topup" },
@@ -729,7 +729,7 @@ const cocktails: Cocktail[] = [
     flavor: "Ekşi-Ferah",
     tags: ["Tekila", "Fesleğen", "Frozen"],
     color: "#16a34a",
-    imageUrl: "/images/cocktails/feslegen-frozen.jpg",
+    imageUrl: "/images/cocktails/feslegen-frozen.png",
     ingredients: [
       { name: "Tekila", amount: 7, unit: "cl", iconType: "shot" },
       { name: "Limon Suyu", amount: 5, unit: "cl", iconType: "shot" },
@@ -753,7 +753,7 @@ const cocktails: Cocktail[] = [
     flavor: "Meyveli",
     tags: ["Votka", "Böğürtlen", "Cranberry"],
     color: "#be185d",
-    imageUrl: "/images/cocktails/ruzzle-dazzle.jpg",
+    imageUrl: "/images/cocktails/ruzzle-dazzle.png",
     ingredients: [
       { name: "Vodka", amount: 6, unit: "cl", iconType: "shot" },
       { name: "Lime Suyu", amount: 2, unit: "cl", iconType: "shot" },
@@ -777,7 +777,7 @@ const cocktails: Cocktail[] = [
     flavor: "Çiçeksi-Ekşi",
     tags: ["Cin", "Hibiskus", "Çilek"],
     color: "#e11d48",
-    imageUrl: "/images/cocktails/kiki-42.jpg",
+    imageUrl: "/images/cocktails/kiki-42.png",
     ingredients: [
       { name: "Cin", amount: 6, unit: "cl", iconType: "shot" },
       { name: "Hibiskus Çayı", amount: 9, unit: "cl", iconType: "topup" },
@@ -797,7 +797,7 @@ const cocktails: Cocktail[] = [
     flavor: "Tatlı-Ekşi",
     tags: ["Cin", "Frambuaz", "Krema"],
     color: "#f472b6",
-    imageUrl: "/images/cocktails/raspberry-dream.jpg",
+    imageUrl: "/images/cocktails/raspberry-dream.png",
     ingredients: [
       { name: "Cin", amount: 6, unit: "cl", iconType: "shot" },
       { name: "Limon Suyu", amount: 4.5, unit: "cl", iconType: "shot" },
@@ -818,6 +818,7 @@ const cocktails: Cocktail[] = [
     flavor: "Ferah",
     tags: ["Cin", "Nane", "Klasik"],
     color: "#86efac",
+    imageUrl: "/images/cocktails/southside.png",
     ingredients: [
       { name: "Cin", amount: 6, unit: "cl", iconType: "shot" },
       { name: "Limon Suyu", amount: 3, unit: "cl", iconType: "shot" },
