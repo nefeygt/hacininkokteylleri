@@ -119,7 +119,7 @@ export default function KokteylerPage() {
         </span>
         <h1 className="text-3xl font-bold tracking-tight">Kokteyller</h1>
         <p className="mt-2 font-mono text-sm text-text-muted">
-          {cocktails.length} reçete &mdash; hepsi %100 vegan dostu
+          Hacı onaylı <b>{cocktails.length}</b> reçete.
         </p>
       </div>
 

@@ -30,7 +30,7 @@ export default function Home() {
           {/* Mono subtitle */}
           <div className="mb-6 inline-flex items-center gap-2 rounded bg-bg-elevated/60 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.25em] text-text-muted">
             <Wine className="h-3 w-3 text-crimson-glow" />
-            Sinematik Bir Kokteyl Arşivi
+            Sinematik Bir Kokteyl Deneyimi
           </div>
 
           {/* Title */}
@@ -42,9 +42,7 @@ export default function Home() {
 
           {/* Subtitle */}
           <p className="mx-auto mb-10 max-w-md font-mono text-sm leading-relaxed text-text-secondary">
-            Her biri özenle formüle edilmiş, %100 vegan dostu kokteyl reçeteleri.
-            <br />
-            Bir tıp öğrencisinin hassasiyetiyle, bir sinemacının estetiğiyle.
+            Her biri özenle formüle edilmiş kokteyl reçeteleri.
           </p>
 
           {/* CTA buttons */}
@@ -87,20 +85,19 @@ export default function Home() {
 
           {/* Main description */}
           <div className="mb-16 rounded border border-border bg-bg-card p-8">
-            <div className="rx-symbol mb-4" />
             <p className="prescription-text leading-[2] text-text-secondary">
-              Bu dijital arşiv, en yakın dostum{" "}
-              <span className="font-bold text-text-primary">Hacı</span> için
-              hazırlandı. Bir tıp fakültesi öğrencisi, tutkulu bir sinefil ve
-              Letterboxd kullanıcısı, entelektüel bir ateist, prensipli bir
-              komünist, veganlık ve spor kültürünün kararlı bir savunucusu. Bu
-              kokteyl koleksiyonu onun kişiliğini yansıtıyor — her reçete bir
-              tıp reçetesi kadar kesin, her sunum bir film karesi kadar
-              estetik. Hayvan sömürüsüz, taviz yok.
+              Bu dijital arşiv ben, Nazım Efe Yiğit tarafından, en yakın dostum{" "}
+              M. Furkan Çam, namıdiğer <span className="font-bold text-text-primary">Hacı</span> adına
+              hazırlandı. Sevgili Furkan geleceğin aydın bir doktoru, tutkulu bir sinefil ve
+              Letterboxd kullanıcısı, entelektüel bir felsefe okuryazarı,
+              veganlık ve spor kültürünün kararlı bir savunucusu. Bu
+              kokteyl koleksiyonu kendisinin yıllardır hazırlamakta/üretmekte
+              olduğu tariflerin bir araya getirilmiş ve benim estetik anlayışıma uyan şık bir halidir.
             </p>
           </div>
 
-          {/* Trait grid */}
+    
+          {/* Trait grid
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
             <TraitCard
               icon={<Syringe className="h-5 w-5" />}
@@ -132,7 +129,8 @@ export default function Home() {
               label="Düşüncenin Sınırlarında"
               desc="Felsefe ve sürekli entelektüel arayış, Hacı'nın dünyayı anlama çabasının temelidir. O, sadece bir miksolojist değil, aynı zamanda hayatı ve toplumu sorgulayan, Platon'dan Marx'a uzanan geniş bir yelpazede okuyan ve tartışan bir düşünürdür. Aydınlanma ve sorgulama, onun her tarifine sindiği gibi, her dost sohbetine de yön verir."
             />
-          </div>
+          </div> */}
+          
         </div>
       </section>
 
