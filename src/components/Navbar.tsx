@@ -28,7 +28,7 @@ export default function Navbar() {
             Kokteyller
           </NavLink>
           <a
-            href="https://letterboxd.com"
+            href="https://letterboxd.com/krasic/"
             target="_blank"
             rel="noopener noreferrer"
             className="ml-2 flex h-8 w-8 items-center justify-center rounded text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-secondary"
