@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg-primary: #0d0d0d;
+  --color-bg-secondary: #161616;
+  --color-bg-card: #1a1a1a;
+  --color-bg-elevated: #222222;
+  --color-crimson: #8b1a1a;
+  --color-crimson-light: #a52a2a;
+  --color-crimson-glow: #c0392b;
+  --color-text-primary: #e8e6e3;
+  --color-text-secondary: #9b9b9b;
+  --color-text-muted: #6b6b6b;
+  --color-border: #2a2a2a;
+  --color-border-light: #3a3a3a;
+
+  --font-mono: "JetBrains Mono", "Fira Code", "SF Mono", ui-monospace, monospace;
+  --font-sans: "Inter", "Helvetica Neue", Arial, sans-serif;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: var(--color-crimson);
+    color: white;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-bg-primary);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border-light);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-muted);
+  }
+}
+
+@layer components {
+  .prescription-text {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
+    line-height: 1.7;
+  }
+
+  .rx-symbol::before {
+    content: "Rx";
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--color-crimson-glow);
+    margin-right: 0.5rem;
+  }
+
+  .film-grain {
+    position: relative;
+  }
+  .film-grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+}
