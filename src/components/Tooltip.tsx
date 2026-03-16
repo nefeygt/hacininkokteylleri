@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Info } from "lucide-react";
 import { tooltips } from "@/data/cocktails";
 
@@ -8,25 +8,48 @@ export default function Tooltip({ term }: { term: string }) {
   const [visible, setVisible] = useState(false);
   const text = tooltips[term];
 
+  // Close on outside tap (mobile)
+  const handleOutside = useCallback(() => {
+    if (visible) setVisible(false);
+  }, [visible]);
+
+  useEffect(() => {
+    if (!visible) return;
+    const timer = setTimeout(() => {
+      document.addEventListener("click", handleOutside, { once: true });
+    }, 0);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("click", handleOutside);
+    };
+  }, [visible, handleOutside]);
+
   if (!text) return <span>{term}</span>;
 
   return (
     <span
-      className="relative inline-flex items-center gap-1"
+      className="inline-flex cursor-help items-center gap-1"
       onMouseEnter={() => setVisible(true)}
       onMouseLeave={() => setVisible(false)}
+      onClick={(e) => {
+        e.stopPropagation();
+        setVisible((v) => !v);
+      }}
     >
-      <span className="cursor-help border-b border-dashed border-crimson-glow/50 text-crimson-glow">
+      <span className="border-b border-dashed border-crimson-glow/50 text-crimson-glow">
         {term}
       </span>
-      <Info className="h-3 w-3 shrink-0 text-crimson-glow/60" />
+      {/* Icon is the anchor — tooltip is positioned relative to this wrapper */}
+      <span className="relative inline-flex shrink-0">
+        <Info className="h-3 w-3 text-crimson-glow/60" />
 
-      {visible && (
-        <span className="absolute bottom-full left-1/2 z-50 mb-2 w-64 -translate-x-1/2 rounded border border-border-light bg-bg-elevated px-3 py-2 font-mono text-xs leading-relaxed text-text-secondary shadow-lg shadow-black/40">
-          <span className="absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 border-b border-r border-border-light bg-bg-elevated" />
-          {text}
-        </span>
-      )}
+        {visible && (
+          <span className="absolute bottom-full right-1/2 z-[100] mb-2 w-64 translate-x-1/2 rounded border border-border-light bg-bg-elevated px-3 py-2 font-mono text-xs leading-relaxed text-text-secondary shadow-xl shadow-black/60">
+            <span className="absolute -bottom-1 right-1/2 h-2 w-2 translate-x-1/2 rotate-45 border-b border-r border-border-light bg-bg-elevated" />
+            {text}
+          </span>
+        )}
+      </span>
     </span>
   );
 }

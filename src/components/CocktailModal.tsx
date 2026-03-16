@@ -38,22 +38,22 @@ export default function CocktailModal({
       />
 
       {/* Modal */}
-      <div className="relative z-10 max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-sm border border-border bg-bg-secondary shadow-2xl shadow-black/50">
+      <div className="relative z-10 flex max-h-[85vh] w-full max-w-2xl flex-col rounded-sm border border-border bg-bg-secondary shadow-2xl shadow-black/50">
         {/* Header accent */}
         <div
-          className="h-1"
+          className="shrink-0 h-1"
           style={{ backgroundColor: cocktail.color }}
         />
 
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute right-4 top-5 flex h-8 w-8 items-center justify-center rounded text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-primary"
+          className="absolute right-4 top-5 z-20 flex h-8 w-8 items-center justify-center rounded text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-primary"
         >
           <X className="h-4 w-4" />
         </button>
 
-        <div className="p-8">
+        <div className="overflow-y-auto p-8">
           {/* Header */}
           <div className="mb-8">
             <div className="mb-2 flex items-center gap-2">
@@ -86,11 +86,11 @@ export default function CocktailModal({
             <h3 className="mb-4 font-mono text-xs uppercase tracking-[0.15em] text-text-muted">
               Malzemeler
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-3 overflow-visible">
               {cocktail.ingredients.map((ing, i) => (
                 <div
                   key={i}
-                  className="flex items-center justify-between border-b border-border/50 pb-3 last:border-0"
+                  className="flex items-center justify-between overflow-visible border-b border-border/50 pb-3 last:border-0"
                 >
                   <div className="flex items-center gap-3">
                     <span className="font-mono text-[10px] text-text-muted">
@@ -111,9 +111,9 @@ export default function CocktailModal({
             <h3 className="mb-4 font-mono text-xs uppercase tracking-[0.15em] text-text-muted">
               Hazırlanışı
             </h3>
-            <ol className="space-y-3">
+            <ol className="space-y-3 overflow-visible">
               {cocktail.instructions.map((step, i) => (
-                <li key={i} className="flex gap-3">
+                <li key={i} className="flex gap-3 overflow-visible">
                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-crimson/15 font-mono text-[10px] text-crimson-glow">
                     {i + 1}
                   </span>

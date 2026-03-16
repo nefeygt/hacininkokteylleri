@@ -128,9 +128,9 @@ export default function Home() {
               desc="Disiplinli, kararlı, güçlü"
             />
             <TraitCard
-              icon={<span className="text-lg font-bold text-crimson-glow">☭</span>}
-              label="Komünist"
-              desc="Eşitlik için mücadele"
+              icon={<BookOpen className="h-5 w-5" />}
+              label="Düşüncenin Sınırlarında"
+              desc="Felsefe ve sürekli entelektüel arayış, Hacı'nın dünyayı anlama çabasının temelidir. O, sadece bir miksolojist değil, aynı zamanda hayatı ve toplumu sorgulayan, Platon'dan Marx'a uzanan geniş bir yelpazede okuyan ve tartışan bir düşünürdür. Aydınlanma ve sorgulama, onun her tarifine sindiği gibi, her dost sohbetine de yön verir."
             />
           </div>
         </div>

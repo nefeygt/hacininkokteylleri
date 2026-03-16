@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Wine, Leaf, Star } from "lucide-react";
 import type { Cocktail } from "@/data/cocktails";
 
@@ -13,47 +14,63 @@ export default function CocktailCard({
   return (
     <button
       onClick={onClick}
-      className="group relative flex h-80 w-full flex-col justify-end overflow-hidden rounded-sm border border-border bg-bg-card text-left transition-all duration-300 hover:border-border-light hover:shadow-lg hover:shadow-crimson/5"
+      className="group relative flex w-full flex-col overflow-hidden rounded-sm border border-border bg-bg-card text-left transition-all duration-300 hover:border-border-light hover:shadow-lg hover:shadow-crimson/5"
     >
-      {/* Colored accent strip at top */}
-      <div
-        className="absolute inset-x-0 top-0 h-1 transition-all duration-300 group-hover:h-1.5"
-        style={{ backgroundColor: cocktail.color }}
-      />
-
-      {/* Background gradient */}
-      <div
-        className="absolute inset-0 opacity-10 transition-opacity duration-300 group-hover:opacity-15"
-        style={{
-          background: `radial-gradient(ellipse at 50% 0%, ${cocktail.color}40, transparent 70%)`,
-        }}
-      />
-
-      {/* Film grain overlay */}
-      <div className="film-grain absolute inset-0" />
-
-      {/* Top right badges */}
-      <div className="absolute right-3 top-4 flex flex-col gap-1.5">
-        {cocktail.vegan && (
-          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-900/40 text-green-400">
-            <Leaf className="h-3 w-3" />
-          </div>
+      {/* Image / Poster Frame */}
+      <div className="relative aspect-video w-full overflow-hidden rounded-t-sm bg-bg-elevated">
+        {cocktail.imageUrl ? (
+          <Image
+            src={cocktail.imageUrl}
+            alt={cocktail.name}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          />
+        ) : (
+          /* Dark placeholder with subtle gradient and centered icon */
+          <>
+            <div
+              className="absolute inset-0 opacity-15"
+              style={{
+                background: `radial-gradient(ellipse at 50% 40%, ${cocktail.color}50, transparent 70%)`,
+              }}
+            />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Wine
+                className="h-10 w-10 text-text-muted/15 transition-all duration-300 group-hover:scale-110 group-hover:text-text-muted/25"
+                strokeWidth={1}
+              />
+            </div>
+          </>
         )}
-        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-bg-elevated/80 text-text-muted">
-          <Star className="h-3 w-3" />
+
+        {/* Film grain on poster frame */}
+        <div className="film-grain absolute inset-0" />
+
+        {/* Colored accent strip at very top */}
+        <div
+          className="absolute inset-x-0 top-0 h-0.5 transition-all duration-300 group-hover:h-1"
+          style={{ backgroundColor: cocktail.color }}
+        />
+
+        {/* Letterboxd-style vignette on image bottom for text readability */}
+        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-bg-card to-transparent" />
+
+        {/* Top right badges */}
+        <div className="absolute right-2.5 top-2.5 flex flex-col gap-1.5">
+          {cocktail.vegan && (
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-900/60 text-green-400 backdrop-blur-sm">
+              <Leaf className="h-3 w-3" />
+            </div>
+          )}
+          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-black/40 text-text-muted backdrop-blur-sm">
+            <Star className="h-3 w-3" />
+          </div>
         </div>
       </div>
 
-      {/* Center icon */}
-      <div className="absolute left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2">
-        <Wine
-          className="h-12 w-12 text-text-muted/20 transition-all duration-300 group-hover:scale-110 group-hover:text-text-muted/30"
-          strokeWidth={1}
-        />
-      </div>
-
-      {/* Content at bottom */}
-      <div className="relative z-10 p-5">
+      {/* Content below image */}
+      <div className="flex flex-1 flex-col justify-end p-5">
         <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.2em] text-text-muted">
           {cocktail.baseAlcohol} · {cocktail.flavor}
         </div>

@@ -14,6 +14,7 @@ export interface Cocktail {
   flavor: string;
   tags: string[];
   color: string;
+  imageUrl?: string;
   ingredients: Ingredient[];
   instructions: string[];
   garnish: string;
