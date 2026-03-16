@@ -19,6 +19,9 @@ export const metadata: Metadata = {
   title: "Hacı'nın Kokteylleri",
   description:
     "Hacı için özel olarak hazırlanmış, sinematik bir kokteyl arşivi.",
+  verification: {
+    google: "ZfTQJ4AR0Rq0iytJ0JXhQZgXCSoCOTTWhQB6PvYMLyY",
+  },
 };
 
 export default function RootLayout({
