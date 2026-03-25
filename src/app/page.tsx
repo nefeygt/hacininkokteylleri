@@ -86,13 +86,11 @@ export default function Home() {
           {/* Main description */}
           <div className="mb-16 rounded border border-border bg-bg-card p-8">
             <p className="prescription-text leading-[2] text-text-secondary">
-              Bu dijital arşiv ben, Nazım Efe Yiğit tarafından, en yakın dostum{" "}
+              Hacı'nın Kokteylleri, Nazım Efe Yiğit tarafından, en yakın dostu{" "}
               M. Furkan Çam, namıdiğer <span className="font-bold text-text-primary">Hacı</span> adına
-              hazırlandı. Sevgili Furkan geleceğin aydın bir doktoru, tutkulu bir sinefil ve
-              Letterboxd kullanıcısı, entelektüel bir felsefe okuryazarı,
-              veganlık ve spor kültürünün kararlı bir savunucusu. Bu
-              kokteyl koleksiyonu kendisinin yıllardır hazırlamakta/üretmekte
-              olduğu tariflerin bir araya getirilmiş ve benim estetik anlayışıma uyan şık bir halidir.
+              hazırlandı. Hacı bir tıp öğrencisi, sinefil ve felsefe okuryazarı olmasının yanı sıra son günlerde
+              kokteyllere ilgi duymaya başladı. Bu web sitesi de kendisinin hazırlamakta/üretmekte
+              olduğu tariflerin bir araya getirilmiş ve görselleştirilmiş bir halidir.
             </p>
           </div>
 
