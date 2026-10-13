@@ -9,7 +9,7 @@
 > **Language rule (ADR-002):** everything we write — docs, code, comments, commits, SQL — is
 > **English**. Everything visitors and admins read — UI strings, recipes — is **Turkish**.
 
-**Last updated:** 2026-10-13 (late night) · **Active milestone:** M3 — Accounts (built and tested end to end, closed to the public) · **Brand:** `haci` (ADR-015)
+**Last updated:** 2026-10-14 · **Active milestone:** M3 — Accounts (Google and e-mail sign-in built and tested end to end; **ready to open on the user's go**) · **Brand:** `haci` (ADR-015)
 
 ---
 
@@ -17,7 +17,7 @@
 
 | Field | State |
 |---|---|
-| Active milestone | **M3 — Accounts**: Google app **in production**; Google sign-in → onboarding → profile edit → avatar → public profile → account deletion **tested end to end** (2026-10-13). **Closed to the public** (`ACCOUNTS_OPEN = false`, sign-ups off). Privacy contact address live (`contact@`, forwarded through ImprovMX). **Opens after e-mail + password sign-in (Resend) is in** — the user's call, 2026-10-13. Left: Resend, e-mail sign-in, the user's final read of `/privacy` |
+| Active milestone | **M3 — Accounts**: Google app **in production**; Google sign-in → onboarding → profile edit → avatar → public profile → account deletion **tested end to end** (2026-10-13). **Closed to the public** (`ACCOUNTS_OPEN = false`, sign-ups off). Privacy contact address live (`contact@`, forwarded through ImprovMX). **E-mail + password sign-in through Resend built and tested end to end** (2026-10-14). Left: the user's final read of `/privacy` and the go to open |
 | Last completed | **M2 — Domain** (Search Console moved from vercel.app to the domain) and the **brand change to `haci`** with English URLs and the cherry logo (ADR-015). M1 is done except Hacı's own first sign-in |
 | Blockers | None in the code. Opening M3 waits on the user's go (Google only, or wait for e-mail sign-in). The network the user's office computer is on (a Fortinet FortiGate) blocks the domain — check from outside (§5.4) |
 | Next critical decision | **The colour theme** for a global audience (the user is open to change, ADR-015) and, later, localization. The mobile app is decided: Expo, after M3 (ADR-013) |
@@ -307,7 +307,7 @@ After any schema change: mirror the migration, regenerate `database.types.ts`, r
 - [x] Resend: account (the user's), domain `hacininkokteylleri.tech` in **Ireland (eu-west-1)**, tracking off; DNS at Namify: `TXT resend._domainkey` (DKIM), `CNAME rsend` → `rsend-euw1.forge.rmta.net`, `CNAME send` → `send.forge.rmta.net`, `TXT _dmarc v=DMARC1; p=none;`
 - [x] Resend domain **verified** (2026-10-14); custom SMTP in Supabase (`smtp.resend.com:465`, sender `haci <noreply@hacininkokteylleri.tech>`, key pasted by the user); minimum password length 8 (the user)
 - [x] Turkish e-mail templates in Supabase — confirm sign-up, reset password, change e-mail; sources in `supabase/templates/` (paste by hand when they change)
-- [ ] E-mail sign-up, confirmation, onboarding and password reset tested end to end (sign-ups briefly on)
+- [x] E-mail tested end to end on `localhost:3000` (2026-10-14): sign-up → confirmation e-mail via Resend → `/welcome` → `/account` → sign out → reset e-mail → `/reset-password` → sign in with the new password → delete; all rows gone
 - [x] Avatar upload on `/account` (and shown on `/u/{username}`)
 - [ ] Open it — **after** e-mail sign-in ships (the user, 2026-10-13): `ACCOUNTS_OPEN = true`, sign-ups on
 
@@ -397,6 +397,7 @@ when it starts.
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-10-13 → 14 | Contact mail + e-mail sign-in | `contact@`/`iletisim@` forwarded through ImprovMX (Namify has no forwarding). Privacy notice: contact address, ImprovMX listed. The user chose to open accounts only after e-mail sign-in. Resend (Ireland) verified, custom SMTP in Supabase, Turkish auth templates. E-mail sign-in / sign-up / reset built and tested end to end. English privacy notice → Icebox (localization) |
 | 2026-10-13 (late night) | M3 publish + e2e + avatars | Google app branding saved and **published to production** (no logo). Avatar upload built (`AvatarField`, `setAvatar`, `Avatar`). End-to-end test with the user's Google account: onboarding, profile edit, avatar upload and replace, public profile, account deletion — all rows and files gone |
 | 2026-10-13 (night) | ADR-014 + M3 build + brand | ADR-014 agreed (Supabase Auth kept over Clerk). Hacı's real e-mail set. M3 database (profiles, settings, moderation guard, avatars, account deletion) and pages built, closed. Search Console moved to the domain; vercel.app redirects. Personal "about" removed; **brand `haci`**, English URLs, cherry logo (ADR-015). Google Cloud project + OAuth client; Google provider on in Supabase |
 | 2026-10-13 (later) | M1 check + 2FA | Admin accounts added (owner "Efe", editor "Hacı"). **2FA required for admin powers** (ADR-011), the owner enrolled. Panel checked end to end. Server-action redirect bug fixed. Sign-ups off; Auth URLs set. WHOIS checked — already private. Decisions: one review per person per cocktail, unlimited logs (ADR-012); Expo after M3 (ADR-013) |

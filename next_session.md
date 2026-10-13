@@ -4,11 +4,11 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-13 (late night) · **Handing off:** M3 is **built and tested
-end to end** — the Google app is in production, a real Google account went through
-onboarding, profile edit, avatar upload, the public profile and account deletion. Accounts
-stay **closed** (`ACCOUNTS_OPEN = false`, sign-ups off). **Next: the privacy contact address,
-then open M3 with the user's go.**
+**Prepared by session:** 2026-10-14 · **Handing off:** M3 is **built and tested end to end** for
+both sign-in methods — Google (app in production) and e-mail + password (Resend in Ireland,
+custom SMTP, Turkish templates). The privacy notice has its contact address (`contact@`,
+forwarded through ImprovMX). Accounts stay **closed** (`ACCOUNTS_OPEN = false`, sign-ups off).
+**Next: the user's final read of `/privacy`, then open M3 with the user's go.**
 
 ---
 
@@ -53,7 +53,7 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — e-mail sign-in (Resend), then open M3
+## 🎯 This Session's Task — open M3 (everything is built and tested)
 
 ### Step 0 — check sign-ups are off
 
@@ -80,7 +80,7 @@ DNS at Namify (DKIM TXT `resend._domainkey`, CNAME `rsend` → `rsend-euw1.forge
 `send` → `send.forge.rmta.net`, `TXT _dmarc "v=DMARC1; p=none;"`), and the code (`EmailForm` on
 `/login`, `/reset-password`, `via=email` in the callback). Done 2026-10-14: Resend verified, Supabase custom SMTP
 and minimum password length 8 (the user), Turkish templates (`supabase/templates/`, pasted into
-Supabase). **Left: the end-to-end test.** Saving a template in Supabase's dashboard: set the body
+Supabase). **End-to-end test passed 2026-10-14** (sign-up, confirmation, onboarding, sign-out, reset, sign-in with the new password, deletion). Saving a template in Supabase's dashboard: set the body
 with `monaco.editor.getModels()[0].setValue(...)`, the subject with `form_input`, then click Save
 from JS (`button.click()`) and confirm a `PATCH …/config` 200 — coordinate/ref clicks often miss.
 
