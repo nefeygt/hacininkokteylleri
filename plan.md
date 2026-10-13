@@ -299,7 +299,7 @@ After any schema change: mirror the migration, regenerate `database.types.ts`, r
 - [x] Google Cloud project `haci` + OAuth client; Google provider enabled in Supabase (secret pasted by the user)
 - [x] Publish the Google app — Branding: home page, `/privacy`, authorized domains; **no logo** (a logo forces Google verification); Audience → **In production** (2026-10-13)
 - [x] End to end on `localhost:3000` (2026-10-13): Google sign-in (the user's `wowcubey@gmail.com`) → `/welcome` → `/account` → bio edit and avatar upload/replace seen on `/u/{username}` → delete; `auth.users`, identities, `profiles`, `account_settings` and the avatar object all gone, the profile page 404s
-- [ ] Privacy notice: contact address (`iletisim@hacininkokteylleri.tech` on Namify's free mailbox — the user's choice) and a final read
+- [ ] Privacy notice: contact address (`iletisim@hacininkokteylleri.tech` forwarded to `n.efeyigit@outlook.com` — the user's choice; Namify has no forwarding, so ImprovMX or Forward Email) and a final read
 - [ ] E-mail and password sign-in with a sender on the domain (Resend), after Google
 - [x] Avatar upload on `/account` (and shown on `/u/{username}`)
 - [ ] Open it: `ACCOUNTS_OPEN = true`, sign-ups on

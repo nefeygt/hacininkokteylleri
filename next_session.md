@@ -66,9 +66,15 @@ auto-mode classifier does not let the agent flip it.
 
 ### Step 1 — the privacy notice's contact address
 
-The user chose `iletisim@hacininkokteylleri.tech` on Namify's free e-mail (manage.get.tech →
-the domain → Email). **The user creates the mailbox** (it needs a password); the agent adds the
-MX/SPF records Namify asks for, if any (record-type dropdown: click, type, Enter). Then set
+The address is `iletisim@hacininkokteylleri.tech`, **forwarded to `n.efeyigit@outlook.com`** (the
+user's choice, 2026-10-13 — forwarding, not a mailbox). **Namify cannot forward:** its only e-mail
+product is Titan, whose "free" offer is a 90-day trial, then $1.99/account/month (checked
+2026-10-13; do not start it). The domain has **no MX records** today. Options for the user to
+pick: **ImprovMX** (free; the user creates the account, the agent adds `MX @ mx1.improvmx.com`
+10, `MX @ mx2.improvmx.com` 20, `TXT @ v=spf1 include:spf.improvmx.com ~all` at Namify → DNS),
+or **Forward Email** (free, no account: MX records plus a TXT record holding the forwarding rule —
+encrypt that value with their tool, or the personal address becomes public in DNS). Both route
+mail through a US processor — mention it in the privacy notice. Then set
 `CONTACT` in `src/app/(site)/privacy/page.tsx`, give the notice a final read with the user, and
 remove the draft banner. If the text changes materially, bump `PRIVACY_NOTICE_VERSION` in
 `src/lib/account-config.ts`.
@@ -95,7 +101,7 @@ migration — plan.md §8).
 | # | Question | Why it matters | Until it is answered |
 |---|---|---|---|
 | 1 | **Open accounts with Google only, or wait for e-mail sign-in too?** (asked 2026-10-13, not yet answered) | Google-only is ready now; some people have no Google account | M3 stays closed |
-| 2 | **Has the `iletisim@` mailbox been created?** | The privacy notice needs a contact address before opening | Draft banner stays |
+| 2 | **Forwarding service for `iletisim@` → `n.efeyigit@outlook.com`: ImprovMX or Forward Email?** (Namify has none) | The privacy notice needs a working contact address before opening | Draft banner stays |
 | 3 | **Colour theme:** keep the dark crimson "Rx" look, or explore a lighter/warmer palette? | The user said the theme can change (ADR-015) | Today's palette stays |
 | 4 | **Resend:** whose account, and is `haci <noreply@hacininkokteylleri.tech>` fine as the sender? | E-mail sign-in, password resets | Google sign-in only |
 | 5 | **Hacı's first admin sign-in** — when (his phone, a network that does not block the domain)? | His 2FA factor is not enrolled yet | He cannot use the panel |
@@ -225,7 +231,7 @@ migration — plan.md §8).
 | Language of URLs and settings? | **English**; UI Turkish; localization later (ADR-015) |
 | Logo? | **The cherry ("Kiraz")** — `public/brand/` (ADR-015) |
 | Logo on Google's consent screen? | **Not now** — publish without it; add with verification later |
-| Privacy contact address? | **A mailbox on the domain** (`iletisim@…`), not a personal address |
+| Privacy contact address? | **`iletisim@` on the domain, forwarded to `n.efeyigit@outlook.com`** — not a mailbox (2026-10-13) |
 | Admins, 2FA, canonical domain, WHOIS, reviews/logs, mobile stack | See ADR-007, 011, 010, plan.md M2, ADR-012, ADR-013 |
 
 ---
