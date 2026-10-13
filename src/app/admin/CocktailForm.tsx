@@ -100,7 +100,12 @@ export default function CocktailForm({
     const id = form.id;
     startTransition(async () => {
       const result = await deleteCocktail(id);
-      if (result?.error) setError(result.error);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      router.push("/");
+      router.refresh();
     });
   }
 

@@ -31,7 +31,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="tr" className={`${inter.variable} ${jetbrainsMono.variable}`}>
-      <body className="min-h-screen bg-bg-primary text-text-primary antialiased">
+      {/* Browser extensions add attributes to <body> before React loads. */}
+      <body className="min-h-screen bg-bg-primary text-text-primary antialiased" suppressHydrationWarning>
         {children}
       </body>
     </html>

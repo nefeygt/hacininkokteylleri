@@ -17,10 +17,10 @@
 
 | Field | State |
 |---|---|
-| Active milestone | **M1 — Admin panel** (deployed; the end-to-end check waits on the two admin accounts) and **M2 — Domain** (live on all three hosts; Supabase Auth URLs, sign-up switch and Search Console left) |
+| Active milestone | **M1 — Admin panel**: checked end to end with the owner's account and 2FA; **Hacı's first sign-in** (his own authenticator app) left. **M2 — Domain**: live; Google Search Console left |
 | Last completed | **M0 — Foundation**, deployed as `a871688`: Supabase in Frankfurt, the 37 recipes and photos in the database and Storage, the site reading from it, this documentation system. **The site is live on `hacininkokteylleri.tech`** |
-| Blockers | The user: create the two admin accounts in Supabase Auth and name them. Note: the network this computer was on (a Fortinet FortiGate) blocks the new domain — check from outside (§5.4) |
-| Next critical decision | **When the mobile app starts** and with which stack (recommendation: Expo, after M3 — see §6 and next_session.md) |
+| Blockers | None in the code. Hacı's account uses `mustafafurkancam@hacininkokteylleri.com` — **that domain does not exist**; replace it with his real address (next_session.md). The network this computer was on (a Fortinet FortiGate) blocks the new domain — check from outside (§5.4) |
+| Next critical decision | **The community data model ADR** (before M3): profiles, reviews (one per person per cocktail — ADR-012), drink logs, user recipes, showcase. The mobile app is decided: Expo, after M3 (ADR-013) |
 
 ---
 
@@ -63,18 +63,20 @@ around the archive; they never crowd it off the home page except through the sho
 In the user's words, collected while M0 was being built. Milestones in §6.
 
 1. **Accounts.** Sign up / sign in for the public.
-2. **Ratings and comments.** Anyone signed in can comment on a cocktail and rate it 1–5
-   stars; both are public.
+2. **Reviews.** Anyone signed in can review a cocktail — 1–5 stars and optional text, public.
+   **One review per person per cocktail**, Letterboxd-style (ADR-012).
 3. **Favourites.** Save cocktails to a personal list.
 4. **Drink log.** Log a cocktail you made or drank (Letterboxd for cocktails). The log
    starts from the recipe and **the user can change it** — "Kuzu Kulağı Sour, but with gin
-   instead of vodka" — so a log keeps its own copy of the recipe as made.
+   instead of vodka" — so a log keeps its own copy of the recipe as made. **A cocktail can be
+   logged any number of times**, each with its own note: another evening, another experience
+   (ADR-012).
 5. **Community recipes and feeds.** Users write their own recipes and share them publicly
    on their profile/feed. **The home page keeps showing Hacı's recipes.**
 6. **The showcase (vitrin).** Users apply to have a recipe featured on the home page; the
    most-voted application is featured for a period (a week, a month).
-7. **Mobile app.** Reads the same backend; content is edited in the same admin panel by
-   the owner and Hacı.
+7. **Mobile app.** Expo, started after accounts (ADR-013). Reads the same backend; content is
+   edited in the same admin panel by the owner and Hacı.
 
 ### 3.3 Product rules
 
@@ -96,6 +98,9 @@ In the user's words, collected while M0 was being built. Milestones in §6.
 | 005 | Static pages revalidated; daily keep-alive | Fast pages; free projects pause after 7 idle days |
 | 006 | WebP photos in a public bucket, never overwritten | Cheap, cacheable, editable from the panel |
 | 007 | Admin = same app on `admin.`; `admins` table + policies | One deploy; no secret key in the app |
+| 011 | Admins need 2FA (TOTP), enforced in `private.is_admin()` | A leaked password alone opens nothing |
+| 012 | One review per person per cocktail; unlimited logs | Letterboxd-style, the user's call |
+| 013 | Mobile app: Expo, after M3 | Ships with accounts; shares TypeScript |
 | 008 | Public config committed in `.env` | A fresh clone runs; secrets never committed |
 | 009 | Migrations via MCP, mirrored with exact versions | The repo always describes the database |
 | 010 | Apex canonical; DNS records at Namify | Short brand URL; three records, nothing moved |
@@ -138,17 +143,19 @@ migration file with the version Supabase applied (ADR-009).
 | `cocktails` | `id uuid`, `slug` unique, `name`, `subtitle`, `base_alcohol`, `flavor`, `tags text[]`, `color #rrggbb`, `image_path`, `instructions text[]`, `garnish`, `glass`, `vegan`, `note`, `sort_order`, `is_published` | everyone (published); admins (all) | admins |
 | `cocktail_ingredients` | `cocktail_id`, `position` (unique together), `name`, `amount numeric(6,2)`, `unit`, `icon` enum | as its cocktail | admins |
 | `glossary_terms` | `term` PK, `definition` | everyone | admins |
-| `admins` | `user_id` → `auth.users`, `role` (`owner`/`editor`), `display_name` | admins | nobody over the API — SQL only |
+| `admins` | `user_id` → `auth.users`, `role` (`owner`/`editor`), `display_name` | own row; admins (all) | nobody over the API — SQL only |
 
-Functions: `private.is_admin()` (used by every write policy; not exposed over HTTP) and
+Functions: `private.is_admin()` (an `admins` row **and** a 2FA session, `aal2` — ADR-011; used
+by every write policy; not exposed over HTTP) and
 `public.save_cocktail(cocktail jsonb, ingredients jsonb)` (one-transaction save, security
 invoker). Storage policies on `cocktail-images`: admins list/insert/update/delete.
 
 **Community model — a sketch, decided with an ADR at M3/M4, not before:**
 `profiles` (one per auth user: username, display name, avatar); `cocktails.author_id`
 (null = Hacı's house recipe) so user recipes share the recipe shape; `reviews` (rating 1–5
-plus optional text, one per user per cocktail); `favorites`; `drink_logs` (date, note,
-rating, and a **jsonb snapshot of the recipe as made**); `showcase_periods`,
+plus optional text, **unique per user and cocktail** — ADR-012); `favorites`; `drink_logs`
+(**many per user and cocktail**: date, note, and a **jsonb snapshot of the recipe as made**);
+`showcase_periods`,
 `showcase_entries`, `showcase_votes`. All additive to today's schema.
 
 ### 5.3 Code map
@@ -163,6 +170,8 @@ src/
       kokteyller/page.tsx       archive — server component, ISR 1h
     admin/                      the panel (only reachable through admin.*)
       giris/                    sign-in
+      iki-adim/                 first sign-in: connect an authenticator app (QR code)
+      dogrula/                  later sign-ins: the 6-digit code
       (panel)/                  everything behind requireAdmin(): list, kokteyller/yeni, kokteyller/[id], sozluk
       actions.ts                every write (server actions)
       CocktailForm.tsx, ImageField.tsx, GlossaryEditor.tsx, PublishToggle.tsx
@@ -238,17 +247,23 @@ After any schema change: mirror the migration, regenerate `database.types.ts`, r
 
 - [x] `admins` table, roles, write policies, storage policies, `save_cocktail` (ADR-007)
 - [x] Panel on `admin.*`: sign-in, list + publish toggle, create/edit/delete, photo upload, glossary
-- [ ] The owner's and Hacı's accounts created (Supabase → Authentication → Add user) and added to `admins`
-- [ ] End to end on `admin.localhost:3000` and then on the live subdomain: create a test cocktail with a photo, see it on `/kokteyller`, edit, unpublish, delete — photo gone from the bucket
-- [ ] Hacı uses it once on his phone
-- [ ] Turn off public sign-ups in Supabase Auth until M3 (nothing grants rights without an `admins` row, but it stops junk accounts)
+- [x] The owner's and Hacı's accounts created by the user; added to `admins` as `owner` "Efe" and `editor` "Hacı"
+- [x] **Two-factor authentication** (TOTP) required for admin rights, in the database and the panel (ADR-011); checked in SQL at `aal1` and `aal2`
+- [x] The owner enrolled an authenticator app on first sign-in (2026-10-13)
+- [x] End to end on `admin.localhost:3000` with the owner's account (2026-10-13): created a test cocktail with a Gemini-stamped PNG (stored as a 38 KB WebP, sparkle gone, 1-year cache), saw it on `/kokteyller`, edited it, unpublished it (gone from the site), deleted it (row and photo gone); added and deleted a glossary term
+- [x] Fixed on the way: server-action redirects bypassed the proxy and showed the public home on the admin host (ADR-007)
+- [x] Public sign-ups turned off in Supabase Auth until M3
+- [ ] Hacı signs in once, on his phone, and enrols his own authenticator app
+- [ ] Hacı's login e-mail replaced with a real one (see Blockers)
+- [ ] The same check once on the live `admin.hacininkokteylleri.tech` from a network that does not block it
 
 ### 🔵 M2 — Domain live `LIVE — settings left`
 
 - [x] Vercel: apex, `www` → apex (308), `admin` added to the project
 - [x] Namify DNS: `A @ 216.198.79.1`, `CNAME www` and `CNAME admin` → `1327916967901761.vercel-dns-017.com`
 - [x] All three serve over HTTPS — apex 200, `admin` 307 to its sign-in, `www` 308 to the apex (checked from outside with check-host.net, 2026-10-13)
-- [ ] Supabase Auth → URL Configuration: Site URL `https://hacininkokteylleri.tech`; redirect URLs for the admin host and `http://admin.localhost:3000/**`
+- [x] Supabase Auth → URL Configuration: Site URL `https://hacininkokteylleri.tech`; redirect URLs `https://hacininkokteylleri.tech/**`, `https://admin.hacininkokteylleri.tech/**`, `http://admin.localhost:3000/**`, `http://localhost:3000/**`
+- [x] WHOIS: checked — the public record (RDAP and port-43 WHOIS at the registry) shows **no registrant data at all**, only Namify's. Paid privacy is not needed; do not put false data in the contact details (inaccurate WHOIS can get a domain suspended)
 - [ ] Google Search Console: add `hacininkokteylleri.tech` (DNS TXT at Namify)
 - [ ] Consider redirecting `hacininkokteylleri.vercel.app` to the apex
 
@@ -259,15 +274,15 @@ Supabase's built-in mailer only reaches the org's own members), `profiles`, an 1
 confirmation, a privacy notice (KVKK) and account deletion. The admin panel keeps its own
 sign-in. **An ADR for the community data model comes first.**
 
-### ⚪ M4 — Ratings, comments, favourites
+### ⚪ M4 — Reviews and favourites
 
-Reviews (1–5 stars, optional text, public), favourites, average rating on cards; hide/report
-tools in the panel.
+Reviews (1–5 stars, optional text, public, one per person per cocktail — ADR-012),
+favourites, average rating on cards; hide/report tools in the panel.
 
 ### ⚪ M5 — Drink log
 
-Log a drink from a recipe, edit the recipe as made (snapshot), date, note, rating; a personal
-log page.
+Log a drink from a recipe — as many times as you like (ADR-012) — edit the recipe as made
+(snapshot), date, note; a personal log page.
 
 ### ⚪ M6 — Community recipes and feeds
 
@@ -281,9 +296,9 @@ review of applications.
 
 ### ⚪ M8 — Mobile app
 
-Same Supabase backend and the same panel for content. **Stack and timing are open** (see
-next_session.md). Recommendation: Expo (React Native + TypeScript + supabase-js), started
-after M3 so it ships with accounts; read-only browsing could start earlier.
+**Expo** (React Native + TypeScript + supabase-js), started **after M3** (ADR-013). Same
+Supabase backend and the same panel for content. Monorepo or second repository: decided
+when it starts.
 
 ---
 
@@ -295,7 +310,8 @@ after M3 so it ships with accounts; read-only browsing could start earlier.
 | Free project **pauses after 7 idle days**, taking photos down | Low now | Daily keep-alive cron (ADR-005). If it ever pauses: Supabase dashboard → Restore |
 | Free-plan limits (500 MB DB, 1 GB storage, 5 GB egress) | Low until M6 | Photos are ~35 KB; user uploads (M6) need a size cap per user |
 | **.tech renewal** costs $29.99/yr from 2027-09-11 (auto-renew on) | Certain | The user decides before then; turn off auto-renew if moving the brand |
-| **WHOIS privacy off** — the registrant's contact details may be public | Medium | Namify offers it for a fee; the user's call |
+| Registrant details at Namify | Low | Not published: the registry's RDAP and WHOIS show only the registrar (checked 2026-10-13). Paid privacy not needed |
+| Supabase's leaked-password check (HaveIBeenPwned) is off — Pro plan only | Low | 2FA makes a leaked password alone useless for admin powers (ADR-011) |
 | Vercel **Hobby is for non-commercial use** | If monetised | Move to Pro before ads, sponsorships or sales |
 | User content: abuse, spam, legal (KVKK, alcohol and minors) | Certain at M3+ | Moderation tools with each feature; 18+ gate; privacy notice; rate limits |
 | Supabase's built-in email reaches only org members (a few per hour) | Certain at M3 | Custom SMTP (e.g. Resend) on the domain before public sign-up |
@@ -330,4 +346,5 @@ after M3 so it ships with accounts; read-only browsing could start earlier.
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-10-13 (later) | M1 check + 2FA | Admin accounts added (owner "Efe", editor "Hacı"). **2FA required for admin powers** (ADR-011), the owner enrolled. Panel checked end to end. Server-action redirect bug fixed. Sign-ups off; Auth URLs set. WHOIS checked — already private. Decisions: one review per person per cocktail, unlimited logs (ADR-012); Expo after M3 (ADR-013) |
 | 2026-10-13 | M0 + M1 build + M2 setup | Documentation system. Supabase recreated in Frankfurt (Seoul paused). Schema, RLS, content and photos imported; Gemini sparkles removed. Site reads from Supabase. Admin panel on `admin.` built. Domain bought by the user; Vercel domains and Namify DNS configured. Deployed (`a871688`); live on `hacininkokteylleri.tech`, checked from outside |

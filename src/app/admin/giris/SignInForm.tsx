@@ -1,17 +1,28 @@
 "use client";
 
-import { useActionState } from "react";
+import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
-import { signIn, type ActionResult } from "../actions";
+import { signIn } from "../actions";
 
 const field =
   "w-full rounded border border-border bg-bg-primary px-3 py-2.5 font-mono text-sm text-text-primary outline-none transition-colors focus:border-crimson-glow/50";
 
 export default function SignInForm() {
-  const [state, action, pending] = useActionState<ActionResult, FormData>(signIn, {});
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  function submit(formData: FormData) {
+    setError(null);
+    startTransition(async () => {
+      const result = await signIn(formData);
+      // A full page load, so the next request goes through src/proxy.ts with the new session.
+      if (result.ok) window.location.assign("/");
+      else setError(result.error ?? null);
+    });
+  }
 
   return (
-    <form action={action} className="space-y-4">
+    <form action={submit} className="space-y-4">
       <label className="block">
         <span className="mb-1.5 block font-mono text-[10px] uppercase tracking-[0.15em] text-text-muted">
           E-posta
@@ -25,7 +36,7 @@ export default function SignInForm() {
         <input name="password" type="password" autoComplete="current-password" required className={field} />
       </label>
 
-      {state.error && <p className="font-mono text-xs text-crimson-glow">{state.error}</p>}
+      {error && <p className="font-mono text-xs text-crimson-glow">{error}</p>}
 
       <button
         disabled={pending}

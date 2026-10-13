@@ -1,8 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/admin";
+import { adminSession } from "@/lib/admin";
 import { SLUG_PATTERN } from "@/lib/slug";
 import { COCKTAIL_IMAGES_BUCKET } from "@/lib/supabase/config";
 import { Constants } from "@/lib/supabase/database.types";
@@ -15,11 +14,23 @@ function revalidatePublicPages() {
   revalidatePath("/kokteyller");
 }
 
-export type ActionResult = { error?: string; id?: string };
+export type ActionResult = { error?: string; id?: string; ok?: boolean };
+
+// These actions never call redirect(). Next.js renders an action's redirect
+// target internally, bypassing src/proxy.ts, so on the admin host "/" came back
+// as the public home page. The caller navigates instead (ADR-007).
+
+const SESSION_LOST = "Oturumun sona ermiş. Sayfayı yenileyip tekrar giriş yap.";
+
+/** The signed-in admin's client, or null when the session is not a 2FA admin session. */
+async function adminClient() {
+  const session = await adminSession();
+  return session.state === "ok" ? session.supabase : null;
+}
 
 // ---------------------------------------------------------------- session
 
-export async function signIn(_prev: ActionResult, formData: FormData): Promise<ActionResult> {
+export async function signIn(formData: FormData): Promise<ActionResult> {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   if (!email || !password) return { error: "E-posta ve şifre gerekli." };
@@ -27,14 +38,66 @@ export async function signIn(_prev: ActionResult, formData: FormData): Promise<A
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return { error: "E-posta ya da şifre hatalı." };
-
-  redirect("/");
+  return { ok: true };
 }
 
-export async function signOut() {
+export async function signOut(): Promise<void> {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  redirect("/giris");
+}
+
+// ---------------------------------------------------------------- two-factor (ADR-011)
+
+const WRONG_CODE = "Kod doğru değil ya da süresi geçti. Uygulamadaki güncel kodu gir.";
+
+/** Creates a TOTP factor and returns its QR code. Only for an admin who has none yet. */
+export async function startTotpEnrollment(): Promise<
+  { error: string } | { factorId: string; qrCode: string; secret: string }
+> {
+  const session = await adminSession();
+  if (session.state !== "enroll") return { error: "Bu hesap için iki adımlı doğrulama kurulamaz." };
+  const { supabase } = session;
+
+  // A half-finished setup from an earlier visit would block a new one.
+  const { data: factors } = await supabase.auth.mfa.listFactors();
+  for (const factor of factors?.all ?? []) {
+    if (factor.status === "unverified") await supabase.auth.mfa.unenroll({ factorId: factor.id });
+  }
+
+  const { data, error } = await supabase.auth.mfa.enroll({
+    factorType: "totp",
+    friendlyName: `Yönetim paneli ${Date.now().toString(36)}`,
+    issuer: "Hacı'nın Kokteylleri",
+  });
+  if (error) return { error: `QR kodu oluşturulamadı: ${error.message}` };
+
+  return { factorId: data.id, qrCode: data.totp.qr_code, secret: data.totp.secret };
+}
+
+/** Confirms the new factor with its first code; the session becomes aal2. */
+export async function verifyTotpEnrollment(factorId: string, code: string): Promise<ActionResult> {
+  const session = await adminSession();
+  if (session.state !== "enroll") return { ok: true };
+
+  const { error } = await session.supabase.auth.mfa.challengeAndVerify({ factorId, code: code.trim() });
+  if (error) return { error: WRONG_CODE };
+  return { ok: true };
+}
+
+/** The code screen on every later sign-in. */
+export async function verifyTotp(formData: FormData): Promise<ActionResult> {
+  const session = await adminSession();
+  if (session.state === "ok") return { ok: true };
+  if (session.state !== "verify") return { error: SESSION_LOST };
+
+  const { data: factors } = await session.supabase.auth.mfa.listFactors();
+  const factor = factors?.totp[0];
+  if (!factor) return { error: SESSION_LOST };
+
+  const code = String(formData.get("code") ?? "").trim();
+  const { error } = await session.supabase.auth.mfa.challengeAndVerify({ factorId: factor.id, code });
+  if (error) return { error: WRONG_CODE };
+  return { ok: true };
 }
 
 // ---------------------------------------------------------------- cocktails
@@ -64,7 +127,8 @@ function validate(input: CocktailInput): string | null {
 }
 
 export async function saveCocktail(input: CocktailInput): Promise<ActionResult> {
-  const { supabase } = await requireAdmin();
+  const supabase = await adminClient();
+  if (!supabase) return { error: SESSION_LOST };
 
   const problem = validate(input);
   if (problem) return { error: problem };
@@ -118,7 +182,8 @@ export async function saveCocktail(input: CocktailInput): Promise<ActionResult> 
 }
 
 export async function setPublished(id: string, published: boolean): Promise<ActionResult> {
-  const { supabase } = await requireAdmin();
+  const supabase = await adminClient();
+  if (!supabase) return { error: SESSION_LOST };
   const { error } = await supabase.from("cocktails").update({ is_published: published }).eq("id", id);
   if (error) return { error: error.message };
   revalidatePublicPages();
@@ -127,7 +192,8 @@ export async function setPublished(id: string, published: boolean): Promise<Acti
 }
 
 export async function deleteCocktail(id: string): Promise<ActionResult> {
-  const { supabase } = await requireAdmin();
+  const supabase = await adminClient();
+  if (!supabase) return { error: SESSION_LOST };
   const { data } = await supabase.from("cocktails").select("image_path").eq("id", id).single();
 
   const { error } = await supabase.from("cocktails").delete().eq("id", id);
@@ -139,7 +205,7 @@ export async function deleteCocktail(id: string): Promise<ActionResult> {
 
   revalidatePublicPages();
   revalidatePath("/admin", "layout");
-  redirect("/");
+  return { ok: true };
 }
 
 // ---------------------------------------------------------------- glossary
@@ -149,7 +215,8 @@ export async function saveGlossaryTerm(
   term: string,
   definition: string
 ): Promise<ActionResult> {
-  const { supabase } = await requireAdmin();
+  const supabase = await adminClient();
+  if (!supabase) return { error: SESSION_LOST };
   term = term.trim();
   definition = definition.trim();
   if (!term || !definition) return { error: "Terim ve açıklama boş olamaz." };
@@ -169,7 +236,8 @@ export async function saveGlossaryTerm(
 }
 
 export async function deleteGlossaryTerm(term: string): Promise<ActionResult> {
-  const { supabase } = await requireAdmin();
+  const supabase = await adminClient();
+  if (!supabase) return { error: SESSION_LOST };
   const { error } = await supabase.from("glossary_terms").delete().eq("term", term);
   if (error) return { error: error.message };
   revalidatePublicPages();

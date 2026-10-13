@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ExternalLink, LogOut, Wine } from "lucide-react";
 import { requireAdmin } from "@/lib/admin";
-import { signOut } from "../actions";
+import SignOutButton from "../SignOutButton";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "/";
 
@@ -45,14 +45,12 @@ export default async function PanelLayout({ children }: { children: React.ReactN
                 {admin.role === "owner" ? "sahip" : "editör"}
               </span>
             </span>
-            <form action={signOut}>
-              <button
-                title="Çıkış"
-                className="flex h-8 w-8 items-center justify-center rounded text-text-muted hover:bg-bg-elevated hover:text-text-primary"
-              >
-                <LogOut className="h-4 w-4" />
-              </button>
-            </form>
+            <SignOutButton
+              title="Çıkış"
+              className="flex h-8 w-8 items-center justify-center rounded text-text-muted hover:bg-bg-elevated hover:text-text-primary"
+            >
+              <LogOut className="h-4 w-4" />
+            </SignOutButton>
           </div>
         </div>
       </header>

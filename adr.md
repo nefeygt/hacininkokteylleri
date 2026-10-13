@@ -20,6 +20,9 @@
 | 008 | Public config is committed in `.env`; secrets never enter the repository | ✅ Accepted | 2026-10-13 |
 | 009 | Schema changes are migrations, applied through the MCP and mirrored in the repo | ✅ Accepted | 2026-10-13 |
 | 010 | `hacininkokteylleri.tech` is canonical; DNS stays at the registrar | ✅ Accepted | 2026-10-13 |
+| 011 | Admins need two-factor authentication, enforced by the database | ✅ Accepted | 2026-10-13 |
+| 012 | Reviews are one per person per cocktail; logs are unlimited | ✅ Accepted (shape of the tables decided at M4/M5) | 2026-10-13 |
+| 013 | The mobile app is Expo, started after accounts (M3) | ✅ Accepted | 2026-10-13 |
 
 ---
 
@@ -176,6 +179,12 @@ the object name. Public URL: `{SUPABASE_URL}/storage/v1/object/public/cocktail-i
   security-definer function in a schema the Data API does not expose. The pages check too
   (`requireAdmin` in `src/lib/admin.ts`), but only for a friendly redirect — the policies
   are the rule.
+- **Server actions never call `redirect()`.** Next.js renders an action's redirect target
+  internally, without passing through `src/proxy.ts`, so on the admin host `redirect("/")`
+  rendered the *public* home page (found 2026-10-13 on the first real sign-in). Actions
+  return `{ ok }` / `{ error }` and the browser navigates (`window.location.assign` after a
+  sign-in or 2FA step, `router.push` otherwise). `redirect()` during a page render is fine —
+  that one is a real HTTP redirect the browser follows.
 - **No secret key anywhere in the app.** Writes run as the signed-in admin. Saving a
   cocktail and its ingredient list is one transaction in `public.save_cocktail(jsonb, jsonb)`
   (security invoker, so the policies apply). Photos upload straight from the browser with
@@ -241,3 +250,62 @@ canonical for resilience; at this scale the difference does not matter.
 
 **Rejected.** *Moving nameservers to Vercel:* simpler subdomains, but email and everything
 else would have to move with them, and three records are enough.
+
+---
+
+## ADR-011 — Admins need two-factor authentication, enforced by the database
+
+**Context.** The user asked for 2FA on the panel so that a leaked password alone opens nothing.
+
+**Decision.** Supabase Auth's **TOTP** factor (an authenticator app — Google Authenticator,
+Microsoft Authenticator, …; free on every plan, enabled in the project).
+
+- **The database is the rule.** `private.is_admin()` is true only for a row in `admins`
+  **and** a session at assurance level `aal2` (`auth.jwt() ->> 'aal'`). Every write policy and
+  every storage policy goes through it, so a password-only (`aal1`) session can write nothing,
+  from the panel or straight at the API. Migration `20261013140454_admin_mfa.sql`.
+- An `aal1` admin still sees their **own** `admins` row, so the panel can tell "not an admin"
+  from "admin, code still owed".
+- **The panel's flow** (`adminSession()` in `src/lib/admin.ts`): password → no factor yet →
+  `/iki-adim` (QR code, first code; the session becomes `aal2`) → panel. Later sign-ins:
+  password → `/dogrula` (code) → panel. Half-finished enrolments are removed before a new QR
+  code is made.
+- **Ordinary users are unaffected.** When public accounts arrive (M3) they sign in without a
+  second factor; only admin powers need `aal2`.
+- **A lost phone:** the owner deletes that admin's factor in Supabase → Authentication →
+  Users → the user → MFA factors (or `delete from auth.mfa_factors where user_id = …`); the
+  admin enrols again on the next sign-in. If the owner loses theirs, the same is done from the
+  Supabase dashboard, which has its own login.
+
+**Rejected.** *SMS codes:* paid plan only, and weaker. *Checking 2FA only in the app:* one
+direct API call with a stolen password would bypass it.
+
+---
+
+## ADR-012 — Reviews are one per person per cocktail; logs are unlimited
+
+**Context.** M4 and M5 needed the user's answer on how comments, ratings and drink logs
+relate (asked 2026-10-13).
+
+**Decision (the user's).** Letterboxd-style:
+- **A review** — a 1–5 star rating with optional text, public — is **one per person per
+  cocktail**. Writing again edits it.
+- **A drink log** can be added **any number of times** for the same cocktail, each with its own
+  date, note and the recipe as made — another evening is another experience.
+
+The exact tables (whether a log can carry its own rating, how the review and the latest log
+relate) are designed in the community-model ADR before M3/M4 are built.
+
+---
+
+## ADR-013 — The mobile app is Expo, started after accounts (M3)
+
+**Decision (the user's, 2026-10-13).** The app is built with **Expo** (React Native,
+TypeScript, `supabase-js`), and work on it starts **after M3**, so it ships with sign-in
+from the first version instead of being retrofitted. Content still comes from the same
+Supabase project and is edited in the same admin panel. Where the app's code lives (this
+repository as a monorepo, or a second one) is decided when M8 starts.
+
+**Rejected.** *Starting now, read-only:* the app's real value — logging, favourites,
+reviews — all needs accounts. *Flutter / native:* a second language next to the web's
+TypeScript, and no shared types.
