@@ -1,22 +1,7 @@
-"use client";
-
 import Link from "next/link";
-import {
-  ArrowRight,
-  ChevronDown,
-  Wine,
-  Syringe,
-  Dumbbell,
-  Film,
-  BookOpen,
-  Leaf,
-} from "lucide-react";
+import { ArrowRight, Wine } from "lucide-react";
 
 export default function Home() {
-  const scrollToAbout = () => {
-    document.getElementById("hakkinda")?.scrollIntoView({ behavior: "smooth" });
-  };
-
   return (
     <div>
       {/* Hero Section */}
@@ -54,81 +39,7 @@ export default function Home() {
               Kokteyllere Git
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
-            <button
-              onClick={scrollToAbout}
-              className="inline-flex items-center gap-2 rounded border border-border px-6 py-3 font-mono text-sm text-text-secondary transition-colors hover:border-border-light hover:text-text-primary"
-            >
-              Hakkında
-              <ChevronDown className="h-4 w-4" />
-            </button>
           </div>
-        </div>
-
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
-          <ChevronDown className="h-5 w-5 animate-bounce text-text-muted/40" />
-        </div>
-      </section>
-
-      {/* About / Hakkında Section */}
-      <section id="hakkinda" className="border-t border-border px-6 py-24">
-        <div className="mx-auto max-w-4xl">
-          {/* Section header */}
-          <div className="mb-16 text-center">
-            <span className="mb-4 inline-block font-mono text-[10px] uppercase tracking-[0.25em] text-crimson-glow">
-              Hakkında
-            </span>
-            <h2 className="text-3xl font-bold tracking-tight">
-              Bu Site Kimin İçin?
-            </h2>
-          </div>
-
-          {/* Main description */}
-          <div className="mb-16 rounded border border-border bg-bg-card p-8">
-            <p className="prescription-text leading-[2] text-text-secondary">
-              Hacı'nın Kokteylleri, Nazım Efe Yiğit tarafından, en yakın dostu{" "}
-              M. Furkan Çam, namıdiğer <span className="font-bold text-text-primary">Hacı</span> adına
-              hazırlandı. Hacı bir tıp öğrencisi, sinefil ve felsefe okuryazarı olmasının yanı sıra son günlerde
-              kokteyllere ilgi duymaya başladı. Bu web sitesi de kendisinin hazırlamakta/üretmekte
-              olduğu tariflerin bir araya getirilmiş ve görselleştirilmiş bir halidir.
-            </p>
-          </div>
-
-    
-          {/* Trait grid
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-            <TraitCard
-              icon={<Syringe className="h-5 w-5" />}
-              label="Tıp Öğrencisi"
-              desc="Reçeteleri cerrahi hassasiyetle"
-            />
-            <TraitCard
-              icon={<Film className="h-5 w-5" />}
-              label="Sinefil"
-              desc="Her kokteyl bir film karesi"
-            />
-            <TraitCard
-              icon={<BookOpen className="h-5 w-5" />}
-              label="Entelektüel"
-              desc="Düşünceli, sorgulayan, arayan"
-            />
-            <TraitCard
-              icon={<Leaf className="h-5 w-5" />}
-              label="Vegan"
-              desc="Hayvan sömürüsüz tarifler"
-            />
-            <TraitCard
-              icon={<Dumbbell className="h-5 w-5" />}
-              label="Gym Kültürü"
-              desc="Disiplinli, kararlı, güçlü"
-            />
-            <TraitCard
-              icon={<BookOpen className="h-5 w-5" />}
-              label="Düşüncenin Sınırlarında"
-              desc="Felsefe ve sürekli entelektüel arayış, Hacı'nın dünyayı anlama çabasının temelidir. O, sadece bir miksolojist değil, aynı zamanda hayatı ve toplumu sorgulayan, Platon'dan Marx'a uzanan geniş bir yelpazede okuyan ve tartışan bir düşünürdür. Aydınlanma ve sorgulama, onun her tarifine sindiği gibi, her dost sohbetine de yön verir."
-            />
-          </div> */}
-          
         </div>
       </section>
 
@@ -138,28 +49,6 @@ export default function Home() {
           Hacı&apos;nın Kokteylleri &mdash; Sevgiyle hazırlandı
         </p>
       </footer>
-    </div>
-  );
-}
-
-function TraitCard({
-  icon,
-  label,
-  desc,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  desc: string;
-}) {
-  return (
-    <div className="group rounded border border-border bg-bg-card p-5 transition-colors hover:border-border-light">
-      <div className="mb-3 text-text-muted transition-colors group-hover:text-crimson-glow">
-        {icon}
-      </div>
-      <h3 className="mb-1 font-mono text-xs font-bold uppercase tracking-wider text-text-primary">
-        {label}
-      </h3>
-      <p className="font-mono text-[10px] text-text-muted">{desc}</p>
     </div>
   );
 }

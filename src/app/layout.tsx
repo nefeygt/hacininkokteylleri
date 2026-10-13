@@ -17,8 +17,7 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://hacininkokteylleri.tech"),
   title: "Hacı'nın Kokteylleri",
-  description:
-    "Hacı için özel olarak hazırlanmış, sinematik bir kokteyl arşivi.",
+  description: "Sinematik bir kokteyl arşivi: her biri özenle formüle edilmiş kokteyl reçeteleri.",
   verification: {
     google: "ZfTQJ4AR0Rq0iytJ0JXhQZgXCSoCOTTWhQB6PvYMLyY",
   },
