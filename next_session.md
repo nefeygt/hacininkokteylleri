@@ -4,17 +4,18 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-13 (evening) · **Handing off:** M1 is checked end to end with
-the owner's account and two-factor authentication; Hacı's first sign-in is left. M2 (domain)
-is live. **Next: the community data-model ADR, then M3 — accounts.**
+**Prepared by session:** 2026-10-13 (night) · **Handing off:** the brand is now **`haci`**
+(ADR-015): English URLs, Turkish UI, cherry logo. M3's database and pages are built and
+**closed** to the public; Google sign-in is configured but the Google app is still in
+Testing. **Next: publish the Google app, test sign-in end to end, finish M3.**
 
 ---
 
 ## 📋 Prompt to Copy
 
 ```
-Hi. We're working on Hacı'nın Kokteylleri — a Next.js + Supabase cocktail site
-(hacininkokteylleri.tech) with an admin panel, growing into a community and a mobile app.
+Hi. We're working on haci (formerly Hacı'nın Kokteylleri) — a Next.js + Supabase cocktail
+site (hacininkokteylleri.tech) with an admin panel, growing into a community and mobile apps.
 
 BEFORE YOU START, read these in order:
 1. plan.md         — the single source of truth (status board, product, architecture, milestones)
@@ -25,8 +26,10 @@ Then do the work described under "This Session's Task".
 
 WORKING RULES:
 - Write EVERYTHING in the repository in English — docs, code, comments, commit messages,
-  SQL. Everything visitors and admins read (UI strings, recipes) is Turkish. I may chat
-  with you in Turkish; that never changes the language of what you produce. See ADR-002.
+  SQL — and every URL path, query parameter and setting too. Everything visitors and admins
+  read (UI strings, recipes) is Turkish. I may chat with you in Turkish; that never changes
+  the language of what you produce. See ADR-002 and ADR-015.
+- The brand is "haci", always lowercase (src/lib/brand.ts, ADR-015).
 - Don't reopen decisions that are already closed. If one needs to change, ask me first.
 - Don't add features outside the active milestone. Ideas go to plan.md §9 "Icebox".
 - The database is the gatekeeper: every table has RLS, every permission is a policy, and
@@ -36,7 +39,7 @@ WORKING RULES:
   (ADR-009).
 - Verify your own work before claiming it is done: `npm run build` must pass, and UI
   changes are checked in a real browser (Claude in Chrome — my Chrome, signed in to
-  Vercel, Supabase and Namify). plan.md §5.4 has the commands.
+  Vercel, Supabase, Namify, Google Cloud and Search Console). plan.md §5.4 has the commands.
 - Use your own judgement on small calls; only use AskUserQuestion for things that
   genuinely change direction.
 
@@ -49,42 +52,52 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — close M1, then design the community (ADR before code)
+## 🎯 This Session's Task — finish M3 (accounts), then open it
 
-### Step 1 — Hacı's account (needs the user and Hacı)
+### Step 1 — publish the Google app (in Chrome, ~5 minutes)
 
-Hacı's login is `mustafafurkancam@hacininkokteylleri.com`, but **`hacininkokteylleri.com` is not
-registered** (NXDOMAIN, 2026-10-13): no mail can reach him, and whoever registers that domain
-could one day receive his password-reset mails. Ask the user for Hacı's real address, then
-change it (the dashboard's user page, or SQL on `auth.users.email` **and**
-`auth.identities.identity_data->>'email'` for his `email` identity — check both afterwards).
-Then Hacı signs in on `admin.hacininkokteylleri.tech` (from a network that does not block it —
-see "Things That Will Bite You") and enrols his own authenticator app. Check
-`select status from auth.mfa_factors` shows a `verified` factor for him.
+Google Cloud, account **`n.efeyigit@gmail.com`** (in the user's Chrome it is `authuser=1`),
+project **`haci`** (`haci-511515`):
+1. `https://console.cloud.google.com/auth/branding?authuser=1&project=haci-511515` —
+   Application home page `https://hacininkokteylleri.tech`, privacy policy
+   `https://hacininkokteylleri.tech/privacy`, terms of service empty, Authorized domains
+   `hacininkokteylleri.tech` and `supabase.co`. **No logo** (a logo forces Google's
+   verification — the user agreed to publish without one). Save. (Last session typed the home
+   page but was stopped before saving — check the fields.)
+2. `…/auth/audience?…` → **Publish app** → In production. Basic scopes only, so no review.
 
-### Step 2 — Google Search Console (small)
+Check with Supabase's public settings (uses only the publishable key from `.env`):
+`curl -s -H "apikey: $KEY" https://qwvnhdghwycqlvsnlvlt.supabase.co/auth/v1/settings` →
+`external.google: true` (already true), `disable_signup: true` (stays true until Step 4).
 
-Add `hacininkokteylleri.tech` as a Domain property; put the TXT record it gives at Namify
-(DNS → DNS Records → Add new record, type TXT, host empty). Ask the user first — it is their
-Google account.
+### Step 2 — test sign-in end to end (needs the user)
 
-### Step 3 — the community data-model ADR (the main work)
+Public sign-up is off, so a new Google user is refused (`/login?error=closed` — that path is
+tested). For a real run: ask the user, then turn **"Allow new users to sign up"** on in
+Supabase → Authentication → Sign In / Providers, run `npm run dev`, and on
+`http://localhost:3000/login` have the user pick their Google account. Expect `/welcome` →
+username, display name, 18+, privacy → `/account` → edit profile → `/u/{username}` →
+delete the account (row gone in `auth.users`, `profiles`, `account_settings`). **Turn
+sign-ups off again** unless the user wants M3 open. Admins cannot delete themselves here
+(by design).
 
-Before any M3 code, write **ADR-014: the community data model** and agree it with the user.
-It must cover, with tables, keys and RLS for each:
-- `profiles` (one per auth user; username rules; what is public)
-- house vs. community recipes (plan.md §5.2 sketches `cocktails.author_id`, null = Hacı's)
-- `reviews` — **one per person per cocktail** (ADR-012): rating 1–5, optional text, public
-- `drink_logs` — **unlimited per person per cocktail** (ADR-012): date, note, the recipe as made
-  (jsonb snapshot), visibility; decide whether a log carries its own rating
-- `favorites`; showcase periods, entries and votes (question 3 below)
-- moderation: hide/report, who may do it (admins at aal2), what a hidden row looks like
-- how ordinary users' policies coexist with the admin policies without overlapping permissive
-  policies (the performance advisor flags overlaps)
+### Step 3 — the privacy notice's contact address
 
-Then M3 itself: public sign-in (question 2), `profiles`, an 18+ confirmation, a privacy notice
-(KVKK), account deletion. Public sign-up is **off** in Supabase Auth today — turn it on only
-when M3 ships.
+The user chose a mailbox on the domain: `iletisim@hacininkokteylleri.tech` with Namify's
+free e-mail (manage.get.tech → the domain → Email). Creating it needs a password — **the user
+creates it**; the agent adds the MX/SPF records Namify asks for if needed. Then set `CONTACT`
+in `src/app/(site)/privacy/page.tsx` and remove the draft banner when M3 opens.
+
+### Step 4 — open M3 (with the user's go)
+
+`ACCOUNTS_OPEN = true` in `src/lib/account-config.ts` (the navbar link appears), sign-ups on in
+Supabase, deploy, check on the live domain from outside (plan.md §5.4).
+
+### Then
+
+E-mail + password sign-in with Resend (needs a Resend account and DNS records at Namify),
+avatar upload on `/account`, the wordmark in the navbar, Hacı's own first admin sign-in.
+After M3: M4 reviews and favourites (ADR-014 has the tables).
 
 ---
 
@@ -92,96 +105,104 @@ when M3 ships.
 
 | # | Question | Why it matters | Until it is answered |
 |---|---|---|---|
-| 1 | **Hacı's real e-mail address** | His login address's domain does not exist | Hacı can still sign in with his password + 2FA; resets impossible |
-| 2 | **Sign-in methods for the public (M3):** Google only, or Google + e-mail/password? Recommendation: **both**, Google first. E-mail needs a sender on the domain (e.g. Resend: free tier, DNS records at Namify) | Shapes M3's work and the accounts the user must open | M3 waits |
-| 3 | **Showcase votes:** one vote per user per period, or one per entry? Who approves applications — any admin, or only the owner? | M7's tables and rules | Ask while writing the ADR |
-| 4 | **What is public on a profile?** Username, display name, avatar, bio, logs, favourites? | Privacy, KVKK | Ask while writing the ADR |
+| 1 | **Open accounts to the public right after the e2e test, or wait for e-mail sign-in too?** | Google-only at launch is simpler; some people have no Google account | M3 stays closed |
+| 2 | **Colour theme:** keep the dark crimson "Rx" look, or explore a lighter/warmer palette for a wider audience? The cherry logo works on either | The user said the theme can change (ADR-015) | Today's palette stays |
+| 3 | **Resend:** whose account, and is `haci <noreply@hacininkokteylleri.tech>` fine as the sender? | E-mail sign-in, password resets | Google sign-in only |
+| 4 | **Hacı's first admin sign-in** — when can he do it (his phone, a network that does not block the domain)? | His 2FA factor is not enrolled yet | He cannot use the panel |
 
 ---
 
 ## 📍 Current State
 
 - **Production:** `hacininkokteylleri.tech` (apex), `www` → apex, `admin.hacininkokteylleri.tech`;
-  `main` deploys on push. Build passes; `/kokteyller` is static, revalidated hourly and on every
-  admin write.
-- **Supabase** `hacininkokteylleri-eu` (ref `qwvnhdghwycqlvsnlvlt`, Frankfurt). 5 migrations in
-  `supabase/migrations/`. Security advisor: only "leaked password protection" (Pro plan only —
-  expected). Performance advisor: clean. The paused Seoul project (`kdicsywipwkauonkxcdc`) is the
-  user's to delete in the dashboard.
-- **Auth:** sign-ups **off**; Site URL `https://hacininkokteylleri.tech`; redirect URLs for the
-  apex, the admin host and both localhost hosts; TOTP enabled.
-- **Admins:** owner "Efe" (`n.efeyigit@outlook.com`, 2FA enrolled), editor "Hacı" (not signed in
-  yet, no 2FA yet, e-mail to replace).
-- **Content:** 37 cocktails, 153 ingredients, 4 glossary terms, 37 photos — unchanged by the
-  end-to-end check (its test cocktail, photo and glossary term were deleted).
-- **WHOIS:** the registry publishes no registrant data. Nothing to buy or change.
+  `hacininkokteylleri.vercel.app` → 308 to the domain. `main` deploys on push; last pushes this
+  session built and deployed cleanly.
+- **Brand:** `haci` in titles, navbar, panel, home hero; personal "about" removed. Logo files
+  in `public/brand/` (SVG sources + PNGs: 1024 app icon, 512 Play Store icon, transparent mark,
+  wordmarks); favicon `src/app/icon.svg`, `src/app/apple-icon.png`. Re-export with
+  `node scripts/export-brand.mjs`.
+- **URLs are English:** `/cocktails`, `/login`, `/account`, `/welcome`, `/privacy`, `/u/{username}`,
+  `/auth/callback`; panel `/login`, `/setup-2fa`, `/verify`, `/glossary`, `/cocktails/new`,
+  `/cocktails/{id}`. Old Turkish paths 308-redirect (`next.config.mjs`).
+- **Supabase** (ref `qwvnhdghwycqlvsnlvlt`): 6 migrations (latest `20261013144804_community_accounts`).
+  Security advisor: only leaked-password protection (Pro plan — expected). Performance: clean.
+  Auth: sign-ups **off**, Google provider **on** (client ID `533154070020-18t31ta9tqcupnpe4bjul5p7lbpmeib1.apps.googleusercontent.com`,
+  secret only in Supabase), TOTP on.
+- **Admins:** owner "Efe" (`n.efeyigit@outlook.com`, 2FA), editor "Hacı" (**`furkancam99@hotmail.com`**
+  since this session; no sign-in yet, no 2FA yet).
+- **Members:** none yet (no rows in `profiles`).
+- **Search Console** (`wowcubey@gmail.com`): Domain property verified (TXT at Namify), sitemap
+  submitted ("couldn't fetch" right after submitting is normal — it was live, 200 from outside),
+  Change of Address vercel.app → domain in progress since 2026-10-13.
 
 ---
 
 ## ⚠️ Things That Will Bite You
 
 **Next.js 16 and the two hosts**
-- Middleware is **`src/proxy.ts`** exporting `proxy()`. `revalidateTag(tag)` needs a second
-  argument (`'max'`); `revalidatePath` is unchanged.
+- Middleware is **`src/proxy.ts`** exporting `proxy()`. It also redirects the vercel.app host and
+  refreshes the session **only** on account paths (`/login`, `/auth`, `/welcome`, `/account`);
+  other public pages must stay static (ADR-005).
 - The panel's pages live under `src/app/admin` but are **only** reachable through an `admin.*`
-  host; `localhost:3000/admin` is a 404 on purpose. Locally use **`http://admin.localhost:3000`**.
-- Links inside the panel are written **without** `/admin` (`/kokteyller/yeni`) — the proxy adds it.
-- **Never call `redirect()` inside a server action.** Next renders the target internally, past the
-  proxy, so on the admin host it rendered the public home page. Return `{ ok }` and navigate in the
-  browser (ADR-007). `redirect()` while rendering a page is fine.
-- A public page that touches cookies stops being static. Public pages use `createPublicClient()` only.
-- `<body suppressHydrationWarning>` is there because browser extensions (Claude in Chrome among
-  them) add `style="isolation:isolate"` before React loads.
+  host; locally **`http://admin.localhost:3000`**. Links inside the panel are written **without**
+  `/admin`.
+- **Never call `redirect()` inside a server action** (ADR-007) — return `{ ok }` and navigate in
+  the browser. `redirect()` while rendering a page, and in route handlers, is fine.
+- `src/lib/account.ts` is server-only (imports `next/headers`); client components import from
+  `src/lib/account-config.ts`.
+- **After renaming route folders, delete `.next`** — stale generated types break the build
+  ("Cannot find module …/kokteyller/page.js").
+- `next.config.mjs` redirects run before the proxy, so one list covers both hosts.
 
 **Supabase**
-- **New tables are fully granted to `anon` by default** here. Every new table: `revoke all … from
-  anon, authenticated`, grant only what is needed, enable RLS, write policies.
-- Write policies call `(select private.is_admin())`, which needs an `aal2` session (ADR-011). When
-  testing policies in SQL, set the claim: `set_config('request.jwt.claims', '{"sub":"…","role":"authenticated","aal":"aal2"}', true)`.
-- The MCP's `execute_sql` returns only the last statement's rows; inside one statement a
-  data-modifying CTE's writes are invisible to sibling subqueries; string literals in a `union`
-  need an explicit enum cast (`'owner'::public.admin_role`).
-- `apply_migration` assigns the version; read it with `list_migrations` before naming the mirror file.
-- Free plan: pauses after 7 idle days (the keep-alive cron prevents it), **no backups**, no
-  leaked-password check, no SMS 2FA.
-- The built-in mailer sends only to the org's members, a few per hour — no public e-mail sign-up
-  until a custom SMTP sender exists.
-- An admin who loses their phone: delete their factor (Authentication → Users → the user → MFA, or
-  `delete from auth.mfa_factors where user_id = …`); they enrol again at the next sign-in.
+- New tables are fully granted to `anon` by default: `revoke all`, grant only what is needed
+  (column grants where users must not touch a column), enable RLS, one permissive policy per
+  role and action (ADR-014).
+- Write policies call `(select private.is_admin())`, which needs `aal2`. To test policies in
+  SQL, set the claim and role inside a `do` block and end it with `raise exception` to roll
+  back (this session's 16 checks did exactly that).
+- `execute_sql` returns only the last statement's rows; `apply_migration` assigns the version —
+  read it with `list_migrations` before naming the mirror file.
+- A user who owns Storage objects cannot be deleted — the account page removes their
+  `avatars/{id}/…` files first.
+- Free plan: no backups, pauses after 7 idle days (keep-alive cron), built-in mailer only for
+  org members.
 
-**Auto mode and permissions**
-- A temporary policy letting `anon` write was **refused by the auto-mode safety check** as weakening
-  security. Bulk uploads go through the dashboard: Claude in Chrome → Storage → bucket →
-  `file_upload` on the page's hidden `<input type=file multiple>` (≤ 10 MB per call).
-- Never type passwords or create accounts; the user does. The user's TOTP codes come from their phone.
+**Google**
+- The OAuth client secret is shown **once**; it is already in Supabase. If it is ever needed
+  again, create a new secret in Google Cloud → Clients.
+- Two Google accounts are in play: **Search Console = `wowcubey@gmail.com`**, **Google Cloud =
+  `n.efeyigit@gmail.com`** (`authuser=1`).
+- Keep `public/googlece68c38f8ad9ec89.html` and the `verification.google` meta tag in
+  `src/app/layout.tsx` for at least 180 days — they keep the old vercel.app property verified
+  during the move.
+
+**Auto mode, permissions and tools**
+- Never type passwords or secrets, never create accounts; the user does. **Chrome autofills
+  the user's saved e-mail and password into Supabase's provider forms** — clear those fields
+  before saving.
+- `cat .env` is blocked by the auto-mode classifier; read one public variable with `grep`.
+- In the Bash tool, a heredoc containing apostrophes (Turkish text like "Hacı'nın") can fail
+  with "unexpected EOF" — write the script to the scratchpad with the Write tool and run it.
 
 **Browsers and consoles**
-- Use **Claude in Chrome**. The built-in browser pane is not signed in to anything.
-- **Keystrokes go only to the front tab.** With two tabs open, typing into the background one does
-  nothing; close the other tab first.
-- Typing right after a navigation can be lost if the page has not hydrated yet — click the field,
-  check, then type.
-- The Supabase dashboard tab sometimes stops answering screenshots; reload it.
-- Vercel's "Add Domain" dialog: the redirect-target combobox needs **Enter**; a click outside closes
-  the dialog without saving.
-- Namify's "Add a new record": **Host name empty = apex**; check the record type before Save (it
-  flipped to AAAA once).
-- **The network the user's computer was on blocks the new domain** (a Fortinet FortiGate: DNS answers
-  `208.91.112.55`, HTTPS shows a Fortinet certificate and a 403; WebFetch fails the same way because
-  it runs locally). Check DNS with `https://dns.google/resolve?name=…&type=A` and HTTP with
-  check-host.net (plan.md §5.4).
+- Use **Claude in Chrome**. Keystrokes go only to the front tab. The extension sometimes
+  disconnects — call `tabs_context_mcp` with `createIfEmpty: true` for a fresh group.
+- Google Cloud pages load slowly and their accessibility tree is often empty — use screenshots
+  and coordinates; wait a few seconds after navigation.
+- Namify's record-type dropdown: click it, type `TXT`, press **Enter** (clicking the option does
+  not select it). Host name empty = apex.
+- **The office network blocks the new domain** (a Fortinet FortiGate). Check DNS with
+  `https://dns.google/resolve?name=…` and HTTP with check-host.net (plan.md §5.4).
 
 **Windows**
-- A background `npm run dev` / `next start` leaves its `node` child running after the task is stopped.
-  Free the port by PID: `Get-NetTCPConnection -LocalPort 3000 -State Listen` → check the command line
-  is ours → `Stop-Process`.
+- A background `next start` keeps its `node` child after the task stops. Free the port by PID:
+  `Get-NetTCPConnection -LocalPort 3000 -State Listen` → check the command line → `Stop-Process`.
 - Git has no identity configured on this machine; commit with
-  `git -c user.name=nefeygt -c user.email=n.efeyigit@outlook.com commit …` (the identity of every
-  earlier commit).
+  `git -c user.name=nefeygt -c user.email=n.efeyigit@outlook.com commit …`.
 
 **Photos**
-- Never overwrite an object in the bucket: new name, update the row, delete the old object (ADR-006).
-- The sparkle remover assumes the Gemini sparkle's position; untick it for real photos.
+- Never overwrite an object in a bucket: new name, update the row, delete the old object (ADR-006).
 
 ---
 
@@ -190,21 +211,25 @@ when M3 ships.
 | Question | Answer |
 |---|---|
 | Where is the backend? | **Supabase, Frankfurt** (ADR-003) |
-| Can the Seoul project be deleted? | **Yes** — the user deletes it in the dashboard |
-| Where do recipes live, and where is the panel? | **The database; `admin.hacininkokteylleri.tech`** (ADR-004, ADR-007) |
-| Who are the admins? | **Owner "Efe" (the user) and editor "Hacı"**; both create, edit and delete cocktails |
-| 2FA for the panel? | **Yes, TOTP, enforced by the database** (ADR-011) — the user asked 2026-10-13 |
-| Remove the Gemini watermark from photos? | **Yes** — done for the 37 and on by default for uploads (ADR-006) |
-| Canonical domain? | **`hacininkokteylleri.tech`** (no www) (ADR-010) |
-| Buy WHOIS privacy, or change the contact details? | **Neither** — the public record already shows no personal data (checked 2026-10-13) |
-| Reviews and logs? | **One review per person per cocktail; unlimited logs with their own notes** (ADR-012) |
-| Mobile app stack and timing? | **Expo, after M3** (ADR-013) |
-| Does the home page stay Hacı's? | **Yes** — community recipes live on profiles and feeds; the home page changes only through the showcase |
+| Clerk for public accounts (GitHub Student Pack)? | **No — Supabase Auth** (ADR-014, the user agreed) |
+| Sign-in methods for the public? | **Google first, then e-mail + password** (Resend) |
+| What is public on a profile? | Username, display name, avatar, bio, reviews, favourites. **Drink logs private by default** (ADR-014) |
+| Showcase voting? | **Upvotes: one per user per entry, self-votes allowed; any admin approves** (ADR-014) |
+| Hacı's e-mail? | **`furkancam99@hotmail.com`** — set 2026-10-13 |
+| Brand name? | **`haci`, lowercase, everywhere** (ADR-015) |
+| Domain? | **Stays `hacininkokteylleri.tech`** for now (ADR-010, ADR-015) |
+| Language of URLs and settings? | **English**; UI Turkish; localization later (ADR-015) |
+| Logo? | **The cherry ("Kiraz")** — `public/brand/` (ADR-015) |
+| Logo on Google's consent screen? | **Not now** — publish without it; add with verification later |
+| Privacy contact address? | **A mailbox on the domain** (`iletisim@…`), not a personal address |
+| Admins, 2FA, canonical domain, WHOIS, reviews/logs, mobile stack | See ADR-007, 011, 010, plan.md M2, ADR-012, ADR-013 |
 
 ---
 
 ## 🧭 Look-ahead
 
-- **M3 — Accounts** (after ADR-014): public sign-in, profiles, 18+ gate, privacy notice.
-- **M4** reviews and favourites · **M5** drink log · **M6** community recipes and feeds ·
-  **M7** showcase · **M8** Expo app.
+- **M3** finish and open → **M4** reviews and favourites → **M5** drink log → **M6** community
+  recipes and feeds → **M7** showcase → **M8** Expo apps (the cherry icon is ready:
+  `public/brand/haci-app-icon-1024.png`, `haci-play-store-512.png`; the adaptive-icon foreground
+  needs the mark scaled into the 66% safe zone).
+- Icebox highlights: localization (English first), colour theme review, a `haci` domain.

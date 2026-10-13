@@ -9,7 +9,7 @@
 > **Language rule (ADR-002):** everything we write — docs, code, comments, commits, SQL — is
 > **English**. Everything visitors and admins read — UI strings, recipes — is **Turkish**.
 
-**Last updated:** 2026-10-13 · **Active milestones:** M1 (admin panel, built — needs real accounts) and M2 (domain live; settings left)
+**Last updated:** 2026-10-13 (night) · **Active milestone:** M3 — Accounts (database and pages built, closed to the public) · **Brand:** `haci` (ADR-015)
 
 ---
 
@@ -17,20 +17,20 @@
 
 | Field | State |
 |---|---|
-| Active milestone | **M1 — Admin panel**: checked end to end with the owner's account and 2FA; **Hacı's first sign-in** (his own authenticator app) left. **M2 — Domain**: live; Google Search Console left |
-| Last completed | **M0 — Foundation**, deployed as `a871688`: Supabase in Frankfurt, the 37 recipes and photos in the database and Storage, the site reading from it, this documentation system. **The site is live on `hacininkokteylleri.tech`** |
-| Blockers | None in the code. Hacı's account uses `mustafafurkancam@hacininkokteylleri.com` — **that domain does not exist**; replace it with his real address (next_session.md). The network this computer was on (a Fortinet FortiGate) blocks the new domain — check from outside (§5.4) |
-| Next critical decision | **The community data model ADR** (before M3): profiles, reviews (one per person per cocktail — ADR-012), drink logs, user recipes, showcase. The mobile app is decided: Expo, after M3 (ADR-013) |
+| Active milestone | **M3 — Accounts**: `profiles`/`account_settings` live with RLS (tested); `/login` (Google), `/welcome`, `/account`, `/u/{username}`, `/privacy` built; Google provider on in Supabase. **Closed to the public** (`ACCOUNTS_OPEN = false`, sign-ups off). Left: publish the Google app, an end-to-end sign-in, e-mail sign-in (Resend), the privacy contact address |
+| Last completed | **M2 — Domain** (Search Console moved from vercel.app to the domain) and the **brand change to `haci`** with English URLs and the cherry logo (ADR-015). M1 is done except Hacı's own first sign-in |
+| Blockers | None in the code. The Google OAuth app is still in **Testing** (only test users can sign in) — publish it (next_session.md). The network the user's office computer is on (a Fortinet FortiGate) blocks the domain — check from outside (§5.4) |
+| Next critical decision | **The colour theme** for a global audience (the user is open to change, ADR-015) and, later, localization. The mobile app is decided: Expo, after M3 (ADR-013) |
 
 ---
 
 ## 2. Project Summary
 
-**Hacı'nın Kokteylleri** is a cinematic cocktail archive built by Nazım Efe Yiğit (the
-user, the site's owner) for his closest friend M. Furkan Çam — **Hacı** — a medical
-student, cinephile and philosophy reader who creates the recipes. It started as a static
-Next.js site on Vercel and is becoming a brand: its own domain, an admin panel for Hacı,
-user accounts and community features, and a mobile app.
+**haci** (formerly *Hacı'nın Kokteylleri*) is a cinematic cocktail archive built by Nazım
+Efe Yiğit (the user, the site's owner) with his closest friend M. Furkan Çam — **Hacı** —
+who creates the recipes. It started as a static Next.js site on Vercel and is becoming a
+product for a global audience: the brand `haci` (ADR-015), its own domain, an admin panel,
+user accounts and community features, and iOS/Android apps.
 
 **Who it is for.** Turkish-speaking cocktail lovers. Tone: cinematic, witty, a little
 political ("İtalyan burjuvazisine inat"), prescription-styled (Rx, mono type, crimson on
@@ -49,14 +49,18 @@ around the archive; they never crowd it off the home page except through the sho
 
 ### 3.1 What exists
 
-- **Home** (`/`) — hero, "Hakkında".
-- **Archive** (`/kokteyller`) — 37 recipes; search (with vodka/votka-style aliases), filters
+- **Home** (`/`) — hero with the `haci` name and a link to the archive (the personal
+  "Hakkında" section was removed on 2026-10-13: the site is a brand now).
+- **Archive** (`/cocktails`) — 37 recipes; search (with vodka/votka-style aliases), filters
   by base spirit, flavour and ingredient; a card per cocktail opening a prescription-style
   modal: ingredients drawn as icons (`VisualQuantity`), steps, garnish, note, vegan badge.
   Glossary terms ("Top up", "Şeker Şurubu", …) are underlined with a tooltip.
 - **Admin panel** (`admin.` subdomain) — sign in; list with publish/draft toggle; create,
   edit and delete a cocktail with its ingredients, steps and photo (resized, WebP, Gemini
   sparkle removed in the browser); glossary editor. Every save is live on the site at once.
+- **Accounts (M3, closed)** — `/login` (Google), `/welcome` (username, 18+, privacy notice),
+  `/account` (edit profile, sign out, delete account), `/u/{username}`, `/privacy` (KVKK
+  notice, draft). Hidden from the navbar until `ACCOUNTS_OPEN` in `src/lib/account-config.ts`.
 
 ### 3.2 Roadmap — what the user has asked for (2026-10-13)
 
@@ -104,6 +108,8 @@ In the user's words, collected while M0 was being built. Milestones in §6.
 | 008 | Public config committed in `.env` | A fresh clone runs; secrets never committed |
 | 009 | Migrations via MCP, mirrored with exact versions | The repo always describes the database |
 | 010 | Apex canonical; DNS records at Namify | Short brand URL; three records, nothing moved |
+| 014 | Community data model: everything hangs off `profiles` | Rules in the database; additive per milestone |
+| 015 | Brand `haci`; English paths, Turkish UI; cherry logo | A global product with one short name |
 
 → Full rationale and rejected alternatives: [adr.md](adr.md)
 
@@ -122,7 +128,7 @@ In the user's words, collected while M0 was being built. Milestones in §6.
                                  │ publishable key, RLS                        │ admin's session, RLS
                  ┌───────────────▼────────── Supabase "hacininkokteylleri-eu" (Frankfurt) ────────┐
  mobile app ────►│ Postgres: cocktails · cocktail_ingredients · glossary_terms · admins            │
-   (planned)     │ Auth: email + password (admins only for now)                                   │
+   (planned)     │ Auth: admins pw + TOTP; members Google (M3)                                    │
                  │ Storage: public bucket "cocktail-images" (WebP)                                │
                  └────────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -144,19 +150,21 @@ migration file with the version Supabase applied (ADR-009).
 | `cocktail_ingredients` | `cocktail_id`, `position` (unique together), `name`, `amount numeric(6,2)`, `unit`, `icon` enum | as its cocktail | admins |
 | `glossary_terms` | `term` PK, `definition` | everyone | admins |
 | `admins` | `user_id` → `auth.users`, `role` (`owner`/`editor`), `display_name` | own row; admins (all) | nobody over the API — SQL only |
+| `account_settings` | `user_id` PK → `auth.users`, `adult_confirmed_at` (server time), `privacy_notice_version`, `logs_public_default` | owner; admins | owner (column grants) |
+| `profiles` | `id` PK → `auth.users`, `username` unique `^[a-z0-9_]{3,20}$` minus a reserved list, `display_name`, `avatar_path` (`avatars/{id}/…`), `bio` ≤ 280, `hidden_at`/`hidden_by` | everyone (not hidden); owner; admins | owner, only after `account_settings` exists; admins hide |
 
 Functions: `private.is_admin()` (an `admins` row **and** a 2FA session, `aal2` — ADR-011; used
 by every write policy; not exposed over HTTP) and
 `public.save_cocktail(cocktail jsonb, ingredients jsonb)` (one-transaction save, security
-invoker). Storage policies on `cocktail-images`: admins list/insert/update/delete.
+invoker). Storage policies on `cocktail-images`: admins list/insert/update/delete. M3 added
+`private.guard_moderation()` (only admins set `hidden_at`; it writes `hidden_by`),
+`public.delete_my_account()` → `private.delete_account()` (security definer; refuses admins
+and users who still own Storage objects), and the public `avatars` bucket (512 KB,
+WebP/JPEG; users write only under their own folder).
 
-**Community model — a sketch, decided with an ADR at M3/M4, not before:**
-`profiles` (one per auth user: username, display name, avatar); `cocktails.author_id`
-(null = Hacı's house recipe) so user recipes share the recipe shape; `reviews` (rating 1–5
-plus optional text, **unique per user and cocktail** — ADR-012); `favorites`; `drink_logs`
-(**many per user and cocktail**: date, note, and a **jsonb snapshot of the recipe as made**);
-`showcase_periods`,
-`showcase_entries`, `showcase_votes`. All additive to today's schema.
+**The rest of the community model is decided in ADR-014** (reviews, favourites, drink logs,
+community recipes in `cocktails` with `author_id`, showcase, reports) and is built
+milestone by milestone.
 
 ### 5.3 Code map
 
@@ -167,24 +175,34 @@ src/
     layout.tsx                  root: fonts, globals, metadata
     (site)/                     public site (Navbar in its layout)
       page.tsx                  home
-      kokteyller/page.tsx       archive — server component, ISR 1h
+      cocktails/page.tsx        archive — server component, ISR 1h
+      login/ welcome/ account/  member sign-in, onboarding, account (dynamic; account/actions.ts)
+      u/[username]/             public profile (ISR 5 min)
+      privacy/                  KVKK notice (static)
     admin/                      the panel (only reachable through admin.*)
-      giris/                    sign-in
-      iki-adim/                 first sign-in: connect an authenticator app (QR code)
-      dogrula/                  later sign-ins: the 6-digit code
-      (panel)/                  everything behind requireAdmin(): list, kokteyller/yeni, kokteyller/[id], sozluk
+      login/                    sign-in
+      setup-2fa/                first sign-in: connect an authenticator app (QR code)
+      verify/                   later sign-ins: the 6-digit code
+      (panel)/                  everything behind requireAdmin(): list, cocktails/new, cocktails/[id], glossary
       actions.ts                every write (server actions)
       CocktailForm.tsx, ImageField.tsx, GlossaryEditor.tsx, PublishToggle.tsx
+    auth/callback/route.ts      Google → Supabase → here: code exchange, then /welcome or next
     api/keepalive/route.ts      daily ping (vercel.json cron)
+    icon.svg, apple-icon.png    favicon and touch icon (the cherry, ADR-015)
+    robots.ts, sitemap.ts       for search engines
   components/                   site components (CocktailBrowser, CocktailCard, CocktailModal, Tooltip, …)
   lib/
     content.ts                  DB rows → the shapes components draw; public fetchers
     admin.ts                    requireAdmin()
+    account.ts                  accountSession(), requireMember() (server only)
+    account-config.ts           ACCOUNTS_OPEN, PRIVACY_NOTICE_VERSION, safeNext() (browser-safe)
+    brand.ts                    BRAND = "haci" 
     slug.ts                     Turkish-aware slugify
     supabase/                   config, public/server/browser/proxy clients, database.types.ts (generated)
 supabase/
   migrations/                   {version}_{name}.sql — mirrors of what is applied (ADR-009)
   storage/cocktail-images/      the 37 imported WebPs (the bucket's starting content)
+public/brand/                   logo sources (SVG) and exported PNGs; scripts/export-brand.mjs renders them
 ```
 
 ### 5.4 Run and verify
@@ -201,7 +219,10 @@ Smoke test against a running server (`npx next start -p 3000` after a build):
 ```bash
 curl -s localhost:3000/api/keepalive                                   # {"ok":true,"cocktails":37}
 curl -s -o /dev/null -w "%{http_code}\n" localhost:3000/admin          # 404 — panel hidden on the public host
-curl -s -o /dev/null -w "%{http_code}\n" -H "Host: admin.localhost:3000" localhost:3000/giris   # 200
+curl -s -o /dev/null -w "%{http_code}\n" -H "Host: admin.localhost:3000" localhost:3000/login   # 200
+curl -s -o /dev/null -w "%{http_code} %{redirect_url}\n" localhost:3000/kokteyller    # 308 → /cocktails
+curl -s -o /dev/null -w "%{http_code} %{redirect_url}\n" localhost:3000/account       # 307 → /login (signed out)
+curl -s -o /dev/null -w "%{http_code} %{redirect_url}\n" -H "Host: hacininkokteylleri.vercel.app" localhost:3000/   # 308 → the domain
 ```
 
 **Checking the live domain from this machine can fail for a reason that is not ours:** the
@@ -229,7 +250,8 @@ After any schema change: mirror the migration, regenerate `database.types.ts`, r
 | Vercel | project `hacininkokteylleri`, team "Nazım Efe Yiğit's projects", **Hobby** | Domains: apex, `www` (308 → apex), `admin` |
 | Supabase | org `hacininkokteylleri` (free); project **`hacininkokteylleri-eu`**, ref **`qwvnhdghwycqlvsnlvlt`**, eu-central-1 | Connected to Claude through the Supabase MCP. Old Seoul project `kdicsywipwkauonkxcdc` paused — the user deletes it |
 | Domain | `hacininkokteylleri.tech` at get.tech / Namify (`manage.get.tech`) | Registered 2026-10-13, expires 2027-10-13; **auto-renew on, $29.99 on 2027-09-11**; WHOIS privacy off |
-| Google Search Console | verification meta tag in `src/app/layout.tsx` | Add the new domain as a property (M2) |
+| Google Search Console | account `wowcubey@gmail.com`; **Domain property `hacininkokteylleri.tech`** (DNS TXT at Namify); sitemap submitted | The old `https://hacininkokteylleri.vercel.app/` property is **moving** to the domain (Change of Address, started 2026-10-13). It stays verified by the meta tag in `src/app/layout.tsx` and `public/googlece68c38f8ad9ec89.html` (served on vercel.app without the redirect) — keep both for 180 days |
+| Google Cloud | account `n.efeyigit@gmail.com`, project **`haci`** (`haci-511515`) | Google Auth Platform: app name `haci`, External, **Testing** (publish next). OAuth web client "haci web (Supabase Auth)": origins the domain and `http://localhost:3000`, redirect `https://qwvnhdghwycqlvsnlvlt.supabase.co/auth/v1/callback`. The secret lives only in Supabase |
 
 ---
 
@@ -254,25 +276,31 @@ After any schema change: mirror the migration, regenerate `database.types.ts`, r
 - [x] Fixed on the way: server-action redirects bypassed the proxy and showed the public home on the admin host (ADR-007)
 - [x] Public sign-ups turned off in Supabase Auth until M3
 - [ ] Hacı signs in once, on his phone, and enrols his own authenticator app
-- [ ] Hacı's login e-mail replaced with a real one (see Blockers)
+- [x] Hacı's login e-mail replaced with his real one (`auth.users` and his e-mail identity, 2026-10-13)
 - [ ] The same check once on the live `admin.hacininkokteylleri.tech` from a network that does not block it
 
-### 🔵 M2 — Domain live `LIVE — settings left`
+### ✅ M2 — Domain live `DONE 2026-10-13`
 
 - [x] Vercel: apex, `www` → apex (308), `admin` added to the project
 - [x] Namify DNS: `A @ 216.198.79.1`, `CNAME www` and `CNAME admin` → `1327916967901761.vercel-dns-017.com`
 - [x] All three serve over HTTPS — apex 200, `admin` 307 to its sign-in, `www` 308 to the apex (checked from outside with check-host.net, 2026-10-13)
 - [x] Supabase Auth → URL Configuration: Site URL `https://hacininkokteylleri.tech`; redirect URLs `https://hacininkokteylleri.tech/**`, `https://admin.hacininkokteylleri.tech/**`, `http://admin.localhost:3000/**`, `http://localhost:3000/**`
 - [x] WHOIS: checked — the public record (RDAP and port-43 WHOIS at the registry) shows **no registrant data at all**, only Namify's. Paid privacy is not needed; do not put false data in the contact details (inaccurate WHOIS can get a domain suspended)
-- [ ] Google Search Console: add `hacininkokteylleri.tech` (DNS TXT at Namify)
-- [ ] Consider redirecting `hacininkokteylleri.vercel.app` to the apex
+- [x] Google Search Console: Domain property `hacininkokteylleri.tech` verified (DNS TXT at Namify), sitemap submitted, Change of Address from the vercel.app property started (2026-10-13)
+- [x] `hacininkokteylleri.vercel.app` 308-redirects to the domain (`src/proxy.ts`), except its Search Console verification file
 
-### ⚪ M3 — Accounts
+### 🔵 M3 — Accounts `BUILT, CLOSED — Google publish, e2e test and e-mail left`
 
-Public sign-up and sign-in (Google, and email with a custom SMTP sender on the domain —
-Supabase's built-in mailer only reaches the org's own members), `profiles`, an 18+
-confirmation, a privacy notice (KVKK) and account deletion. The admin panel keeps its own
-sign-in. **An ADR for the community data model comes first.**
+- [x] ADR-014 (community data model), agreed with the user
+- [x] Migration `community_accounts`: `account_settings`, `profiles`, moderation guard, `avatars` bucket, `delete_my_account()`; 16 policy checks in SQL (rolled back); advisors clean
+- [x] Pages: `/login` (Google), `/auth/callback`, `/welcome`, `/account` (profile, sign out, delete), `/u/{username}`, `/privacy` (draft)
+- [x] Google Cloud project `haci` + OAuth client; Google provider enabled in Supabase (secret pasted by the user)
+- [ ] Publish the Google app (Branding: home page, `/privacy`, domains `hacininkokteylleri.tech` + `supabase.co`; then Audience → Publish) — **without a logo** (a logo forces Google verification; the user agreed)
+- [ ] End to end in a browser: sign in with Google → `/welcome` → `/account` → delete (needs sign-ups on for the test, then off again)
+- [ ] Privacy notice: contact address (`iletisim@hacininkokteylleri.tech` on Namify's free mailbox — the user's choice) and a final read
+- [ ] E-mail and password sign-in with a sender on the domain (Resend), after Google
+- [ ] Avatar upload on `/account`
+- [ ] Open it: `ACCOUNTS_OPEN = true`, sign-ups on
 
 ### ⚪ M4 — Reviews and favourites
 
@@ -326,6 +354,13 @@ when it starts.
 - Ingredient names are free text ("Vodka" and "Votka" both exist), which the future
   drink log and "what can I make" features will want normalised.
 - A photo uploaded in the panel and then abandoned (form not saved) stays in the bucket.
+- Google's consent screen will say "continue to `qwvnhdghwycqlvsnlvlt.supabase.co`" rather
+  than `haci` until the app is brand-verified and Supabase Auth runs on our own domain
+  (custom domain is a paid add-on).
+- The reserved-username list (migration `community_accounts`) holds the old Turkish route
+  words; profiles live under `/u/`, so nothing collides — add the English ones with the next
+  profiles migration.
+- The owner's authenticator entry is named "Hacı'nın Kokteylleri" (the old issuer); harmless.
 
 ---
 
@@ -339,6 +374,11 @@ when it starts.
 - Google sign-in for admins
 - A cleanup for orphaned photos in the bucket
 - HEIC photos from iPhones (today the browser must be able to decode the file)
+- **Localization** — English first, then others; UI strings out of the components (the user,
+  2026-10-13: later, once the current work is done)
+- **Colour theme review** for a wider audience (the user is open to change; logo colours follow)
+- A `haci` domain, if the product grows (ADR-015)
+- The `haci` wordmark (`public/brand/haci-wordmark-light.svg`) in the navbar instead of text
 
 ---
 
@@ -346,5 +386,6 @@ when it starts.
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-10-13 (night) | ADR-014 + M3 build + brand | ADR-014 agreed (Supabase Auth kept over Clerk). Hacı's real e-mail set. M3 database (profiles, settings, moderation guard, avatars, account deletion) and pages built, closed. Search Console moved to the domain; vercel.app redirects. Personal "about" removed; **brand `haci`**, English URLs, cherry logo (ADR-015). Google Cloud project + OAuth client; Google provider on in Supabase |
 | 2026-10-13 (later) | M1 check + 2FA | Admin accounts added (owner "Efe", editor "Hacı"). **2FA required for admin powers** (ADR-011), the owner enrolled. Panel checked end to end. Server-action redirect bug fixed. Sign-ups off; Auth URLs set. WHOIS checked — already private. Decisions: one review per person per cocktail, unlimited logs (ADR-012); Expo after M3 (ADR-013) |
 | 2026-10-13 | M0 + M1 build + M2 setup | Documentation system. Supabase recreated in Frankfurt (Seoul paused). Schema, RLS, content and photos imported; Gemini sparkles removed. Site reads from Supabase. Admin panel on `admin.` built. Domain bought by the user; Vercel domains and Namify DNS configured. Deployed (`a871688`); live on `hacininkokteylleri.tech`, checked from outside |

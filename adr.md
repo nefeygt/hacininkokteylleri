@@ -24,6 +24,7 @@
 | 012 | Reviews are one per person per cocktail; logs are unlimited | ✅ Accepted (shape of the tables decided at M4/M5) | 2026-10-13 |
 | 013 | The mobile app is Expo, started after accounts (M3) | ✅ Accepted | 2026-10-13 |
 | 014 | The community data model | ✅ Accepted (built milestone by milestone, M3–M7) | 2026-10-13 |
+| 015 | The brand is "haci"; paths and settings are English | ✅ Accepted | 2026-10-13 |
 
 ---
 
@@ -501,3 +502,45 @@ their own; only admins read and resolve them.
 - *One vote per user per period:* the user chose upvotes.
 - *Counting votes through a security-definer view:* the security advisor flags those, and it
   would expose who voted for what.
+
+---
+
+## ADR-015 — The brand is "haci"; paths and settings are English
+
+**Context.** On 2026-10-13 the user decided the project is becoming a product for a global
+audience, not a personal gift site: "Hacı'nın Kokteylleri" is too long and too Turkish for
+app stores, and the personal "about Hacı" text did not belong on a brand's home page.
+
+**Decision (the user's).**
+- **The brand name is `haci`, always lowercase**, everywhere a person reads the product's
+  name: the website, the admin panel, the Google sign-in screen, authenticator entries and the
+  future iOS/Android apps. It lives in one constant, `BRAND` in `src/lib/brand.ts`; page
+  titles come from the root layout's template (`%s · haci`).
+- **The domain stays `hacininkokteylleri.tech`** for now; moving to a "haci" domain is for
+  later, if the product grows (ADR-010 still applies).
+- **Every path, query parameter and setting is English; only what people read is Turkish.**
+  This extends ADR-002 to URLs: `/cocktails`, `/login`, `/account`, `/welcome`, `/privacy`,
+  `/u/{username}`; in the panel `/glossary`, `/setup-2fa`, `/verify`, `/cocktails/new`;
+  `?error=`, `?access=denied`. The Turkish paths they replaced redirect permanently
+  (`next.config.mjs`). Recipe content stays Turkish; localization (English first) is
+  planned, not scheduled (plan.md §9).
+- **The logo is the cherry ("Kiraz")**, chosen from three concepts (cherry, coupe glass,
+  prescription "h"). Sources in `public/brand/`: `haci-mark.svg` (transparent mark),
+  `haci-app-icon.svg` (full-bleed square, `#141414` ground), `haci-wordmark-{light,dark}.svg`
+  (lowercase monoline "haci" whose i-dot is the cherry, drawn as paths so no font is
+  needed). `node scripts/export-brand.mjs` renders the PNGs (1024 app icon, 512 Play Store
+  icon, 180 Apple touch icon, transparent mark, wordmarks). The site's favicon is
+  `src/app/icon.svg`. Colours: cherry `#c0392b`, shade `#8b1a1a`, stem and type `#e8e6e3`,
+  ground `#141414` — today's palette; a theme review may change them.
+
+**Consequences.**
+- (+) One short, pronounceable name across web and stores; URLs that read the same in any
+  language.
+- (−) The domain and the brand differ until a "haci" domain is bought.
+- (−) The owner's authenticator entry still says "Hacı'nın Kokteylleri" (issuer at
+  enrolment); new enrolments say "haci". The panel's code screen mentions both.
+
+**Rejected.** *Keeping "Hacı'nın Kokteylleri":* long, untranslatable, and the dotless ı breaks
+in many fonts and store search. *The coupe glass logo:* generic among cocktail apps. *The
+prescription "h":* closest to today's Rx styling, but alcohol + "prescription" risks reading
+as a medical claim in app-store review.

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <title>haci</title>
+  <rect width="1024" height="1024" fill="#141414"/>
+  <g transform="translate(512 512) scale(0.82) translate(-540 -475)">
+    <path d="M472 412 C480 300 540 200 640 140" fill="none" stroke="#e8e6e3" stroke-width="26" stroke-linecap="round"/>
+    <path d="M640 140 C700 88 800 98 842 150 C782 204 690 202 640 140 Z" fill="#e8e6e3"/>
+    <path d="M470 410 C410 360 240 380 240 610 C240 760 350 850 470 850 C590 850 700 760 700 610 C700 380 530 360 470 410 Z" fill="#c0392b"/>
+    <path d="M700 610 C700 760 590 850 470 850 C570 812 646 732 660 600 C666 520 650 450 610 400 C670 420 700 500 700 610 Z" fill="#8b1a1a"/>
+    <ellipse cx="368" cy="545" rx="36" ry="64" transform="rotate(-24 368 545)" fill="#ffffff" fill-opacity="0.3"/>
+  </g>
+</svg>

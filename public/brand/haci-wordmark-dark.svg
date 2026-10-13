@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -16 300 140">
+  <title>haci</title>
+  <g fill="none" stroke="#141414" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M20 10 V110"/>
+    <path d="M20 80 C20 61 33 50 47 50 C62 50 74 61 74 78 V110"/>
+    <circle cx="126" cy="80" r="27"/>
+    <path d="M153 53 V110"/>
+    <path d="M228.7 62.6 A27 27 0 1 0 228.7 97.4"/>
+    <path d="M252 54 V110"/>
+  </g>
+  <path d="M253 10 C255 3 261 -1 268 -3" fill="none" stroke="#141414" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M268 -3 C274 -9 284 -8 288 -3 C282 2 273 2 268 -3 Z" fill="#141414"/>
+  <path d="M252 10 C246 4 233 6 233 22 C233 32 241 39 252 39 C263 39 271 32 271 22 C271 6 258 4 252 10 Z" fill="#c0392b"/>
+</svg>

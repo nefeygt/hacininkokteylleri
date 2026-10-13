@@ -1,4 +1,4 @@
-# Hacı'nın Kokteylleri — agent instructions
+# haci (formerly Hacı'nın Kokteylleri) — agent instructions
 
 Before doing anything, read in order:
 1. `plan.md` — the single source of truth (status, product, architecture, milestones)
@@ -6,7 +6,8 @@ Before doing anything, read in order:
 3. `adr.md` — closed decisions; apply them, don't relitigate them
 
 Rules that hold in every session:
-- Everything you write in the repository is English; everything visitors or admins read is Turkish (ADR-002). The user may chat in Turkish.
+- Everything you write in the repository is English — URL paths, query parameters and settings included; everything visitors or admins read is Turkish (ADR-002, ADR-015). The user may chat in Turkish.
+- The brand is `haci`, always lowercase (`src/lib/brand.ts`, ADR-015).
 - Every table has Row Level Security and every permission is a policy. No secret key in the app (ADR-007).
 - Schema changes: apply with the Supabase MCP, mirror as `supabase/migrations/{version}_{name}.sql`, regenerate `src/lib/supabase/database.types.ts`, run the advisors (ADR-009). Supabase project ref: `qwvnhdghwycqlvsnlvlt`.
 - `npm run build` passes before every push; `main` deploys to production.
