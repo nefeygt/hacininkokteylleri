@@ -18,6 +18,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_settings: {
+        Row: {
+          adult_confirmed_at: string
+          created_at: string
+          logs_public_default: boolean
+          privacy_notice_version: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          adult_confirmed_at?: string
+          created_at?: string
+          logs_public_default?: boolean
+          privacy_notice_version: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          adult_confirmed_at?: string
+          created_at?: string
+          logs_public_default?: boolean
+          privacy_notice_version?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       admins: {
         Row: {
           created_at: string
@@ -161,11 +188,48 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          avatar_path: string | null
+          bio: string | null
+          created_at: string
+          display_name: string
+          hidden_at: string | null
+          hidden_by: string | null
+          id: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          avatar_path?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name: string
+          hidden_at?: string | null
+          hidden_by?: string | null
+          id: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          avatar_path?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string
+          hidden_at?: string | null
+          hidden_by?: string | null
+          id?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      delete_my_account: { Args: never; Returns: undefined }
       save_cocktail: {
         Args: { cocktail: Json; ingredients: Json }
         Returns: string

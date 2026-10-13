@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Wine, Film } from "lucide-react";
+import AccountLink from "./AccountLink";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -27,6 +28,7 @@ export default function Navbar() {
           <NavLink href="/kokteyller" active={pathname === "/kokteyller"}>
             Kokteyller
           </NavLink>
+          <AccountLink active={pathname === "/hesap" || pathname === "/giris"} />
           <a
             href="https://letterboxd.com/krasic/"
             target="_blank"
