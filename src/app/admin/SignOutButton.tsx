@@ -23,7 +23,7 @@ export default function SignOutButton({
       onClick={() =>
         startTransition(async () => {
           await signOut();
-          window.location.assign("/giris");
+          window.location.assign("/login");
         })
       }
     >

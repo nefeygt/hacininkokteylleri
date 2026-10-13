@@ -87,7 +87,7 @@ export default function CocktailForm({
         return;
       }
       if (isNew && result.id) {
-        router.replace(`/kokteyller/${result.id}`);
+        router.replace(`/cocktails/${result.id}`);
       } else {
         setSaved(true);
         router.refresh();

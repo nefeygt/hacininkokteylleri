@@ -11,6 +11,23 @@ const nextConfig = {
       },
     ],
   },
+  // Paths are English (ADR-015); the Turkish ones they replaced redirect for
+  // good. One list serves both hosts: the admin host's proxy rewrite runs after
+  // these redirects.
+  async redirects() {
+    return [
+      ["/kokteyller/yeni", "/cocktails/new"],
+      ["/kokteyller/:id", "/cocktails/:id"],
+      ["/kokteyller", "/cocktails"],
+      ["/giris", "/login"],
+      ["/hesap", "/account"],
+      ["/hosgeldin", "/welcome"],
+      ["/gizlilik", "/privacy"],
+      ["/sozluk", "/glossary"],
+      ["/iki-adim", "/setup-2fa"],
+      ["/dogrula", "/verify"],
+    ].map(([source, destination]) => ({ source, destination, permanent: true }));
+  },
   // The admin panel is developed at http://admin.localhost:3000 (ADR-007).
   allowedDevOrigins: ["admin.localhost"],
 };

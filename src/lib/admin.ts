@@ -37,12 +37,12 @@ export async function requireAdmin() {
     case "ok":
       return session;
     case "signed-out":
-      redirect("/giris");
+      redirect("/login");
     case "not-admin":
-      redirect("/giris?yetki=yok");
+      redirect("/login?access=denied");
     case "enroll":
-      redirect("/iki-adim");
+      redirect("/setup-2fa");
     case "verify":
-      redirect("/dogrula");
+      redirect("/verify");
   }
 }

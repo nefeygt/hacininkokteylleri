@@ -33,8 +33,8 @@ export async function accountSession() {
 /** Every member-only page starts here. Redirects happen during render, which is fine (ADR-007). */
 export async function requireMember() {
   const session = await accountSession();
-  if (session.state === "signed-out") redirect("/giris");
-  if (session.state === "onboarding") redirect("/hosgeldin");
+  if (session.state === "signed-out") redirect("/login");
+  if (session.state === "onboarding") redirect("/welcome");
   return session;
 }
 

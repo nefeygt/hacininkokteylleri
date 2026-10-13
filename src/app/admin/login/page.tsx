@@ -7,17 +7,17 @@ import SignInForm from "./SignInForm";
 export default async function SignInPage({
   searchParams,
 }: {
-  searchParams: Promise<{ yetki?: string }>;
+  searchParams: Promise<{ access?: string }>;
 }) {
-  const { yetki } = await searchParams;
+  const { access } = await searchParams;
 
   // Already signed in: send them on to the step they are at.
   const { state } = await adminSession();
   if (state === "ok") redirect("/");
-  if (state === "verify") redirect("/dogrula");
-  if (state === "enroll") redirect("/iki-adim");
+  if (state === "verify") redirect("/verify");
+  if (state === "enroll") redirect("/setup-2fa");
 
-  if (yetki === "yok" || state === "not-admin") {
+  if (access === "denied" || state === "not-admin") {
     return (
       <AuthCard title="Yönetim paneli" subtitle="Yalnızca yöneticiler girebilir.">
         <div className="space-y-4">

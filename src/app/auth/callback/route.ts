@@ -13,14 +13,14 @@ export async function GET(request: NextRequest) {
   if (!code) {
     // Supabase sends errors back as query parameters, e.g. when sign-ups are off.
     const description = searchParams.get("error_description") ?? "";
-    const reason = /signups? not allowed/i.test(description) ? "kapali" : "google";
-    return NextResponse.redirect(new URL(`/giris?hata=${reason}`, request.url));
+    const reason = /signups? not allowed/i.test(description) ? "closed" : "google";
+    return NextResponse.redirect(new URL(`/login?error=${reason}`, request.url));
   }
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
   if (error || !data.user) {
-    return NextResponse.redirect(new URL("/giris?hata=google", request.url));
+    return NextResponse.redirect(new URL("/login?error=google", request.url));
   }
 
   const { data: profile } = await supabase
@@ -29,6 +29,6 @@ export async function GET(request: NextRequest) {
     .eq("id", data.user.id)
     .maybeSingle();
 
-  const destination = profile ? next : `/hosgeldin?next=${encodeURIComponent(next)}`;
+  const destination = profile ? next : `/welcome?next=${encodeURIComponent(next)}`;
   return NextResponse.redirect(new URL(destination, request.url));
 }

@@ -23,10 +23,10 @@ export default function Navbar() {
           <NavLink href="/" active={pathname === "/"}>
             Ana Sayfa
           </NavLink>
-          <NavLink href="/kokteyller" active={pathname === "/kokteyller"}>
+          <NavLink href="/cocktails" active={pathname === "/cocktails"}>
             Kokteyller
           </NavLink>
-          <AccountLink active={pathname === "/hesap" || pathname === "/giris"} />
+          <AccountLink active={pathname === "/account" || pathname === "/login"} />
           <a
             href="https://letterboxd.com/krasic/"
             target="_blank"

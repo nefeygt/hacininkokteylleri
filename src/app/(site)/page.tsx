@@ -30,7 +30,7 @@ export default function Home() {
           {/* CTA buttons */}
           <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Link
-              href="/kokteyller"
+              href="/cocktails"
               className="group inline-flex items-center gap-2 rounded bg-crimson px-6 py-3 font-mono text-sm font-medium text-white transition-colors hover:bg-crimson-light"
             >
               Kokteyllere Git

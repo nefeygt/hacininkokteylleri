@@ -4,7 +4,7 @@ import { cache } from "react";
 import { createPublicClient } from "@/lib/supabase/public";
 
 // Public profiles, rendered on first visit and kept for a few minutes; a
-// profile edit revalidates its page at once (hesap/actions.ts).
+// profile edit revalidates its page at once (account/actions.ts).
 export const revalidate = 300;
 
 // No profile is built ahead of time; each is rendered on its first visit and cached.

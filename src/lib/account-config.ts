@@ -7,11 +7,11 @@
  */
 export const ACCOUNTS_OPEN = false;
 
-/** Shown at onboarding and stored in account_settings. Bump it when /gizlilik changes. */
+/** Shown at onboarding and stored in account_settings. Bump it when /privacy changes. */
 export const PRIVACY_NOTICE_VERSION = "2026-10";
 
 /** Only same-site paths are followed after sign-in, never another origin. */
-export function safeNext(next: string | null | undefined, fallback = "/hesap"): string {
+export function safeNext(next: string | null | undefined, fallback = "/account"): string {
   if (!next || !next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) return fallback;
   return next;
 }

@@ -25,7 +25,7 @@ export default function AccountLink({ active }: { active: boolean }) {
 
   return (
     <Link
-      href={signedIn ? "/hesap" : "/giris"}
+      href={signedIn ? "/account" : "/login"}
       className={`ml-1 flex items-center gap-1.5 rounded px-3 py-1.5 font-mono text-xs tracking-wide transition-colors ${
         active
           ? "bg-crimson/15 text-crimson-glow"

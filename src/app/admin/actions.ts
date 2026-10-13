@@ -12,7 +12,7 @@ import type { CocktailInput } from "./types";
 // Public pages that show content. Every write revalidates them, so an edit is
 // live on the site at once instead of within the hour (ADR-005).
 function revalidatePublicPages() {
-  revalidatePath("/kokteyller");
+  revalidatePath("/cocktails");
 }
 
 export type ActionResult = { error?: string; id?: string; ok?: boolean };
@@ -232,7 +232,7 @@ export async function saveGlossaryTerm(
   }
 
   revalidatePublicPages();
-  revalidatePath("/admin/sozluk");
+  revalidatePath("/admin/glossary");
   return {};
 }
 
@@ -242,6 +242,6 @@ export async function deleteGlossaryTerm(term: string): Promise<ActionResult> {
   const { error } = await supabase.from("glossary_terms").delete().eq("term", term);
   if (error) return { error: error.message };
   revalidatePublicPages();
-  revalidatePath("/admin/sozluk");
+  revalidatePath("/admin/glossary");
   return {};
 }

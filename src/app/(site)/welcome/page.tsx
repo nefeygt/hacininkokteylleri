@@ -19,7 +19,7 @@ export default async function OnboardingPage({
   const destination = safeNext(next);
 
   const session = await accountSession();
-  if (session.state === "signed-out") redirect("/giris");
+  if (session.state === "signed-out") redirect("/login");
   if (session.state === "ok") redirect(destination);
 
   const name = session.user.name ?? "";

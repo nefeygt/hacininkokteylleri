@@ -24,7 +24,7 @@ function isAdminPath(pathname: string) {
 
 // Public pages that read the visitor's session (M3). Only these refresh the
 // session cookie; every other public page stays static (ADR-005).
-const ACCOUNT_PATHS = ["/giris", "/auth", "/hosgeldin", "/hesap"];
+const ACCOUNT_PATHS = ["/login", "/auth", "/welcome", "/account"];
 
 function isAccountPath(pathname: string) {
   return ACCOUNT_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));

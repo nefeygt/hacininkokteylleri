@@ -7,8 +7,8 @@ import EnrollTotp from "./EnrollTotp";
 export default async function EnrollPage() {
   const { state } = await adminSession();
   if (state === "ok") redirect("/");
-  if (state === "verify") redirect("/dogrula");
-  if (state !== "enroll") redirect("/giris");
+  if (state === "verify") redirect("/verify");
+  if (state !== "enroll") redirect("/login");
 
   return (
     <AuthCard

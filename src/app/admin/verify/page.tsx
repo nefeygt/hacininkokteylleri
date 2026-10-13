@@ -7,8 +7,8 @@ import VerifyForm from "./VerifyForm";
 export default async function VerifyPage() {
   const { state } = await adminSession();
   if (state === "ok") redirect("/");
-  if (state === "enroll") redirect("/iki-adim");
-  if (state !== "verify") redirect("/giris");
+  if (state === "enroll") redirect("/setup-2fa");
+  if (state !== "verify") redirect("/login");
 
   return (
     <AuthCard

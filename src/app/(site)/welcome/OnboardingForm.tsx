@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
 import { fieldClass, labelClass, primaryButtonClass } from "@/components/AccountCard";
-import { completeOnboarding } from "../hesap/actions";
+import { completeOnboarding } from "../account/actions";
 
 export default function OnboardingForm({
   defaultUsername,
@@ -64,7 +64,7 @@ export default function OnboardingForm({
         <label className="flex items-start gap-2.5 font-mono text-xs leading-relaxed text-text-secondary">
           <input name="privacy" type="checkbox" required className="mt-0.5 accent-crimson" />
           <span>
-            <Link href="/gizlilik" target="_blank" className="underline underline-offset-2 hover:text-text-primary">
+            <Link href="/privacy" target="_blank" className="underline underline-offset-2 hover:text-text-primary">
               Aydınlatma metnini
             </Link>{" "}
             okudum.

@@ -25,7 +25,7 @@ export default async function AdminCocktailsPage() {
           </p>
         </div>
         <Link
-          href="/kokteyller/yeni"
+          href="/cocktails/new"
           className="inline-flex items-center gap-2 rounded bg-crimson px-4 py-2.5 font-mono text-sm font-medium text-white hover:bg-crimson-light"
         >
           <Plus className="h-4 w-4" /> Yeni kokteyl
@@ -38,7 +38,7 @@ export default async function AdminCocktailsPage() {
           return (
             <li key={c.id} className="flex items-center gap-3 px-3 py-2.5 sm:gap-4">
               <Link
-                href={`/kokteyller/${c.id}`}
+                href={`/cocktails/${c.id}`}
                 className="relative h-12 w-20 shrink-0 overflow-hidden rounded-sm bg-bg-elevated"
               >
                 {imageUrl ? (
@@ -47,7 +47,7 @@ export default async function AdminCocktailsPage() {
                   <Wine className="absolute inset-0 m-auto h-5 w-5 text-text-muted/40" />
                 )}
               </Link>
-              <Link href={`/kokteyller/${c.id}`} className="min-w-0 flex-1">
+              <Link href={`/cocktails/${c.id}`} className="min-w-0 flex-1">
                 <div className="truncate font-medium">{c.name}</div>
                 <div className="truncate font-mono text-[11px] text-text-muted">
                   {c.base_alcohol} · {c.subtitle}
