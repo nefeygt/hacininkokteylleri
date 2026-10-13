@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Info } from "lucide-react";
-import { tooltips } from "@/data/cocktails";
+import { useGlossary } from "./GlossaryProvider";
 
 export default function Tooltip({ term }: { term: string }) {
   const [visible, setVisible] = useState(false);
-  const text = tooltips[term];
+  const text = useGlossary()[term];
 
   // Close on outside tap (mobile)
   const handleOutside = useCallback(() => {
@@ -56,7 +56,8 @@ export default function Tooltip({ term }: { term: string }) {
 
 /** Wraps instruction text, replacing tooltip terms with interactive Tooltip components */
 export function InstructionText({ text }: { text: string }) {
-  const terms = Object.keys(tooltips);
+  const terms = Object.keys(useGlossary());
+  if (terms.length === 0) return <span>{text}</span>;
   const regex = new RegExp(`(${terms.map(escapeRegex).join("|")})`, "g");
   const parts = text.split(regex);
 

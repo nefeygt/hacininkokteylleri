@@ -1,0 +1,28 @@
+// Public Supabase settings. They come from .env (committed, public by design —
+// ADR-008). Each variable is read by its literal name so Next.js can inline it
+// into browser bundles.
+
+function required(name: string, value: string | undefined): string {
+  if (!value) {
+    throw new Error(`${name} is not set. It lives in .env at the repository root.`);
+  }
+  return value;
+}
+
+export const SUPABASE_URL = required(
+  "NEXT_PUBLIC_SUPABASE_URL",
+  process.env.NEXT_PUBLIC_SUPABASE_URL
+);
+
+export const SUPABASE_PUBLISHABLE_KEY = required(
+  "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+);
+
+export const COCKTAIL_IMAGES_BUCKET = "cocktail-images";
+
+/** Public URL of an object in the cocktail-images bucket. */
+export function cocktailImageUrl(path: string | null | undefined): string | undefined {
+  if (!path) return undefined;
+  return `${SUPABASE_URL}/storage/v1/object/public/${COCKTAIL_IMAGES_BUCKET}/${encodeURIComponent(path)}`;
+}

@@ -2,7 +2,7 @@
 
 import { useEffect, useCallback } from "react";
 import { X, Wine, Leaf } from "lucide-react";
-import type { Cocktail } from "@/data/cocktails";
+import type { Cocktail } from "@/lib/content";
 import VisualQuantity from "./VisualQuantity";
 import { InstructionText } from "./Tooltip";
 

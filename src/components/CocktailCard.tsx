@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { Wine, Leaf, Star } from "lucide-react";
-import type { Cocktail } from "@/data/cocktails";
+import type { Cocktail } from "@/lib/content";
 
 export default function CocktailCard({
   cocktail,

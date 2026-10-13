@@ -1,5 +1,5 @@
 import { GlassWater, Droplets, Pipette, Citrus, CookingPot, Beer } from "lucide-react";
-import type { Ingredient } from "@/data/cocktails";
+import type { Ingredient } from "@/lib/content";
 
 const iconMap = {
   shot: GlassWater,
