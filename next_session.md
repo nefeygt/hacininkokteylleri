@@ -53,7 +53,7 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — open M3 (accounts)
+## 🎯 This Session's Task — e-mail sign-in (Resend), then open M3
 
 ### Step 0 — check sign-ups are off
 
@@ -69,11 +69,26 @@ auto-mode classifier does not let the agent flip it.
 `iletisim@hacininkokteylleri.tech` and `contact@hacininkokteylleri.tech` forward to
 `n.efeyigit@outlook.com` through **ImprovMX** (the user's account and aliases; DNS at Namify:
 `MX @ mx1.improvmx.com 10`, `MX @ mx2.improvmx.com 20`, `TXT @ "v=spf1 include:spf.improvmx.com ~all"`;
-test mails to both arrived, 2026-10-13). `/privacy` shows `iletisim@` as a mailto link and lists
+test mails to both arrived, 2026-10-13). `/privacy` shows **`contact@`** (the user's pick) as a mailto link and lists
 ImprovMX as a processor. Left: the user's final read. The draft banner disappears by itself when
 `ACCOUNTS_OPEN` is true. Namify has no forwarding of its own — never start its paid Titan trial.
 
-### Step 2 — open M3 (only with the user's explicit go)
+### Step 2 — e-mail + password sign-in with Resend
+
+**The user decided (2026-10-13): accounts open only after e-mail sign-in works too.**
+1. The user creates a Resend account (the agent never creates accounts) and adds the domain;
+   Resend's records (DKIM `resend._domainkey`, and MX + SPF on its `send.` subdomain) do not
+   collide with ImprovMX's MX/SPF on the apex — the agent adds them at Namify.
+2. The user creates an API key and pastes it into Supabase → Authentication → Emails → SMTP
+   Settings (host `smtp.resend.com`, port 465, user `resend`, sender
+   `haci <noreply@hacininkokteylleri.tech>` unless the user prefers another). The key never
+   enters the repository or the chat (ADR-008).
+3. Turkish e-mail templates in Supabase (confirm sign-up, reset password, change e-mail).
+4. Code: e-mail + password on `/login` (sign in / sign up), a "forgot password" request and a
+   `/reset-password` page; the callback already handles the code exchange. Test end to end with
+   sign-ups briefly on (the user flips the switch).
+
+### Step 3 — open M3 (only with the user's explicit go)
 
 `ACCOUNTS_OPEN = true` in `src/lib/account-config.ts` (the navbar link appears), the user turns
 sign-ups on in Supabase, build, push (deploys), then check on the live domain from outside
@@ -83,8 +98,7 @@ mailer only reaches org members, so nobody outside can finish it — Resend fixe
 
 ### Then
 
-E-mail + password sign-in with Resend (needs a Resend account and DNS records at Namify), the
-wordmark in the navbar, Hacı's own first admin sign-in. After M3: **M4 reviews and favourites**
+The wordmark in the navbar, Hacı's own first admin sign-in. After M3: **M4 reviews and favourites**
 (ADR-014 has the tables; the reserved-username list gets the English route words in that
 migration — plan.md §8).
 
@@ -94,7 +108,6 @@ migration — plan.md §8).
 
 | # | Question | Why it matters | Until it is answered |
 |---|---|---|---|
-| 1 | **Open accounts with Google only, or wait for e-mail sign-in too?** (asked 2026-10-13, not yet answered) | Google-only is ready now; some people have no Google account | M3 stays closed |
 | 2 | **A final read of `/privacy`** — anything to change before it takes effect? | It takes effect when accounts open | Draft banner stays |
 | 3 | **Colour theme:** keep the dark crimson "Rx" look, or explore a lighter/warmer palette? | The user said the theme can change (ADR-015) | Today's palette stays |
 | 4 | **Resend:** whose account, and is `haci <noreply@hacininkokteylleri.tech>` fine as the sender? | E-mail sign-in, password resets | Google sign-in only |
@@ -225,7 +238,8 @@ migration — plan.md §8).
 | Language of URLs and settings? | **English**; UI Turkish; localization later (ADR-015) |
 | Logo? | **The cherry ("Kiraz")** — `public/brand/` (ADR-015) |
 | Logo on Google's consent screen? | **Not now** — publish without it; add with verification later |
-| Privacy contact address? | **`iletisim@` (and `contact@`), forwarded to `n.efeyigit@outlook.com` through ImprovMX** — live 2026-10-13 |
+| Privacy contact address? | **`contact@` (shown) and `iletisim@`, forwarded to `n.efeyigit@outlook.com` through ImprovMX** — live 2026-10-13 |
+| Open with Google only, or wait for e-mail sign-in? | **Wait — open after Resend e-mail sign-in works** (2026-10-13) |
 | Admins, 2FA, canonical domain, WHOIS, reviews/logs, mobile stack | See ADR-007, 011, 010, plan.md M2, ADR-012, ADR-013 |
 
 ---

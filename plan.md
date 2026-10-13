@@ -17,7 +17,7 @@
 
 | Field | State |
 |---|---|
-| Active milestone | **M3 — Accounts**: Google app **in production**; Google sign-in → onboarding → profile edit → avatar → public profile → account deletion **tested end to end** (2026-10-13). **Closed to the public** (`ACCOUNTS_OPEN = false`, sign-ups off). Privacy contact address live (`iletisim@`, forwarded through ImprovMX). Left: the user's final read of `/privacy` and the decision to open (Google only, or with e-mail sign-in via Resend) |
+| Active milestone | **M3 — Accounts**: Google app **in production**; Google sign-in → onboarding → profile edit → avatar → public profile → account deletion **tested end to end** (2026-10-13). **Closed to the public** (`ACCOUNTS_OPEN = false`, sign-ups off). Privacy contact address live (`contact@`, forwarded through ImprovMX). **Opens after e-mail + password sign-in (Resend) is in** — the user's call, 2026-10-13. Left: Resend, e-mail sign-in, the user's final read of `/privacy` |
 | Last completed | **M2 — Domain** (Search Console moved from vercel.app to the domain) and the **brand change to `haci`** with English URLs and the cherry logo (ADR-015). M1 is done except Hacı's own first sign-in |
 | Blockers | None in the code. Opening M3 waits on the user's go (Google only, or wait for e-mail sign-in). The network the user's office computer is on (a Fortinet FortiGate) blocks the domain — check from outside (§5.4) |
 | Next critical decision | **The colour theme** for a global audience (the user is open to change, ADR-015) and, later, localization. The mobile app is decided: Expo, after M3 (ADR-013) |
@@ -299,11 +299,11 @@ After any schema change: mirror the migration, regenerate `database.types.ts`, r
 - [x] Google Cloud project `haci` + OAuth client; Google provider enabled in Supabase (secret pasted by the user)
 - [x] Publish the Google app — Branding: home page, `/privacy`, authorized domains; **no logo** (a logo forces Google verification); Audience → **In production** (2026-10-13)
 - [x] End to end on `localhost:3000` (2026-10-13): Google sign-in (the user's `wowcubey@gmail.com`) → `/welcome` → `/account` → bio edit and avatar upload/replace seen on `/u/{username}` → delete; `auth.users`, identities, `profiles`, `account_settings` and the avatar object all gone, the profile page 404s
-- [x] Privacy notice contact address: `iletisim@hacininkokteylleri.tech` (and `contact@`) forwarded to `n.efeyigit@outlook.com` through **ImprovMX** (MX + SPF at Namify; account and aliases by the user; test mails arrived, 2026-10-13). ImprovMX listed as a processor in `/privacy`
+- [x] Privacy notice contact address: **`contact@hacininkokteylleri.tech`** shown (`iletisim@` works too) forwarded to `n.efeyigit@outlook.com` through **ImprovMX** (MX + SPF at Namify; account and aliases by the user; test mails arrived, 2026-10-13). ImprovMX listed as a processor in `/privacy`
 - [ ] A final read of `/privacy` by the user (the draft banner goes away by itself when `ACCOUNTS_OPEN` is true)
 - [ ] E-mail and password sign-in with a sender on the domain (Resend), after Google
 - [x] Avatar upload on `/account` (and shown on `/u/{username}`)
-- [ ] Open it: `ACCOUNTS_OPEN = true`, sign-ups on
+- [ ] Open it — **after** e-mail sign-in ships (the user, 2026-10-13): `ACCOUNTS_OPEN = true`, sign-ups on
 
 ### ⚪ M4 — Reviews and favourites
 

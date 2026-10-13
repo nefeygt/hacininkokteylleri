@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 // accounts open; when the text changes, bump PRIVACY_NOTICE_VERSION in
 // src/lib/account-config.ts. CONTACT forwards to the owner through ImprovMX.
 const CONTROLLER = "Nazım Efe Yiğit";
-const CONTACT = "iletisim@hacininkokteylleri.tech";
+const CONTACT = "contact@hacininkokteylleri.tech";
 
 export default function PrivacyPage() {
   return (
