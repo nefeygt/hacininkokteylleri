@@ -64,22 +64,14 @@ it off afterwards. Check (publishable key only, from `.env`):
 switch it off (Supabase → Authentication → Sign In / Providers → User Signups → Save) — the
 auto-mode classifier does not let the agent flip it.
 
-### Step 1 — the privacy notice's contact address
+### Step 1 — the privacy notice ✅ (contact address done)
 
-The address is `iletisim@hacininkokteylleri.tech`, **forwarded to `n.efeyigit@outlook.com`
-through ImprovMX** (the user's choice, 2026-10-13; Namify has no forwarding — its Titan "free"
-e-mail is a 90-day trial, then $1.99/account/month, do not start it). **DNS is done** at Namify
-(2026-10-13): `MX @ mx1.improvmx.com 10`, `MX @ mx2.improvmx.com 20`,
-`TXT @ "v=spf1 include:spf.improvmx.com ~all"` (next to the Google verification TXT). They had
-not reached the nameservers yet at hand-off — check with
-`nslookup -type=MX hacininkokteylleri.tech cont603385.earth.orderbox-dns.com`.
-**Left for the user:** create the ImprovMX account (the agent never creates accounts or types
-passwords), add the domain and the alias `iletisim` → `n.efeyigit@outlook.com`, then send a test
-mail from an address *other than* the Outlook one (a loop does not deliver). ImprovMX routes mail
-through the US — say so in the privacy notice. Then set
-`CONTACT` in `src/app/(site)/privacy/page.tsx`, give the notice a final read with the user, and
-remove the draft banner. If the text changes materially, bump `PRIVACY_NOTICE_VERSION` in
-`src/lib/account-config.ts`.
+`iletisim@hacininkokteylleri.tech` and `contact@hacininkokteylleri.tech` forward to
+`n.efeyigit@outlook.com` through **ImprovMX** (the user's account and aliases; DNS at Namify:
+`MX @ mx1.improvmx.com 10`, `MX @ mx2.improvmx.com 20`, `TXT @ "v=spf1 include:spf.improvmx.com ~all"`;
+test mails to both arrived, 2026-10-13). `/privacy` shows `iletisim@` as a mailto link and lists
+ImprovMX as a processor. Left: the user's final read. The draft banner disappears by itself when
+`ACCOUNTS_OPEN` is true. Namify has no forwarding of its own — never start its paid Titan trial.
 
 ### Step 2 — open M3 (only with the user's explicit go)
 
@@ -103,7 +95,7 @@ migration — plan.md §8).
 | # | Question | Why it matters | Until it is answered |
 |---|---|---|---|
 | 1 | **Open accounts with Google only, or wait for e-mail sign-in too?** (asked 2026-10-13, not yet answered) | Google-only is ready now; some people have no Google account | M3 stays closed |
-| 2 | **ImprovMX account created and the `iletisim` alias added?** (DNS records are already in place) | The privacy notice needs a working contact address before opening | Draft banner stays |
+| 2 | **A final read of `/privacy`** — anything to change before it takes effect? | It takes effect when accounts open | Draft banner stays |
 | 3 | **Colour theme:** keep the dark crimson "Rx" look, or explore a lighter/warmer palette? | The user said the theme can change (ADR-015) | Today's palette stays |
 | 4 | **Resend:** whose account, and is `haci <noreply@hacininkokteylleri.tech>` fine as the sender? | E-mail sign-in, password resets | Google sign-in only |
 | 5 | **Hacı's first admin sign-in** — when (his phone, a network that does not block the domain)? | His 2FA factor is not enrolled yet | He cannot use the panel |
@@ -233,7 +225,7 @@ migration — plan.md §8).
 | Language of URLs and settings? | **English**; UI Turkish; localization later (ADR-015) |
 | Logo? | **The cherry ("Kiraz")** — `public/brand/` (ADR-015) |
 | Logo on Google's consent screen? | **Not now** — publish without it; add with verification later |
-| Privacy contact address? | **`iletisim@` on the domain, forwarded to `n.efeyigit@outlook.com`** — not a mailbox (2026-10-13) |
+| Privacy contact address? | **`iletisim@` (and `contact@`), forwarded to `n.efeyigit@outlook.com` through ImprovMX** — live 2026-10-13 |
 | Admins, 2FA, canonical domain, WHOIS, reviews/logs, mobile stack | See ADR-007, 011, 010, plan.md M2, ADR-012, ADR-013 |
 
 ---

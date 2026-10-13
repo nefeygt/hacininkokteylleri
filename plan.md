@@ -17,9 +17,9 @@
 
 | Field | State |
 |---|---|
-| Active milestone | **M3 — Accounts**: Google app **in production**; Google sign-in → onboarding → profile edit → avatar → public profile → account deletion **tested end to end** (2026-10-13). **Closed to the public** (`ACCOUNTS_OPEN = false`, sign-ups off). Left: the privacy contact address, the decision to open (Google only, or with e-mail sign-in via Resend) |
+| Active milestone | **M3 — Accounts**: Google app **in production**; Google sign-in → onboarding → profile edit → avatar → public profile → account deletion **tested end to end** (2026-10-13). **Closed to the public** (`ACCOUNTS_OPEN = false`, sign-ups off). Privacy contact address live (`iletisim@`, forwarded through ImprovMX). Left: the user's final read of `/privacy` and the decision to open (Google only, or with e-mail sign-in via Resend) |
 | Last completed | **M2 — Domain** (Search Console moved from vercel.app to the domain) and the **brand change to `haci`** with English URLs and the cherry logo (ADR-015). M1 is done except Hacı's own first sign-in |
-| Blockers | None in the code. Opening M3 waits on the user: the `iletisim@` mailbox and Google-only-or-wait. The network the user's office computer is on (a Fortinet FortiGate) blocks the domain — check from outside (§5.4) |
+| Blockers | None in the code. Opening M3 waits on the user's go (Google only, or wait for e-mail sign-in). The network the user's office computer is on (a Fortinet FortiGate) blocks the domain — check from outside (§5.4) |
 | Next critical decision | **The colour theme** for a global audience (the user is open to change, ADR-015) and, later, localization. The mobile app is decided: Expo, after M3 (ADR-013) |
 
 ---
@@ -299,7 +299,8 @@ After any schema change: mirror the migration, regenerate `database.types.ts`, r
 - [x] Google Cloud project `haci` + OAuth client; Google provider enabled in Supabase (secret pasted by the user)
 - [x] Publish the Google app — Branding: home page, `/privacy`, authorized domains; **no logo** (a logo forces Google verification); Audience → **In production** (2026-10-13)
 - [x] End to end on `localhost:3000` (2026-10-13): Google sign-in (the user's `wowcubey@gmail.com`) → `/welcome` → `/account` → bio edit and avatar upload/replace seen on `/u/{username}` → delete; `auth.users`, identities, `profiles`, `account_settings` and the avatar object all gone, the profile page 404s
-- [ ] Privacy notice: contact address (`iletisim@hacininkokteylleri.tech` forwarded to `n.efeyigit@outlook.com` — the user's choice; through **ImprovMX**; MX + SPF records added at Namify 2026-10-13; the user creates the ImprovMX account and alias) and a final read
+- [x] Privacy notice contact address: `iletisim@hacininkokteylleri.tech` (and `contact@`) forwarded to `n.efeyigit@outlook.com` through **ImprovMX** (MX + SPF at Namify; account and aliases by the user; test mails arrived, 2026-10-13). ImprovMX listed as a processor in `/privacy`
+- [ ] A final read of `/privacy` by the user (the draft banner goes away by itself when `ACCOUNTS_OPEN` is true)
 - [ ] E-mail and password sign-in with a sender on the domain (Resend), after Google
 - [x] Avatar upload on `/account` (and shown on `/u/{username}`)
 - [ ] Open it: `ACCOUNTS_OPEN = true`, sign-ups on
@@ -344,6 +345,7 @@ when it starts.
 | Supabase's leaked-password check (HaveIBeenPwned) is off — Pro plan only | Low | 2FA makes a leaked password alone useless for admin powers (ADR-011) |
 | Vercel **Hobby is for non-commercial use** | If monetised | Move to Pro before ads, sponsorships or sales |
 | User content: abuse, spam, legal (KVKK, alcohol and minors) | Certain at M3+ | Moderation tools with each feature; 18+ gate; privacy notice; rate limits |
+| `iletisim@`/`contact@` mail passes through ImprovMX (free plan, US) | Certain | Listed in `/privacy`; the ImprovMX account is the user's |
 | Supabase's built-in email reaches only org members (a few per hour) | Certain at M3 | Custom SMTP (e.g. Resend) on the domain before public sign-up |
 
 ---

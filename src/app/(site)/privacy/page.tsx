@@ -7,11 +7,11 @@ export const metadata: Metadata = {
   description: "Kişisel verilerin nasıl işlendiğine dair KVKK aydınlatma metni.",
 };
 
-// The KVKK privacy notice (aydınlatma metni). It is a draft until the owner
-// confirms the contact address and the text; when it changes, bump
-// PRIVACY_NOTICE_VERSION in src/lib/account.ts.
+// The KVKK privacy notice (aydınlatma metni). It shows a draft banner until
+// accounts open; when the text changes, bump PRIVACY_NOTICE_VERSION in
+// src/lib/account-config.ts. CONTACT forwards to the owner through ImprovMX.
 const CONTROLLER = "Nazım Efe Yiğit";
-const CONTACT: string | null = null;
+const CONTACT = "iletisim@hacininkokteylleri.tech";
 
 export default function PrivacyPage() {
   return (
@@ -31,7 +31,7 @@ export default function PrivacyPage() {
         <p>
           {BRAND} ({"hacininkokteylleri.tech"}) bir kokteyl tarifleri platformudur. 6698 sayılı Kişisel Verilerin
           Korunması Kanunu (KVKK) kapsamındaki veri sorumlusu: {CONTROLLER}.
-          {CONTACT ? <> Bize {CONTACT} adresinden ulaşabilirsin.</> : null}
+          Bize <Mail /> adresinden ulaşabilirsin.
         </p>
       </Section>
 
@@ -60,6 +60,7 @@ export default function PrivacyPage() {
           <li>Supabase: veritabanı, kimlik doğrulama ve dosya depolama; sunucular Frankfurt, Almanya.</li>
           <li>Vercel: sitenin barındırılması; ABD merkezli.</li>
           <li>Google: yalnızca Google ile giriş yapmayı seçersen, kimliğini doğrulamak için.</li>
+          <li>ImprovMX: {CONTACT} adresine yazdığın e-postaları bize iletmek için; ABD merkezli.</li>
         </ul>
         <p className="mt-3">
           Bu sağlayıcıların sunucuları yurt dışında olduğundan verilerin yurt dışına aktarılır; aktarım KVKK&apos;nın
@@ -87,10 +88,18 @@ export default function PrivacyPage() {
         </ul>
         <p className="mt-3">
           Profilini istediğin zaman &quot;Hesabım&quot; sayfasından düzeltebilir ya da hesabını silebilirsin.
-          {CONTACT ? <> Diğer talepler için {CONTACT} adresine yaz; en geç 30 gün içinde yanıtlarız.</> : null}
+          Diğer talepler için <Mail /> adresine yaz; en geç 30 gün içinde yanıtlarız.
         </p>
       </Section>
     </article>
+  );
+}
+
+function Mail() {
+  return (
+    <a href={`mailto:${CONTACT}`} className="text-text-primary underline underline-offset-2 hover:text-crimson-glow">
+      {CONTACT}
+    </a>
   );
 }
 
