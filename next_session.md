@@ -4,9 +4,9 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-13 · **Handing off:** M1 (admin panel — built, waiting on
-the admin accounts for its end-to-end check) and M2 (domain — apex live, `www`/`admin`
-certificates pending).
+**Prepared by session:** 2026-10-13 · **Handing off:** M1 (admin panel — deployed, waiting on
+the admin accounts for its end-to-end check) and M2 (domain — **live** on apex, `www` and
+`admin`; three settings left). Last commit deployed to production: `a871688`.
 
 ---
 
@@ -75,10 +75,8 @@ SQL on `storage.objects`). Check the glossary editor the same way. Fix what brea
 
 ### Step 3 — the domain
 
-Vercel → project → Settings → Domains: all of apex, `www`, `admin` must say **Valid
-Configuration**, and `https://` must work on each (`curl -I`). On 2026-10-13 the apex was
-valid and the other two were still waiting on Vercel's own DNS check. Then, with the user's
-OK: Supabase → Authentication → URL Configuration (Site URL `https://hacininkokteylleri.tech`;
+All three hosts served over HTTPS on 2026-10-13 (checked from outside — see "Things That
+Will Bite You" for why not from this machine). Left, with the user's OK: Supabase → Authentication → URL Configuration (Site URL `https://hacininkokteylleri.tech`;
 redirect URLs `https://admin.hacininkokteylleri.tech/**`, `http://admin.localhost:3000/**`),
 turn **off** "Allow new users to sign up" until M3, and add the domain to Google Search
 Console.
@@ -116,8 +114,9 @@ before building. Do not build M3 without it.
 - **Admin panel:** built, type-checked, builds; sign-in page verified on `admin.localhost:3000`.
   Not yet used with a real account.
 - **Domain:** bought 2026-10-13 at get.tech/Namify. DNS: `A @ 216.198.79.1`, `CNAME www` and
-  `CNAME admin` → `1327916967901761.vercel-dns-017.com`. Vercel: apex valid; `www` (308 → apex)
-  and `admin` waiting on verification at hand-off.
+  `CNAME admin` → `1327916967901761.vercel-dns-017.com`. **Live**: apex 200, `admin` 307 → sign-in,
+  `www` 308 → apex, all over HTTPS (check-host.net from Brazil, Israel, Moldova, France, …).
+- **Deployed:** `a871688` is production; the vercel.app URL serves the same build.
 
 ---
 
@@ -157,8 +156,12 @@ before building. Do not build M3 without it.
   or "Add Domain" does nothing. A click outside the dialog closes it without saving.
 - Namify's "Add a new record": leave **Host name empty for the apex**. The record-type dropdown can
   flip (it went to AAAA once) — check the type before Save.
-- Local DNS on this machine cached the registrar's parking IP (`208.91.112.55`) for a while; check
-  propagation with `https://dns.google/resolve?name=…&type=A` instead.
+- **The network the user's computer was on blocks the new domain.** It runs a **Fortinet
+  FortiGate**: local DNS answers `208.91.112.55` (FortiGuard's block page), HTTPS shows a Fortinet
+  certificate and a 403, and WebFetch fails the same way because it runs locally. This is not a
+  DNS or Vercel problem. Check DNS with `https://dns.google/resolve?name=…&type=A` and HTTP with
+  check-host.net (plan.md §5.4). FortiGuard usually lets newly registered domains through after a
+  few weeks; the network's admin, or a rating request at fortiguard.com, can do it sooner.
 
 **Photos**
 - Never overwrite an object in the bucket: new name, update the row, delete the old object (ADR-006).

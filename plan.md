@@ -9,7 +9,7 @@
 > **Language rule (ADR-002):** everything we write — docs, code, comments, commits, SQL — is
 > **English**. Everything visitors and admins read — UI strings, recipes — is **Turkish**.
 
-**Last updated:** 2026-10-13 · **Active milestones:** M1 (admin panel, built — needs real accounts) and M2 (domain, waiting on DNS)
+**Last updated:** 2026-10-13 · **Active milestones:** M1 (admin panel, built — needs real accounts) and M2 (domain live; settings left)
 
 ---
 
@@ -17,9 +17,9 @@
 
 | Field | State |
 |---|---|
-| Active milestone | **M1 — Admin panel** (built and type-checked; the end-to-end check waits on the two admin accounts) and **M2 — Domain** (Vercel and DNS configured; waiting on propagation) |
-| Last completed | **M0 — Foundation**: Supabase in Frankfurt, the 37 recipes and their photos in the database and Storage, the site reading from it, this documentation system |
-| Blockers | The user: create the two admin accounts in Supabase Auth and name them. DNS: propagation of the three records at Namify |
+| Active milestone | **M1 — Admin panel** (deployed; the end-to-end check waits on the two admin accounts) and **M2 — Domain** (live on all three hosts; Supabase Auth URLs, sign-up switch and Search Console left) |
+| Last completed | **M0 — Foundation**, deployed as `a871688`: Supabase in Frankfurt, the 37 recipes and photos in the database and Storage, the site reading from it, this documentation system. **The site is live on `hacininkokteylleri.tech`** |
+| Blockers | The user: create the two admin accounts in Supabase Auth and name them. Note: the network this computer was on (a Fortinet FortiGate) blocks the new domain — check from outside (§5.4) |
 | Next critical decision | **When the mobile app starts** and with which stack (recommendation: Expo, after M3 — see §6 and next_session.md) |
 
 ---
@@ -40,8 +40,8 @@ near-black). Every recipe is vegan unless it says otherwise.
 around the archive; they never crowd it off the home page except through the showcase
 (§3.2), which Hacı's audience votes on.
 
-**Live:** `https://hacininkokteylleri.vercel.app` → `https://hacininkokteylleri.tech` once DNS
-propagates; admin at `https://admin.hacininkokteylleri.tech`.
+**Live:** `https://hacininkokteylleri.tech` (since 2026-10-13; `www` → apex) · admin at
+`https://admin.hacininkokteylleri.tech` · `hacininkokteylleri.vercel.app` still serves too.
 
 ---
 
@@ -195,6 +195,16 @@ curl -s -o /dev/null -w "%{http_code}\n" localhost:3000/admin          # 404 —
 curl -s -o /dev/null -w "%{http_code}\n" -H "Host: admin.localhost:3000" localhost:3000/giris   # 200
 ```
 
+**Checking the live domain from this machine can fail for a reason that is not ours:** the
+network the user's computer was on runs a Fortinet FortiGate that blocks the newly registered
+domain (local DNS answers `208.91.112.55`, FortiGuard's block page; HTTPS shows a Fortinet
+certificate and a 403). Check from outside instead:
+
+```bash
+curl -s -H "Accept: application/json" "https://check-host.net/check-http?host=https://hacininkokteylleri.tech&max_nodes=3"
+# then: curl -s -H "Accept: application/json" https://check-host.net/check-result/<request_id>
+```
+
 **Verify in a real browser before claiming a UI change works** — use Claude in Chrome (the
 user's Chrome, signed in to Vercel, Supabase and Namify). The built-in browser pane is not
 signed in to anything.
@@ -233,11 +243,11 @@ After any schema change: mirror the migration, regenerate `database.types.ts`, r
 - [ ] Hacı uses it once on his phone
 - [ ] Turn off public sign-ups in Supabase Auth until M3 (nothing grants rights without an `admins` row, but it stops junk accounts)
 
-### 🔵 M2 — Domain live `WAITING ON DNS`
+### 🔵 M2 — Domain live `LIVE — settings left`
 
 - [x] Vercel: apex, `www` → apex (308), `admin` added to the project
 - [x] Namify DNS: `A @ 216.198.79.1`, `CNAME www` and `CNAME admin` → `1327916967901761.vercel-dns-017.com`
-- [ ] Vercel shows "Valid Configuration" for all three; HTTPS certificates issued
+- [x] All three serve over HTTPS — apex 200, `admin` 307 to its sign-in, `www` 308 to the apex (checked from outside with check-host.net, 2026-10-13)
 - [ ] Supabase Auth → URL Configuration: Site URL `https://hacininkokteylleri.tech`; redirect URLs for the admin host and `http://admin.localhost:3000/**`
 - [ ] Google Search Console: add `hacininkokteylleri.tech` (DNS TXT at Namify)
 - [ ] Consider redirecting `hacininkokteylleri.vercel.app` to the apex
@@ -320,4 +330,4 @@ after M3 so it ships with accounts; read-only browsing could start earlier.
 
 | Date | Session | Outcome |
 |---|---|---|
-| 2026-10-13 | M0 + M1 build + M2 setup | Documentation system. Supabase recreated in Frankfurt (Seoul paused). Schema, RLS, content and photos imported; Gemini sparkles removed. Site reads from Supabase. Admin panel on `admin.` built. Domain bought by the user; Vercel domains and Namify DNS configured |
+| 2026-10-13 | M0 + M1 build + M2 setup | Documentation system. Supabase recreated in Frankfurt (Seoul paused). Schema, RLS, content and photos imported; Gemini sparkles removed. Site reads from Supabase. Admin panel on `admin.` built. Domain bought by the user; Vercel domains and Namify DNS configured. Deployed (`a871688`); live on `hacininkokteylleri.tech`, checked from outside |
