@@ -23,6 +23,7 @@
 | 011 | Admins need two-factor authentication, enforced by the database | ✅ Accepted | 2026-10-13 |
 | 012 | Reviews are one per person per cocktail; logs are unlimited | ✅ Accepted (shape of the tables decided at M4/M5) | 2026-10-13 |
 | 013 | The mobile app is Expo, started after accounts (M3) | ✅ Accepted | 2026-10-13 |
+| 014 | The community data model | ✅ Accepted (built milestone by milestone, M3–M7) | 2026-10-13 |
 
 ---
 
@@ -309,3 +310,194 @@ repository as a monorepo, or a second one) is decided when M8 starts.
 **Rejected.** *Starting now, read-only:* the app's real value — logging, favourites,
 reviews — all needs accounts. *Flutter / native:* a second language next to the web's
 TypeScript, and no shared types.
+
+---
+
+## ADR-014 — The community data model
+
+**Status.** Accepted by the user 2026-10-13. The tables are built
+milestone by milestone (M3 profiles … M7 showcase); this ADR fixes their shape and rules up
+front so the early ones do not box in the later ones.
+
+**Context.** M3–M7 add accounts, reviews, favourites, drink logs, community recipes and the
+showcase (plan.md §3.2). The user's answers (2026-10-13): **Supabase Auth stays** (Clerk,
+which the user has through the GitHub Student Pack, was considered and rejected — below);
+public sign-in with **Google first, then e-mail and password**; profiles public, **drink logs
+private by default**; showcase **upvotes — one per user per entry, self-votes allowed — and
+any admin approves applications**. ADR-012 already fixed one review per person per cocktail
+and unlimited logs.
+
+### Principles
+
+1. **Everything community hangs off `profiles`, not `auth.users`.** Community tables reference
+   `profiles(id)`, so a signed-in user who has not finished onboarding (username + 18+
+   confirmation) has no profile and can write nothing. The gate is a foreign key, not app code.
+2. **Deleting an account deletes the person's content.** `profiles.id` references
+   `auth.users on delete cascade`, and every community table cascades from `profiles`. The one
+   exception is a drink log's link to a *recipe* that was deleted (below).
+3. **One permissive policy per table, role and action.** Ordinary users and admins share the
+   `authenticated` role, so each policy ORs the user's condition with
+   `(select private.is_admin())` — the pattern the content tables already use (ADR-007). No
+   overlapping permissive policies, so the performance advisor stays clean.
+4. **Moderation is a column, guarded by a trigger.** Moderated tables carry `hidden_at
+   timestamptz` and `hidden_by uuid`. A hidden row is invisible to everyone except its author
+   (who sees it marked "gizlendi" and may still delete it) and admins. Authors may update
+   their own rows, so a shared `before update` trigger, `private.guard_moderation()`, raises
+   unless `private.is_admin()` when `hidden_at`/`hidden_by` change. Admin powers keep
+   needing `aal2` (ADR-011).
+5. **Every new table** revokes the default grants, grants only what it needs, enables RLS and
+   indexes its foreign keys (ADR-004, the advisors).
+6. **Volume limits live in the database.** An insert trigger per table caps rows per user per
+   day (starting values: 50 logs, 20 reviews written or rewritten, 10 recipes, 20 reports).
+   Uniqueness already caps reviews, favourites and votes.
+
+### Tables
+
+**`profiles`** (M3) — public identity, one per auth user.
+
+| Column | Type / rule |
+|---|---|
+| `id` | `uuid` PK → `auth.users(id) on delete cascade` |
+| `username` | `text unique`, `^[a-z0-9_]{3,20}$` (the app suggests one from the display name with `slugify`), not in a reserved list (`admin`, `haci`, `kokteyller`, `vitrin`, `giris`, …); changeable |
+| `display_name` | `text`, 1–50 chars |
+| `avatar_path` | `text null` — object in a new public bucket `avatars`, path `{user_id}/{name}.webp`, never overwritten (ADR-006), small size cap |
+| `bio` | `text null`, ≤ 280 chars |
+| `created_at`, `updated_at`, `hidden_at`, `hidden_by` | |
+
+RLS: anon and authenticated read rows that are not hidden; the owner reads their own; admins
+read all. The owner inserts their own row (`id = auth.uid()`) **only if their
+`account_settings` row confirms 18+**, and updates it. No delete policy — the row goes with
+the account.
+
+**`account_settings`** (M3) — private, one per user, never shown to anyone else.
+
+| Column | Type / rule |
+|---|---|
+| `user_id` | `uuid` PK → `auth.users(id) on delete cascade` |
+| `adult_confirmed_at` | `timestamptz not null` — the 18+ confirmation; no birth date is stored (data minimisation, KVKK) |
+| `privacy_notice_version` | `text not null` — which privacy notice (aydınlatma metni) was shown at sign-up |
+| `logs_public_default` | `boolean not null default false` |
+
+RLS: the owner reads, inserts and updates their own row; admins read.
+
+**Community recipes** (M6) — in the existing `cocktails` table, not a new one.
+`cocktails.author_id uuid null → profiles(id) on delete cascade`; **null = a house recipe
+(Hacı's)**. One recipe shape means one renderer, and reviews, favourites, logs and the
+showcase all reference `cocktails(id)`. Slugs stay globally unique (the app adds a suffix,
+`negroni-2`). The archive, the home page and every house-recipe fetcher filter
+`author_id is null`; community recipes appear only on profiles, feeds and the showcase (the
+north star in plan.md §2). RLS, one policy per action — e.g. select for `authenticated`:
+`(is_published and hidden_at is null) or author_id = auth.uid() or is_admin()`; insert and
+update check `author_id = auth.uid()` (a user can never write a house recipe) or
+`is_admin()`. `save_cocktail` is extended at M6 to let authors save their own recipes. User
+photos go to a separate bucket under `{user_id}/` with a per-file size cap (plan.md §7).
+
+**`reviews`** (M4) — one per person per cocktail (ADR-012).
+
+| Column | Type / rule |
+|---|---|
+| `id` | `uuid` PK |
+| `cocktail_id` | → `cocktails(id) on delete cascade` |
+| `user_id` | → `profiles(id) on delete cascade` |
+| `rating` | `smallint`, 1–5 (whole stars) |
+| `body` | `text null`, ≤ 2000 chars |
+| `created_at`, `updated_at`, `hidden_at`, `hidden_by` | |
+| | `unique (cocktail_id, user_id)` — writing again is an upsert |
+
+RLS: everyone reads visible reviews; the author reads, writes and deletes their own; insert
+only on a published cocktail. Averages and counts come from a view `cocktail_ratings`
+(`security_invoker = on`, so hidden reviews are not counted) and reach the static pages at
+their hourly revalidation (ADR-005).
+
+**`favorites`** (M4) — public, as the user chose.
+`(user_id → profiles, cocktail_id → cocktails)` as the PK, both cascading, `created_at`.
+Everyone reads; the owner inserts and deletes.
+
+**`drink_logs`** (M5) — unlimited per person per cocktail (ADR-012).
+
+| Column | Type / rule |
+|---|---|
+| `id` | `uuid` PK |
+| `user_id` | → `profiles(id) on delete cascade` |
+| `cocktail_id` | `uuid null` → `cocktails(id) on delete set null` — the log outlives the recipe because it keeps its own copy |
+| `drunk_on` | `date not null default current_date`, not in the future |
+| `recipe` | `jsonb not null` — the recipe **as made**, in the shape `save_cocktail` takes: `{name, ingredients: [{name, amount, unit, icon}], instructions: [], garnish, glass}`; validated by a check function and size-capped |
+| `rating` | `smallint null`, 1–5 — **that evening's rating**, part of the log; it never feeds the cocktail's average (the review is the public opinion) |
+| `note` | `text null`, ≤ 2000 chars |
+| `is_public` | `boolean not null` — the app fills it from `logs_public_default` (false unless the user changed it) |
+| `created_at`, `updated_at`, `hidden_at`, `hidden_by` | |
+
+RLS: the owner reads, writes and deletes their own; others read only rows that are
+`is_public` and not hidden; admins read all. Drinking history is personal data, so private
+is the default (KVKK). Indexes: `(user_id, drunk_on desc)`, `(cocktail_id)`.
+
+**Showcase** (M7) — upvotes, self-votes allowed, any admin approves.
+
+- `showcase_periods` — `id`, `starts_at`, `ends_at` (an admin picks a week or a month); periods
+  never overlap (an exclusion constraint on the time range). Admins write; everyone reads.
+- `showcase_entries` — `id`, `period_id`, `cocktail_id` (must be the applicant's own published
+  community recipe), `user_id`, `pitch text null` (≤ 500), `status`
+  (`pending`/`approved`/`rejected`), `reviewed_by`, `reviewed_at`, `vote_count integer not null
+  default 0`, `created_at`, `hidden_at`, `hidden_by`. `unique (period_id, user_id)` — **one
+  application per user per period**. Everyone reads approved entries; the applicant reads
+  their own; admins read all and are the only ones who change `status` (guarded like
+  `hidden_at`).
+- `showcase_votes` — `(entry_id, user_id)` as the PK, `created_at`. **A user may vote for any
+  number of entries, once each, including their own.** Insert and delete only while the entry
+  is approved and its period is open (`now()` between `starts_at` and `ends_at`). A voter reads
+  only their own votes; the total lives in `showcase_entries.vote_count`, kept by a
+  security-definer trigger function in `private`, so who voted for what stays private.
+- **The winner is derived, not stored:** the approved entry with the most votes in the latest
+  period that has ended (ties: the earlier application) is featured on the home page until
+  the next period ends. No scheduled job is needed.
+
+**`reports`** (with the first feature users write to, M4).
+`id`, `reporter_id → profiles`, `target_type` enum (`profile`, `cocktail`, `review`,
+`drink_log`, `showcase_entry`), `target_id uuid`, `reason text` (≤ 500), `created_at`,
+`resolved_at`, `resolved_by`; `unique (reporter_id, target_type, target_id)`. Users insert
+their own; only admins read and resolve them.
+
+### Accounts
+
+- **Sign-in:** Supabase Auth — Google first; e-mail and password once a sender on the domain
+  exists (Resend, DNS records at Namify). Public sign-up stays off until M3 ships. Ordinary
+  users need no second factor (ADR-011).
+- **Onboarding:** after the first sign-in, a screen asks for the username, the display name and
+  the 18+ confirmation, and shows the privacy notice; it writes `account_settings`, then
+  `profiles`.
+- **Admins and profiles:** an admin is also a user and may create a profile like anyone; admin
+  powers still come only from `admins` + `aal2`. House recipes are credited to "Hacı" because
+  `author_id` is null, not through his profile.
+- **Account deletion** (M3), with no secret key in the app: the browser removes the user's
+  Storage objects (Supabase refuses to delete an auth user who owns objects), then calls
+  `public.delete_my_account()`, a security-definer function that deletes from `auth.users`
+  where `id = auth.uid()`; the cascades remove the rest. The session's JWT stays valid until
+  it expires, but every row it could touch is gone. To be verified when it is built.
+
+### Consequences
+
+- (+) Every rule is a policy or a constraint; the Expo app gets the same rules for free.
+- (+) The first tables (`profiles`, `account_settings`) do not change when later ones arrive;
+  M4–M7 are additive.
+- (+) Private-by-default logs and no stored birth date keep the KVKK exposure small.
+- (−) Sharing `cocktails` with community recipes means every house-recipe query must filter
+  `author_id is null`; one forgotten filter puts user recipes in the archive. Mitigated by
+  keeping those queries in `src/lib/content.ts`'s fetchers only.
+- (−) `vote_count` is a cached total kept by a trigger; a bug there would need a recount.
+- (−) Daily rate limits by trigger are coarse; bursts within a day are not limited.
+
+**Rejected.**
+- *Clerk for public accounts.* Admin 2FA is built on Supabase's `aal2` (ADR-011), so either the
+  admins would move too or the app would run two sign-in systems; community rows could not
+  reference `auth.users`; profiles would need a webhook with a signing secret (ADR-007/008);
+  and a second processor in the US would hold personal data (KVKK). Its real advantages —
+  ready-made screens and its own mailer — are small next to that.
+- *A separate `community_recipes` table:* two recipe shapes, two renderers, and polymorphic
+  references from reviews, favourites, logs and the showcase.
+- *A profile row created by a trigger on `auth.users`:* Google sign-in gives no username or 18+
+  confirmation, and a failing trigger blocks sign-in itself.
+- *Logs feeding the cocktail's average:* one frequent logger would outweigh everyone else; the
+  one-per-person review is the opinion that counts.
+- *One vote per user per period:* the user chose upvotes.
+- *Counting votes through a security-definer view:* the security advisor flags those, and it
+  would expose who voted for what.
