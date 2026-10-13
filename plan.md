@@ -178,7 +178,8 @@ src/
     (site)/                     public site (Navbar in its layout)
       page.tsx                  home
       cocktails/page.tsx        archive — server component, ISR 1h
-      login/ welcome/ account/  member sign-in, onboarding, account (dynamic; account/actions.ts)
+      login/ welcome/ account/  member sign-in (Google, e-mail + password), onboarding, account (dynamic; account/actions.ts)
+      reset-password/           new password after the reset e-mail
       u/[username]/             public profile (ISR 5 min)
       privacy/                  KVKK notice (static)
     admin/                      the panel (only reachable through admin.*)
@@ -301,7 +302,9 @@ After any schema change: mirror the migration, regenerate `database.types.ts`, r
 - [x] End to end on `localhost:3000` (2026-10-13): Google sign-in (the user's `wowcubey@gmail.com`) → `/welcome` → `/account` → bio edit and avatar upload/replace seen on `/u/{username}` → delete; `auth.users`, identities, `profiles`, `account_settings` and the avatar object all gone, the profile page 404s
 - [x] Privacy notice contact address: **`contact@hacininkokteylleri.tech`** shown (`iletisim@` works too) forwarded to `n.efeyigit@outlook.com` through **ImprovMX** (MX + SPF at Namify; account and aliases by the user; test mails arrived, 2026-10-13). ImprovMX listed as a processor in `/privacy`
 - [ ] A final read of `/privacy` by the user (the draft banner goes away by itself when `ACCOUNTS_OPEN` is true)
-- [ ] E-mail and password sign-in with a sender on the domain (Resend), after Google
+- [x] E-mail + password code (2026-10-13): sign in / sign up / forgot password on `/login` (`EmailForm`), `/reset-password`, callback `via=email` errors; checked locally with sign-ups off (wrong password, sign-up refused)
+- [x] Resend: account (the user's), domain `hacininkokteylleri.tech` in **Ireland (eu-west-1)**, tracking off; DNS at Namify: `TXT resend._domainkey` (DKIM), `CNAME rsend` → `rsend-euw1.forge.rmta.net`, `CNAME send` → `send.forge.rmta.net`, `TXT _dmarc v=DMARC1; p=none;`
+- [ ] Resend domain verified; API key into Supabase SMTP (the user); Supabase minimum password length 8; Turkish e-mail templates; e-mail sign-up tested end to end
 - [x] Avatar upload on `/account` (and shown on `/u/{username}`)
 - [ ] Open it — **after** e-mail sign-in ships (the user, 2026-10-13): `ACCOUNTS_OPEN = true`, sign-ups on
 
@@ -379,7 +382,8 @@ when it starts.
 - A cleanup for orphaned photos in the bucket
 - HEIC photos from iPhones (today the browser must be able to decode the file)
 - **Localization** — English first, then others; UI strings out of the components (the user,
-  2026-10-13: later, once the current work is done)
+  2026-10-13: later, once the current work is done). **Includes an English privacy notice next to
+  the Turkish one** for global users (the user, 2026-10-13)
 - **Colour theme review** for a wider audience (the user is open to change; logo colours follow)
 - A `haci` domain, if the product grows (ADR-015)
 - The `haci` wordmark (`public/brand/haci-wordmark-light.svg`) in the navbar instead of text

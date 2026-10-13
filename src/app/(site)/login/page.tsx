@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import AccountCard from "@/components/AccountCard";
 import { accountSession, safeNext } from "@/lib/account";
+import EmailForm from "./EmailForm";
 import GoogleButton from "./GoogleButton";
 
 export const metadata: Metadata = {
@@ -12,6 +13,7 @@ export const metadata: Metadata = {
 
 const ERRORS: Record<string, string> = {
   google: "Google ile giriş tamamlanamadı. Tekrar dene.",
+  link: "Bağlantı geçersiz ya da süresi dolmuş. Yeni bir bağlantı iste.",
   closed: "Üyelik henüz açılmadı. Çok yakında!",
 };
 
@@ -39,8 +41,14 @@ export default async function SignInPage({
           </p>
         )}
         <GoogleButton next={destination} />
+        <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.15em] text-text-muted">
+          <span className="h-px flex-1 bg-border" />
+          ya da
+          <span className="h-px flex-1 bg-border" />
+        </div>
+        <EmailForm next={destination} />
         <p className="font-mono text-[11px] leading-relaxed text-text-muted">
-          E-posta ile giriş yakında. Devam ederek{" "}
+          Devam ederek{" "}
           <Link href="/privacy" className="underline underline-offset-2 hover:text-text-primary">
             aydınlatma metnini
           </Link>{" "}

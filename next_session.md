@@ -73,7 +73,13 @@ test mails to both arrived, 2026-10-13). `/privacy` shows **`contact@`** (the us
 ImprovMX as a processor. Left: the user's final read. The draft banner disappears by itself when
 `ACCOUNTS_OPEN` is true. Namify has no forwarding of its own — never start its paid Titan trial.
 
-### Step 2 — e-mail + password sign-in with Resend
+### Step 2 — e-mail + password sign-in with Resend (code done; Resend domain added)
+
+Done 2026-10-13: the Resend account (the user's), the domain in Ireland with tracking off, its
+DNS at Namify (DKIM TXT `resend._domainkey`, CNAME `rsend` → `rsend-euw1.forge.rmta.net`, CNAME
+`send` → `send.forge.rmta.net`, `TXT _dmarc "v=DMARC1; p=none;"`), and the code (`EmailForm` on
+`/login`, `/reset-password`, `via=email` in the callback). Left: Resend's verification, items 2–3
+below, Supabase "Minimum password length" = 8 (`MIN_PASSWORD_LENGTH`), and the end-to-end test.
 
 **The user decided (2026-10-13): accounts open only after e-mail sign-in works too.**
 1. The user creates a Resend account (the agent never creates accounts) and adds the domain;

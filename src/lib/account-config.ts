@@ -10,6 +10,9 @@ export const ACCOUNTS_OPEN = false;
 /** Shown at onboarding and stored in account_settings. Bump it when /privacy changes. */
 export const PRIVACY_NOTICE_VERSION = "2026-10";
 
+/** Matches "Minimum password length" in Supabase Auth, which is the rule; the form only warns early. */
+export const MIN_PASSWORD_LENGTH = 8;
+
 /** Only same-site paths are followed after sign-in, never another origin. */
 export function safeNext(next: string | null | undefined, fallback = "/account"): string {
   if (!next || !next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) return fallback;
