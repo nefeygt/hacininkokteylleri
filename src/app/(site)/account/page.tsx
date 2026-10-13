@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import AccountCard from "@/components/AccountCard";
 import { requireMember } from "@/lib/account";
+import AvatarField from "./AvatarField";
 import DeleteAccount from "./DeleteAccount";
 import ProfileForm from "./ProfileForm";
 import SignOutButton from "./SignOutButton";
@@ -32,6 +33,9 @@ export default async function AccountPage() {
             >
               Herkese açık profilin →
             </Link>
+          </div>
+          <div className="mb-6">
+            <AvatarField userId={user.id} path={profile.avatar_path} name={profile.display_name} />
           </div>
           <ProfileForm
             username={profile.username}

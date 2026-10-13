@@ -26,3 +26,13 @@ export function cocktailImageUrl(path: string | null | undefined): string | unde
   if (!path) return undefined;
   return `${SUPABASE_URL}/storage/v1/object/public/${COCKTAIL_IMAGES_BUCKET}/${encodeURIComponent(path)}`;
 }
+
+/** Members' profile pictures, one folder per user: "{user_id}/{name}.webp" (ADR-014). */
+export const AVATARS_BUCKET = "avatars";
+
+/** Public URL of an object in the avatars bucket. */
+export function avatarUrl(path: string | null | undefined): string | undefined {
+  if (!path) return undefined;
+  const key = path.split("/").map(encodeURIComponent).join("/");
+  return `${SUPABASE_URL}/storage/v1/object/public/${AVATARS_BUCKET}/${key}`;
+}

@@ -4,9 +4,8 @@ import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
 import { fieldClass } from "@/components/AccountCard";
 import { createClient } from "@/lib/supabase/browser";
+import { AVATARS_BUCKET } from "@/lib/supabase/config";
 import { deleteAccount } from "./actions";
-
-const AVATARS_BUCKET = "avatars";
 
 export default function DeleteAccount({ userId, username }: { userId: string; username: string }) {
   const [open, setOpen] = useState(false);

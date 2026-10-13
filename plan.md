@@ -9,7 +9,7 @@
 > **Language rule (ADR-002):** everything we write — docs, code, comments, commits, SQL — is
 > **English**. Everything visitors and admins read — UI strings, recipes — is **Turkish**.
 
-**Last updated:** 2026-10-13 (night) · **Active milestone:** M3 — Accounts (database and pages built, closed to the public) · **Brand:** `haci` (ADR-015)
+**Last updated:** 2026-10-13 (late night) · **Active milestone:** M3 — Accounts (built and tested end to end, closed to the public) · **Brand:** `haci` (ADR-015)
 
 ---
 
@@ -17,9 +17,9 @@
 
 | Field | State |
 |---|---|
-| Active milestone | **M3 — Accounts**: `profiles`/`account_settings` live with RLS (tested); `/login` (Google), `/welcome`, `/account`, `/u/{username}`, `/privacy` built; Google provider on in Supabase. **Closed to the public** (`ACCOUNTS_OPEN = false`, sign-ups off). Left: publish the Google app, an end-to-end sign-in, e-mail sign-in (Resend), the privacy contact address |
+| Active milestone | **M3 — Accounts**: Google app **in production**; Google sign-in → onboarding → profile edit → avatar → public profile → account deletion **tested end to end** (2026-10-13). **Closed to the public** (`ACCOUNTS_OPEN = false`, sign-ups off). Left: the privacy contact address, the decision to open (Google only, or with e-mail sign-in via Resend) |
 | Last completed | **M2 — Domain** (Search Console moved from vercel.app to the domain) and the **brand change to `haci`** with English URLs and the cherry logo (ADR-015). M1 is done except Hacı's own first sign-in |
-| Blockers | None in the code. The Google OAuth app is still in **Testing** (only test users can sign in) — publish it (next_session.md). The network the user's office computer is on (a Fortinet FortiGate) blocks the domain — check from outside (§5.4) |
+| Blockers | None in the code. Opening M3 waits on the user: the `iletisim@` mailbox and Google-only-or-wait. The network the user's office computer is on (a Fortinet FortiGate) blocks the domain — check from outside (§5.4) |
 | Next critical decision | **The colour theme** for a global audience (the user is open to change, ADR-015) and, later, localization. The mobile app is decided: Expo, after M3 (ADR-013) |
 
 ---
@@ -59,8 +59,8 @@ around the archive; they never crowd it off the home page except through the sho
   edit and delete a cocktail with its ingredients, steps and photo (resized, WebP, Gemini
   sparkle removed in the browser); glossary editor. Every save is live on the site at once.
 - **Accounts (M3, closed)** — `/login` (Google), `/welcome` (username, 18+, privacy notice),
-  `/account` (edit profile, sign out, delete account), `/u/{username}`, `/privacy` (KVKK
-  notice, draft). Hidden from the navbar until `ACCOUNTS_OPEN` in `src/lib/account-config.ts`.
+  `/account` (edit profile, profile picture, sign out, delete account), `/u/{username}`,
+  `/privacy` (KVKK notice, draft). Hidden from the navbar until `ACCOUNTS_OPEN` in `src/lib/account-config.ts`.
 
 ### 3.2 Roadmap — what the user has asked for (2026-10-13)
 
@@ -151,7 +151,7 @@ migration file with the version Supabase applied (ADR-009).
 | `glossary_terms` | `term` PK, `definition` | everyone | admins |
 | `admins` | `user_id` → `auth.users`, `role` (`owner`/`editor`), `display_name` | own row; admins (all) | nobody over the API — SQL only |
 | `account_settings` | `user_id` PK → `auth.users`, `adult_confirmed_at` (server time), `privacy_notice_version`, `logs_public_default` | owner; admins | owner (column grants) |
-| `profiles` | `id` PK → `auth.users`, `username` unique `^[a-z0-9_]{3,20}$` minus a reserved list, `display_name`, `avatar_path` (`avatars/{id}/…`), `bio` ≤ 280, `hidden_at`/`hidden_by` | everyone (not hidden); owner; admins | owner, only after `account_settings` exists; admins hide |
+| `profiles` | `id` PK → `auth.users`, `username` unique `^[a-z0-9_]{3,20}$` minus a reserved list, `display_name`, `avatar_path` (`{id}/…` in the `avatars` bucket), `bio` ≤ 280, `hidden_at`/`hidden_by` | everyone (not hidden); owner; admins | owner, only after `account_settings` exists; admins hide |
 
 Functions: `private.is_admin()` (an `admins` row **and** a 2FA session, `aal2` — ADR-011; used
 by every write policy; not exposed over HTTP) and
@@ -160,7 +160,9 @@ invoker). Storage policies on `cocktail-images`: admins list/insert/update/delet
 `private.guard_moderation()` (only admins set `hidden_at`; it writes `hidden_by`),
 `public.delete_my_account()` → `private.delete_account()` (security definer; refuses admins
 and users who still own Storage objects), and the public `avatars` bucket (512 KB,
-WebP/JPEG; users write only under their own folder).
+WebP/JPEG; users write only under their own folder). The browser crops the centre square,
+scales it to 256 px WebP, uploads `{id}/{base36 time}.webp`, then `setAvatar` points the
+profile at it and the browser deletes the previous object (never overwritten, ADR-006).
 
 **The rest of the community model is decided in ADR-014** (reviews, favourites, drink logs,
 community recipes in `cocktails` with `author_id`, showcase, reports) and is built
@@ -251,7 +253,7 @@ After any schema change: mirror the migration, regenerate `database.types.ts`, r
 | Supabase | org `hacininkokteylleri` (free); project **`hacininkokteylleri-eu`**, ref **`qwvnhdghwycqlvsnlvlt`**, eu-central-1 | Connected to Claude through the Supabase MCP. Old Seoul project `kdicsywipwkauonkxcdc` paused — the user deletes it |
 | Domain | `hacininkokteylleri.tech` at get.tech / Namify (`manage.get.tech`) | Registered 2026-10-13, expires 2027-10-13; **auto-renew on, $29.99 on 2027-09-11**; WHOIS privacy off |
 | Google Search Console | account `wowcubey@gmail.com`; **Domain property `hacininkokteylleri.tech`** (DNS TXT at Namify); sitemap submitted | The old `https://hacininkokteylleri.vercel.app/` property is **moving** to the domain (Change of Address, started 2026-10-13). It stays verified by the meta tag in `src/app/layout.tsx` and `public/googlece68c38f8ad9ec89.html` (served on vercel.app without the redirect) — keep both for 180 days |
-| Google Cloud | account `n.efeyigit@gmail.com`, project **`haci`** (`haci-511515`) | Google Auth Platform: app name `haci`, External, **Testing** (publish next). OAuth web client "haci web (Supabase Auth)": origins the domain and `http://localhost:3000`, redirect `https://qwvnhdghwycqlvsnlvlt.supabase.co/auth/v1/callback`. The secret lives only in Supabase |
+| Google Cloud | account `n.efeyigit@gmail.com`, project **`haci`** (`haci-511515`) | Google Auth Platform: app name `haci`, External, **In production** since 2026-10-13 (home page, `/privacy`, domains `hacininkokteylleri.tech` + the Supabase host; no logo, so no verification). OAuth web client "haci web (Supabase Auth)": origins the domain and `http://localhost:3000`, redirect `https://qwvnhdghwycqlvsnlvlt.supabase.co/auth/v1/callback`. The secret lives only in Supabase |
 
 ---
 
@@ -289,17 +291,17 @@ After any schema change: mirror the migration, regenerate `database.types.ts`, r
 - [x] Google Search Console: Domain property `hacininkokteylleri.tech` verified (DNS TXT at Namify), sitemap submitted, Change of Address from the vercel.app property started (2026-10-13)
 - [x] `hacininkokteylleri.vercel.app` 308-redirects to the domain (`src/proxy.ts`), except its Search Console verification file
 
-### 🔵 M3 — Accounts `BUILT, CLOSED — Google publish, e2e test and e-mail left`
+### 🔵 M3 — Accounts `BUILT AND TESTED, CLOSED — contact address and the go-ahead left`
 
 - [x] ADR-014 (community data model), agreed with the user
 - [x] Migration `community_accounts`: `account_settings`, `profiles`, moderation guard, `avatars` bucket, `delete_my_account()`; 16 policy checks in SQL (rolled back); advisors clean
 - [x] Pages: `/login` (Google), `/auth/callback`, `/welcome`, `/account` (profile, sign out, delete), `/u/{username}`, `/privacy` (draft)
 - [x] Google Cloud project `haci` + OAuth client; Google provider enabled in Supabase (secret pasted by the user)
-- [ ] Publish the Google app (Branding: home page, `/privacy`, domains `hacininkokteylleri.tech` + `supabase.co`; then Audience → Publish) — **without a logo** (a logo forces Google verification; the user agreed)
-- [ ] End to end in a browser: sign in with Google → `/welcome` → `/account` → delete (needs sign-ups on for the test, then off again)
+- [x] Publish the Google app — Branding: home page, `/privacy`, authorized domains; **no logo** (a logo forces Google verification); Audience → **In production** (2026-10-13)
+- [x] End to end on `localhost:3000` (2026-10-13): Google sign-in (the user's `wowcubey@gmail.com`) → `/welcome` → `/account` → bio edit and avatar upload/replace seen on `/u/{username}` → delete; `auth.users`, identities, `profiles`, `account_settings` and the avatar object all gone, the profile page 404s
 - [ ] Privacy notice: contact address (`iletisim@hacininkokteylleri.tech` on Namify's free mailbox — the user's choice) and a final read
 - [ ] E-mail and password sign-in with a sender on the domain (Resend), after Google
-- [ ] Avatar upload on `/account`
+- [x] Avatar upload on `/account` (and shown on `/u/{username}`)
 - [ ] Open it: `ACCOUNTS_OPEN = true`, sign-ups on
 
 ### ⚪ M4 — Reviews and favourites
@@ -386,6 +388,7 @@ when it starts.
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-10-13 (late night) | M3 publish + e2e + avatars | Google app branding saved and **published to production** (no logo). Avatar upload built (`AvatarField`, `setAvatar`, `Avatar`). End-to-end test with the user's Google account: onboarding, profile edit, avatar upload and replace, public profile, account deletion — all rows and files gone |
 | 2026-10-13 (night) | ADR-014 + M3 build + brand | ADR-014 agreed (Supabase Auth kept over Clerk). Hacı's real e-mail set. M3 database (profiles, settings, moderation guard, avatars, account deletion) and pages built, closed. Search Console moved to the domain; vercel.app redirects. Personal "about" removed; **brand `haci`**, English URLs, cherry logo (ADR-015). Google Cloud project + OAuth client; Google provider on in Supabase |
 | 2026-10-13 (later) | M1 check + 2FA | Admin accounts added (owner "Efe", editor "Hacı"). **2FA required for admin powers** (ADR-011), the owner enrolled. Panel checked end to end. Server-action redirect bug fixed. Sign-ups off; Auth URLs set. WHOIS checked — already private. Decisions: one review per person per cocktail, unlimited logs (ADR-012); Expo after M3 (ADR-013) |
 | 2026-10-13 | M0 + M1 build + M2 setup | Documentation system. Supabase recreated in Frankfurt (Seoul paused). Schema, RLS, content and photos imported; Gemini sparkles removed. Site reads from Supabase. Admin panel on `admin.` built. Domain bought by the user; Vercel domains and Namify DNS configured. Deployed (`a871688`); live on `hacininkokteylleri.tech`, checked from outside |

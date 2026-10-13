@@ -88,6 +88,27 @@ export async function updateProfile(formData: FormData): Promise<AccountResult> 
   return { ok: true };
 }
 
+/**
+ * Points the profile at a picture the browser has just uploaded, or at none.
+ * Returns the previous object so the browser can delete it: objects are never
+ * overwritten in place (ADR-006). The database also checks the folder.
+ */
+export async function setAvatar(path: string | null): Promise<AccountResult & { previous?: string | null }> {
+  const session = await accountSession();
+  if (session.state !== "ok") return { error: SESSION_LOST };
+  const { supabase, profile } = session;
+
+  if (path !== null && !new RegExp(`^${profile.id}/[a-z0-9]+\\.(webp|jpg)$`).test(path)) {
+    return { error: "Geçersiz dosya." };
+  }
+
+  const { error } = await supabase.from("profiles").update({ avatar_path: path }).eq("id", profile.id);
+  if (error) return { error: `Kaydedilemedi: ${error.message}` };
+
+  revalidatePath(`/u/${profile.username}`);
+  return { ok: true, previous: profile.avatar_path };
+}
+
 export async function signOut(): Promise<void> {
   const supabase = await createClient();
   await supabase.auth.signOut();

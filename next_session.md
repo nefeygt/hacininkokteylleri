@@ -4,10 +4,11 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-13 (night) · **Handing off:** the brand is now **`haci`**
-(ADR-015): English URLs, Turkish UI, cherry logo. M3's database and pages are built and
-**closed** to the public; Google sign-in is configured but the Google app is still in
-Testing. **Next: publish the Google app, test sign-in end to end, finish M3.**
+**Prepared by session:** 2026-10-13 (late night) · **Handing off:** M3 is **built and tested
+end to end** — the Google app is in production, a real Google account went through
+onboarding, profile edit, avatar upload, the public profile and account deletion. Accounts
+stay **closed** (`ACCOUNTS_OPEN = false`, sign-ups off). **Next: the privacy contact address,
+then open M3 with the user's go.**
 
 ---
 
@@ -52,52 +53,40 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — finish M3 (accounts), then open it
+## 🎯 This Session's Task — open M3 (accounts)
 
-### Step 1 — publish the Google app (in Chrome, ~5 minutes)
+### Step 0 — check sign-ups are off
 
-Google Cloud, account **`n.efeyigit@gmail.com`** (in the user's Chrome it is `authuser=1`),
-project **`haci`** (`haci-511515`):
-1. `https://console.cloud.google.com/auth/branding?authuser=1&project=haci-511515` —
-   Application home page `https://hacininkokteylleri.tech`, privacy policy
-   `https://hacininkokteylleri.tech/privacy`, terms of service empty, Authorized domains
-   `hacininkokteylleri.tech` and `supabase.co`. **No logo** (a logo forces Google's
-   verification — the user agreed to publish without one). Save. (Last session typed the home
-   page but was stopped before saving — check the fields.)
-2. `…/auth/audience?…` → **Publish app** → In production. Basic scopes only, so no review.
-
-Check with Supabase's public settings (uses only the publishable key from `.env`):
+Last session the user turned "Allow new users to sign up" on for the test and was asked to turn
+it off afterwards. Check (publishable key only, from `.env`):
 `curl -s -H "apikey: $KEY" https://qwvnhdghwycqlvsnlvlt.supabase.co/auth/v1/settings` →
-`external.google: true` (already true), `disable_signup: true` (stays true until Step 4).
+`"disable_signup": true`. If it is `false` and M3 is not opening this session, ask the user to
+switch it off (Supabase → Authentication → Sign In / Providers → User Signups → Save) — the
+auto-mode classifier does not let the agent flip it.
 
-### Step 2 — test sign-in end to end (needs the user)
+### Step 1 — the privacy notice's contact address
 
-Public sign-up is off, so a new Google user is refused (`/login?error=closed` — that path is
-tested). For a real run: ask the user, then turn **"Allow new users to sign up"** on in
-Supabase → Authentication → Sign In / Providers, run `npm run dev`, and on
-`http://localhost:3000/login` have the user pick their Google account. Expect `/welcome` →
-username, display name, 18+, privacy → `/account` → edit profile → `/u/{username}` →
-delete the account (row gone in `auth.users`, `profiles`, `account_settings`). **Turn
-sign-ups off again** unless the user wants M3 open. Admins cannot delete themselves here
-(by design).
+The user chose `iletisim@hacininkokteylleri.tech` on Namify's free e-mail (manage.get.tech →
+the domain → Email). **The user creates the mailbox** (it needs a password); the agent adds the
+MX/SPF records Namify asks for, if any (record-type dropdown: click, type, Enter). Then set
+`CONTACT` in `src/app/(site)/privacy/page.tsx`, give the notice a final read with the user, and
+remove the draft banner. If the text changes materially, bump `PRIVACY_NOTICE_VERSION` in
+`src/lib/account-config.ts`.
 
-### Step 3 — the privacy notice's contact address
+### Step 2 — open M3 (only with the user's explicit go)
 
-The user chose a mailbox on the domain: `iletisim@hacininkokteylleri.tech` with Namify's
-free e-mail (manage.get.tech → the domain → Email). Creating it needs a password — **the user
-creates it**; the agent adds the MX/SPF records Namify asks for if needed. Then set `CONTACT`
-in `src/app/(site)/privacy/page.tsx` and remove the draft banner when M3 opens.
-
-### Step 4 — open M3 (with the user's go)
-
-`ACCOUNTS_OPEN = true` in `src/lib/account-config.ts` (the navbar link appears), sign-ups on in
-Supabase, deploy, check on the live domain from outside (plan.md §5.4).
+`ACCOUNTS_OPEN = true` in `src/lib/account-config.ts` (the navbar link appears), the user turns
+sign-ups on in Supabase, build, push (deploys), then check on the live domain from outside
+(plan.md §5.4) and once in Chrome: `/login` → Google → `/welcome`. Note: with sign-ups on,
+e-mail + password sign-up is also open at the API, but "Confirm email" is on and the built-in
+mailer only reaches org members, so nobody outside can finish it — Resend fixes this properly.
 
 ### Then
 
-E-mail + password sign-in with Resend (needs a Resend account and DNS records at Namify),
-avatar upload on `/account`, the wordmark in the navbar, Hacı's own first admin sign-in.
-After M3: M4 reviews and favourites (ADR-014 has the tables).
+E-mail + password sign-in with Resend (needs a Resend account and DNS records at Namify), the
+wordmark in the navbar, Hacı's own first admin sign-in. After M3: **M4 reviews and favourites**
+(ADR-014 has the tables; the reserved-username list gets the English route words in that
+migration — plan.md §8).
 
 ---
 
@@ -105,35 +94,36 @@ After M3: M4 reviews and favourites (ADR-014 has the tables).
 
 | # | Question | Why it matters | Until it is answered |
 |---|---|---|---|
-| 1 | **Open accounts to the public right after the e2e test, or wait for e-mail sign-in too?** | Google-only at launch is simpler; some people have no Google account | M3 stays closed |
-| 2 | **Colour theme:** keep the dark crimson "Rx" look, or explore a lighter/warmer palette for a wider audience? The cherry logo works on either | The user said the theme can change (ADR-015) | Today's palette stays |
-| 3 | **Resend:** whose account, and is `haci <noreply@hacininkokteylleri.tech>` fine as the sender? | E-mail sign-in, password resets | Google sign-in only |
-| 4 | **Hacı's first admin sign-in** — when can he do it (his phone, a network that does not block the domain)? | His 2FA factor is not enrolled yet | He cannot use the panel |
+| 1 | **Open accounts with Google only, or wait for e-mail sign-in too?** (asked 2026-10-13, not yet answered) | Google-only is ready now; some people have no Google account | M3 stays closed |
+| 2 | **Has the `iletisim@` mailbox been created?** | The privacy notice needs a contact address before opening | Draft banner stays |
+| 3 | **Colour theme:** keep the dark crimson "Rx" look, or explore a lighter/warmer palette? | The user said the theme can change (ADR-015) | Today's palette stays |
+| 4 | **Resend:** whose account, and is `haci <noreply@hacininkokteylleri.tech>` fine as the sender? | E-mail sign-in, password resets | Google sign-in only |
+| 5 | **Hacı's first admin sign-in** — when (his phone, a network that does not block the domain)? | His 2FA factor is not enrolled yet | He cannot use the panel |
 
 ---
 
 ## 📍 Current State
 
 - **Production:** `hacininkokteylleri.tech` (apex), `www` → apex, `admin.hacininkokteylleri.tech`;
-  `hacininkokteylleri.vercel.app` → 308 to the domain. `main` deploys on push; last pushes this
-  session built and deployed cleanly.
-- **Brand:** `haci` in titles, navbar, panel, home hero; personal "about" removed. Logo files
-  in `public/brand/` (SVG sources + PNGs: 1024 app icon, 512 Play Store icon, transparent mark,
-  wordmarks); favicon `src/app/icon.svg`, `src/app/apple-icon.png`. Re-export with
-  `node scripts/export-brand.mjs`.
-- **URLs are English:** `/cocktails`, `/login`, `/account`, `/welcome`, `/privacy`, `/u/{username}`,
-  `/auth/callback`; panel `/login`, `/setup-2fa`, `/verify`, `/glossary`, `/cocktails/new`,
-  `/cocktails/{id}`. Old Turkish paths 308-redirect (`next.config.mjs`).
-- **Supabase** (ref `qwvnhdghwycqlvsnlvlt`): 6 migrations (latest `20261013144804_community_accounts`).
-  Security advisor: only leaked-password protection (Pro plan — expected). Performance: clean.
-  Auth: sign-ups **off**, Google provider **on** (client ID `533154070020-18t31ta9tqcupnpe4bjul5p7lbpmeib1.apps.googleusercontent.com`,
-  secret only in Supabase), TOTP on.
-- **Admins:** owner "Efe" (`n.efeyigit@outlook.com`, 2FA), editor "Hacı" (**`furkancam99@hotmail.com`**
-  since this session; no sign-in yet, no 2FA yet).
-- **Members:** none yet (no rows in `profiles`).
-- **Search Console** (`wowcubey@gmail.com`): Domain property verified (TXT at Namify), sitemap
-  submitted ("couldn't fetch" right after submitting is normal — it was live, 200 from outside),
-  Change of Address vercel.app → domain in progress since 2026-10-13.
+  `hacininkokteylleri.vercel.app` → 308 to the domain. `main` deploys on push.
+- **Accounts (M3):** Google app **in production** (Google Cloud `haci-511515`, branding: home
+  page, `/privacy`, authorized domains, no logo). Supabase: Google provider on, TOTP on,
+  sign-ups **should be off** (Step 0). Pages: `/login`, `/auth/callback`, `/welcome`, `/account`
+  (profile, **avatar** — new this session, sign out, delete), `/u/{username}` (shows the avatar),
+  `/privacy` (draft, no contact address). All tested end to end on `localhost:3000` on 2026-10-13
+  with the user's `wowcubey@gmail.com` Google account; the test account was deleted (all rows
+  and the avatar object gone).
+- **Avatars:** `src/app/(site)/account/AvatarField.tsx` (centre square → 256 px WebP →
+  `{user_id}/{base36}.webp` → `setAvatar` → old object deleted), `src/components/Avatar.tsx`
+  (picture or initial), `avatarUrl()` / `AVATARS_BUCKET` in `src/lib/supabase/config.ts`.
+- **Supabase** (ref `qwvnhdghwycqlvsnlvlt`): 6 migrations, none added this session. Advisors as
+  before (only leaked-password protection — Pro plan).
+- **Admins:** owner "Efe" (`n.efeyigit@outlook.com`, 2FA), editor "Hacı"
+  (`furkancam99@hotmail.com`, no sign-in yet, no 2FA yet). The two e-mail users in `auth.users`
+  are these admins (no profiles).
+- **Members:** none (the test member was deleted).
+- **Search Console** (`wowcubey@gmail.com`): Domain property verified, sitemap submitted, Change
+  of Address vercel.app → domain in progress since 2026-10-13.
 
 ---
 
@@ -194,6 +184,20 @@ After M3: M4 reviews and favourites (ADR-014 has the tables).
   not select it). Host name empty = apex.
 - **The office network blocks the new domain** (a Fortinet FortiGate). Check DNS with
   `https://dns.google/resolve?name=…` and HTTP with check-host.net (plan.md §5.4).
+
+**This session's lessons**
+- **Google accounts in the user's Chrome can sign out.** At the start only `wowcubey@gmail.com`
+  was signed in, and Google Cloud forced `authuser=0` ("You need additional access rights"). The
+  user re-added `n.efeyigit@gmail.com`; it is `authuser=1` again. Check the avatar menu first.
+- Google Cloud's "/" shortcut focuses its search box, and a promo banner shifts the page a few
+  seconds after load — take a fresh screenshot right before clicking by coordinates.
+- **The auto-mode classifier blocks** clicking "Publish app" without the user's explicit OK, and
+  flipping Supabase's sign-up switch even with it — ask the user to do the Supabase switch.
+- Screenshots of the `localhost` tab timed out (renderer "frozen" while in the background);
+  `find`, `file_upload`, `form_input` and SQL checks still worked. `file_upload` fills a hidden
+  `<input type=file>` without opening the native picker; files under the repo are allowed.
+- A fresh machine has no `node_modules`: run `npm ci` before `npx tsc` (otherwise npx fetches
+  an unrelated `tsc` package).
 
 **Windows**
 - A background `next start` keeps its `node` child after the task stops. Free the port by PID:
