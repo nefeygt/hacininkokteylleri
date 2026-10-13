@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Wine } from "lucide-react";
+import { BRAND } from "@/lib/brand";
 
 export default function Home() {
   return (
@@ -19,11 +20,7 @@ export default function Home() {
           </div>
 
           {/* Title */}
-          <h1 className="mb-4 text-5xl font-bold tracking-tight md:text-7xl">
-            Hacı&apos;nın
-            <br />
-            <span className="text-crimson-glow">Kokteylleri</span>
-          </h1>
+          <h1 className="mb-4 text-7xl font-bold tracking-tight text-crimson-glow md:text-9xl">{BRAND}</h1>
 
           {/* Subtitle */}
           <p className="mx-auto mb-10 max-w-md font-mono text-sm leading-relaxed text-text-secondary">
@@ -46,7 +43,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-border px-6 py-8 text-center">
         <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-muted">
-          Hacı&apos;nın Kokteylleri &mdash; Sevgiyle hazırlandı
+          {BRAND} &mdash; Sevgiyle hazırlandı
         </p>
       </footer>
     </div>

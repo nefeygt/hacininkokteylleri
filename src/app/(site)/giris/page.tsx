@@ -6,7 +6,7 @@ import { accountSession, safeNext } from "@/lib/account";
 import GoogleButton from "./GoogleButton";
 
 export const metadata: Metadata = {
-  title: "Giriş · Hacı'nın Kokteylleri",
+  title: "Giriş",
   robots: { index: false },
 };
 

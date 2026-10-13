@@ -6,7 +6,7 @@ import { slugify } from "@/lib/slug";
 import OnboardingForm from "./OnboardingForm";
 
 export const metadata: Metadata = {
-  title: "Hoş geldin · Hacı'nın Kokteylleri",
+  title: "Hoş geldin",
   robots: { index: false },
 };
 

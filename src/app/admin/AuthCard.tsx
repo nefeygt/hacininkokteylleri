@@ -1,4 +1,5 @@
 import { Wine } from "lucide-react";
+import { BRAND } from "@/lib/brand";
 import SignOutButton from "./SignOutButton";
 
 /** The frame around the sign-in, two-factor setup and code screens. */
@@ -20,8 +21,8 @@ export default function AuthCard({
           <div className="flex h-8 w-8 items-center justify-center rounded bg-crimson/20">
             <Wine className="h-4 w-4 text-crimson-glow" />
           </div>
-          <span className="font-mono text-sm font-bold tracking-wider">
-            HACININ<span className="text-crimson-glow"> KOKTEYLLERİ</span>
+          <span className="font-mono text-base font-bold tracking-wider">
+            {BRAND} <span className="text-xs font-normal text-text-muted">yönetim</span>
           </span>
         </div>
 

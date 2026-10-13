@@ -7,7 +7,7 @@ import ProfileForm from "./ProfileForm";
 import SignOutButton from "./SignOutButton";
 
 export const metadata: Metadata = {
-  title: "Hesabım · Hacı'nın Kokteylleri",
+  title: "Hesabım",
   robots: { index: false },
 };
 

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { adminSession } from "@/lib/admin";
+import { BRAND } from "@/lib/brand";
 import { SLUG_PATTERN } from "@/lib/slug";
 import { COCKTAIL_IMAGES_BUCKET } from "@/lib/supabase/config";
 import { Constants } from "@/lib/supabase/database.types";
@@ -67,7 +68,7 @@ export async function startTotpEnrollment(): Promise<
   const { data, error } = await supabase.auth.mfa.enroll({
     factorType: "totp",
     friendlyName: `Yönetim paneli ${Date.now().toString(36)}`,
-    issuer: "Hacı'nın Kokteylleri",
+    issuer: BRAND,
   });
   if (error) return { error: `QR kodu oluşturulamadı: ${error.message}` };
 

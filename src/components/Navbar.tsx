@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Wine, Film } from "lucide-react";
+import { BRAND } from "@/lib/brand";
 import AccountLink from "./AccountLink";
 
 export default function Navbar() {
@@ -15,10 +16,7 @@ export default function Navbar() {
           <div className="flex h-8 w-8 items-center justify-center rounded bg-crimson/20 transition-colors group-hover:bg-crimson/30">
             <Wine className="h-4 w-4 text-crimson-glow" />
           </div>
-          <span className="font-mono text-sm font-bold tracking-wider text-text-primary">
-            HACININ
-            <span className="text-crimson-glow"> KOKTEYLLERİ</span>
-          </span>
+          <span className="font-mono text-base font-bold tracking-wider text-text-primary">{BRAND}</span>
         </Link>
 
         <div className="flex items-center gap-1">

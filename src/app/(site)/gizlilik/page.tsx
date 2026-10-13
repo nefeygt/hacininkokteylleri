@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { ACCOUNTS_OPEN, PRIVACY_NOTICE_VERSION } from "@/lib/account-config";
+import { BRAND } from "@/lib/brand";
 
 export const metadata: Metadata = {
-  title: "Aydınlatma Metni · Hacı'nın Kokteylleri",
+  title: "Aydınlatma Metni",
   description: "Kişisel verilerin nasıl işlendiğine dair KVKK aydınlatma metni.",
 };
 
@@ -28,7 +29,7 @@ export default function PrivacyPage() {
 
       <Section title="1. Veri sorumlusu">
         <p>
-          Hacı&apos;nın Kokteylleri ({"hacininkokteylleri.tech"}) bir hobi projesidir. 6698 sayılı Kişisel Verilerin
+          {BRAND} ({"hacininkokteylleri.tech"}) bir kokteyl tarifleri platformudur. 6698 sayılı Kişisel Verilerin
           Korunması Kanunu (KVKK) kapsamındaki veri sorumlusu: {CONTROLLER}.
           {CONTACT ? <> Bize {CONTACT} adresinden ulaşabilirsin.</> : null}
         </p>

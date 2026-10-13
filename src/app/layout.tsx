@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { BRAND } from "@/lib/brand";
 
 const inter = Inter({
   subsets: ["latin", "latin-ext"],
@@ -16,8 +17,10 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://hacininkokteylleri.tech"),
-  title: "Hacı'nın Kokteylleri",
+  title: { default: BRAND, template: `%s · ${BRAND}` },
+  applicationName: BRAND,
   description: "Sinematik bir kokteyl arşivi: her biri özenle formüle edilmiş kokteyl reçeteleri.",
+  openGraph: { siteName: BRAND, locale: "tr_TR", type: "website" },
   verification: {
     google: "ZfTQJ4AR0Rq0iytJ0JXhQZgXCSoCOTTWhQB6PvYMLyY",
   },

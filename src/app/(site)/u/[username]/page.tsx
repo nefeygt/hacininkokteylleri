@@ -27,9 +27,9 @@ export async function generateMetadata({
   params: Promise<{ username: string }>;
 }): Promise<Metadata> {
   const profile = await getProfile((await params).username);
-  if (!profile) return { title: "Bulunamadı · Hacı'nın Kokteylleri" };
+  if (!profile) return { title: "Bulunamadı" };
   return {
-    title: `${profile.display_name} (@${profile.username}) · Hacı'nın Kokteylleri`,
+    title: `${profile.display_name} (@${profile.username})`,
     description: profile.bio ?? undefined,
   };
 }

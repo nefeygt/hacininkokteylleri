@@ -8,7 +8,7 @@ import { getGlossary, getPublishedCocktails } from "@/lib/content";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "Kokteyller · Hacı'nın Kokteylleri",
+  title: "Kokteyller",
 };
 
 export default async function KokteyllerPage() {

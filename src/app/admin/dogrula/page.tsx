@@ -13,7 +13,7 @@ export default async function VerifyPage() {
   return (
     <AuthCard
       title="Doğrulama kodu"
-      subtitle="Telefonundaki doğrulama uygulamasında Hacı'nın Kokteylleri için görünen kodu gir."
+      subtitle="Telefonundaki doğrulama uygulamasında haci (eski kurulumlarda Hacı'nın Kokteylleri) için görünen kodu gir."
       showSignOut
     >
       <VerifyForm />
