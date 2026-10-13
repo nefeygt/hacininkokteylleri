@@ -205,6 +205,7 @@ src/
 supabase/
   migrations/                   {version}_{name}.sql — mirrors of what is applied (ADR-009)
   storage/cocktail-images/      the 37 imported WebPs (the bucket's starting content)
+  templates/                    Supabase Auth e-mail templates (Turkish), mirrored by hand
 public/brand/                   logo sources (SVG) and exported PNGs; scripts/export-brand.mjs renders them
 ```
 
@@ -304,7 +305,9 @@ After any schema change: mirror the migration, regenerate `database.types.ts`, r
 - [ ] A final read of `/privacy` by the user (the draft banner goes away by itself when `ACCOUNTS_OPEN` is true)
 - [x] E-mail + password code (2026-10-13): sign in / sign up / forgot password on `/login` (`EmailForm`), `/reset-password`, callback `via=email` errors; checked locally with sign-ups off (wrong password, sign-up refused)
 - [x] Resend: account (the user's), domain `hacininkokteylleri.tech` in **Ireland (eu-west-1)**, tracking off; DNS at Namify: `TXT resend._domainkey` (DKIM), `CNAME rsend` → `rsend-euw1.forge.rmta.net`, `CNAME send` → `send.forge.rmta.net`, `TXT _dmarc v=DMARC1; p=none;`
-- [ ] Resend domain verified; API key into Supabase SMTP (the user); Supabase minimum password length 8; Turkish e-mail templates; e-mail sign-up tested end to end
+- [x] Resend domain **verified** (2026-10-14); custom SMTP in Supabase (`smtp.resend.com:465`, sender `haci <noreply@hacininkokteylleri.tech>`, key pasted by the user); minimum password length 8 (the user)
+- [x] Turkish e-mail templates in Supabase — confirm sign-up, reset password, change e-mail; sources in `supabase/templates/` (paste by hand when they change)
+- [ ] E-mail sign-up, confirmation, onboarding and password reset tested end to end (sign-ups briefly on)
 - [x] Avatar upload on `/account` (and shown on `/u/{username}`)
 - [ ] Open it — **after** e-mail sign-in ships (the user, 2026-10-13): `ACCOUNTS_OPEN = true`, sign-ups on
 
