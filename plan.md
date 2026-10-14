@@ -9,7 +9,7 @@
 > **Language rule (ADR-002):** everything we write — docs, code, comments, commits, SQL — is
 > **English**. Everything visitors and admins read — UI strings, recipes — is **Turkish**.
 
-**Last updated:** 2026-10-14 · **Active milestone:** M3 — Accounts (Google and e-mail sign-in built and tested end to end; **ready to open on the user's go**) · **Brand:** `haci` (ADR-015)
+**Last updated:** 2026-10-14 · **Active milestone:** M3 — Accounts (**opened to the public 2026-10-14**; the live check from outside is the last box) · **Brand:** `haci` (ADR-015)
 
 ---
 
@@ -17,9 +17,9 @@
 
 | Field | State |
 |---|---|
-| Active milestone | **M3 — Accounts**: Google app **in production**; Google sign-in → onboarding → profile edit → avatar → public profile → account deletion **tested end to end** (2026-10-13). **Closed to the public** (`ACCOUNTS_OPEN = false`, sign-ups off). Privacy contact address live (`contact@`, forwarded through ImprovMX). **E-mail + password sign-in through Resend built and tested end to end** (2026-10-14). Left: the user's final read of `/privacy` and the go to open |
+| Active milestone | **M3 — Accounts**: Google app **in production**; Google sign-in → onboarding → profile edit → avatar → public profile → account deletion **tested end to end** (2026-10-13). Privacy contact address live (`contact@`, forwarded through ImprovMX). **E-mail + password sign-in through Resend built and tested end to end** (2026-10-14). `/privacy` final (Resend listed). **Opened 2026-10-14** (`ACCOUNTS_OPEN = true`, sign-ups on by the user). Left: the live check from outside |
 | Last completed | **M2 — Domain** (Search Console moved from vercel.app to the domain) and the **brand change to `haci`** with English URLs and the cherry logo (ADR-015). M1 is done except Hacı's own first sign-in |
-| Blockers | None in the code. Opening M3 waits on the user's go (Google only, or wait for e-mail sign-in). The network the user's office computer is on (a Fortinet FortiGate) blocks the domain — check from outside (§5.4) |
+| Blockers | None in the code. The network the user's office computer is on (a Fortinet FortiGate) blocks the domain — check from outside (§5.4) |
 | Next critical decision | **The colour theme** for a global audience (the user is open to change, ADR-015) and, later, localization. The mobile app is decided: Expo, after M3 (ADR-013) |
 
 ---
@@ -58,9 +58,9 @@ around the archive; they never crowd it off the home page except through the sho
 - **Admin panel** (`admin.` subdomain) — sign in; list with publish/draft toggle; create,
   edit and delete a cocktail with its ingredients, steps and photo (resized, WebP, Gemini
   sparkle removed in the browser); glossary editor. Every save is live on the site at once.
-- **Accounts (M3, closed)** — `/login` (Google), `/welcome` (username, 18+, privacy notice),
+- **Accounts (M3, open)** — `/login` (Google, e-mail + password), `/welcome` (username, 18+, privacy notice),
   `/account` (edit profile, profile picture, sign out, delete account), `/u/{username}`,
-  `/privacy` (KVKK notice, draft). Hidden from the navbar until `ACCOUNTS_OPEN` in `src/lib/account-config.ts`.
+  `/privacy` (KVKK notice, in effect). The navbar link follows `ACCOUNTS_OPEN` in `src/lib/account-config.ts`.
 
 ### 3.2 Roadmap — what the user has asked for (2026-10-13)
 
@@ -95,6 +95,7 @@ In the user's words, collected while M0 was being built. Milestones in §6.
 
 | # | Decision | Why |
 |---|---|---|
+| 2026-10-14 | Open M3 | Sign-ups confirmed off at the start. `/privacy` gained Resend as a processor and how the password is stored; the user approved the text. **Accounts opened** (`ACCOUNTS_OPEN = true`, pushed); the user turns on sign-ups in Supabase |
 | 001 | `plan.md` / `adr.md` / `next_session.md` handoff | Any machine, account or agent continues from one prompt |
 | 002 | English in the repo, Turkish in the product | One language per layer |
 | 003 | Supabase in Frankfurt | One backend for site, panel and app; ~50 ms from Turkey |
@@ -293,7 +294,7 @@ After any schema change: mirror the migration, regenerate `database.types.ts`, r
 - [x] Google Search Console: Domain property `hacininkokteylleri.tech` verified (DNS TXT at Namify), sitemap submitted, Change of Address from the vercel.app property started (2026-10-13)
 - [x] `hacininkokteylleri.vercel.app` 308-redirects to the domain (`src/proxy.ts`), except its Search Console verification file
 
-### 🔵 M3 — Accounts `BUILT AND TESTED, CLOSED — contact address and the go-ahead left`
+### 🔵 M3 — Accounts `OPEN 2026-10-14 — live check left`
 
 - [x] ADR-014 (community data model), agreed with the user
 - [x] Migration `community_accounts`: `account_settings`, `profiles`, moderation guard, `avatars` bucket, `delete_my_account()`; 16 policy checks in SQL (rolled back); advisors clean
@@ -302,14 +303,15 @@ After any schema change: mirror the migration, regenerate `database.types.ts`, r
 - [x] Publish the Google app — Branding: home page, `/privacy`, authorized domains; **no logo** (a logo forces Google verification); Audience → **In production** (2026-10-13)
 - [x] End to end on `localhost:3000` (2026-10-13): Google sign-in (the user's `wowcubey@gmail.com`) → `/welcome` → `/account` → bio edit and avatar upload/replace seen on `/u/{username}` → delete; `auth.users`, identities, `profiles`, `account_settings` and the avatar object all gone, the profile page 404s
 - [x] Privacy notice contact address: **`contact@hacininkokteylleri.tech`** shown (`iletisim@` works too) forwarded to `n.efeyigit@outlook.com` through **ImprovMX** (MX + SPF at Namify; account and aliases by the user; test mails arrived, 2026-10-13). ImprovMX listed as a processor in `/privacy`
-- [ ] A final read of `/privacy` by the user (the draft banner goes away by itself when `ACCOUNTS_OPEN` is true)
+- [x] A final read of `/privacy` by the user (2026-10-14) — Resend added as a processor and the password storage stated before it took effect
 - [x] E-mail + password code (2026-10-13): sign in / sign up / forgot password on `/login` (`EmailForm`), `/reset-password`, callback `via=email` errors; checked locally with sign-ups off (wrong password, sign-up refused)
 - [x] Resend: account (the user's), domain `hacininkokteylleri.tech` in **Ireland (eu-west-1)**, tracking off; DNS at Namify: `TXT resend._domainkey` (DKIM), `CNAME rsend` → `rsend-euw1.forge.rmta.net`, `CNAME send` → `send.forge.rmta.net`, `TXT _dmarc v=DMARC1; p=none;`
 - [x] Resend domain **verified** (2026-10-14); custom SMTP in Supabase (`smtp.resend.com:465`, sender `haci <noreply@hacininkokteylleri.tech>`, key pasted by the user); minimum password length 8 (the user)
 - [x] Turkish e-mail templates in Supabase — confirm sign-up, reset password, change e-mail; sources in `supabase/templates/` (paste by hand when they change)
 - [x] E-mail tested end to end on `localhost:3000` (2026-10-14): sign-up → confirmation e-mail via Resend → `/welcome` → `/account` → sign out → reset e-mail → `/reset-password` → sign in with the new password → delete; all rows gone
 - [x] Avatar upload on `/account` (and shown on `/u/{username}`)
-- [ ] Open it — **after** e-mail sign-in ships (the user, 2026-10-13): `ACCOUNTS_OPEN = true`, sign-ups on
+- [x] Open it (2026-10-14, the user's go): `ACCOUNTS_OPEN = true` deployed, sign-ups on (the user)
+- [ ] Live check from outside (check-host.net, §5.4) and once in Chrome: `/login` → Google → `/welcome`
 
 ### ⚪ M4 — Reviews and favourites
 

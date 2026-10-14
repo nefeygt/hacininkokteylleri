@@ -5,7 +5,7 @@
  * link stays out of the navbar and public sign-up stays off in Supabase Auth;
  * the pages work for anyone who already has an account (ADR-014).
  */
-export const ACCOUNTS_OPEN = false;
+export const ACCOUNTS_OPEN = true;
 
 /** Shown at onboarding and stored in account_settings. Bump it when /privacy changes. */
 export const PRIVACY_NOTICE_VERSION = "2026-10";

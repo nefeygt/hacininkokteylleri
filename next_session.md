@@ -4,11 +4,10 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-14 · **Handing off:** M3 is **built and tested end to end** for
-both sign-in methods — Google (app in production) and e-mail + password (Resend in Ireland,
-custom SMTP, Turkish templates). The privacy notice has its contact address (`contact@`,
-forwarded through ImprovMX). Accounts stay **closed** (`ACCOUNTS_OPEN = false`, sign-ups off).
-**Next: the user's final read of `/privacy`, then open M3 with the user's go.**
+**Prepared by session:** 2026-10-14 (Open M3) · **Handing off:** **M3 is open.** The user
+approved `/privacy` (Resend now listed as a processor, password storage stated) and gave the go;
+`ACCOUNTS_OPEN = true` is pushed and the user was asked to turn on sign-ups in Supabase.
+**Next: confirm sign-ups are on and check the live site from outside, then start M4.**
 
 ---
 
@@ -53,63 +52,30 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — open M3 (everything is built and tested)
+## 🎯 This Session's Task — confirm M3 is live, then start M4
 
-### Step 0 — check sign-ups are off
+### Step 1 — sign-ups are on
 
-Last session the user turned "Allow new users to sign up" on for the test and was asked to turn
-it off afterwards. Check (publishable key only, from `.env`):
-`curl -s -H "apikey: $KEY" https://qwvnhdghwycqlvsnlvlt.supabase.co/auth/v1/settings` →
-`"disable_signup": true`. If it is `false` and M3 is not opening this session, ask the user to
-switch it off (Supabase → Authentication → Sign In / Providers → User Signups → Save) — the
-auto-mode classifier does not let the agent flip it.
+`curl -s -H "apikey: $KEY" https://qwvnhdghwycqlvsnlvlt.supabase.co/auth/v1/settings` (publishable
+key from `.env` via `grep`) → `"disable_signup": false`. If it is still `true`, ask the user to
+switch it on (Supabase → Authentication → Sign In / Providers → Allow new users to sign up → Save) —
+the auto-mode classifier does not let the agent flip it.
 
-### Step 1 — the privacy notice ✅ (contact address done)
+### Step 2 — live check
 
-`iletisim@hacininkokteylleri.tech` and `contact@hacininkokteylleri.tech` forward to
-`n.efeyigit@outlook.com` through **ImprovMX** (the user's account and aliases; DNS at Namify:
-`MX @ mx1.improvmx.com 10`, `MX @ mx2.improvmx.com 20`, `TXT @ "v=spf1 include:spf.improvmx.com ~all"`;
-test mails to both arrived, 2026-10-13). `/privacy` shows **`contact@`** (the user's pick) as a mailto link and lists
-ImprovMX as a processor. Left: the user's final read. The draft banner disappears by itself when
-`ACCOUNTS_OPEN` is true. Namify has no forwarding of its own — never start its paid Titan trial.
+From outside the office network (check-host.net, plan.md §5.4): `/`, `/login`, `/privacy` answer
+200 and `/privacy` has no "Taslak" banner. Then once in Chrome on the live domain: the navbar shows
+the sign-in link, `/login` → Google → `/welcome`. If a test account is created, delete it from
+`/account` afterwards. Tick the last M3 box in plan.md and mark M3 done.
 
-### Step 2 — e-mail + password sign-in with Resend (code done; Resend domain added)
+### Step 3 — M4 reviews and favourites
 
-Done 2026-10-13: the Resend account (the user's), the domain in Ireland with tracking off, its
-DNS at Namify (DKIM TXT `resend._domainkey`, CNAME `rsend` → `rsend-euw1.forge.rmta.net`, CNAME
-`send` → `send.forge.rmta.net`, `TXT _dmarc "v=DMARC1; p=none;"`), and the code (`EmailForm` on
-`/login`, `/reset-password`, `via=email` in the callback). Done 2026-10-14: Resend verified, Supabase custom SMTP
-and minimum password length 8 (the user), Turkish templates (`supabase/templates/`, pasted into
-Supabase). **End-to-end test passed 2026-10-14** (sign-up, confirmation, onboarding, sign-out, reset, sign-in with the new password, deletion). Saving a template in Supabase's dashboard: set the body
-with `monaco.editor.getModels()[0].setValue(...)`, the subject with `form_input`, then click Save
-from JS (`button.click()`) and confirm a `PATCH …/config` 200 — coordinate/ref clicks often miss.
+ADR-014 has the tables. The reserved-username list gets the English route words in that migration
+(plan.md §8). Follow ADR-009 for the migration and ADR-014's grant/RLS pattern.
 
-**The user decided (2026-10-13): accounts open only after e-mail sign-in works too.**
-1. The user creates a Resend account (the agent never creates accounts) and adds the domain;
-   Resend's records (DKIM `resend._domainkey`, and MX + SPF on its `send.` subdomain) do not
-   collide with ImprovMX's MX/SPF on the apex — the agent adds them at Namify.
-2. The user creates an API key and pastes it into Supabase → Authentication → Emails → SMTP
-   Settings (host `smtp.resend.com`, port 465, user `resend`, sender
-   `haci <noreply@hacininkokteylleri.tech>` unless the user prefers another). The key never
-   enters the repository or the chat (ADR-008).
-3. Turkish e-mail templates in Supabase (confirm sign-up, reset password, change e-mail).
-4. Code: e-mail + password on `/login` (sign in / sign up), a "forgot password" request and a
-   `/reset-password` page; the callback already handles the code exchange. Test end to end with
-   sign-ups briefly on (the user flips the switch).
+### Also open (not blocking)
 
-### Step 3 — open M3 (only with the user's explicit go)
-
-`ACCOUNTS_OPEN = true` in `src/lib/account-config.ts` (the navbar link appears), the user turns
-sign-ups on in Supabase, build, push (deploys), then check on the live domain from outside
-(plan.md §5.4) and once in Chrome: `/login` → Google → `/welcome`. Note: with sign-ups on,
-e-mail + password sign-up is also open at the API, but "Confirm email" is on and the built-in
-mailer only reaches org members, so nobody outside can finish it — Resend fixes this properly.
-
-### Then
-
-The wordmark in the navbar, Hacı's own first admin sign-in. After M3: **M4 reviews and favourites**
-(ADR-014 has the tables; the reserved-username list gets the English route words in that
-migration — plan.md §8).
+The wordmark in the navbar; Hacı's own first admin sign-in (question 5).
 
 ---
 
@@ -117,9 +83,7 @@ migration — plan.md §8).
 
 | # | Question | Why it matters | Until it is answered |
 |---|---|---|---|
-| 2 | **A final read of `/privacy`** — anything to change before it takes effect? | It takes effect when accounts open | Draft banner stays |
 | 3 | **Colour theme:** keep the dark crimson "Rx" look, or explore a lighter/warmer palette? | The user said the theme can change (ADR-015) | Today's palette stays |
-| 4 | **Resend:** whose account, and is `haci <noreply@hacininkokteylleri.tech>` fine as the sender? | E-mail sign-in, password resets | Google sign-in only |
 | 5 | **Hacı's first admin sign-in** — when (his phone, a network that does not block the domain)? | His 2FA factor is not enrolled yet | He cannot use the panel |
 
 ---
@@ -128,11 +92,11 @@ migration — plan.md §8).
 
 - **Production:** `hacininkokteylleri.tech` (apex), `www` → apex, `admin.hacininkokteylleri.tech`;
   `hacininkokteylleri.vercel.app` → 308 to the domain. `main` deploys on push.
-- **Accounts (M3):** Google app **in production** (Google Cloud `haci-511515`, branding: home
+- **Accounts (M3, open 2026-10-14):** Google app **in production** (Google Cloud `haci-511515`, branding: home
   page, `/privacy`, authorized domains, no logo). Supabase: Google provider on, TOTP on,
-  sign-ups **should be off** (Step 0). Pages: `/login`, `/auth/callback`, `/welcome`, `/account`
+  sign-ups **on** since the opening (2026-10-14, the user flips it). Pages: `/login`, `/auth/callback`, `/welcome`, `/account`
   (profile, **avatar** — new this session, sign out, delete), `/u/{username}` (shows the avatar),
-  `/privacy` (draft, no contact address). All tested end to end on `localhost:3000` on 2026-10-13
+  `/privacy` (in effect; contact `contact@`; processors Supabase, Vercel, Google, Resend, ImprovMX). All tested end to end on `localhost:3000` on 2026-10-13
   with the user's `wowcubey@gmail.com` Google account; the test account was deleted (all rows
   and the avatar object gone).
 - **Avatars:** `src/app/(site)/account/AvatarField.tsx` (centre square → 256 px WebP →
@@ -249,13 +213,15 @@ migration — plan.md §8).
 | Logo on Google's consent screen? | **Not now** — publish without it; add with verification later |
 | Privacy contact address? | **`contact@` (shown) and `iletisim@`, forwarded to `n.efeyigit@outlook.com` through ImprovMX** — live 2026-10-13 |
 | Open with Google only, or wait for e-mail sign-in? | **Wait — open after Resend e-mail sign-in works** (2026-10-13) |
+| Is `/privacy` final? Open M3? | **Yes and yes** — opened 2026-10-14 |
+| Resend account and sender? | **The user's account; `haci <noreply@hacininkokteylleri.tech>`** |
 | Admins, 2FA, canonical domain, WHOIS, reviews/logs, mobile stack | See ADR-007, 011, 010, plan.md M2, ADR-012, ADR-013 |
 
 ---
 
 ## 🧭 Look-ahead
 
-- **M3** finish and open → **M4** reviews and favourites → **M5** drink log → **M6** community
+- **M3** live check → **M4** reviews and favourites → **M5** drink log → **M6** community
   recipes and feeds → **M7** showcase → **M8** Expo apps (the cherry icon is ready:
   `public/brand/haci-app-icon-1024.png`, `haci-play-store-512.png`; the adaptive-icon foreground
   needs the mark scaled into the 66% safe zone).

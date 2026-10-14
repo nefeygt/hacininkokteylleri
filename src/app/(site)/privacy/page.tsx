@@ -37,7 +37,7 @@ export default function PrivacyPage() {
 
       <Section title="2. Hangi verileri işliyoruz?">
         <ul className="list-disc space-y-1 pl-5">
-          <li>Hesap bilgileri: e-posta adresin; Google ile girersen Google hesabındaki adın ve hesap kimliğin.</li>
+          <li>Hesap bilgileri: e-posta adresin; e-posta ile üye olursan şifren (düz metin olarak değil, geri çevrilemez bir özet olarak saklanır); Google ile girersen Google hesabındaki adın ve hesap kimliğin.</li>
           <li>Profil: kullanıcı adın, görünen adın, &quot;hakkında&quot; yazın ve yüklersen profil fotoğrafın.</li>
           <li>Onaylar: 18 yaşından büyük olduğunu onayladığın zaman ve gördüğün aydınlatma metninin sürümü. Doğum tarihini sormayız.</li>
           <li>Sitede paylaştıkların: yorumların, puanların, favorilerin ve ileride eklenecek özelliklerde yazdıkların.</li>
@@ -60,6 +60,7 @@ export default function PrivacyPage() {
           <li>Supabase: veritabanı, kimlik doğrulama ve dosya depolama; sunucular Frankfurt, Almanya.</li>
           <li>Vercel: sitenin barındırılması; ABD merkezli.</li>
           <li>Google: yalnızca Google ile giriş yapmayı seçersen, kimliğini doğrulamak için.</li>
+          <li>Resend: e-posta ile üye olursan doğrulama ve şifre sıfırlama e-postalarını göndermek için; sunucular İrlanda.</li>
           <li>ImprovMX: {CONTACT} adresine yazdığın e-postaları bize iletmek için; ABD merkezli.</li>
         </ul>
         <p className="mt-3">
