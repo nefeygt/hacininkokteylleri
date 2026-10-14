@@ -4,9 +4,9 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-14 (M4 build) · **Handing off:** **M4 — reviews and favourites is
-built, tested end to end on localhost and deployed.** Left: one live check on the domain from an
-unblocked network. **Next: M5 — Drink log.**
+**Prepared by session:** 2026-10-14 (M4 live check) · **Handing off:** **M4 — reviews and favourites
+is done** (live check passed over mobile data, Google sign-in on the live domain works). **Next:
+M5 — Drink log** — Step 1 below is done; start at Step 2.
 
 ---
 
@@ -61,7 +61,7 @@ key from `.env` via `grep`) → `"disable_signup": false`. `select username, cre
 that accounts are not necessarily real people yet** (no promotion, nobody expected to sign up), but
 still never delete or edit a row you did not create without asking.
 
-### Step 1 — M4 live check (with the user, short)
+### Step 1 — M4 live check ✅ done 2026-10-14
 
 On `hacininkokteylleri.tech` from an unblocked network (the user's phone): open a recipe, write a
 review, see the card's average change; then delete it. Tick the last box of M4 in plan.md.
@@ -80,7 +80,6 @@ server actions that revalidate; no native dialogs). Update `/privacy` if drink l
 
 ### Also open (not blocking)
 
-- A Google sign-in on the live domain from a network that does not block it (with Step 1).
 - The wordmark in the navbar; Hacı's own first admin sign-in (question 5).
 
 ---

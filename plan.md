@@ -9,7 +9,7 @@
 > **Language rule (ADR-002):** everything we write — docs, code, comments, commits, SQL — is
 > **English**. Everything visitors and admins read — UI strings, recipes — is **Turkish**.
 
-**Last updated:** 2026-10-14 · **Active milestone:** M4 — Reviews and favourites **built and tested locally 2026-10-14, deployed**; next: **M5 — Drink log** · **Brand:** `haci` (ADR-015)
+**Last updated:** 2026-10-14 · **Active milestone:** **M5 — Drink log** (M4 done 2026-10-14) · **Brand:** `haci` (ADR-015)
 
 ---
 
@@ -17,8 +17,8 @@
 
 | Field | State |
 |---|---|
-| Active milestone | **M4 — Reviews and favourites** (2026-10-14): tables, policies (29 SQL checks), ratings on cards, reviews and favourites in the recipe card, "Favorilerim" filter, reviews and favourites on profiles, reports, the panel's moderation page — tested end to end on `localhost` with the user's account; deployed. A live check on the domain is left (§6 M4) |
-| Previous milestone | **M3 — Accounts**: Google app **in production**; Google sign-in → onboarding → profile edit → avatar → public profile → account deletion **tested end to end** (2026-10-13). Privacy contact address live (`contact@`, forwarded through ImprovMX). **E-mail + password sign-in through Resend built and tested end to end** (2026-10-14). `/privacy` final (Resend listed). **Opened 2026-10-14** (`ACCOUNTS_OPEN = true`, sign-ups on by the user). Live check passed (2026-10-14). **M3 done** |
+| Active milestone | **M5 — Drink log** — not started (§6 M5, ADR-014) |
+| Previous milestone | **M4 — Reviews and favourites** (2026-10-14): tables, policies (29 SQL checks), ratings on cards, reviews and favourites in the recipe card, "Favorilerim" filter, reviews and favourites on profiles, reports, the panel's moderation page — tested end to end on `localhost`; **live check passed on the domain over mobile data** (Google sign-in, review → card average 4,0 (1) → delete). **M4 done**. M3 — Accounts done 2026-10-14 (Google + e-mail sign-in, `/privacy`, opened) |
 | Last completed | **M2 — Domain** (Search Console moved from vercel.app to the domain) and the **brand change to `haci`** with English URLs and the cherry logo (ADR-015). M1 is done except Hacı's own first sign-in |
 | Blockers | None in the code. The network the user's office computer is on (a Fortinet FortiGate) blocks the domain — check from outside (§5.4) |
 | Next critical decision | **The colour theme** for a global audience (the user is open to change, ADR-015) and, later, localization. The mobile app is decided: Expo, after M3 (ADR-013) |
@@ -328,7 +328,7 @@ After any schema change: mirror the migration, regenerate `database.types.ts`, r
 - [x] Open it (2026-10-14, the user's go): `ACCOUNTS_OPEN = true` deployed, sign-ups on (the user)
 - [x] Live check (2026-10-14): `/`, `/login`, `/privacy` 200 from outside (check-host.net); the production deployment URL in Chrome (the office firewall blocks the domain) shows no draft banner, Resend listed, the "Giriş" navbar link. A Google round trip on the live domain needs an unblocked network — the user, whenever convenient (not blocking)
 
-### 🔵 M4 — Reviews and favourites `BUILT AND DEPLOYED 2026-10-14 — live check left`
+### ✅ M4 — Reviews and favourites `DONE 2026-10-14`
 
 - [x] Migration `reviews_favorites`: `reviews`, `favorites`, `reports`, view `cocktail_ratings`, daily limits (20 reviews written/rewritten, 20 reports), English reserved usernames; 29 policy checks in SQL (rolled back); advisors clean
 - [x] Migration `reviews_updated_at_on_edit`: hiding a review no longer moves its date
@@ -336,7 +336,7 @@ After any schema change: mirror the migration, regenerate `database.types.ts`, r
 - [x] Profiles: favourites and reviews; "Profili bildir"
 - [x] Panel → Moderasyon: open reports with the target, latest reviews, hide/show, close
 - [x] End to end on `localhost:3000` / `admin.localhost:3000` (2026-10-14) with the user's Google account (`ahmet_kafa`) and a seeded test member: review → average updated at once → edit → report → admin hides (gone from the list and the average) → report closed → delete → favourite on/off → profile report. Test rows deleted
-- [ ] Live check on `hacininkokteylleri.tech` from an unblocked network (the user's phone): write a review, see the card average
+- [x] Live check on `hacininkokteylleri.tech` (2026-10-14, the user's Chrome over mobile data): Google sign-in as `ahmet_kafa` on the live domain → `/account`; a 4-star review on Kuzu Kulağı Devrimi → the card showed 4,0 (1), also in the cached static page fetched anonymously → review deleted → no rating, 0 rows
 
 ### ⚪ M5 — Drink log
 
@@ -386,9 +386,6 @@ when it starts.
 - Ingredient names are free text ("Vodka" and "Votka" both exist), which the future
   drink log and "what can I make" features will want normalised.
 - A photo uploaded in the panel and then abandoned (form not saved) stays in the bucket.
-- Google's consent screen will say "continue to `qwvnhdghwycqlvsnlvlt.supabase.co`" rather
-  than `haci` until the app is brand-verified and Supabase Auth runs on our own domain
-  (custom domain is a paid add-on).
 - The owner's authenticator entry is named "Hacı'nın Kokteylleri" (the old issuer); harmless.
 
 ---
@@ -411,6 +408,9 @@ when it starts.
 - Paging / "show more" for reviews (the card shows the latest 50; a profile the latest 100)
 - Rating breakdown (how many 5s, 4s, …) and sorting the archive by rating
 - The `haci` wordmark (`public/brand/haci-wordmark-light.svg`) in the navbar instead of text
+- **Our own auth domain** (e.g. `auth.hacininkokteylleri.tech`, Supabase custom domain, a paid
+  add-on) plus Google brand verification, so Google's account chooser says `haci` instead of
+  `qwvnhdghwycqlvsnlvlt.supabase.co` (seen live 2026-10-14). The user: "we'll buy it if it grows"
 
 ---
 
@@ -418,6 +418,7 @@ when it starts.
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-10-14 | M4 live check | Over the user's mobile data in their Chrome: the domain 200; **Google sign-in on the live domain** works; review → card 4,0 (1) (also the cached static page) → delete → 0 rows. **M4 done**. The supabase.co name on Google's chooser → Icebox (own auth domain) |
 | 2026-10-14 | M4 build | Sign-ups still on; no members yet (the user's own `ahmet_kafa` appeared during the session). Migrations `reviews_favorites` and `reviews_updated_at_on_edit`; 29 policy checks. Ratings on cards, reviews and favourites in the recipe card, profile activity, reports, the panel's moderation page. Tested end to end in Chrome with the user's account and a seeded member (removed). Prompt/confirm dialogs replaced by inline forms (they freeze automation). ADR-016. Deployed |
 | 2026-10-14 | Open M3 | Sign-ups confirmed off at the start. `/privacy` gained Resend as a processor and how the password is stored; the user approved the text. **Accounts opened** (`ACCOUNTS_OPEN = true`, `d487c84`) and sign-ups turned on by the user. Live check: `/`, `/login`, `/privacy` 200 from outside (check-host); the production deployment in Chrome shows no draft banner and the "Giriş" link. **M3 done**; a Google sign-in on the live domain from an unblocked network is left to the user |
 | 2026-10-13 → 14 | Contact mail + e-mail sign-in | `contact@`/`iletisim@` forwarded through ImprovMX (Namify has no forwarding). Privacy notice: contact address, ImprovMX listed. The user chose to open accounts only after e-mail sign-in. Resend (Ireland) verified, custom SMTP in Supabase, Turkish auth templates. E-mail sign-in / sign-up / reset built and tested end to end. English privacy notice → Icebox (localization) |
