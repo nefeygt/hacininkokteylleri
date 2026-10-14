@@ -9,7 +9,7 @@
 > **Language rule (ADR-002):** everything we write — docs, code, comments, commits, SQL — is
 > **English**. Everything visitors and admins read — UI strings, recipes — is **Turkish**.
 
-**Last updated:** 2026-10-14 · **Active milestone:** M3 — Accounts **done and open 2026-10-14**; next: **M4 — Reviews and favourites** · **Brand:** `haci` (ADR-015)
+**Last updated:** 2026-10-14 · **Active milestone:** M4 — Reviews and favourites **built and tested locally 2026-10-14, deployed**; next: **M5 — Drink log** · **Brand:** `haci` (ADR-015)
 
 ---
 
@@ -17,7 +17,8 @@
 
 | Field | State |
 |---|---|
-| Active milestone | **M3 — Accounts**: Google app **in production**; Google sign-in → onboarding → profile edit → avatar → public profile → account deletion **tested end to end** (2026-10-13). Privacy contact address live (`contact@`, forwarded through ImprovMX). **E-mail + password sign-in through Resend built and tested end to end** (2026-10-14). `/privacy` final (Resend listed). **Opened 2026-10-14** (`ACCOUNTS_OPEN = true`, sign-ups on by the user). Live check passed (2026-10-14). **M3 done** |
+| Active milestone | **M4 — Reviews and favourites** (2026-10-14): tables, policies (29 SQL checks), ratings on cards, reviews and favourites in the recipe card, "Favorilerim" filter, reviews and favourites on profiles, reports, the panel's moderation page — tested end to end on `localhost` with the user's account; deployed. A live check on the domain is left (§6 M4) |
+| Previous milestone | **M3 — Accounts**: Google app **in production**; Google sign-in → onboarding → profile edit → avatar → public profile → account deletion **tested end to end** (2026-10-13). Privacy contact address live (`contact@`, forwarded through ImprovMX). **E-mail + password sign-in through Resend built and tested end to end** (2026-10-14). `/privacy` final (Resend listed). **Opened 2026-10-14** (`ACCOUNTS_OPEN = true`, sign-ups on by the user). Live check passed (2026-10-14). **M3 done** |
 | Last completed | **M2 — Domain** (Search Console moved from vercel.app to the domain) and the **brand change to `haci`** with English URLs and the cherry logo (ADR-015). M1 is done except Hacı's own first sign-in |
 | Blockers | None in the code. The network the user's office computer is on (a Fortinet FortiGate) blocks the domain — check from outside (§5.4) |
 | Next critical decision | **The colour theme** for a global audience (the user is open to change, ADR-015) and, later, localization. The mobile app is decided: Expo, after M3 (ADR-013) |
@@ -61,6 +62,11 @@ around the archive; they never crowd it off the home page except through the sho
 - **Accounts (M3, open)** — `/login` (Google, e-mail + password), `/welcome` (username, 18+, privacy notice),
   `/account` (edit profile, profile picture, sign out, delete account), `/u/{username}`,
   `/privacy` (KVKK notice, in effect). The navbar link follows `ACCOUNTS_OPEN` in `src/lib/account-config.ts`.
+- **Reviews and favourites (M4)** — every card shows the average rating; the recipe card has a
+  heart (favourite) and a reviews section (write, edit, delete your one review; report others);
+  "Favorilerim" filter in the archive; `/cocktails?cocktail={slug}` opens a recipe; profiles
+  list favourites and reviews and have "Profili bildir". Panel → **Moderasyon**: open reports,
+  latest reviews, hide/show, close a report.
 
 ### 3.2 Roadmap — what the user has asked for (2026-10-13)
 
@@ -110,6 +116,7 @@ In the user's words, collected while M0 was being built. Milestones in §6.
 | 010 | Apex canonical; DNS records at Namify | Short brand URL; three records, nothing moved |
 | 014 | Community data model: everything hangs off `profiles` | Rules in the database; additive per milestone |
 | 015 | Brand `haci`; English paths, Turkish UI; cherry logo | A global product with one short name |
+| 016 | Member state read in the browser; writes via server actions that revalidate | Static pages stay static; averages update at once |
 
 → Full rationale and rejected alternatives: [adr.md](adr.md)
 
@@ -151,7 +158,11 @@ migration file with the version Supabase applied (ADR-009).
 | `glossary_terms` | `term` PK, `definition` | everyone | admins |
 | `admins` | `user_id` → `auth.users`, `role` (`owner`/`editor`), `display_name` | own row; admins (all) | nobody over the API — SQL only |
 | `account_settings` | `user_id` PK → `auth.users`, `adult_confirmed_at` (server time), `privacy_notice_version`, `logs_public_default` | owner; admins | owner (column grants) |
-| `profiles` | `id` PK → `auth.users`, `username` unique `^[a-z0-9_]{3,20}$` minus a reserved list, `display_name`, `avatar_path` (`{id}/…` in the `avatars` bucket), `bio` ≤ 280, `hidden_at`/`hidden_by` | everyone (not hidden); owner; admins | owner, only after `account_settings` exists; admins hide |
+| `profiles` | `id` PK → `auth.users`, `username` unique `^[a-z0-9_]{3,20}$` minus a reserved list (Turkish and English route words), `display_name`, `avatar_path` (`{id}/…` in the `avatars` bucket), `bio` ≤ 280, `hidden_at`/`hidden_by` | everyone (not hidden); owner; admins | owner, only after `account_settings` exists; admins hide |
+| `reviews` | `id`, `cocktail_id`, `user_id` → `profiles`, `rating` 1–5, `body` ≤ 2000, `updated_at` (moves only when the author edits), `hidden_at`/`hidden_by`; unique `(cocktail_id, user_id)` | everyone (not hidden); author; admins | author (published cocktails only, ≤ 20 writes a day); admins hide/delete |
+| `favorites` | PK `(user_id, cocktail_id)`, `created_at` | everyone | owner (published cocktails only) |
+| `reports` | `reporter_id` → `profiles`, `target_type` enum, `target_id`, `reason` ≤ 500, `resolved_at`/`resolved_by` (stamped by a trigger); unique per reporter and target | admins | members file (≤ 20 a day); admins resolve |
+| view `cocktail_ratings` | `cocktail_id`, `review_count`, `average_rating` — visible reviews by visible profiles (security invoker) | everyone | — |
 
 Functions: `private.is_admin()` (an `admins` row **and** a 2FA session, `aal2` — ADR-011; used
 by every write policy; not exposed over HTTP) and
@@ -164,9 +175,11 @@ WebP/JPEG; users write only under their own folder). The browser crops the centr
 scales it to 256 px WebP, uploads `{id}/{base36 time}.webp`, then `setAvatar` points the
 profile at it and the browser deletes the previous object (never overwritten, ADR-006).
 
-**The rest of the community model is decided in ADR-014** (reviews, favourites, drink logs,
-community recipes in `cocktails` with `author_id`, showcase, reports) and is built
-milestone by milestone.
+M4 added `private.limit_reviews()` / `private.limit_reports()` (daily limits, security
+definer) and `private.stamp_report_resolution()`.
+
+**The rest of the community model is decided in ADR-014** (drink logs, community recipes in
+`cocktails` with `author_id`, showcase) and is built milestone by milestone.
 
 ### 5.3 Code map
 
@@ -178,6 +191,7 @@ src/
     (site)/                     public site (Navbar in its layout)
       page.tsx                  home
       cocktails/page.tsx        archive — server component, ISR 1h
+      cocktails/actions.ts      saveReview, deleteReview, setFavorite, reportContent (M4)
       login/ welcome/ account/  member sign-in (Google, e-mail + password), onboarding, account (dynamic; account/actions.ts)
       reset-password/           new password after the reset e-mail
       u/[username]/             public profile (ISR 5 min)
@@ -186,20 +200,22 @@ src/
       login/                    sign-in
       setup-2fa/                first sign-in: connect an authenticator app (QR code)
       verify/                   later sign-ins: the 6-digit code
-      (panel)/                  everything behind requireAdmin(): list, cocktails/new, cocktails/[id], glossary
+      (panel)/                  everything behind requireAdmin(): list, cocktails/new, cocktails/[id], glossary, moderation
       actions.ts                every write (server actions)
       CocktailForm.tsx, ImageField.tsx, GlossaryEditor.tsx, PublishToggle.tsx
     auth/callback/route.ts      Google → Supabase → here: code exchange, then /welcome or next
     api/keepalive/route.ts      daily ping (vercel.json cron)
     icon.svg, apple-icon.png    favicon and touch icon (the cherry, ADR-015)
     robots.ts, sitemap.ts       for search engines
-  components/                   site components (CocktailBrowser, CocktailCard, CocktailModal, Tooltip, …)
+  components/                   site components (CocktailBrowser, CocktailCard, CocktailModal, Tooltip, …);
+                                M4: useMember (session + favourites in the browser), CocktailReviews, Stars, ReportButton
   lib/
     content.ts                  DB rows → the shapes components draw; public fetchers
     admin.ts                    requireAdmin()
     account.ts                  accountSession(), requireMember() (server only)
     account-config.ts           ACCOUNTS_OPEN, PRIVACY_NOTICE_VERSION, safeNext() (browser-safe)
     brand.ts                    BRAND = "haci" 
+    community.ts                review/report length limits, formatAverage (browser-safe)
     slug.ts                     Turkish-aware slugify
     supabase/                   config, public/server/browser/proxy clients, database.types.ts (generated)
 supabase/
@@ -312,10 +328,15 @@ After any schema change: mirror the migration, regenerate `database.types.ts`, r
 - [x] Open it (2026-10-14, the user's go): `ACCOUNTS_OPEN = true` deployed, sign-ups on (the user)
 - [x] Live check (2026-10-14): `/`, `/login`, `/privacy` 200 from outside (check-host.net); the production deployment URL in Chrome (the office firewall blocks the domain) shows no draft banner, Resend listed, the "Giriş" navbar link. A Google round trip on the live domain needs an unblocked network — the user, whenever convenient (not blocking)
 
-### ⚪ M4 — Reviews and favourites
+### 🔵 M4 — Reviews and favourites `BUILT AND DEPLOYED 2026-10-14 — live check left`
 
-Reviews (1–5 stars, optional text, public, one per person per cocktail — ADR-012),
-favourites, average rating on cards; hide/report tools in the panel.
+- [x] Migration `reviews_favorites`: `reviews`, `favorites`, `reports`, view `cocktail_ratings`, daily limits (20 reviews written/rewritten, 20 reports), English reserved usernames; 29 policy checks in SQL (rolled back); advisors clean
+- [x] Migration `reviews_updated_at_on_edit`: hiding a review no longer moves its date
+- [x] Archive: average on every card; recipe card: favourite heart, reviews (write / edit / two-step delete / report); "Favorilerim" filter; `?cocktail={slug}` deep link (also the way back from `/login`)
+- [x] Profiles: favourites and reviews; "Profili bildir"
+- [x] Panel → Moderasyon: open reports with the target, latest reviews, hide/show, close
+- [x] End to end on `localhost:3000` / `admin.localhost:3000` (2026-10-14) with the user's Google account (`ahmet_kafa`) and a seeded test member: review → average updated at once → edit → report → admin hides (gone from the list and the average) → report closed → delete → favourite on/off → profile report. Test rows deleted
+- [ ] Live check on `hacininkokteylleri.tech` from an unblocked network (the user's phone): write a review, see the card average
 
 ### ⚪ M5 — Drink log
 
@@ -368,9 +389,6 @@ when it starts.
 - Google's consent screen will say "continue to `qwvnhdghwycqlvsnlvlt.supabase.co`" rather
   than `haci` until the app is brand-verified and Supabase Auth runs on our own domain
   (custom domain is a paid add-on).
-- The reserved-username list (migration `community_accounts`) holds the old Turkish route
-  words; profiles live under `/u/`, so nothing collides — add the English ones with the next
-  profiles migration.
 - The owner's authenticator entry is named "Hacı'nın Kokteylleri" (the old issuer); harmless.
 
 ---
@@ -390,6 +408,8 @@ when it starts.
   the Turkish one** for global users (the user, 2026-10-13)
 - **Colour theme review** for a wider audience (the user is open to change; logo colours follow)
 - A `haci` domain, if the product grows (ADR-015)
+- Paging / "show more" for reviews (the card shows the latest 50; a profile the latest 100)
+- Rating breakdown (how many 5s, 4s, …) and sorting the archive by rating
 - The `haci` wordmark (`public/brand/haci-wordmark-light.svg`) in the navbar instead of text
 
 ---
@@ -398,6 +418,7 @@ when it starts.
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-10-14 | M4 build | Sign-ups still on; no members yet (the user's own `ahmet_kafa` appeared during the session). Migrations `reviews_favorites` and `reviews_updated_at_on_edit`; 29 policy checks. Ratings on cards, reviews and favourites in the recipe card, profile activity, reports, the panel's moderation page. Tested end to end in Chrome with the user's account and a seeded member (removed). Prompt/confirm dialogs replaced by inline forms (they freeze automation). ADR-016. Deployed |
 | 2026-10-14 | Open M3 | Sign-ups confirmed off at the start. `/privacy` gained Resend as a processor and how the password is stored; the user approved the text. **Accounts opened** (`ACCOUNTS_OPEN = true`, `d487c84`) and sign-ups turned on by the user. Live check: `/`, `/login`, `/privacy` 200 from outside (check-host); the production deployment in Chrome shows no draft banner and the "Giriş" link. **M3 done**; a Google sign-in on the live domain from an unblocked network is left to the user |
 | 2026-10-13 → 14 | Contact mail + e-mail sign-in | `contact@`/`iletisim@` forwarded through ImprovMX (Namify has no forwarding). Privacy notice: contact address, ImprovMX listed. The user chose to open accounts only after e-mail sign-in. Resend (Ireland) verified, custom SMTP in Supabase, Turkish auth templates. E-mail sign-in / sign-up / reset built and tested end to end. English privacy notice → Icebox (localization) |
 | 2026-10-13 (late night) | M3 publish + e2e + avatars | Google app branding saved and **published to production** (no logo). Avatar upload built (`AvatarField`, `setAvatar`, `Avatar`). End-to-end test with the user's Google account: onboarding, profile edit, avatar upload and replace, public profile, account deletion — all rows and files gone |

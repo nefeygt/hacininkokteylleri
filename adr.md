@@ -25,6 +25,7 @@
 | 013 | The mobile app is Expo, started after accounts (M3) | ✅ Accepted | 2026-10-13 |
 | 014 | The community data model | ✅ Accepted (built milestone by milestone, M3–M7) | 2026-10-13 |
 | 015 | The brand is "haci"; paths and settings are English | ✅ Accepted | 2026-10-13 |
+| 016 | Member state on static pages: read in the browser, written through server actions that revalidate | ✅ Accepted | 2026-10-14 |
 
 ---
 
@@ -544,3 +545,38 @@ app stores, and the personal "about Hacı" text did not belong on a brand's home
 in many fonts and store search. *The coupe glass logo:* generic among cocktail apps. *The
 prescription "h":* closest to today's Rx styling, but alcohol + "prescription" risks reading
 as a medical claim in app-store review.
+
+---
+
+## ADR-016 — Member state on static pages: read in the browser, written through server actions that revalidate
+
+**Context.** M4 put per-member state (my review, my favourites) on the archive, which must stay
+static (ADR-005), and public numbers (averages) that change with every review.
+
+**Decision.**
+- **Reading.** Static pages never read the session on the server. `useMember()`
+  (`src/components/useMember.ts`) reads the session, the profile and the favourites in the
+  browser; the reviews under a recipe load in the browser when the card opens. The page HTML is
+  the same for everyone.
+- **Writing.** Every member write is a server action (`src/app/(site)/cocktails/actions.ts`)
+  running as the member (RLS decides), which then calls `revalidatePath` for `/cocktails` and the
+  member's `/u/{username}`. The open page refreshes itself from the action's response, so a new
+  average shows at once; panel moderation revalidates the same pages. Writes are not done from the
+  browser client plus a separate "revalidate" endpoint — that endpoint would let anyone flush the
+  cache.
+- **Aggregates** come from the `cocktail_ratings` view at render time and ride the page's ISR.
+- **Deep links** to a recipe are `/cocktails?cocktail={slug}`, read in the browser on arrival and
+  kept in the address bar while the card is open; `/login?next=` returns there.
+- **No `window.prompt` / `confirm` / `alert` for flows** — inline forms and two-step buttons. Native
+  dialogs block the browser automation we verify with, and read poorly on phones.
+
+**Consequences.**
+- (+) The archive stays one static file per hour; a member's view costs two small REST calls.
+- (+) The Expo app (M8) uses the same tables and policies directly; the actions only add revalidation.
+- (−) A brief flash: the heart and "your review" appear after the session loads.
+- (−) Locally, `next build` reuses Next's fetch cache, so a rebuild can show old averages — delete
+  `.next/cache/fetch-cache` (production revalidation is unaffected).
+
+**Rejected.** *Making `/cocktails` dynamic:* every visit would hit the database (ADR-005).
+*Optimistic averages computed in the browser:* duplicates the view's rules (hidden reviews, hidden
+profiles).

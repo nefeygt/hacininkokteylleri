@@ -4,9 +4,9 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-14 (Open M3) · **Handing off:** **M3 is done and open to the
-public.** `/privacy` is in effect (Resend listed), `ACCOUNTS_OPEN = true`, sign-ups on. The live
-check passed from outside and in Chrome via the deployment URL. **Next: M4 — Reviews and favourites.**
+**Prepared by session:** 2026-10-14 (M4 build) · **Handing off:** **M4 — reviews and favourites is
+built, tested end to end on localhost and deployed.** Left: one live check on the domain from an
+unblocked network. **Next: M5 — Drink log.**
 
 ---
 
@@ -51,25 +51,36 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — M4 reviews and favourites
+## 🎯 This Session's Task — M5 drink log
 
-### Step 0 — sign-ups are still on
+### Step 0 — state check
 
 `curl -s -H "apikey: $KEY" https://qwvnhdghwycqlvsnlvlt.supabase.co/auth/v1/settings` (publishable
-key from `.env` via `grep`) → `"disable_signup": false`. Check for new members:
-`select count(*) from public.profiles;` (real people now — never delete or edit their rows).
+key from `.env` via `grep`) → `"disable_signup": false`. `select username, created_at from public.profiles;`
+— on 2026-10-14 the only profile was the user's own `ahmet_kafa` (Google). **The user said (2026-10-14)
+that accounts are not necessarily real people yet** (no promotion, nobody expected to sign up), but
+still never delete or edit a row you did not create without asking.
 
-### Step 1 — M4
+### Step 1 — M4 live check (with the user, short)
 
-ADR-014 has the tables (reviews: one per person per cocktail, ADR-012; favourites). The
-reserved-username list gets the English route words in that migration (plan.md §8). Follow ADR-009
-for the migration and ADR-014's grant/RLS pattern (revoke from `anon`, column grants, one policy per
-role and action). The public pages stay static (ADR-005) — load review/favourite state on the client
-or revalidate on write.
+On `hacininkokteylleri.tech` from an unblocked network (the user's phone): open a recipe, write a
+review, see the card's average change; then delete it. Tick the last box of M4 in plan.md.
+
+### Step 2 — M5
+
+ADR-014 has `drink_logs` (unlimited per cocktail, ADR-012; `recipe jsonb` snapshot validated by a
+check function and size-capped; `rating` per evening, never in the average; `is_public` from
+`account_settings.logs_public_default`, private by default; daily limit 50; moderation columns).
+Pages: "log this" from the recipe card (start from the recipe, edit ingredients — "gin instead of
+vodka"), a personal log page under `/account` or `/u/{username}/logs` (public rows only for others),
+a setting for `logs_public_default` on `/account`. Reports gain `drink_log` targets in the panel.
+Follow ADR-009, ADR-014's grant/RLS pattern, and ADR-016 (read in the browser, write through
+server actions that revalidate; no native dialogs). Update `/privacy` if drink logs need a line
+(they are personal data) — ask the user before it changes.
 
 ### Also open (not blocking)
 
-- A Google sign-in on the live domain from a network that does not block it (the user's phone).
+- A Google sign-in on the live domain from a network that does not block it (with Step 1).
 - The wordmark in the navbar; Hacı's own first admin sign-in (question 5).
 
 ---
@@ -97,12 +108,17 @@ or revalidate on write.
 - **Avatars:** `src/app/(site)/account/AvatarField.tsx` (centre square → 256 px WebP →
   `{user_id}/{base36}.webp` → `setAvatar` → old object deleted), `src/components/Avatar.tsx`
   (picture or initial), `avatarUrl()` / `AVATARS_BUCKET` in `src/lib/supabase/config.ts`.
-- **Supabase** (ref `qwvnhdghwycqlvsnlvlt`): 6 migrations, none added this session. Advisors as
-  before (only leaked-password protection — Pro plan).
+- **Supabase** (ref `qwvnhdghwycqlvsnlvlt`): 8 migrations; this session added
+  `20261014064956_reviews_favorites` and `20261014071911_reviews_updated_at_on_edit`. Advisors: only
+  leaked-password protection (Pro plan) plus "unused index" infos on the new, still-empty tables.
+- **M4 (2026-10-14):** `reviews`, `favorites`, `reports`, view `cocktail_ratings`; the site's
+  `cocktails/actions.ts`, `useMember`, `CocktailReviews`, `ReportButton`; the panel's
+  `/moderation`. All tables empty after the test (the test rows were deleted).
 - **Admins:** owner "Efe" (`n.efeyigit@outlook.com`, 2FA), editor "Hacı"
   (`furkancam99@hotmail.com`, no sign-in yet, no 2FA yet). The two e-mail users in `auth.users`
   are these admins (no profiles).
-- **Members:** open to the public since 2026-10-14 — any rows in `profiles` are real people.
+- **Members:** open since 2026-10-14. Only profile: the user's own Google account `ahmet_kafa`
+  (it signed in at 06:46 UTC and finished onboarding during the M4 test).
 - **Search Console** (`wowcubey@gmail.com`): Domain property verified, sitemap submitted, Change
   of Address vercel.app → domain in progress since 2026-10-13.
 
@@ -166,7 +182,20 @@ or revalidate on write.
 - **The office network blocks the new domain** (a Fortinet FortiGate). Check DNS with
   `https://dns.google/resolve?name=…` and HTTP with check-host.net (plan.md §5.4).
 
-**This session's lessons**
+**This session's lessons (M4)**
+- **Clicks in a background Chrome tab do nothing.** When the tab is hidden (`document.hidden`),
+  `computer` clicks and screenshots time out or are lost. Use `javascript_tool` to click
+  (`button.click()`), `find`/`get_page_text` to read, and SQL to confirm.
+- **Native dialogs freeze automation** — never use `window.prompt/confirm/alert` in flows (ADR-016).
+- **Next's fetch cache survives `next build`** locally: a rebuild can show old averages. Delete
+  `.next/cache/fetch-cache` before rebuilding when seeded data must show.
+- Supabase upsert needs UPDATE on every inserted column; with column grants, edit-then-insert
+  instead (see `saveReview`).
+- A trigger `before update of col…` keeps `updated_at` from moving on moderation-only updates.
+- To test as a member without a password, seed a member in SQL: insert `auth.users (id, email,
+  aud, role)`, then `account_settings` and `profiles`; delete the `auth.users` row afterwards (cascade).
+
+**Earlier lessons**
 - **Google accounts in the user's Chrome can sign out.** At the start only `wowcubey@gmail.com`
   was signed in, and Google Cloud forced `authuser=0` ("You need additional access rights"). The
   user re-added `n.efeyigit@gmail.com`; it is `authuser=1` again. Check the avatar menu first.
@@ -209,6 +238,7 @@ or revalidate on write.
 | Privacy contact address? | **`contact@` (shown) and `iletisim@`, forwarded to `n.efeyigit@outlook.com` through ImprovMX** — live 2026-10-13 |
 | Open with Google only, or wait for e-mail sign-in? | **Wait — open after Resend e-mail sign-in works** (2026-10-13) |
 | Is `/privacy` final? Open M3? | **Yes and yes** — opened 2026-10-14 |
+| Are the accounts real people? | **Not necessarily yet** (the user, 2026-10-14): nothing promotes sign-up; still never touch rows you did not create without asking |
 | Resend account and sender? | **The user's account; `haci <noreply@hacininkokteylleri.tech>`** |
 | Admins, 2FA, canonical domain, WHOIS, reviews/logs, mobile stack | See ADR-007, 011, 010, plan.md M2, ADR-012, ADR-013 |
 
@@ -216,7 +246,7 @@ or revalidate on write.
 
 ## 🧭 Look-ahead
 
-- **M3** done → **M4** reviews and favourites → **M5** drink log → **M6** community
+- **M3** done → **M4** built (live check left) → **M5** drink log → **M6** community
   recipes and feeds → **M7** showcase → **M8** Expo apps (the cherry icon is ready:
   `public/brand/haci-app-icon-1024.png`, `haci-play-store-512.png`; the adaptive-icon foreground
   needs the mark scaled into the 66% safe zone).

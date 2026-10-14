@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState, useTransition } from "react";
-import { Flag } from "lucide-react";
-import { deleteReview, reportContent, saveReview } from "@/app/(site)/cocktails/actions";
+import { deleteReview, saveReview } from "@/app/(site)/cocktails/actions";
 import Avatar from "@/components/Avatar";
+import ReportButton from "@/components/ReportButton";
 import Stars from "@/components/Stars";
 import type { Member } from "@/components/useMember";
 import { REVIEW_MAX_LENGTH, formatAverage } from "@/lib/community";
@@ -104,6 +104,7 @@ function OwnReview({
   const [rating, setRating] = useState(0);
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -180,7 +181,11 @@ function OwnReview({
   }
 
   function remove() {
-    if (!window.confirm("Değerlendirmen silinsin mi?")) return;
+    if (!confirmingDelete) {
+      setConfirmingDelete(true);
+      return;
+    }
+    setConfirmingDelete(false);
     setError(null);
     startTransition(async () => {
       const result = await deleteReview(cocktail.id);
@@ -226,6 +231,7 @@ function OwnReview({
               onClick={() => {
                 setEditing(false);
                 setError(null);
+                setConfirmingDelete(false);
                 setRating(own.rating);
                 setBody(own.body ?? "");
               }}
@@ -238,9 +244,11 @@ function OwnReview({
               type="button"
               onClick={remove}
               disabled={pending}
-              className="ml-auto font-mono text-xs text-text-muted underline underline-offset-2 hover:text-crimson-glow"
+              className={`ml-auto font-mono text-xs underline underline-offset-2 hover:text-crimson-glow ${
+                confirmingDelete ? "text-crimson-glow" : "text-text-muted"
+              }`}
             >
-              Sil
+              {confirmingDelete ? "Emin misin? Evet, sil" : "Sil"}
             </button>
           </>
         )}
@@ -250,19 +258,7 @@ function OwnReview({
 }
 
 function ReviewItem({ review, canReport }: { review: Review; canReport: boolean }) {
-  const [reported, setReported] = useState(false);
-  const [pending, startTransition] = useTransition();
   const date = new Date(review.updated_at).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
-
-  function report() {
-    const reason = window.prompt("Bu değerlendirmeyi neden bildiriyorsun? (isteğe bağlı)");
-    if (reason === null) return;
-    startTransition(async () => {
-      const result = await reportContent("review", review.id, reason);
-      if (result.error) window.alert(result.error);
-      else setReported(true);
-    });
-  }
 
   return (
     <li className="flex gap-3">
@@ -276,20 +272,13 @@ function ReviewItem({ review, canReport }: { review: Review; canReport: boolean 
           </Link>
           <Stars value={review.rating} size={12} />
           <span className="font-mono text-[10px] text-text-muted">{date}</span>
-          {canReport && (
-            <button
-              type="button"
-              onClick={report}
-              disabled={pending || reported}
-              title="Bildir"
-              className="ml-auto flex items-center gap-1 font-mono text-[10px] text-text-muted hover:text-crimson-glow disabled:hover:text-text-muted"
-            >
-              <Flag className="h-3 w-3" />
-              {reported ? "Bildirildi" : "Bildir"}
-            </button>
-          )}
         </div>
         {review.body && <p className="mt-1 whitespace-pre-line break-words text-sm text-text-secondary">{review.body}</p>}
+        {canReport && (
+          <div className="mt-1.5 flex">
+            <ReportButton targetType="review" targetId={review.id} />
+          </div>
+        )}
       </div>
     </li>
   );
