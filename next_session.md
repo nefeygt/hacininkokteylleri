@@ -4,9 +4,9 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-14 (M5 build) · **Handing off:** **M5 — drink log is built,
-tested end to end on `localhost` and deployed**; only the live check on the domain is left (Step 1).
-**Next: M6 — community recipes and feeds** (Step 2).
+**Prepared by session:** 2026-10-14 (M5 live check) · **Handing off:** **M5 — drink log is done**
+(the user's live check on their phone passed). **Next: M6 — community recipes and feeds** —
+ask the user the three questions in Step 1 before building.
 
 ---
 
@@ -51,23 +51,17 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — M5 live check, then M6
+## 🎯 This Session's Task — M6: community recipes and feeds
 
 ### Step 0 — state check
 
 `curl -s -H "apikey: $KEY" https://qwvnhdghwycqlvsnlvlt.supabase.co/auth/v1/settings` (publishable
 key from `.env` via `grep`) → `"disable_signup": false`. `select username from public.profiles;` and
-`select count(*) from public.drink_logs;` — on 2026-10-14 the only profile was the user's own
-`ahmet_kafa` and there were no logs, reviews or reports. Accounts are not necessarily real people
-yet (the user, 2026-10-14), but never delete or edit a row you did not create without asking.
+`select count(*) from public.drink_logs;` — after the M5 live check (2026-10-14) the only profile was
+the user's own `ahmet_kafa` and there were no logs, reviews or reports. Accounts are not necessarily
+real people yet (the user, 2026-10-14), but never delete or edit a row you did not create without asking.
 
-### Step 1 — M5 live check (the user, on an unblocked network)
-
-On `hacininkokteylleri.tech` (the user's phone or mobile data): open a recipe → "Günlüğe ekle" →
-change an ingredient → save → it is private on `/account/logs` → edit it to public → it shows on
-`/u/{username}` → delete it. Tick the last box of M5 in plan.md and mark M5 done.
-
-### Step 2 — M6: community recipes and feeds
+### Step 1 — M6: community recipes and feeds
 
 ADR-014 fixes the shape: user recipes live in `cocktails` with `author_id → profiles` (null = a
 house recipe); every house-recipe fetcher in `src/lib/content.ts` must filter `author_id is null`
@@ -119,7 +113,7 @@ uploads change (ask before it changes). Follow ADR-009, ADR-014, ADR-016, ADR-01
   `src/lib/drink-log.ts`, `src/app/(site)/account/logs/` (list, `new`, `[id]`, `LogForm`,
   `actions.ts`), `LogsDefaultToggle` on `/account`, `DrinkLogEntry`, `ReportIfSignedIn`; the panel's
   moderation lists reported and recent public logs. `/privacy` version `2026-10-14` (drink log line,
-  approved by the user). Tables empty after the test; `ahmet_kafa`'s `logs_public_default` is false.
+  approved by the user). Live check passed on the user's phone (2026-10-14); tables empty afterwards.
 - **Admins:** owner "Efe" (`n.efeyigit@outlook.com`, 2FA), editor "Hacı"
   (`furkancam99@hotmail.com`, no sign-in yet, no 2FA yet). The two e-mail users in `auth.users`
   are these admins (no profiles).
@@ -265,7 +259,7 @@ uploads change (ask before it changes). Follow ADR-009, ADR-014, ADR-016, ADR-01
 
 ## 🧭 Look-ahead
 
-- **M3**, **M4** done → **M5** built (live check left) → **M6** community
+- **M3**, **M4**, **M5** done → **M6** community
   recipes and feeds → **M7** showcase → **M8** Expo apps (the cherry icon is ready:
   `public/brand/haci-app-icon-1024.png`, `haci-play-store-512.png`; the adaptive-icon foreground
   needs the mark scaled into the 66% safe zone).
