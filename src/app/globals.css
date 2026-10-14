@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* The Expo app (mobile/) is not part of the site. */
+@source not "../../mobile";
 
 @theme {
   --color-bg-primary: #0d0d0d;

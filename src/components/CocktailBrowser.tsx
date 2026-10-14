@@ -6,51 +6,24 @@ import { setFavorite } from "@/app/(site)/cocktails/actions";
 import CocktailCard from "@/components/CocktailCard";
 import CocktailModal from "@/components/CocktailModal";
 import { useMember } from "@/components/useMember";
+import {
+  ALL,
+  BASE_ALCOHOLS as baseAlcohols,
+  FLAVORS as flavors,
+  INGREDIENT_FILTERS as ingredientFilters,
+  filterCocktails,
+  hasActiveFilters as anyActive,
+} from "@/lib/archive-filter";
 import type { Cocktail } from "@/lib/content";
 
 // "/cocktails?cocktail={slug}" opens that recipe, so a link (or the way back
 // from /login) lands on it. Read in the browser: the page itself is static.
 const OPEN_PARAM = "cocktail";
 
-const baseAlcohols = ["Tümü", "Votka", "Cin", "Rom", "Viski", "Tekila"];
-const flavors = ["Tümü", "Tatlı", "Ekşi", "Acı", "Baharatlı"];
-const ingredientFilters = [
-  "Nane",
-  "Salatalık",
-  "Tonik",
-  "Lime",
-  "Limon",
-  "Zencefil",
-  "Aquafaba",
-  "Campari",
-];
-
-const alcoholAliases: Record<string, string[]> = {
-  votka: ["vodka"],
-  vodka: ["votka"],
-  cin: ["gin"],
-  gin: ["cin"],
-  rom: ["rum"],
-  rum: ["rom"],
-};
-
-function expandSearchTerms(query: string): string[] {
-  const q = query.toLowerCase();
-  const terms = [q];
-  for (const [key, aliases] of Object.entries(alcoholAliases)) {
-    if (q.includes(key)) {
-      for (const alias of aliases) {
-        terms.push(q.replace(key, alias));
-      }
-    }
-  }
-  return terms;
-}
-
 export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }) {
   const [search, setSearch] = useState("");
-  const [selectedBase, setSelectedBase] = useState("Tümü");
-  const [selectedFlavor, setSelectedFlavor] = useState("Tümü");
+  const [selectedBase, setSelectedBase] = useState(ALL);
+  const [selectedFlavor, setSelectedFlavor] = useState(ALL);
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(true);
@@ -94,59 +67,27 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
 
   const clearFilters = () => {
     setSearch("");
-    setSelectedBase("Tümü");
-    setSelectedFlavor("Tümü");
+    setSelectedBase(ALL);
+    setSelectedFlavor(ALL);
     setSelectedIngredients([]);
     setOnlyFavorites(false);
   };
 
-  const hasActiveFilters =
-    search ||
-    selectedBase !== "Tümü" ||
-    selectedFlavor !== "Tümü" ||
-    selectedIngredients.length > 0 ||
-    onlyFavorites;
+  const filters = {
+    search,
+    base: selectedBase,
+    flavor: selectedFlavor,
+    ingredients: selectedIngredients,
+    onlyFavorites: onlyFavorites ? favorites : null,
+  };
+  const hasActiveFilters = anyActive(filters);
 
-  const filtered = useMemo(() => {
-    return cocktails.filter((c) => {
-      if (onlyFavorites && !favorites.has(c.id)) return false;
-
-      if (search) {
-        const searchTerms = expandSearchTerms(search);
-        const searchable = [
-          c.name.toLowerCase(),
-          c.subtitle.toLowerCase(),
-          c.baseAlcohol.toLowerCase(),
-          ...c.tags.map((t) => t.toLowerCase()),
-          ...c.ingredients.map((ing) => ing.name.toLowerCase()),
-        ];
-        const matchesSearch = searchTerms.some((q) =>
-          searchable.some((s) => s.includes(q))
-        );
-        if (!matchesSearch) return false;
-      }
-
-      if (selectedBase !== "Tümü" && c.baseAlcohol !== selectedBase)
-        return false;
-
-      if (selectedFlavor !== "Tümü" && c.flavor !== selectedFlavor)
-        return false;
-
-      if (selectedIngredients.length > 0) {
-        const cocktailIngNames = c.ingredients.map((ing) =>
-          ing.name.toLowerCase()
-        );
-        const cocktailTags = c.tags.map((t) => t.toLowerCase());
-        const allTerms = [...cocktailIngNames, ...cocktailTags];
-        const matches = selectedIngredients.every((sel) =>
-          allTerms.some((term) => term.includes(sel.toLowerCase()))
-        );
-        if (!matches) return false;
-      }
-
-      return true;
-    });
-  }, [cocktails, search, selectedBase, selectedFlavor, selectedIngredients, onlyFavorites, favorites]);
+  const filtered = useMemo(
+    () => filterCocktails(cocktails, filters),
+    // filters is rebuilt every render; its parts are the real dependencies.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [cocktails, search, selectedBase, selectedFlavor, selectedIngredients, onlyFavorites, favorites]
+  );
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-10">

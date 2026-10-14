@@ -9,7 +9,7 @@
 > **Language rule (ADR-002):** everything we write — docs, code, comments, commits, SQL — is
 > **English**. Everything visitors and admins read — UI strings, recipes — is **Turkish**.
 
-**Last updated:** 2026-10-14 · **Active milestone:** **M8 — Mobile app** (not started; questions first) · M6 and M7 done · **Brand:** `haci` (ADR-015)
+**Last updated:** 2026-10-14 · **Active milestone:** **M8 — Mobile app** (step 1 of 7 done: the shell and the archive) · M6 and M7 done · **Brand:** `haci` (ADR-015)
 
 ---
 
@@ -17,10 +17,10 @@
 
 | Field | State |
 |---|---|
-| Active milestone | **M8 — Mobile app** (Expo, ADR-013) — not started; the user's answers first (repository, first version's scope, platforms and developer accounts, mobile Google sign-in) |
+| Active milestone | **M8 — Mobile app** (Expo SDK 57, ADR-013, ADR-020) — `mobile/` in this repo, **full parity with the site** before the first store release, iOS + Android, native Google + e-mail sign-in (+ Sign in with Apple on iOS). Step 1 done (2026-10-14): shell, theme, icons, the archive with search/filters and the recipe screen, checked in Chrome (Expo web). Next: accounts |
 | Previous milestone | **M7 — The showcase** (2026-10-14, ADR-019) and **M6 — Community recipes and feeds** (2026-10-14, ADR-018): built, tested on `localhost`, deployed; **live checks passed on the user's phone** (2026-10-14). **Both done**. M5 — Drink log done 2026-10-14 |
 | Last completed | **M2 — Domain** (Search Console moved from vercel.app to the domain) and the **brand change to `haci`** with English URLs and the cherry logo (ADR-015). M1 is done except Hacı's own first sign-in |
-| Blockers | None in the code. The network the user's office computer is on (a Fortinet FortiGate) blocks the domain — check from outside (§5.4) |
+| Blockers | None in the code. **The user's accounts for M8:** Expo (free, for EAS builds), Apple Developer ($99/yr, enrolment can take days), Google Play ($25; a new personal account must run a 12-tester, 14-day closed test before production) — start early. The office network (FortiGate) blocks the domain — check from outside (§5.4) |
 | Next critical decision | **The colour theme** for a global audience (the user is open to change, ADR-015) and, later, localization. The mobile app is decided: Expo, after M3 (ADR-013) |
 
 ---
@@ -141,6 +141,7 @@ In the user's words, collected while M0 was being built. Milestones in §6.
 | 017 | Drink logs are written on dynamic pages under `/account/logs`; the snapshot is checked in the database | The archive stays static; the recipe as made stays a recipe |
 | 018 | Members' recipes on `/recipes/{slug}`; `/feed` (popular + new recipes, followed people's logs); public follows; flat comments on public logs | Letterboxd-style community; the home page and archive stay Hacı's |
 | 019 | Showcase: admin picks a week or a month per period; apply + vote in `/feed`; recipe + photo + pitch required; derived winner as a card on the home page | The user's answers; every rule in the database, no scheduled job |
+| 020 | Expo app in `mobile/` (this repo), full parity, both stores, native Google + e-mail (+ Apple on iOS); site pages refreshed through `/api/revalidate` | The user's answers; shared types and validation, one handoff |
 
 → Full rationale and rejected alternatives: [adr.md](adr.md)
 
@@ -159,7 +160,7 @@ In the user's words, collected while M0 was being built. Milestones in §6.
                                  │ publishable key, RLS                        │ admin's session, RLS
                  ┌───────────────▼────────── Supabase "hacininkokteylleri-eu" (Frankfurt) ────────┐
  mobile app ────►│ Postgres: cocktails · cocktail_ingredients · glossary_terms · admins            │
-   (planned)     │ Auth: admins pw + TOTP; members Google (M3)                                    │
+ (mobile/, M8)   │ Auth: admins pw + TOTP; members Google (M3)                                    │
                  │ Storage: public bucket "cocktail-images" (WebP)                                │
                  └────────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -274,8 +275,17 @@ supabase/
   migrations/                   {version}_{name}.sql — mirrors of what is applied (ADR-009)
   storage/cocktail-images/      the 37 imported WebPs (the bucket's starting content)
   templates/                    Supabase Auth e-mail templates (Turkish), mirrored by hand
-public/brand/                   logo sources (SVG) and exported PNGs; scripts/export-brand.mjs renders them
+public/brand/                   logo sources (SVG) and exported PNGs; scripts/export-brand.mjs renders them (and the app's icons)
+mobile/                         the Expo app (M8, ADR-020) — its own package.json; see mobile/README.md
+  src/app/                      Expo Router screens: (tabs)/index (archive), feed, account; cocktail/[slug]
+  src/components/               the site's components rebuilt for React Native (CocktailCard, RecipeDetails, …)
+  src/lib/                      supabase client, theme, content fetchers, archive context
+  .env                          public settings (EXPO_PUBLIC_*), committed (ADR-008)
 ```
+
+`src/lib/archive-filter.ts` (the archive's search and filters) and the other browser-safe modules
+in `src/lib/` are shared with the app through its `@shared/*` alias — keep them free of Next.js
+imports. The root `tsconfig.json`, Tailwind (`@source not`) and Vercel (`.vercelignore`) skip `mobile/`.
 
 ### 5.4 Run and verify
 
@@ -310,6 +320,16 @@ curl -s -H "Accept: application/json" "https://check-host.net/check-http?host=ht
 **Verify in a real browser before claiming a UI change works** — use Claude in Chrome (the
 user's Chrome, signed in to Vercel, Supabase and Namify). The built-in browser pane is not
 signed in to anything.
+
+The app (`mobile/`, ADR-020):
+
+```bash
+cd mobile && npm install
+npm run typecheck && npx expo-doctor
+npx expo export --platform android --platform ios --platform web --output-dir <scratch>   # proves every bundle builds
+npx expo start --web --port 8081   # check in Chrome; NOT with CI=1 (no file watching → stale bundles)
+npx expo start                     # the user's phone: Expo Go (SDK 57), same network
+```
 
 After any schema change: mirror the migration, regenerate `database.types.ts`, run
 `get_advisors` (security and performance) — the security advisor must stay empty.
@@ -450,11 +470,31 @@ inside `/feed`; the winner as a featured card below the hero; recipe + pitch + p
 - [x] Live check on the domain from the user's phone (2026-10-14): passed; afterwards 0 periods,
   entries, votes, members' recipes and recipe photos; the only profile is `ahmet_kafa`
 
-### ⚪ M8 — Mobile app
+### 🔵 M8 — Mobile app `IN PROGRESS`
 
-**Expo** (React Native + TypeScript + supabase-js), started **after M3** (ADR-013). Same
-Supabase backend and the same panel for content. Monorepo or second repository: decided
-when it starts.
+**Expo** (React Native + TypeScript + supabase-js), started **after M3** (ADR-013). The user's
+answers (2026-10-14, ADR-020): `mobile/` in this repository; the first store version does
+**everything the public site does**; iOS and Android from day one on the user's own developer
+accounts; native Google sign-in + e-mail/password (Sign in with Apple on iOS, App Store rule 4.8).
+The admin panel stays web-only.
+
+- [x] Step 1 — shell (2026-10-14): Expo SDK 57 + Expo Router in `mobile/`, the site's palette and fonts,
+  icons from `public/brand` (adaptive foreground in the safe zone, monochrome, splash), `@shared` alias
+  to `src/lib`, the archive's filters moved to `src/lib/archive-filter.ts` (site and app), tabs
+  Kokteyller / Akış / Hesap (the last two link to the site for now), the archive (search with
+  aliases, filters, pull to refresh) and the recipe screen (glossary terms open on tap). Checked:
+  typecheck, expo-doctor 21/21, Android/iOS/web bundles, Expo web in Chrome; the site's build and
+  its filters unchanged
+- [ ] Step 2 — accounts: e-mail sign-in/up/reset, Google (Android + iOS OAuth clients in Google Cloud,
+  client IDs in Supabase), Sign in with Apple (iOS), onboarding (username, 18+, privacy notice),
+  profile + avatar, sign out, delete account; `/privacy` names Apple (the user's OK); `POST
+  /api/revalidate` on the site; first EAS development build
+- [ ] Step 3 — reviews, favourites ("Favorilerim"), reports, public profiles
+- [ ] Step 4 — drink log (new / list / edit, public or private, the default setting)
+- [ ] Step 5 — members' recipes (form, photo upload), recipe pages, the feed, follows, log comments
+- [ ] Step 6 — the showcase (period, entries, votes, apply/withdraw, the winner)
+- [ ] Step 7 — store release: EAS production builds, store listings (Turkish), age rating 18+/17+,
+  privacy forms (App Privacy, Data safety), Play's closed test, App Store review
 
 ---
 
@@ -522,6 +562,7 @@ when it starts.
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-10-14 | M8 start | State clean. The user answered the M8 questions (this repo, full parity, both stores, native Google + e-mail) → ADR-020. Expo SDK 57 app in `mobile/`: theme, icons, shared `src/lib` modules (`archive-filter.ts` new, shared with the site), the archive and the recipe screen; Turkish uppercase fixed in labels. Checked: typecheck, expo-doctor, all three bundles, Expo web in Chrome, the site's build and filters |
 | 2026-10-14 | M6 + M7 live check | The user checked both on the live domain from their phone: passed. Database clean afterwards (only `ahmet_kafa`, every community table empty). **M6 and M7 done**; next M8 |
 | 2026-10-14 | M7 build | A new Claude account: the user connected the Supabase connector and Claude in Chrome. M6 live check still left (the user's). The user answered the M7 questions (period chosen per time, apply/vote in `/feed`, winner card below the hero, recipe + pitch + photo required). Migration `showcase` (38 policy checks). The feed's Vitrin section, the home page winner, the panel's Vitrin page, moderation of applications; `/privacy` `2026-10-14.3` (the user's OK). ADR-019. Tested end to end in Chrome on localhost; test rows removed. Deployed; live check left |
 | 2026-10-14 | M6 build | The user answered the M6 questions (feed like Letterboxd, follows, replies on logs, reviewable recipes, `/recipes/{slug}`). Migration `community_recipes` (33 policy checks). Members' recipes, recipe pages, `/feed`, follows, log comments, moderation; `/privacy` updated (version `2026-10-14.2`, the user's OK). ADR-018. Tested end to end in Chrome (localhost) with the user's account and a seeded member (removed). Deployed; live check left |

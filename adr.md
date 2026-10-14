@@ -29,6 +29,7 @@
 | 017 | Drink logs: written on dynamic account pages, the recipe snapshot checked by the database | ✅ Accepted | 2026-10-14 |
 | 018 | Community recipes, the feed, follows and log comments | ✅ Accepted | 2026-10-14 |
 | 019 | The showcase: periods chosen per time, applying and voting on the feed, the winner on the home page | ✅ Accepted | 2026-10-14 |
+| 020 | The Expo app: `mobile/` in this repository, full parity with the site, both stores, native sign-in | ✅ Accepted | 2026-10-14 |
 
 ---
 
@@ -749,3 +750,65 @@ recipe, a pitch and a photo** — all three required.
 a cron job:* ADR-014 derives it. *Pitch editing:* withdraw-and-reapply is simpler and loses the votes,
 which is honest for a changed pitch. *Applications only while a period is open:* the next period would
 start empty.
+
+---
+
+## ADR-020 — The Expo app: `mobile/` in this repository, full parity with the site, both stores, native sign-in
+
+**Context.** M8 builds the app ADR-013 chose (Expo, after accounts). On 2026-10-14 the user
+answered the open questions: the code lives **in this repository**; the first store version does
+**everything the public site does** (the archive, accounts, reviews and favourites, the drink log,
+members' recipes, the feed, follows, comments, the showcase); **iOS and Android from day one**, on
+the user's own Apple Developer ($99/yr) and Google Play ($25 once) accounts; members sign in with
+**native Google sign-in and e-mail + password**.
+
+**Decision.**
+- **Where.** `mobile/` is a standalone Expo project (its own `package.json` and lockfile; no npm
+  workspaces), so the site's install and Vercel's build are untouched (`.vercelignore`, the root
+  `tsconfig.json` excludes it). The app imports the browser-safe modules of `src/lib/` —
+  `database.types.ts`, `recipe.ts`, `drink-log.ts`, `showcase.ts`, `community.ts`, `slug.ts`,
+  `brand.ts` — through the alias `@shared/*` (Metro watches `../src/lib`). Those modules must stay
+  free of Next.js imports. One set of handoff docs (ADR-001) covers both.
+- **Stack.** The latest Expo SDK at the start (57), Expo Router (file-based, typed routes),
+  TypeScript, `supabase-js` with the session kept in the device's storage, plain `StyleSheet` with
+  the site's palette in one theme file. Builds and store submissions through **EAS** on the user's
+  Expo account. Identifiers: bundle ID / package name **`tech.hacininkokteylleri.haci`** (reverse of
+  the domain we own; permanent, never shown to people), display name **`haci`** (ADR-015), URL
+  scheme `haci`. Icons from `public/brand/` (the adaptive foreground scaled into the 66% safe zone).
+- **The database stays the gatekeeper.** The app talks to Supabase directly with the publishable
+  key and the member's session — the same tables, policies, triggers and limits as the site (ADR-007,
+  ADR-014). No new secret, no server of its own. The admin panel stays web-only (2FA, ADR-011).
+- **Keeping the site's static pages fresh.** The site's server actions revalidate pages after a
+  write (ADR-016); the app writes straight to the database, so it then calls
+  **`POST /api/revalidate`** on the site with the member's access token and the paths its write
+  touched. The route checks the token with Supabase Auth (members only) and revalidates only
+  site paths of known shapes (`/`, `/cocktails`, `/feed`, `/recipes/{slug}`, `/u/{username}`,
+  `/logs/{id}`), a few per call. That is what any member can already trigger by writing on the
+  site, so it gives nothing away; a failed call only delays the page until its ISR window.
+- **Sign-in.** E-mail + password as on the web (confirmation and reset links open the website).
+  Google: native sign-in (`@react-native-google-signin/google-signin`) → an ID token →
+  `supabase.auth.signInWithIdToken`; this needs Android and iOS OAuth clients in Google Cloud
+  `haci-511515` and their client IDs added to Supabase's Google provider. **On iOS, Apple's App
+  Store rule 4.8 requires Sign in with Apple next to Google**, so the iOS app also offers it
+  (`expo-apple-authentication` → `signInWithIdToken`, Supabase's Apple provider with the bundle ID);
+  `/privacy` then names Apple, with the user's approval. Onboarding (username, 18+, the privacy
+  notice) and account deletion work as on the web — the stores require in-app deletion.
+- **Order of work.** Shell and archive → accounts → reviews, favourites, reports, profiles → drink
+  log → members' recipes, feed, follows, comments → showcase → store builds and listings
+  (plan.md M8).
+
+**Consequences.**
+- (+) One schema, one set of rules and shared validation for the site and the app.
+- (+) The site deploys exactly as before; the app has its own release cycle through EAS.
+- (−) Full parity before the first store release is a long milestone.
+- (−) Google Play requires a new personal developer account to run a closed test with at least 12
+  testers for 14 days before production access; Apple's enrolment can take days. Both are the
+  user's to start early.
+- (−) Native Google sign-in needs a development build — Expo Go cannot test it.
+- (−) Sign in with Apple adds a processor and a provider to configure.
+
+**Rejected.** *A second repository:* the shared types and validation would be copied and drift,
+and the handoff would split. *npm workspaces:* hoisting React Native's dependencies next to
+Next.js's risks the site's build for little gain at two packages. *Google sign-in through a web
+browser (Supabase's OAuth page):* no native client to set up, but a clumsier flow and the
+`supabase.co` host on Google's chooser. *An app-only API server:* the policies already are the API.

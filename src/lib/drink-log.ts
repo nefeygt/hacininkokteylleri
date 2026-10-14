@@ -3,7 +3,9 @@
 // private.is_valid_log_recipe() is the rule; these limits mirror it so the
 // form can warn early.
 
-import type { IngredientIcon } from "./content";
+import type { Database } from "./supabase/database.types";
+
+type IngredientIcon = Database["public"]["Enums"]["ingredient_icon"];
 
 // Type aliases, not interfaces, so they fit the generated Json type.
 export type LogIngredient = {

@@ -17,3 +17,25 @@ for (const [from, to, width] of jobs) {
   await sharp(from, { density: 600 }).resize({ width }).png().toFile(to);
   console.log(`${to} (${width}px)`);
 }
+
+// The Expo app's icons (M8, ADR-020), into mobile/assets/images.
+const app = (name) => `mobile/assets/images/${name}`;
+
+await sharp(brand("haci-app-icon.svg"), { density: 600 }).resize({ width: 1024 }).png().toFile(app("icon.png"));
+await sharp(brand("haci-app-icon.svg"), { density: 300 }).resize({ width: 48 }).png().toFile(app("favicon.png"));
+await sharp(brand("haci-mark.svg"), { density: 600 }).resize({ width: 1024 }).png().toFile(app("splash-icon.png"));
+
+// Android's adaptive icon crops the foreground to a shape: the mark must sit
+// inside the central 66% safe zone, so it is drawn at 760 px on a 1024 canvas.
+const mark = await sharp(brand("haci-mark.svg"), { density: 600 }).resize({ width: 760 }).png().toBuffer();
+const canvas = { width: 1024, height: 1024, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } };
+await sharp({ create: canvas }).composite([{ input: mark, gravity: "centre" }]).png().toFile(app("android-icon-foreground.png"));
+
+// The monochrome (themed) icon: the same silhouette in white.
+const alpha = await sharp(mark).extractChannel("alpha").toBuffer();
+const silhouette = await sharp({ create: { width: 760, height: 760, channels: 3, background: "#ffffff" } })
+  .joinChannel(alpha)
+  .png()
+  .toBuffer();
+await sharp({ create: canvas }).composite([{ input: silhouette, gravity: "centre" }]).png().toFile(app("android-icon-monochrome.png"));
+console.log("mobile/assets/images: icon, favicon, splash-icon, android-icon-foreground, android-icon-monochrome");

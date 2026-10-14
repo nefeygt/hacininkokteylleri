@@ -4,9 +4,9 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-14 (M7 build + live checks) · **Handing off:** **M6 and M7 are done**
-— built, deployed, and the user's live checks on their phone passed (2026-10-14). **Next: M8 — the Expo
-app** (Step 1: questions first).
+**Prepared by session:** 2026-10-14 (M8 start) · **Handing off:** **M8 step 1 done** — the Expo app
+exists in `mobile/` (SDK 57): shell, theme, icons, the archive and the recipe screen, checked in
+Chrome through Expo web. **Next: M8 step 2 — accounts in the app** (plus `/api/revalidate` on the site).
 
 ---
 
@@ -51,29 +51,56 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — start M8
+## 🎯 This Session's Task — M8 step 2: accounts in the app
 
 ### Step 0 — state check
 
-`git status` — clean, `main` in step with `origin/main`. **Check the tools first:** the Supabase MCP
-(`list_migrations` on `qwvnhdghwycqlvsnlvlt` → 11 migrations, the latest `20261014134219_showcase`) and
-Claude in Chrome (`tabs_context_mcp`). Both are per Claude account — on 2026-10-14 the user had to
-connect them for a new account; if one is missing, ask the user before doing anything that needs it.
-`curl -s -H "apikey: $KEY" https://qwvnhdghwycqlvsnlvlt.supabase.co/auth/v1/settings` (publishable key
-from `.env` via `grep`) → `"disable_signup": false`. SQL: after the M7 test the only profile was
-`ahmet_kafa`, and members' recipes, follows, comments, logs, reviews, reports, showcase periods,
-entries, votes and `recipe-images` objects were all 0. Never delete or edit a row you did not create
-without asking.
+`git status` — clean, `main` in step with `origin/main`. **Tools:** the Supabase MCP (`list_migrations`
+on `qwvnhdghwycqlvsnlvlt` → still 11, the latest `20261014134219_showcase`) and Claude in Chrome
+(`tabs_context_mcp`) — both belong to the Claude account; ask the user to connect a missing one.
+Sign-ups on (`/auth/v1/settings` → `"disable_signup": false`). SQL at the end of 2026-10-14: the only
+profile `ahmet_kafa`, every community table empty. Never delete or edit a row you did not create
+without asking. `cd mobile && npm ci` on a fresh machine (the app has its own lockfile).
 
-### Step 1 — M8: the Expo app
+### Step 1 — ask the user first (they change what can be built)
 
-ADR-013: Expo (React Native + TypeScript + supabase-js), the same Supabase backend and panel. **Ask the
-user first:** a monorepo (this repository) or a second repository; the first version's scope (read the
-archive + sign in + favourites/reviews/logs? the feed and showcase?); iOS and Android both from the
-start, and whose developer accounts (Apple $99/yr, Google $25 once); Google sign-in on mobile (a native
-OAuth client in Google Cloud `haci-511515`). The icons are ready: `public/brand/haci-app-icon-1024.png`,
-`haci-play-store-512.png`; the adaptive-icon foreground needs the mark scaled into the 66% safe zone.
-Write an ADR for the answers before building.
+Questions 7–9 below: the Expo account, and whether the Apple and Google developer accounts are
+**personal or organisation** (the stores show that name as the seller). Remind them that Apple's
+enrolment can take days and that a new personal Google Play account needs a **12-tester, 14-day
+closed test** before production — both should start now, long before step 7.
+
+### Step 2 — build (ADR-020)
+
+1. **`POST /api/revalidate`** on the site (`src/app/api/revalidate/route.ts`): `Authorization: Bearer
+   <member access token>`, verified with `supabase.auth.getUser(token)` (members only, no secret key);
+   body `{ paths: string[] }`, at most ~8, each matching `/`, `/cocktails`, `/feed`, `/recipes/{slug}`,
+   `/u/{username}`, `/logs/{uuid}`; `revalidatePath` each (`/recipes/[slug]` "page" when a review
+   touches every recipe page, as `cocktails/actions.ts` does). The app calls it after every write;
+   failures are ignored (ISR catches up).
+2. **The session in the app:** a `SessionProvider` (session, profile, `account_settings`) mirroring
+   the site's `useMember`/`accountSession()`; the Hesap tab shows sign-in or the account.
+3. **E-mail:** sign in, sign up (`emailRedirectTo` = the site's `/auth/callback`, so the confirmation
+   link opens the website; then sign in in the app), forgot password (the reset link opens the site's
+   `/reset-password`). Copy the Turkish strings and error mapping from `src/app/(site)/login/`.
+4. **Onboarding** as `/welcome`: username (suggested with `@shared/slug`), display name, 18+, the
+   privacy notice (link to the site's `/privacy`; `PRIVACY_NOTICE_VERSION` — move it or read it from
+   `@shared/account-config`, which is browser-safe), writes `account_settings` then `profiles`.
+5. **Account:** edit profile, avatar (expo-image-picker → expo-image-manipulator: centre square,
+   256 px WebP → `avatars/{id}/{base36}.webp`, then point the profile at it and delete the old object
+   — ADR-006), logs-public default, sign out, **delete account** (remove the user's Storage objects
+   first, then `delete_my_account()` — as `/account` does; the stores require in-app deletion).
+6. **Google:** `@react-native-google-signin/google-signin` (config plugin) → `signInWithIdToken`.
+   Needs, in Google Cloud `haci-511515` (`n.efeyigit@gmail.com`, `authuser=1`): an **iOS client**
+   (bundle `tech.hacininkokteylleri.haci`) and an **Android client** (package + the SHA-1 of the EAS
+   signing key — create the key with the first EAS build or `eas credentials`; later also the Play
+   app-signing SHA-1). Add every client ID to Supabase → Auth → Google → "Client IDs" (the web client
+   stays first). Not testable in Expo Go — needs an EAS **development build** (the user's Expo account).
+7. **Sign in with Apple (iOS only):** `expo-apple-authentication` → `signInWithIdToken({ provider:
+   "apple" })`; Supabase Apple provider with the bundle ID as client ID; needs the Apple Developer
+   account. `/privacy` must name Apple → draft the text, **the user approves** before deploying.
+8. Verify: e-mail flows and onboarding in Expo web (Chrome) against the real project with a test
+   account the user creates or approves — never type passwords yourself; Google/Apple on a device
+   with the development build (the user). Delete test rows afterwards.
 
 ### Also open (not blocking)
 
@@ -88,14 +115,24 @@ Write an ADR for the answers before building.
 
 | # | Question | Why it matters | Until it is answered |
 |---|---|---|---|
-| 3 | **Colour theme:** keep the dark crimson "Rx" look, or explore a lighter/warmer palette? | The user said the theme can change (ADR-015) | Today's palette stays |
+| 3 | **Colour theme:** keep the dark crimson "Rx" look, or explore a lighter/warmer palette? | The user said the theme can change (ADR-015) | Today's palette stays (the app copies it from one theme file) |
 | 5 | **Hacı's first admin sign-in** — when (his phone, a network that does not block the domain)? | His 2FA factor is not enrolled yet | He cannot use the panel |
 | 6 | **The first real showcase period** — when, a week or a month? | Nothing promotes it until a period exists (the feed hides the section) | No period; the feature is invisible |
+| 7 | **An Expo account** (expo.dev, free) — which username? | EAS builds the app for devices and stores; Google/Apple sign-in need a development build | Only Expo Go / Expo web testing |
+| 8 | **Apple Developer: personal or organisation?** ($99/yr; organisation needs a D-U-N-S number and shows the company as seller) | The App Store shows the seller's name; enrolment takes days | No iOS build on devices, no Sign in with Apple |
+| 9 | **Google Play: personal or organisation?** ($25; a new personal account needs 12 testers for 14 days before production) | The seller name, and the closed-test wait | No Play release |
 
 ---
 
 ## 📍 Current State
 
+- **The app (M8, 2026-10-14):** `mobile/` — Expo SDK 57, Expo Router, React Native 0.86, its own
+  `package.json`/lockfile/`.env` (`EXPO_PUBLIC_*`, public). Identifiers `tech.hacininkokteylleri.haci`,
+  name `haci`, scheme `haci`, dark only. Screens: tabs Kokteyller (archive: search with aliases,
+  filters, pull to refresh), Akış and Hesap (both "Sitede aç" placeholders until steps 2–6);
+  `cocktail/[slug]` (the recipe, glossary terms open on tap). Shared code: `@shared/*` → `src/lib/*`
+  (types, `archive-filter.ts` — new, the site's `CocktailBrowser` uses it too — and the other
+  browser-safe modules). Icons rendered by `scripts/export-brand.mjs`. Not yet on any device or store.
 - **Production:** `hacininkokteylleri.tech` (apex), `www` → apex, `admin.hacininkokteylleri.tech`;
   `hacininkokteylleri.vercel.app` → 308 to the domain. `main` deploys on push.
 - **Accounts (M3, done and open 2026-10-14):** Google app **in production** (Google Cloud `haci-511515`, branding: home
@@ -197,7 +234,24 @@ Write an ADR for the answers before building.
 - **The office network blocks the new domain** (a Fortinet FortiGate). Check DNS with
   `https://dns.google/resolve?name=…` and HTTP with check-host.net (plan.md §5.4).
 
-**This session's lessons (M7)**
+**This session's lessons (M8 step 1)**
+- **`CI=1 npx expo start` disables file watching** — edits never reach the browser and the bundle looks
+  stale. Run `npx expo start --web --port 8081` without it (add `--clear` after config changes).
+- **Expo web in a background Chrome tab:** screenshots time out and typed keys are lost, but the DOM
+  works — `innerText`, `querySelector('[aria-label="…"]').click()`, and for a `TextInput` the native
+  value setter + an `input` event. `Pressable` renders `role="button"` with its `accessibilityLabel`.
+- **Uppercase Turkish:** `textTransform: "uppercase"` (and CSS without `lang="tr"`) gives "ARŞIV". The
+  app's `Label` uppercases with `upperTr()` (`i` → `İ` first) instead. Words like "Highball" become
+  "HİGHBALL" — the site (`lang="tr"`) does the same.
+- **`rm` after `cd` in one Bash command is refused** by a safety check (unresolvable glob) — use
+  absolute paths in removals.
+- `npx expo install` picks SDK-compatible versions — never `npm install` a native package in `mobile/`.
+- SDK 56+: import navigation from `expo-router` only, never `@react-navigation/*` (`DarkTheme`,
+  `ThemeProvider`, `Tabs`, `Stack` all come from `expo-router`).
+- The shared modules in `src/lib` must not import `./content` (it pulls in Next/server code):
+  `recipe.ts` and `drink-log.ts` now take `IngredientIcon` from `database.types`.
+
+**Lessons from M7**
 - **MCP connectors and Claude in Chrome belong to the Claude account.** A new account starts without
   the Supabase connector and with Chrome's extension signed in to the other account — check both in
   Step 0 and ask the user to connect them (Connectors / the Claude side panel in Chrome).
@@ -295,13 +349,14 @@ Write an ADR for the answers before building.
 | Is `/privacy` final? Open M3? | **Yes and yes** — opened 2026-10-14 |
 | Are the accounts real people? | **Not necessarily yet** (the user, 2026-10-14): nothing promotes sign-up; still never touch rows you did not create without asking |
 | Resend account and sender? | **The user's account; `haci <noreply@hacininkokteylleri.tech>`** |
+| Mobile app: where, scope, platforms, sign-in? | **`mobile/` in this repo; full parity with the site before the first store release; iOS + Android from day one on the user's accounts; native Google + e-mail (+ Sign in with Apple on iOS)** (ADR-020, 2026-10-14) |
 | Admins, 2FA, canonical domain, WHOIS, reviews/logs, mobile stack | See ADR-007, 011, 010, plan.md M2, ADR-012, ADR-013 |
 
 ---
 
 ## 🧭 Look-ahead
 
-- **M3**–**M7** done → **M8** Expo apps (the cherry
-  icon is ready: `public/brand/haci-app-icon-1024.png`, `haci-play-store-512.png`; the adaptive-icon
-  foreground needs the mark scaled into the 66% safe zone).
+- **M8** steps 3–7 (plan.md §6): reviews/favourites/profiles → drink log → members' recipes, feed,
+  follows, comments → showcase → store release (EAS production builds, Turkish listings, 18+ rating,
+  privacy forms, Play's closed test, App Store review).
 - Icebox highlights: localization (English first), colour theme review, a `haci` domain.

@@ -3,7 +3,9 @@
 // (cocktails_community_limits, the ingredient lengths, save_recipe) are the
 // rule; these limits mirror them so the form can warn early.
 
-import type { IngredientIcon } from "./content";
+import type { Database } from "./supabase/database.types";
+
+type IngredientIcon = Database["public"]["Enums"]["ingredient_icon"];
 
 // A type alias, not an interface, so it fits the generated Json type.
 export type RecipeIngredient = {
