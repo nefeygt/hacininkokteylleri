@@ -3,7 +3,12 @@
 import { useRef, useState } from "react";
 import { ImagePlus, Loader2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/browser";
-import { COCKTAIL_IMAGES_BUCKET, cocktailImageUrl } from "@/lib/supabase/config";
+import {
+  COCKTAIL_IMAGES_BUCKET,
+  RECIPE_IMAGES_BUCKET,
+  cocktailImageUrl,
+  recipeImageUrl,
+} from "@/lib/supabase/config";
 
 const MAX_WIDTH = 1600;
 
@@ -58,20 +63,28 @@ async function prepare(file: File, cleanSparkle: boolean): Promise<{ blob: Blob;
   return { blob: jpeg, ext: "jpg" };
 }
 
+/**
+ * A recipe photo. The panel's house recipes go to "cocktail-images" (with the
+ * Gemini clean-up); a member's recipes go to their own folder in
+ * "recipe-images" (`folder` = their user id, M6).
+ */
 export default function ImageField({
   value,
   slug,
   onChange,
+  folder,
 }: {
   value: string | null;
   slug: string;
   onChange: (path: string | null) => void;
+  folder?: string;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [cleanSparkle, setCleanSparkle] = useState(true);
-  const url = cocktailImageUrl(value);
+  const [cleanSparkle, setCleanSparkle] = useState(!folder);
+  const bucket = folder ? RECIPE_IMAGES_BUCKET : COCKTAIL_IMAGES_BUCKET;
+  const url = folder ? recipeImageUrl(value) : cocktailImageUrl(value);
 
   async function upload(file: File) {
     setBusy(true);
@@ -79,9 +92,10 @@ export default function ImageField({
     try {
       const { blob, ext } = await prepare(file, cleanSparkle);
       // A fresh name every time: objects are never overwritten in place (ADR-006).
-      const name = `${slug || "kokteyl"}-${Date.now().toString(36)}.${ext}`;
+      const fileName = `${slug || "kokteyl"}-${Date.now().toString(36)}.${ext}`;
+      const name = folder ? `${folder}/${fileName}` : fileName;
       const { error } = await createClient()
-        .storage.from(COCKTAIL_IMAGES_BUCKET)
+        .storage.from(bucket)
         .upload(name, blob, { contentType: blob.type, cacheControl: "31536000", upsert: false });
       if (error) throw error;
       onChange(name);
@@ -129,15 +143,17 @@ export default function ImageField({
             <X className="h-3.5 w-3.5" /> Kaldır
           </button>
         )}
-        <label className="flex items-center gap-2 font-mono text-[11px] text-text-muted">
-          <input
-            type="checkbox"
-            checked={cleanSparkle}
-            onChange={(e) => setCleanSparkle(e.target.checked)}
-            className="accent-crimson-glow"
-          />
-          Sağ alttaki Gemini yıldızını temizle
-        </label>
+        {!folder && (
+          <label className="flex items-center gap-2 font-mono text-[11px] text-text-muted">
+            <input
+              type="checkbox"
+              checked={cleanSparkle}
+              onChange={(e) => setCleanSparkle(e.target.checked)}
+              className="accent-crimson-glow"
+            />
+            Sağ alttaki Gemini yıldızını temizle
+          </label>
+        )}
       </div>
       <input
         ref={input}

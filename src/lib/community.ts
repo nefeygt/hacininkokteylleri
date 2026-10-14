@@ -8,3 +8,5 @@ export const REPORT_REASON_MAX_LENGTH = 500;
 export function formatAverage(average: number): string {
   return average.toLocaleString("tr-TR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 }
+
+export const LOG_COMMENT_MAX_LENGTH = 1000;

@@ -22,8 +22,12 @@ async function member() {
   return session;
 }
 
+// A review or favourite changes an average or the feed's "popular" list:
+// house recipes show on /cocktails, members' recipes on their own pages (M6).
 function revalidateCommunityPages(username: string) {
   revalidatePath("/cocktails");
+  revalidatePath("/recipes/[slug]", "page");
+  revalidatePath("/feed");
   revalidatePath(`/u/${username}`);
 }
 
@@ -91,14 +95,20 @@ export async function setFavorite(cocktailId: string, favorite: boolean): Promis
   if (error && error.code !== "23505") return { error: `Kaydedilemedi: ${error.message}` };
 
   revalidatePath(`/u/${profile.username}`);
+  revalidatePath("/feed");
   return { ok: true };
 }
 
 type ReportTarget = Database["public"]["Enums"]["report_target"];
 
-/** Reports a review, a profile or a public drink log to the admins. Members cannot read reports back. */
+export type ReportableTarget = Extract<ReportTarget, "review" | "profile" | "drink_log" | "cocktail" | "log_comment">;
+
+/**
+ * Reports a review, a profile, a public drink log, a member's recipe or a log
+ * comment to the admins. Members cannot read reports back.
+ */
 export async function reportContent(
-  targetType: Extract<ReportTarget, "review" | "profile" | "drink_log">,
+  targetType: ReportableTarget,
   targetId: string,
   reason: string
 ): Promise<CommunityResult> {

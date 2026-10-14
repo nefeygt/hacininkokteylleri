@@ -36,3 +36,13 @@ export function avatarUrl(path: string | null | undefined): string | undefined {
   const key = path.split("/").map(encodeURIComponent).join("/");
   return `${SUPABASE_URL}/storage/v1/object/public/${AVATARS_BUCKET}/${key}`;
 }
+
+/** Members' recipe photos, one folder per author: "{user_id}/{name}.webp" (M6, ADR-018). */
+export const RECIPE_IMAGES_BUCKET = "recipe-images";
+
+/** Public URL of an object in the recipe-images bucket. */
+export function recipeImageUrl(path: string | null | undefined): string | undefined {
+  if (!path) return undefined;
+  const key = path.split("/").map(encodeURIComponent).join("/");
+  return `${SUPABASE_URL}/storage/v1/object/public/${RECIPE_IMAGES_BUCKET}/${key}`;
+}

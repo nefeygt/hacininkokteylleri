@@ -51,6 +51,19 @@ export default async function AccountPage() {
         </section>
 
         <section className="border-t border-border pt-6">
+          <div className="flex items-baseline justify-between">
+            <h2 className="font-mono text-xs uppercase tracking-[0.15em] text-text-secondary">Tariflerim</h2>
+            <Link
+              href="/account/recipes"
+              className="font-mono text-[11px] text-text-muted underline underline-offset-2 hover:text-text-primary"
+            >
+              Tariflerim →
+            </Link>
+          </div>
+          <p className="mt-2 font-mono text-xs text-text-muted">Kendi tariflerini yaz; yayındakiler profilinde ve akışta görünür.</p>
+        </section>
+
+        <section className="border-t border-border pt-6">
           <div className="mb-4 flex items-baseline justify-between">
             <h2 className="font-mono text-xs uppercase tracking-[0.15em] text-text-secondary">İçki günlüğü</h2>
             <Link

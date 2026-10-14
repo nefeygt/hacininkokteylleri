@@ -1,7 +1,9 @@
 import Link from "next/link";
-import { Lock, Globe } from "lucide-react";
+import { Lock, Globe, MessageCircle } from "lucide-react";
+import Avatar from "@/components/Avatar";
 import Stars from "@/components/Stars";
 import { ReportIfSignedIn } from "@/components/ReportProfileButton";
+import { recipeHref } from "@/lib/content";
 import { formatAmount, formatLogDate, readRecipe } from "@/lib/drink-log";
 import type { Json } from "@/lib/supabase/database.types";
 
@@ -14,26 +16,51 @@ export interface DrinkLogRow {
   note: string | null;
   is_public: boolean;
   hidden_at: string | null;
-  cocktails: { slug: string; is_published: boolean } | null;
+  cocktails: { slug: string; is_published: boolean; author_id: string | null } | null;
+  /** Present when the list mixes people (the feed, a log page). */
+  profiles?: { username: string; display_name: string; avatar_path: string | null } | null;
 }
 
-export const DRINK_LOG_COLUMNS = "id, user_id, drunk_on, recipe, rating, note, is_public, hidden_at, cocktails(slug, is_published)";
+export const DRINK_LOG_COLUMNS =
+  "id, user_id, drunk_on, recipe, rating, note, is_public, hidden_at, cocktails(slug, is_published, author_id)";
+
+/** With the author, for lists that mix people; !inner leaves out hidden profiles. */
+export const DRINK_LOG_WITH_AUTHOR_COLUMNS = `${DRINK_LOG_COLUMNS}, profiles!inner(username, display_name, avatar_path)`;
 
 /**
  * One drink log: the cocktail as made, the date, that evening's rating and
  * the note. "own" adds the privacy badge and an edit link; "public" adds a
- * report button for other signed-in visitors.
+ * report button for other signed-in visitors and a link to the log's comments
+ * (M6). The author is shown when the row carries one.
  */
-export default function DrinkLogEntry({ log, mode }: { log: DrinkLogRow; mode: "own" | "public" }) {
+export default function DrinkLogEntry({
+  log,
+  mode,
+  commentCount,
+  showCommentsLink = true,
+}: {
+  log: DrinkLogRow;
+  mode: "own" | "public";
+  commentCount?: number;
+  showCommentsLink?: boolean;
+}) {
   const recipe = readRecipe(log.recipe);
   const cocktail = log.cocktails?.is_published ? log.cocktails : null;
+  const author = log.profiles;
 
   return (
     <article className={`rounded border border-border bg-bg-card px-4 py-3 ${log.hidden_at ? "opacity-70" : ""}`}>
+      {author && (
+        <Link href={`/u/${author.username}`} className="mb-2 flex items-center gap-2 hover:text-crimson-glow">
+          <Avatar path={author.avatar_path} name={author.display_name} size={22} />
+          <span className="text-xs font-semibold text-text-primary">{author.display_name}</span>
+          <span className="font-mono text-[10px] text-text-muted">@{author.username}</span>
+        </Link>
+      )}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         {cocktail ? (
           <Link
-            href={`/cocktails?cocktail=${encodeURIComponent(cocktail.slug)}`}
+            href={recipeHref(cocktail.slug, Boolean(cocktail.author_id))}
             className="font-semibold text-text-primary hover:text-crimson-glow"
           >
             {recipe.name}
@@ -70,11 +97,26 @@ export default function DrinkLogEntry({ log, mode }: { log: DrinkLogRow; mode: "
           Bu kayıt yöneticiler tarafından gizlendi; yalnızca sen görüyorsun.
         </p>
       )}
-      {mode === "public" && (
+      {mode === "own" && log.is_public && !log.hidden_at && (
         <div className="mt-1.5 flex">
+          <CommentsLink id={log.id} count={commentCount} />
+        </div>
+      )}
+      {mode === "public" && (
+        <div className="mt-1.5 flex flex-wrap items-center gap-4">
+          {showCommentsLink && <CommentsLink id={log.id} count={commentCount} />}
           <ReportIfSignedIn ownerId={log.user_id} targetType="drink_log" targetId={log.id} />
         </div>
       )}
     </article>
+  );
+}
+
+function CommentsLink({ id, count }: { id: string; count?: number }) {
+  return (
+    <Link href={`/logs/${id}`} className="flex items-center gap-1 font-mono text-[10px] text-text-muted hover:text-crimson-glow">
+      <MessageCircle className="h-3 w-3" />
+      {count ? `${count} yorum` : "Yorumlar"}
+    </Link>
   );
 }

@@ -9,7 +9,7 @@
 > **Language rule (ADR-002):** everything we write — docs, code, comments, commits, SQL — is
 > **English**. Everything visitors and admins read — UI strings, recipes — is **Turkish**.
 
-**Last updated:** 2026-10-14 · **Active milestone:** **M6 — Community recipes and feeds** (not started; questions first) · **Brand:** `haci` (ADR-015)
+**Last updated:** 2026-10-14 · **Active milestone:** **M6 — Community recipes and feeds** (built, tested locally; privacy text approval, deploy and live check left) · **Brand:** `haci` (ADR-015)
 
 ---
 
@@ -17,7 +17,7 @@
 
 | Field | State |
 |---|---|
-| Active milestone | **M6 — Community recipes and feeds** — not started; three product questions for the user come first (next_session.md Step 1) |
+| Active milestone | **M6 — Community recipes and feeds** — built and tested end to end on `localhost` (2026-10-14, ADR-018): members' recipes on `/recipes/{slug}`, `/feed`, follows, comments on public logs, moderation. **Left:** the user's OK on the `/privacy` text, deploy, live check |
 | Previous milestone | **M5 — Drink log** (2026-10-14): log from the recipe card with the recipe as made, private/public with a default, public logs on profiles, reports and moderation (ADR-017) — tested end to end on `localhost`; **live check passed on the user's phone**. **M5 done**. M4 — Reviews and favourites done 2026-10-14; M3 — Accounts done 2026-10-14 |
 | Last completed | **M2 — Domain** (Search Console moved from vercel.app to the domain) and the **brand change to `haci`** with English URLs and the cherry logo (ADR-015). M1 is done except Hacı's own first sign-in |
 | Blockers | None in the code. The network the user's office computer is on (a Fortinet FortiGate) blocks the domain — check from outside (§5.4) |
@@ -73,6 +73,15 @@ around the archive; they never crowd it off the home page except through the sho
   "new logs start public" setting). `/account/logs` lists your logs, `/account/logs/{id}` edits or
   deletes one. Public logs show on `/u/{username}` with "Bildir"; the panel's Moderasyon lists
   reported logs and the latest public ones (hide/show).
+- **Community recipes and the feed (M6)** — `/account/recipes` (own recipes, drafts and published),
+  `/account/recipes/new` and `/{id}` (the panel's form, simplified: no ordering; the slug comes from
+  the name once; a photo in the member's own folder). A published recipe has its own page
+  `/recipes/{slug}` (author byline, favourite, "Günlüğe ekle", reviews, "Tarifi bildir"). `/feed`
+  ("Akış" in the navbar): "Bu ay popüler" (reviews + favourites in 30 days), "Yeni tarifler", and
+  "Takip ettiklerinden" (public logs of people you follow). Profiles: "Takip et", follower and
+  following counts, the member's recipes. Each public log has a page `/logs/{id}` with a flat
+  comment thread (the author replies; "kayıt sahibi" badge; delete, report). Panel → Moderasyon:
+  members' recipes and comments, reported or recent, hide/show (ADR-018).
 
 ### 3.2 Roadmap — what the user has asked for (2026-10-13)
 
@@ -124,6 +133,7 @@ In the user's words, collected while M0 was being built. Milestones in §6.
 | 015 | Brand `haci`; English paths, Turkish UI; cherry logo | A global product with one short name |
 | 016 | Member state read in the browser; writes via server actions that revalidate | Static pages stay static; averages update at once |
 | 017 | Drink logs are written on dynamic pages under `/account/logs`; the snapshot is checked in the database | The archive stays static; the recipe as made stays a recipe |
+| 018 | Members' recipes on `/recipes/{slug}`; `/feed` (popular + new recipes, followed people's logs); public follows; flat comments on public logs | Letterboxd-style community; the home page and archive stay Hacı's |
 
 → Full rationale and rejected alternatives: [adr.md](adr.md)
 
@@ -160,8 +170,8 @@ migration file with the version Supabase applied (ADR-009).
 
 | Table | Key columns | Who reads | Who writes |
 |---|---|---|---|
-| `cocktails` | `id uuid`, `slug` unique, `name`, `subtitle`, `base_alcohol`, `flavor`, `tags text[]`, `color #rrggbb`, `image_path`, `instructions text[]`, `garnish`, `glass`, `vegan`, `note`, `sort_order`, `is_published` | everyone (published); admins (all) | admins |
-| `cocktail_ingredients` | `cocktail_id`, `position` (unique together), `name`, `amount numeric(6,2)`, `unit`, `icon` enum | as its cocktail | admins |
+| `cocktails` | `id uuid`, `slug` unique, `name`, `subtitle`, `base_alcohol`, `flavor`, `tags text[]`, `color #rrggbb`, `image_path`, `instructions text[]`, `garnish`, `glass`, `vegan`, `note`, `sort_order`, `is_published`; M6: `author_id` → `profiles` (null = house recipe), `hidden_at`/`hidden_by`, length caps for members' rows | everyone (published, not hidden); the author (own drafts); admins (all) | admins (any); members only rows with their own `author_id`, via `save_recipe` (≤ 10 new a day) |
+| `cocktail_ingredients` | `cocktail_id`, `position` (unique together), `name` ≤ 100, `amount numeric(6,2)`, `unit` ≤ 20, `icon` enum | as its cocktail | admins; the recipe's author |
 | `glossary_terms` | `term` PK, `definition` | everyone | admins |
 | `admins` | `user_id` → `auth.users`, `role` (`owner`/`editor`), `display_name` | own row; admins (all) | nobody over the API — SQL only |
 | `account_settings` | `user_id` PK → `auth.users`, `adult_confirmed_at` (server time), `privacy_notice_version`, `logs_public_default` | owner; admins | owner (column grants) |
@@ -171,6 +181,9 @@ migration file with the version Supabase applied (ADR-009).
 | `reports` | `reporter_id` → `profiles`, `target_type` enum, `target_id`, `reason` ≤ 500, `resolved_at`/`resolved_by` (stamped by a trigger); unique per reporter and target | admins | members file (≤ 20 a day); admins resolve |
 | `drink_logs` | `id`, `user_id` → `profiles`, `cocktail_id` → `cocktails` (set null), `drunk_on` (2000-01-01 … today + 1), `recipe jsonb` (checked by `private.is_valid_log_recipe`, ≤ 16 KB), `rating` 1–5 null, `note` ≤ 2000, `is_public` (default false), `updated_at` (author edits only), `hidden_at`/`hidden_by` | everyone (public and not hidden); owner; admins | owner (published cocktails only, ≤ 50 new a day); admins hide/delete |
 | view `cocktail_ratings` | `cocktail_id`, `review_count`, `average_rating` — visible reviews by visible profiles (security invoker) | everyone | — |
+| `follows` (M6) | PK `(follower_id, followee_id)` → `profiles`, no self-follows, `created_at` | everyone | the follower (visible profiles only, ≤ 200 a day) |
+| `log_comments` (M6) | `id`, `log_id` → `drink_logs` (cascade), `user_id` → `profiles`, `body` 1–1000, `created_at`, `hidden_at`/`hidden_by` | whoever can read the log (not hidden); commenter; admins | members on visible public logs (≤ 100 a day); deleted by the commenter, the log's author or admins; admins hide |
+| view `recipe_popularity` (M6) | `cocktail_id`, `recent_reviews`, `recent_favorites`, `score` — last 30 days, visible members' recipes only (security invoker) | everyone | — |
 
 Functions: `private.is_admin()` (an `admins` row **and** a 2FA session, `aal2` — ADR-011; used
 by every write policy; not exposed over HTTP) and
@@ -186,7 +199,11 @@ profile at it and the browser deletes the previous object (never overwritten, AD
 M4 added `private.limit_reviews()` / `private.limit_reports()` (daily limits, security
 definer) and `private.stamp_report_resolution()`. M5 added `private.is_valid_log_recipe(jsonb)`
 (the snapshot's check; executable by `authenticated` because check constraints run as the writer)
-and `private.limit_drink_logs()`.
+and `private.limit_drink_logs()`. M6 added `public.save_recipe(recipe jsonb, ingredients jsonb)`
+(members' one-transaction save, always their own `author_id`, slug fixed at creation),
+`private.limit_recipes()` / `limit_follows()` / `limit_log_comments()`, the moderation guard on
+`cocktails`, the `log_comment` report target, and the public `recipe-images` bucket (1 MB,
+WebP/JPEG; members write only under `{user_id}/`; admins may delete) — ADR-018.
 
 **The rest of the community model is decided in ADR-014** (drink logs, community recipes in
 `cocktails` with `author_id`, showcase) and is built milestone by milestone.
@@ -204,6 +221,11 @@ src/
       cocktails/actions.ts      saveReview, deleteReview, setFavorite, reportContent (M4)
       login/ welcome/ account/  member sign-in (Google, e-mail + password), onboarding, account (dynamic; account/actions.ts)
       account/logs/             drink log (M5): list, new (?cocktail=), [id] edit; LogForm, actions.ts
+      account/recipes/          members' recipes (M6): list, new, [id] edit; RecipeForm, actions.ts
+      recipes/[slug]/           a member's recipe page (ISR 5 min) → RecipeView
+      feed/                     Akış (ISR 5 min): popular + new recipes, FollowingLogs (browser)
+      logs/[id]/                one public log + its comments (ISR 5 min, noindex); logs/actions.ts (comments)
+      u/actions.ts              setFollow (M6)
       reset-password/           new password after the reset e-mail
       u/[username]/             public profile (ISR 5 min)
       privacy/                  KVKK notice (static)
@@ -213,14 +235,16 @@ src/
       verify/                   later sign-ins: the 6-digit code
       (panel)/                  everything behind requireAdmin(): list, cocktails/new, cocktails/[id], glossary, moderation
       actions.ts                every write (server actions)
-      CocktailForm.tsx, ImageField.tsx, GlossaryEditor.tsx, PublishToggle.tsx
+      CocktailForm.tsx, GlossaryEditor.tsx, PublishToggle.tsx, ModerationButton.tsx
     auth/callback/route.ts      Google → Supabase → here: code exchange, then /welcome or next
     api/keepalive/route.ts      daily ping (vercel.json cron)
     icon.svg, apple-icon.png    favicon and touch icon (the cherry, ADR-015)
     robots.ts, sitemap.ts       for search engines
   components/                   site components (CocktailBrowser, CocktailCard, CocktailModal, Tooltip, …);
                                 M4: useMember (session + favourites in the browser), CocktailReviews, Stars, ReportButton;
-                                M5: DrinkLogEntry, ReportIfSignedIn (in ReportProfileButton.tsx)
+                                M5: DrinkLogEntry, ReportIfSignedIn (in ReportProfileButton.tsx);
+                                M6: RecipeDetails (one renderer for every recipe), RecipeActions, RecipeView,
+                                ImageField (shared with the panel), FollowButton, FollowingLogs, LogComments
   lib/
     content.ts                  DB rows → the shapes components draw; public fetchers
     admin.ts                    requireAdmin()
@@ -229,6 +253,7 @@ src/
     brand.ts                    BRAND = "haci" 
     community.ts                review/report length limits, formatAverage (browser-safe)
     drink-log.ts                the log's recipe snapshot: type, limits, cleanRecipe, formatting (browser-safe)
+    recipe.ts                   a member's recipe: RecipeInput, limits, icons, cleanRecipeInput (browser-safe)
     slug.ts                     Turkish-aware slugify
     supabase/                   config, public/server/browser/proxy clients, database.types.ts (generated)
 supabase/
@@ -361,10 +386,30 @@ After any schema change: mirror the migration, regenerate `database.types.ts`, r
 - [x] End to end on `localhost:3000` / `admin.localhost:3000` (2026-10-14) with the user's `ahmet_kafa`: log from the card with vodka → gin, 4 stars → private (not on the profile) → edited to public (on the profile, also for an anonymous fetch) → default setting on (new form pre-ticked) and off again → a seeded member's report in the panel → hidden (gone from the profile, owner sees "gizlendi") → report closed → log deleted. Test rows and the seeded member removed
 - [x] Live check on `hacininkokteylleri.tech` (2026-10-14, the user's phone): passed. Afterwards 0 logs, reviews and reports; the only profile is `ahmet_kafa`
 
-### ⚪ M6 — Community recipes and feeds
+### 🔵 M6 — Community recipes and feeds `BUILT 2026-10-14 — privacy OK, deploy, live check left`
 
-User recipes (same shape as house recipes, `author_id` set), profile pages and a feed; the
-archive and the home page stay Hacı's.
+The user's answers (2026-10-14): the feed = all members' popular recipes (Letterboxd's main page)
++ the latest logs of people you follow; replies on a followed person's log, like Letterboxd review
+comments; members' recipes reviewable; `/r/{slug}` "or whichever is better" → `/recipes/{slug}`
+(ADR-018). The archive and the home page stay Hacı's.
+
+- [x] Migration `community_recipes`: `cocktails.author_id`/`hidden_at`, members' policies,
+  `save_recipe`, `recipe-images` bucket, `recipe_popularity`, `follows`, `log_comments`, limits;
+  33 policy checks in SQL (rolled back); advisors clean (only the known items)
+- [x] Write/edit/delete recipes (`/account/recipes`), drafts, photo in the member's folder
+- [x] `/recipes/{slug}` with reviews, favourite, "Günlüğe ekle", report; in the sitemap
+- [x] `/feed`: popular (30 days), new, followed people's public logs; "Akış" in the navbar
+- [x] Follows (button, counts) on profiles; the member's recipes on the profile
+- [x] `/logs/{id}` with a flat comment thread (author's replies marked, delete, report)
+- [x] Panel Moderasyon: members' recipes and comments, reported or recent, hide/show
+- [x] End to end on `localhost:3000` / `admin.localhost:3000` (2026-10-14) with the user's
+  `ahmet_kafa` and a seeded member: recipe with photo → page → review 4 + favourite → popular on the
+  feed → follow → the member's log on the feed → comment → owner's reply (badge) → report → admin
+  hides the comment, closes the report, hides the recipe (404 for guests, gone from the feed,
+  "gizlendi" for the author) → recipe deleted (photo removed, review/favourite gone, the log kept
+  its copy). Test rows and the seeded member removed; the archive's card still renders
+- [ ] `/privacy` text (recipes, photos, follows, comments; version `2026-10-14.2`) — the user's OK
+- [ ] Deploy; live check on the domain from an unblocked network (the user's phone)
 
 ### ⚪ M7 — The showcase
 
@@ -385,7 +430,7 @@ when it starts.
 |---|---|---|
 | **No backups on the free plan** — a bad edit or delete is permanent | Medium | Before M3: a scheduled export of content to the repo, or the Pro plan once there are users |
 | Free project **pauses after 7 idle days**, taking photos down | Low now | Daily keep-alive cron (ADR-005). If it ever pauses: Supabase dashboard → Restore |
-| Free-plan limits (500 MB DB, 1 GB storage, 5 GB egress) | Low until M6 | Photos are ~35 KB; user uploads (M6) need a size cap per user |
+| Free-plan limits (500 MB DB, 1 GB storage, 5 GB egress) | Low–medium from M6 | Members' photos: 1 MB a file, resized to 1600 px WebP in the browser, 10 recipes a day; watch storage in the dashboard |
 | **.tech renewal** costs $29.99/yr from 2027-09-11 (auto-renew on) | Certain | The user decides before then; turn off auto-renew if moving the brand |
 | Registrant details at Namify | Low | Not published: the registry's RDAP and WHOIS show only the registrar (checked 2026-10-13). Paid privacy not needed |
 | Supabase's leaked-password check (HaveIBeenPwned) is off — Pro plan only | Low | 2FA makes a leaked password alone useless for admin powers (ADR-011) |
@@ -403,7 +448,8 @@ when it starts.
   new value added in the panel ("Likör", "Aperitif") has no chip.
 - Ingredient names are free text ("Vodka" and "Votka" both exist), which the future
   drink log and "what can I make" features will want normalised.
-- A photo uploaded in the panel and then abandoned (form not saved) stays in the bucket.
+- A photo uploaded in the panel and then abandoned (form not saved) stays in the bucket; the same
+  for a member's recipe form (the file stays in their folder until they delete their account).
 - The owner's authenticator entry is named "Hacı'nın Kokteylleri" (the old issuer); harmless.
 
 ---
@@ -425,6 +471,11 @@ when it starts.
 - A `haci` domain, if the product grows (ADR-015)
 - Paging / "show more" for reviews (the card shows the latest 50; a profile the latest 100)
 - Rating breakdown (how many 5s, 4s, …) and sorting the archive by rating
+- Follower / following lists on profiles; "people you may know" (M6 shows counts only)
+- Notifications (a reply to your comment, a new follower, a comment on your log)
+- Editing a comment; threaded replies (M6 comments are flat, delete-only)
+- Tune "popular" (weights, logs, a week vs a month) once there is real traffic
+- House recipes on `/recipes/{slug}` too (the path is ready: slugs are unique across both)
 - The `haci` wordmark (`public/brand/haci-wordmark-light.svg`) in the navbar instead of text
 - **Our own auth domain** (e.g. `auth.hacininkokteylleri.tech`, Supabase custom domain, a paid
   add-on) plus Google brand verification, so Google's account chooser says `haci` instead of
@@ -436,6 +487,7 @@ when it starts.
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-10-14 | M6 build | The user answered the M6 questions (feed like Letterboxd, follows, replies on logs, reviewable recipes, `/recipes/{slug}`). Migration `community_recipes` (33 policy checks). Members' recipes, recipe pages, `/feed`, follows, log comments, moderation; `/privacy` text drafted (version `2026-10-14.2`, awaiting the user's OK). ADR-018. Tested end to end in Chrome (localhost) with the user's account and a seeded member (removed). Not deployed yet |
 | 2026-10-14 | M5 live check | The user checked the drink log on the live domain from their phone: passed. Database clean afterwards (0 logs). **M5 done**; next M6 |
 | 2026-10-14 | M5 build | Migration `drink_logs` (29 policy checks). Log from the recipe card on a dynamic page under `/account/logs` (ADR-017), list/edit/delete, public/private with a default on `/account`, public logs on profiles with reports, the panel's moderation. `/privacy` names the drink log (the user's OK), version `2026-10-14`. Tested end to end in Chrome with the user's account and a seeded reporter (removed). Deployed; live check left |
 | 2026-10-14 | M4 live check | Over the user's mobile data in their Chrome: the domain 200; **Google sign-in on the live domain** works; review → card 4,0 (1) (also the cached static page) → delete → 0 rows. **M4 done**. The supabase.co name on Google's chooser → Icebox (own auth domain) |

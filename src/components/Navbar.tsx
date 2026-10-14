@@ -26,6 +26,9 @@ export default function Navbar() {
           <NavLink href="/cocktails" active={pathname === "/cocktails"}>
             Kokteyller
           </NavLink>
+          <NavLink href="/feed" active={pathname === "/feed"}>
+            Akış
+          </NavLink>
           <AccountLink active={pathname === "/account" || pathname === "/login"} />
           <a
             href="https://letterboxd.com/krasic/"

@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
 import { fieldClass } from "@/components/AccountCard";
 import { createClient } from "@/lib/supabase/browser";
-import { AVATARS_BUCKET } from "@/lib/supabase/config";
+import { AVATARS_BUCKET, RECIPE_IMAGES_BUCKET } from "@/lib/supabase/config";
 import { deleteAccount } from "./actions";
 
 export default function DeleteAccount({ userId, username }: { userId: string; username: string }) {
@@ -17,18 +17,20 @@ export default function DeleteAccount({ userId, username }: { userId: string; us
     setError(null);
     startTransition(async () => {
       // Supabase refuses to delete a user who still owns Storage objects, so
-      // the member's own files go first (ADR-014).
-      const storage = createClient().storage.from(AVATARS_BUCKET);
-      const { data: files, error: listError } = await storage.list(userId);
-      if (listError) {
-        setError("Dosyaların okunamadı. Tekrar dene.");
-        return;
-      }
-      if (files.length > 0) {
-        const { error: removeError } = await storage.remove(files.map((f) => `${userId}/${f.name}`));
-        if (removeError) {
-          setError("Dosyaların silinemedi. Tekrar dene.");
+      // the member's own files go first (ADR-014): the avatar and recipe photos.
+      for (const bucket of [AVATARS_BUCKET, RECIPE_IMAGES_BUCKET]) {
+        const storage = createClient().storage.from(bucket);
+        const { data: files, error: listError } = await storage.list(userId, { limit: 1000 });
+        if (listError) {
+          setError("Dosyaların okunamadı. Tekrar dene.");
           return;
+        }
+        if (files.length > 0) {
+          const { error: removeError } = await storage.remove(files.map((f) => `${userId}/${f.name}`));
+          if (removeError) {
+            setError("Dosyaların silinemedi. Tekrar dene.");
+            return;
+          }
         }
       }
 

@@ -102,16 +102,26 @@ export type Database = {
             referencedRelation: "cocktails"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "cocktail_ingredients_cocktail_id_fkey"
+            columns: ["cocktail_id"]
+            isOneToOne: false
+            referencedRelation: "recipe_popularity"
+            referencedColumns: ["cocktail_id"]
+          },
         ]
       }
       cocktails: {
         Row: {
+          author_id: string | null
           base_alcohol: string
           color: string
           created_at: string
           flavor: string
           garnish: string
           glass: string
+          hidden_at: string | null
+          hidden_by: string | null
           id: string
           image_path: string | null
           instructions: string[]
@@ -126,12 +136,15 @@ export type Database = {
           vegan: boolean
         }
         Insert: {
+          author_id?: string | null
           base_alcohol: string
           color: string
           created_at?: string
           flavor: string
           garnish?: string
           glass?: string
+          hidden_at?: string | null
+          hidden_by?: string | null
           id?: string
           image_path?: string | null
           instructions?: string[]
@@ -146,12 +159,15 @@ export type Database = {
           vegan?: boolean
         }
         Update: {
+          author_id?: string | null
           base_alcohol?: string
           color?: string
           created_at?: string
           flavor?: string
           garnish?: string
           glass?: string
+          hidden_at?: string | null
+          hidden_by?: string | null
           id?: string
           image_path?: string | null
           instructions?: string[]
@@ -165,7 +181,15 @@ export type Database = {
           updated_at?: string
           vegan?: boolean
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "cocktails_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       drink_logs: {
         Row: {
@@ -219,6 +243,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "drink_logs_cocktail_id_fkey"
+            columns: ["cocktail_id"]
+            isOneToOne: false
+            referencedRelation: "recipe_popularity"
+            referencedColumns: ["cocktail_id"]
+          },
+          {
             foreignKeyName: "drink_logs_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -252,8 +283,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "favorites_cocktail_id_fkey"
+            columns: ["cocktail_id"]
+            isOneToOne: false
+            referencedRelation: "recipe_popularity"
+            referencedColumns: ["cocktail_id"]
+          },
+          {
             foreignKeyName: "favorites_user_id_fkey"
             columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      follows: {
+        Row: {
+          created_at: string
+          followee_id: string
+          follower_id: string
+        }
+        Insert: {
+          created_at?: string
+          followee_id: string
+          follower_id: string
+        }
+        Update: {
+          created_at?: string
+          followee_id?: string
+          follower_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "follows_followee_id_fkey"
+            columns: ["followee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follows_follower_id_fkey"
+            columns: ["follower_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -280,6 +351,51 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      log_comments: {
+        Row: {
+          body: string
+          created_at: string
+          hidden_at: string | null
+          hidden_by: string | null
+          id: string
+          log_id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          hidden_at?: string | null
+          hidden_by?: string | null
+          id?: string
+          log_id: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          hidden_at?: string | null
+          hidden_by?: string | null
+          id?: string
+          log_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "log_comments_log_id_fkey"
+            columns: ["log_id"]
+            isOneToOne: false
+            referencedRelation: "drink_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "log_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -401,6 +517,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "reviews_cocktail_id_fkey"
+            columns: ["cocktail_id"]
+            isOneToOne: false
+            referencedRelation: "recipe_popularity"
+            referencedColumns: ["cocktail_id"]
+          },
+          {
             foreignKeyName: "reviews_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -425,13 +548,33 @@ export type Database = {
             referencedRelation: "cocktails"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "reviews_cocktail_id_fkey"
+            columns: ["cocktail_id"]
+            isOneToOne: false
+            referencedRelation: "recipe_popularity"
+            referencedColumns: ["cocktail_id"]
+          },
         ]
+      }
+      recipe_popularity: {
+        Row: {
+          cocktail_id: string | null
+          recent_favorites: number | null
+          recent_reviews: number | null
+          score: number | null
+        }
+        Relationships: []
       }
     }
     Functions: {
       delete_my_account: { Args: never; Returns: undefined }
       save_cocktail: {
         Args: { cocktail: Json; ingredients: Json }
+        Returns: string
+      }
+      save_recipe: {
+        Args: { ingredients: Json; recipe: Json }
         Returns: string
       }
     }
@@ -444,6 +587,7 @@ export type Database = {
         | "review"
         | "drink_log"
         | "showcase_entry"
+        | "log_comment"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -579,6 +723,7 @@ export const Constants = {
         "review",
         "drink_log",
         "showcase_entry",
+        "log_comment",
       ],
     },
   },

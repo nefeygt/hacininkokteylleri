@@ -301,6 +301,43 @@ export async function setDrinkLogHidden(id: string, hidden: boolean): Promise<Ac
   if (error) return { error: `Kaydedilemedi: ${error.message}` };
 
   if (data?.profiles) revalidatePath(`/u/${data.profiles.username}`);
+  revalidatePath(`/logs/${id}`);
+  revalidatePath("/admin/moderation");
+  return { ok: true };
+}
+
+/** Hides or shows a member's recipe (M6); its page, the feed and the author's profile follow. */
+export async function setRecipeHidden(id: string, hidden: boolean): Promise<ActionResult> {
+  const supabase = await adminClient();
+  if (!supabase) return { error: SESSION_LOST };
+
+  const { data, error } = await supabase
+    .from("cocktails")
+    .update({ hidden_at: hidden ? new Date().toISOString() : null })
+    .eq("id", id)
+    .not("author_id", "is", null)
+    .select("slug, profiles!cocktails_author_id_fkey(username)")
+    .maybeSingle();
+  if (error) return { error: `Kaydedilemedi: ${error.message}` };
+
+  if (data) revalidatePath(`/recipes/${data.slug}`);
+  if (data?.profiles) revalidatePath(`/u/${data.profiles.username}`);
+  revalidatePath("/feed");
+  revalidatePath("/admin/moderation");
+  return { ok: true };
+}
+
+/** Hides or shows a comment under a drink log (M6); comments are read in the browser. */
+export async function setLogCommentHidden(id: string, hidden: boolean): Promise<ActionResult> {
+  const supabase = await adminClient();
+  if (!supabase) return { error: SESSION_LOST };
+
+  const { error } = await supabase
+    .from("log_comments")
+    .update({ hidden_at: hidden ? new Date().toISOString() : null })
+    .eq("id", id);
+  if (error) return { error: `Kaydedilemedi: ${error.message}` };
+
   revalidatePath("/admin/moderation");
   return { ok: true };
 }

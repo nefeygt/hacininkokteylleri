@@ -10,6 +10,7 @@ export default async function AdminCocktailsPage() {
   const { data: cocktails, error } = await supabase
     .from("cocktails")
     .select("id, name, subtitle, base_alcohol, image_path, is_published, sort_order")
+    .is("author_id", null) // house recipes only; members' recipes are moderated, not edited (ADR-018)
     .order("sort_order");
 
   if (error) throw new Error(error.message);

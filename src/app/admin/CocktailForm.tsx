@@ -7,7 +7,7 @@ import { ArrowDown, ArrowUp, Check, Loader2, Plus, Trash2 } from "lucide-react";
 import type { IngredientIcon } from "@/lib/content";
 import { slugify } from "@/lib/slug";
 import { deleteCocktail, saveCocktail } from "./actions";
-import ImageField from "./ImageField";
+import ImageField from "@/components/ImageField";
 import type { CocktailInput, IngredientInput, Suggestions } from "./types";
 
 // What each icon means on the recipe card (VisualQuantity draws one per unit).

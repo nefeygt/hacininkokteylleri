@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Flag } from "lucide-react";
-import { reportContent } from "@/app/(site)/cocktails/actions";
+import { reportContent, type ReportableTarget } from "@/app/(site)/cocktails/actions";
 import { REPORT_REASON_MAX_LENGTH } from "@/lib/community";
 
 /** "Bildir": opens a small inline form with an optional reason, then sends the report. */
@@ -11,7 +11,7 @@ export default function ReportButton({
   targetId,
   label = "Bildir",
 }: {
-  targetType: "review" | "profile" | "drink_log";
+  targetType: ReportableTarget;
   targetId: string;
   label?: string;
 }) {

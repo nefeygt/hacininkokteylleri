@@ -1,24 +1,46 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { Wine, Leaf, Star, Heart } from "lucide-react";
 import { formatAverage } from "@/lib/community";
 import type { Cocktail } from "@/lib/content";
 
+/**
+ * A recipe's poster. In the archive it opens the card (`onClick`); on the feed
+ * and profiles a member's recipe links to its page (`href`, M6).
+ */
 export default function CocktailCard({
   cocktail,
   favorite = false,
   onClick,
+  href,
 }: {
   cocktail: Cocktail;
   favorite?: boolean;
-  onClick: () => void;
+  onClick?: () => void;
+  href?: string;
 }) {
+  const className =
+    "group relative flex w-full flex-col overflow-hidden rounded-sm border border-border bg-bg-card text-left transition-all duration-300 hover:border-border-light hover:shadow-lg hover:shadow-crimson/5";
+  const content = <CardContent cocktail={cocktail} favorite={favorite} />;
+  if (href) {
+    return (
+      <Link href={href} className={className}>
+        {content}
+      </Link>
+    );
+  }
   return (
-    <button
-      onClick={onClick}
-      className="group relative flex w-full flex-col overflow-hidden rounded-sm border border-border bg-bg-card text-left transition-all duration-300 hover:border-border-light hover:shadow-lg hover:shadow-crimson/5"
-    >
+    <button onClick={onClick} className={className}>
+      {content}
+    </button>
+  );
+}
+
+function CardContent({ cocktail, favorite }: { cocktail: Cocktail; favorite: boolean }) {
+  return (
+    <>
       {/* Image / Poster Frame */}
       <div className="relative aspect-video w-full overflow-hidden rounded-t-sm bg-bg-elevated">
         {cocktail.imageUrl ? (
@@ -100,6 +122,9 @@ export default function CocktailCard({
         <p className="font-mono text-xs text-text-muted line-clamp-2">
           {cocktail.subtitle}
         </p>
+        {cocktail.author && (
+          <p className="mt-1.5 truncate font-mono text-[11px] text-text-secondary">@{cocktail.author.username}</p>
+        )}
 
         {/* Tags */}
         <div className="mt-3 flex flex-wrap gap-1">
@@ -113,6 +138,6 @@ export default function CocktailCard({
           ))}
         </div>
       </div>
-    </button>
+    </>
   );
 }

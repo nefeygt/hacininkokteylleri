@@ -41,7 +41,9 @@ export default function PrivacyPage() {
           <li>Profil: kullanıcı adın, görünen adın, &quot;hakkında&quot; yazın ve yüklersen profil fotoğrafın.</li>
           <li>Onaylar: 18 yaşından büyük olduğunu onayladığın zaman ve gördüğün aydınlatma metninin sürümü. Doğum tarihini sormayız.</li>
           <li>Sitede paylaştıkların: yorumların, puanların, favorilerin ve ileride eklenecek özelliklerde yazdıkların.</li>
-          <li>İçki günlüğün: kaydettiğin kokteyller, tarihleri, yaptığın hâliyle tarifleri, o akşamki puanın ve notların. Kayıtların varsayılan olarak yalnızca sana görünür; herkese açık yaptıkların profilinde görünür.</li>
+          <li>İçki günlüğün: kaydettiğin kokteyller, tarihleri, yaptığın hâliyle tarifleri, o akşamki puanın ve notların. Kayıtların varsayılan olarak yalnızca sana görünür; herkese açık yaptıkların profilinde ve seni takip edenlerin akışında görünür, diğer üyeler bunlara yorum yazabilir.</li>
+          <li>Tariflerin: yazdığın kokteyl tarifleri ve yüklersen fotoğrafları. Yayındakiler profilinde ve akışta herkese görünür; taslaklarını yalnızca sen görürsün.</li>
+          <li>Takip ve yorumlar: kimi takip ettiğin ve seni kimlerin takip ettiği (profilinde takipçi ve takip sayıların görünür) ile herkese açık günlük kayıtlarına yazdığın yorumlar.</li>
           <li>Teknik kayıtlar: oturumunu açık tutan çerezler; sunucu kayıtlarında IP adresin ve tarayıcı bilgin.</li>
         </ul>
       </Section>

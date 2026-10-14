@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ACCOUNTS_OPEN } from "@/lib/account-config";
 import { createClient } from "@/lib/supabase/browser";
+import type { ReportableTarget } from "@/app/(site)/cocktails/actions";
 import ReportButton from "./ReportButton";
 
 /** "Profili bildir" on someone else's profile, for signed-in visitors. The page stays static. */
@@ -21,7 +22,7 @@ export function ReportIfSignedIn({
   label,
 }: {
   ownerId: string;
-  targetType: "profile" | "drink_log";
+  targetType: ReportableTarget;
   targetId: string;
   label?: string;
 }) {

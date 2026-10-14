@@ -11,8 +11,8 @@ function distinct(values: string[]): string[] {
 /** Values already in use, so the form can suggest them instead of inviting typos. */
 export async function loadSuggestions(supabase: SupabaseClient<Database>): Promise<Suggestions> {
   const [{ data: cocktails }, { data: ingredients }] = await Promise.all([
-    supabase.from("cocktails").select("base_alcohol, flavor, glass"),
-    supabase.from("cocktail_ingredients").select("unit"),
+    supabase.from("cocktails").select("base_alcohol, flavor, glass").is("author_id", null),
+    supabase.from("cocktail_ingredients").select("unit, cocktails!inner(author_id)").is("cocktails.author_id", null),
   ]);
 
   return {

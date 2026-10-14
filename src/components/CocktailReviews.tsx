@@ -8,7 +8,7 @@ import ReportButton from "@/components/ReportButton";
 import Stars from "@/components/Stars";
 import type { Member } from "@/components/useMember";
 import { REVIEW_MAX_LENGTH, formatAverage } from "@/lib/community";
-import type { Cocktail } from "@/lib/content";
+import { recipeHref, type Cocktail } from "@/lib/content";
 import { createClient } from "@/lib/supabase/browser";
 
 interface Review {
@@ -115,7 +115,7 @@ function OwnReview({
   if (member.state === "loading") return null;
 
   if (member.state === "signed-out") {
-    const next = `/cocktails?cocktail=${encodeURIComponent(cocktail.slug)}`;
+    const next = recipeHref(cocktail.slug, Boolean(cocktail.author));
     return (
       <p className="rounded bg-bg-elevated/50 px-4 py-3 font-mono text-xs text-text-secondary">
         Değerlendirmek ve favorilere eklemek için{" "}

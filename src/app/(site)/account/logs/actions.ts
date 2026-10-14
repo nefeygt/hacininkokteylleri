@@ -73,6 +73,7 @@ export async function saveDrinkLog(input: LogInput, id?: string): Promise<LogRes
   }
 
   revalidatePath(`/u/${profile.username}`);
+  revalidatePath(`/logs/${id}`);
   return { ok: true, id };
 }
 
@@ -85,6 +86,7 @@ export async function deleteDrinkLog(id: string): Promise<LogResult> {
   if (error) return { error: `Silinemedi: ${error.message}` };
 
   revalidatePath(`/u/${profile.username}`);
+  revalidatePath(`/logs/${id}`);
   return { ok: true };
 }
 

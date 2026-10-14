@@ -1,12 +1,21 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { resolveReport, setDrinkLogHidden, setProfileHidden, setReviewHidden } from "./actions";
+import {
+  resolveReport,
+  setDrinkLogHidden,
+  setLogCommentHidden,
+  setProfileHidden,
+  setRecipeHidden,
+  setReviewHidden,
+} from "./actions";
 
 type Action =
   | { kind: "review"; id: string; hide: boolean }
   | { kind: "profile"; id: string; hide: boolean }
   | { kind: "drink_log"; id: string; hide: boolean }
+  | { kind: "recipe"; id: string; hide: boolean }
+  | { kind: "log_comment"; id: string; hide: boolean }
   | { kind: "resolve"; id: string };
 
 function label(action: Action) {
@@ -29,7 +38,11 @@ export default function ModerationButton({ action }: { action: Action }) {
             ? await setReviewHidden(action.id, action.hide)
             : action.kind === "drink_log"
               ? await setDrinkLogHidden(action.id, action.hide)
-              : await setProfileHidden(action.id, action.hide);
+              : action.kind === "recipe"
+                ? await setRecipeHidden(action.id, action.hide)
+                : action.kind === "log_comment"
+                  ? await setLogCommentHidden(action.id, action.hide)
+                  : await setProfileHidden(action.id, action.hide);
       if (result.error) setError(result.error);
     });
   }

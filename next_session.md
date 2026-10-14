@@ -4,9 +4,10 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-14 (M5 live check) · **Handing off:** **M5 — drink log is done**
-(the user's live check on their phone passed). **Next: M6 — community recipes and feeds** —
-ask the user the three questions in Step 1 before building.
+**Prepared by session:** 2026-10-14 (M6 build) · **Handing off:** **M6 — community recipes, the
+feed, follows and log comments are built and tested end to end on `localhost`** (ADR-018). Left:
+the user's OK on the `/privacy` text, the deploy, and the live check (Step 1). **Next: M7 — the
+showcase** (Step 2).
 
 ---
 
@@ -51,33 +52,47 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — M6: community recipes and feeds
+## 🎯 This Session's Task — finish M6, then M7
 
 ### Step 0 — state check
 
-`curl -s -H "apikey: $KEY" https://qwvnhdghwycqlvsnlvlt.supabase.co/auth/v1/settings` (publishable
-key from `.env` via `grep`) → `"disable_signup": false`. `select username from public.profiles;` and
-`select count(*) from public.drink_logs;` — after the M5 live check (2026-10-14) the only profile was
-the user's own `ahmet_kafa` and there were no logs, reviews or reports. Accounts are not necessarily
-real people yet (the user, 2026-10-14), but never delete or edit a row you did not create without asking.
+`git status` / `git log -1` — if the M6 commit (`Add community recipes, the feed, follows and log
+comments (M6)`) is not on `origin/main`, the deploy is still pending. `curl -s -H "apikey: $KEY"
+https://qwvnhdghwycqlvsnlvlt.supabase.co/auth/v1/settings` (publishable key from `.env` via `grep`)
+→ `"disable_signup": false`. SQL: `select username from public.profiles;` and counts of
+`cocktails where author_id is not null`, `follows`, `log_comments`, `drink_logs` — after the M6
+test (2026-10-14) the only profile was `ahmet_kafa` and all of these were 0. The migration
+`20261014081320_community_recipes` is **already applied** to the live database (the live site's
+old code keeps working with it: house fetchers simply see no `author_id` yet). Never delete or edit
+a row you did not create without asking.
 
-### Step 1 — M6: community recipes and feeds
+### Step 1 — finish M6 (the user)
 
-ADR-014 fixes the shape: user recipes live in `cocktails` with `author_id → profiles` (null = a
-house recipe); every house-recipe fetcher in `src/lib/content.ts` must filter `author_id is null`
-(the archive and home stay Hacı's); RLS per action (authors write only their own; never a house
-recipe); `save_cocktail` extended for authors; a separate photo bucket under `{user_id}/` with a
-size cap; 10 recipes a day; moderation columns and reports (`cocktail` target). Pages: write/edit a
-recipe (reuse the panel's `CocktailForm` ideas, not its admin actions), recipes on `/u/{username}`,
-a feed. **Ask the user first** about: what "feed" means (all members' latest recipes? people you
-follow — follows are not in ADR-014), whether user recipes can be reviewed/favourited/logged like
-house ones (the tables allow it), and a recipe page URL (`/r/{slug}`?). Update `/privacy` if
-uploads change (ask before it changes). Follow ADR-009, ADR-014, ADR-016, ADR-017.
+1. **`/privacy`:** the user approves the three changed lines in section 2 (members' recipes and
+   photos; follows and comments; logs visible in followers' feeds and open to comments) and the
+   version `2026-10-14.2` (`src/lib/account-config.ts`). If they want other wording, change it
+   before the push.
+2. `npm run build`, commit, push (main deploys).
+3. **Live check** on `hacininkokteylleri.tech` from an unblocked network (the user's phone):
+   Akış → "+ Tarif yaz" → a recipe with a photo → its page `/recipes/{slug}` → review it → the
+   feed shows it → delete it (photo gone). Optional with a second account: follow, a public log,
+   a comment and a reply. Tick the last boxes of M6 in plan.md and mark M6 done.
+
+### Step 2 — M7: the showcase (vitrin)
+
+ADR-014 fixes the tables (`showcase_periods`, `showcase_entries`, `showcase_votes`; upvotes, one per
+user per entry, self-votes allowed; any admin approves; the winner is derived, not stored, and
+featured on the home page). An entry must be the applicant's own published community recipe —
+these now exist (M6). **Ask the user first:** a week or a month per period (or the admin picks each
+time), where the voting page lives (`/showcase`), what the home page shows for the winner, and
+whether applying needs anything beyond a recipe and a pitch. Follow ADR-009, ADR-014, ADR-016,
+ADR-018.
 
 ### Also open (not blocking)
 
 - The wordmark in the navbar; Hacı's own first admin sign-in (question 5).
 - A log could show what changed against the house recipe (ADR-017 consequence) → Icebox if wanted.
+- M6 Icebox items (plan.md §9): follower lists, notifications, comment editing, tuning "popular".
 
 ---
 
@@ -85,6 +100,7 @@ uploads change (ask before it changes). Follow ADR-009, ADR-014, ADR-016, ADR-01
 
 | # | Question | Why it matters | Until it is answered |
 |---|---|---|---|
+| 6 | **`/privacy` for M6** — approve the new lines (recipes and photos, follows, comments) and version `2026-10-14.2`? | KVKK: the notice must name what is processed before it ships | M6 is not deployed |
 | 3 | **Colour theme:** keep the dark crimson "Rx" look, or explore a lighter/warmer palette? | The user said the theme can change (ADR-015) | Today's palette stays |
 | 5 | **Hacı's first admin sign-in** — when (his phone, a network that does not block the domain)? | His 2FA factor is not enrolled yet | He cannot use the panel |
 
@@ -104,11 +120,17 @@ uploads change (ask before it changes). Follow ADR-009, ADR-014, ADR-016, ADR-01
 - **Avatars:** `src/app/(site)/account/AvatarField.tsx` (centre square → 256 px WebP →
   `{user_id}/{base36}.webp` → `setAvatar` → old object deleted), `src/components/Avatar.tsx`
   (picture or initial), `avatarUrl()` / `AVATARS_BUCKET` in `src/lib/supabase/config.ts`.
-- **Supabase** (ref `qwvnhdghwycqlvsnlvlt`): 9 migrations, the latest `20261014073958_drink_logs`.
+- **Supabase** (ref `qwvnhdghwycqlvsnlvlt`): 10 migrations, the latest `20261014081320_community_recipes`.
   Advisors: only leaked-password protection (Pro plan) plus "unused index" infos on still-empty tables.
 - **M4 (2026-10-14):** `reviews`, `favorites`, `reports`, view `cocktail_ratings`; the site's
   `cocktails/actions.ts`, `useMember`, `CocktailReviews`, `ReportButton`; the panel's
   `/moderation`. All tables empty after the test (the test rows were deleted).
+- **M6 (2026-10-14, built, not deployed):** migration `20261014081320_community_recipes` (10
+  migrations now, applied live); `src/lib/recipe.ts`, `src/app/(site)/account/recipes/` (list, `new`,
+  `[id]`, `RecipeForm`, `actions.ts`), `recipes/[slug]`, `feed`, `logs/[id]` (+ `logs/actions.ts`),
+  `u/actions.ts`; components `RecipeDetails`, `RecipeActions`, `RecipeView`, `ImageField` (moved from
+  the panel), `FollowButton`, `FollowingLogs`, `LogComments`; the panel's moderation lists members'
+  recipes and comments. `/privacy` drafted, version `2026-10-14.2` — awaiting the user's OK.
 - **M5 (2026-10-14):** `drink_logs` (migration `20261014073958_drink_logs`, 9 migrations now);
   `src/lib/drink-log.ts`, `src/app/(site)/account/logs/` (list, `new`, `[id]`, `LogForm`,
   `actions.ts`), `LogsDefaultToggle` on `/account`, `DrinkLogEntry`, `ReportIfSignedIn`; the panel's
@@ -182,7 +204,20 @@ uploads change (ask before it changes). Follow ADR-009, ADR-014, ADR-016, ADR-01
 - **The office network blocks the new domain** (a Fortinet FortiGate). Check DNS with
   `https://dns.google/resolve?name=…` and HTTP with check-host.net (plan.md §5.4).
 
-**This session's lessons (M5)**
+**This session's lessons (M6)**
+- **PostgREST refuses an ambiguous embed.** `drink_logs`, `reviews` and `favorites` link
+  `cocktails` and `profiles`, so `cocktails → profiles` has several paths: name the key,
+  `profiles!cocktails_author_id_fkey(...)`.
+- **Python's stdout on this machine is cp1254** — characters like `−` crash a script that prints;
+  run with `PYTHONIOENCODING=utf-8`, or write files with `io.open(..., encoding='utf-8')`.
+- `alter type … add value` works inside `apply_migration` as long as the new value is not used in
+  the same transaction.
+- In Chrome, `innerText` follows CSS `text-transform` ("MALZEMELER"): match case-insensitively.
+- To act as a member in SQL without a password: `set_config('request.jwt.claims', '{"sub":…,
+  "role":"authenticated","aal":"aal1"}', true)` then `execute 'set local role authenticated'` inside
+  a `do` block; `execute 'reset role'` to switch users.
+
+**Lessons from M5**
 - **A check constraint lets NULL through.** A validation function used in one must return
   `false`, never null (`coalesce(…, false)`), and the writing role needs EXECUTE on it.
 - **Tailwind: a shared `w-full` class beats `w-16`** on the same element (both are in the CSS; the
@@ -259,7 +294,7 @@ uploads change (ask before it changes). Follow ADR-009, ADR-014, ADR-016, ADR-01
 
 ## 🧭 Look-ahead
 
-- **M3**, **M4**, **M5** done → **M6** community
+- **M3**, **M4**, **M5** done → **M6** (built; privacy OK, deploy, live check left) community
   recipes and feeds → **M7** showcase → **M8** Expo apps (the cherry icon is ready:
   `public/brand/haci-app-icon-1024.png`, `haci-play-store-512.png`; the adaptive-icon foreground
   needs the mark scaled into the 66% safe zone).

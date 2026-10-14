@@ -11,8 +11,8 @@ export const metadata: Metadata = {
 };
 
 /**
- * A new drink log, started from a house recipe (`?cocktail={slug}`). Without
- * a cocktail, the member picks one first.
+ * A new drink log, started from a recipe (`?cocktail={slug}`) — a house recipe
+ * or a member's (M6). Without a cocktail, the member picks a house recipe first.
  */
 export default async function NewLogPage({ searchParams }: { searchParams: Promise<{ cocktail?: string }> }) {
   const { supabase, user } = await requireMember();
@@ -23,6 +23,7 @@ export default async function NewLogPage({ searchParams }: { searchParams: Promi
       .from("cocktails")
       .select("slug, name, subtitle, color")
       .eq("is_published", true)
+      .is("author_id", null)
       .order("sort_order");
     return (
       <AccountCard title="Günlüğe ekle" subtitle="Hangi kokteyli yaptın ya da içtin?" wide>

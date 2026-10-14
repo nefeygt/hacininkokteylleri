@@ -17,6 +17,7 @@ export default async function EditCocktailPage({ params }: { params: Promise<{ i
       .from("cocktails")
       .select("*, cocktail_ingredients(position, name, amount, unit, icon)")
       .eq("id", id)
+      .is("author_id", null)
       .maybeSingle(),
   ]);
   if (!c) notFound();

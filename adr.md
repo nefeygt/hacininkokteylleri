@@ -27,6 +27,7 @@
 | 015 | The brand is "haci"; paths and settings are English | ✅ Accepted | 2026-10-13 |
 | 016 | Member state on static pages: read in the browser, written through server actions that revalidate | ✅ Accepted | 2026-10-14 |
 | 017 | Drink logs: written on dynamic account pages, the recipe snapshot checked by the database | ✅ Accepted | 2026-10-14 |
+| 018 | Community recipes, the feed, follows and log comments | ✅ Accepted | 2026-10-14 |
 
 ---
 
@@ -623,3 +624,66 @@ checked, and what admins see of logs that are private by default.
 on a phone, and a second editing surface to keep in step with the edit page. *Storing only the
 changes against the house recipe:* the log must outlive edits and deletion of the recipe
 (ADR-014).
+
+
+---
+
+## ADR-018 — Community recipes, the feed, follows and log comments
+
+**Context.** M6 builds members' recipes as ADR-014 shaped them. On 2026-10-14 the user answered
+the open questions: the feed shows **all members' popular recipes, "just like Letterboxd's main
+page"**, and **the latest logs of the people you follow**; when someone you follow writes a note
+on a log, **you can reply to them on that log, like Letterboxd review comments**; members'
+recipes are **reviewable** like house ones; the recipe URL may be `/r/{slug}` or a better one.
+Follows and comments were not in ADR-014, so they are decided here.
+
+**Decision.**
+- **URL `/recipes/{slug}`** (the user left the choice open): readable, English (ADR-015),
+  carries the keyword, and since slugs are unique across house and members' recipes the same
+  path can serve house recipes later. One page per recipe, static with a 5-minute revalidation
+  and revalidated at once on edits, reviews, favourites and moderation (ADR-005, ADR-016); it is
+  in the sitemap. House recipes keep the archive's card (`recipeHref()` in `content.ts` picks).
+- **Recipes live in `cocktails` with `author_id`** (ADR-014). Members write through a new
+  `public.save_recipe(recipe, ingredients)` (security invoker, always `author_id = auth.uid()`,
+  1–30 ingredients, the slug fixed at creation so shared links keep working); `save_cocktail`
+  stays the panel's. Policies: members insert/update/delete only rows whose `author_id` is
+  theirs — a house recipe (`author_id` null) can never be written by a member; drafts
+  (`is_published = false`) are seen only by their author. `hidden_at`/`hidden_by` and the
+  moderation guard as everywhere; 10 recipes a day; a check constraint caps lengths for members'
+  rows only (house recipes keep the panel's freedom). Photos go to the public `recipe-images`
+  bucket under `{user_id}/` (1 MB, WebP/JPEG, resized to 1600 px in the browser; `ImageField`
+  is shared with the panel). Members' recipes appear on `/recipes/{slug}`, profiles, the feed
+  and the sitemap — never in the archive, on the home page or in the panel's list (ADR-014).
+- **The feed is `/feed` ("Akış"),** not the home page, which stays Hacı's (ADR-014, plan.md §2).
+  "Bu ay popüler": published members' recipes ranked by the view `recipe_popularity` — visible
+  reviews plus favourites of the last 30 days (security invoker); recipes with no activity are
+  left to "Yeni tarifler", the newest. "Takip ettiklerinden": the latest public logs of the
+  people you follow, read in the browser (ADR-016) with comment counts.
+- **Follows are public** (`follows (follower_id, followee_id)`), as on Letterboxd: anyone reads
+  them; profiles show follower and following counts and a "Takip et" button. No self-follows,
+  hidden profiles cannot be followed, 200 a day. No follower lists yet (Icebox).
+- **Comments on public drink logs** (`log_comments`): one flat thread per log, on its page
+  `/logs/{id}` (noindex — drinking history is shared by link, not searched). **Any member may
+  comment on any public, visible log** (Letterboxd's default); the log's author replies in the
+  same thread, marked "kayıt sahibi". The commenter, the log's author and admins delete; admins
+  hide; comments can be reported (`report_target` gained `log_comment`); 100 a day. A comment is
+  readable only while its log is — making a log private hides its thread.
+- **Moderation** ships with the features: the panel's Moderasyon lists the latest members'
+  recipes and comments and reported ones, with hide/show.
+- `/privacy` names members' recipes and photos, follows and comments; version `2026-10-14.2`.
+
+**Consequences.**
+- (+) One recipe shape and one renderer (`RecipeDetails`) for house and members' recipes; reviews,
+  favourites and logs work on members' recipes with no new tables.
+- (+) Every new rule is a policy; 33 SQL checks (rolled back) cover them.
+- (−) "Popular" counts favourites and reviews equally and ignores logs (most logs are private);
+  tune when there is real traffic.
+- (−) A photo uploaded and then abandoned in the form stays in the member's folder until they
+  delete their account (as in the panel, plan.md §8).
+- (−) No notifications: a member sees replies only by opening the log.
+
+**Rejected.** *Showing the feed on the home page:* the home page is Hacı's (ADR-014). *`/r/{slug}`:*
+shorter, but opaque in a shared link and in search results. *Comments only from followers:*
+Letterboxd lets anyone comment; following stays a reading choice, and the log's author can delete
+any comment on their log. *Threaded replies:* a flat thread is what Letterboxd uses and what a
+phone screen shows well.
