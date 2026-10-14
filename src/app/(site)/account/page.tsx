@@ -4,6 +4,7 @@ import AccountCard from "@/components/AccountCard";
 import { requireMember } from "@/lib/account";
 import AvatarField from "./AvatarField";
 import DeleteAccount from "./DeleteAccount";
+import LogsDefaultToggle from "./LogsDefaultToggle";
 import ProfileForm from "./ProfileForm";
 import SignOutButton from "./SignOutButton";
 
@@ -13,7 +14,12 @@ export const metadata: Metadata = {
 };
 
 export default async function AccountPage() {
-  const { profile, user } = await requireMember();
+  const { supabase, profile, user } = await requireMember();
+  const { data: settings } = await supabase
+    .from("account_settings")
+    .select("logs_public_default")
+    .eq("user_id", user.id)
+    .maybeSingle();
 
   return (
     <AccountCard title="Hesabım" subtitle={user.email ? `${user.email} ile giriş yaptın.` : undefined} wide>
@@ -42,6 +48,19 @@ export default async function AccountPage() {
             displayName={profile.display_name}
             bio={profile.bio ?? ""}
           />
+        </section>
+
+        <section className="border-t border-border pt-6">
+          <div className="mb-4 flex items-baseline justify-between">
+            <h2 className="font-mono text-xs uppercase tracking-[0.15em] text-text-secondary">İçki günlüğü</h2>
+            <Link
+              href="/account/logs"
+              className="font-mono text-[11px] text-text-muted underline underline-offset-2 hover:text-text-primary"
+            >
+              Günlüğüm →
+            </Link>
+          </div>
+          <LogsDefaultToggle initial={settings?.logs_public_default ?? false} />
         </section>
 
         <section className="flex items-center justify-between border-t border-border pt-6">

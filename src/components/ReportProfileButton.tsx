@@ -7,6 +7,24 @@ import ReportButton from "./ReportButton";
 
 /** "Profili bildir" on someone else's profile, for signed-in visitors. The page stays static. */
 export default function ReportProfileButton({ profileId }: { profileId: string }) {
+  return <ReportIfSignedIn ownerId={profileId} targetType="profile" targetId={profileId} label="Profili bildir" />;
+}
+
+/**
+ * A report button shown only to signed-in visitors who do not own the
+ * content, decided in the browser so static pages stay static (ADR-016).
+ */
+export function ReportIfSignedIn({
+  ownerId,
+  targetType,
+  targetId,
+  label,
+}: {
+  ownerId: string;
+  targetType: "profile" | "drink_log";
+  targetId: string;
+  label?: string;
+}) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -15,10 +33,10 @@ export default function ReportProfileButton({ profileId }: { profileId: string }
       .auth.getSession()
       .then(({ data }) => {
         const userId = data.session?.user.id;
-        setVisible(Boolean(userId) && userId !== profileId);
+        setVisible(Boolean(userId) && userId !== ownerId);
       });
-  }, [profileId]);
+  }, [ownerId]);
 
   if (!visible) return null;
-  return <ReportButton targetType="profile" targetId={profileId} label="Profili bildir" />;
+  return <ReportButton targetType={targetType} targetId={targetId} label={label} />;
 }

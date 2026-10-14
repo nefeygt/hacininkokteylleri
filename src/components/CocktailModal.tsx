@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useCallback } from "react";
-import { X, Wine, Leaf, Heart } from "lucide-react";
+import Link from "next/link";
+import { X, Wine, Leaf, Heart, NotebookPen } from "lucide-react";
 import type { Cocktail } from "@/lib/content";
 import CocktailReviews from "./CocktailReviews";
 import type { Member } from "./useMember";
@@ -93,6 +94,16 @@ export default function CocktailModal({
                 >
                   <Heart className={`h-4 w-4 ${favorite ? "fill-crimson-glow" : ""}`} />
                 </button>
+              )}
+              {member.state === "ok" && (
+                <Link
+                  href={`/account/logs/new?cocktail=${encodeURIComponent(cocktail.slug)}`}
+                  title="Bu kokteyli yaptım ya da içtim"
+                  className="flex h-8 shrink-0 items-center gap-1.5 rounded-full bg-bg-elevated px-3 font-mono text-[11px] text-text-muted transition-colors hover:text-crimson-glow"
+                >
+                  <NotebookPen className="h-3.5 w-3.5" />
+                  Günlüğe ekle
+                </Link>
               )}
             </div>
             <p className="mt-1 font-mono text-sm text-text-secondary">

@@ -11,7 +11,7 @@ export default function ReportButton({
   targetId,
   label = "Bildir",
 }: {
-  targetType: "review" | "profile";
+  targetType: "review" | "profile" | "drink_log";
   targetId: string;
   label?: string;
 }) {

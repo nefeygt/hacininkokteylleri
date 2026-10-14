@@ -288,6 +288,23 @@ export async function setProfileHidden(id: string, hidden: boolean): Promise<Act
   return { ok: true };
 }
 
+export async function setDrinkLogHidden(id: string, hidden: boolean): Promise<ActionResult> {
+  const supabase = await adminClient();
+  if (!supabase) return { error: SESSION_LOST };
+
+  const { data, error } = await supabase
+    .from("drink_logs")
+    .update({ hidden_at: hidden ? new Date().toISOString() : null })
+    .eq("id", id)
+    .select("profiles(username)")
+    .maybeSingle();
+  if (error) return { error: `Kaydedilemedi: ${error.message}` };
+
+  if (data?.profiles) revalidatePath(`/u/${data.profiles.username}`);
+  revalidatePath("/admin/moderation");
+  return { ok: true };
+}
+
 /** Closes a report; resolved_by is written by the database. */
 export async function resolveReport(id: string): Promise<ActionResult> {
   const supabase = await adminClient();

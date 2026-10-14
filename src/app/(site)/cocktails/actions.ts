@@ -96,9 +96,9 @@ export async function setFavorite(cocktailId: string, favorite: boolean): Promis
 
 type ReportTarget = Database["public"]["Enums"]["report_target"];
 
-/** Reports a review or a profile to the admins. Members cannot read reports back. */
+/** Reports a review, a profile or a public drink log to the admins. Members cannot read reports back. */
 export async function reportContent(
-  targetType: Extract<ReportTarget, "review" | "profile">,
+  targetType: Extract<ReportTarget, "review" | "profile" | "drink_log">,
   targetId: string,
   reason: string
 ): Promise<CommunityResult> {

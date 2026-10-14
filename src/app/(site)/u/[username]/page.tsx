@@ -3,13 +3,14 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { cache } from "react";
 import Avatar from "@/components/Avatar";
+import DrinkLogEntry, { DRINK_LOG_COLUMNS, type DrinkLogRow } from "@/components/DrinkLogEntry";
 import ReportProfileButton from "@/components/ReportProfileButton";
 import Stars from "@/components/Stars";
 import { createPublicClient } from "@/lib/supabase/public";
 
 // Public profiles, rendered on first visit and kept for a few minutes; a
-// profile edit, a review or a favourite revalidates the page at once
-// (account/actions.ts, cocktails/actions.ts).
+// profile edit, a review, a favourite or a drink log revalidates the page at
+// once (account/actions.ts, cocktails/actions.ts, account/logs/actions.ts).
 export const revalidate = 300;
 
 // No profile is built ahead of time; each is rendered on its first visit and cached.
@@ -39,10 +40,10 @@ export async function generateMetadata({
   };
 }
 
-/** Visible reviews and favourites of published cocktails, newest first. */
+/** Visible reviews and favourites of published cocktails, and public drink logs, newest first. */
 async function getActivity(profileId: string) {
   const supabase = createPublicClient();
-  const [reviews, favorites] = await Promise.all([
+  const [reviews, favorites, logs] = await Promise.all([
     supabase
       .from("reviews")
       .select("id, rating, body, updated_at, cocktails!inner(slug, name)")
@@ -55,8 +56,20 @@ async function getActivity(profileId: string) {
       .eq("user_id", profileId)
       .order("created_at", { ascending: false })
       .limit(200),
+    // Only public, visible logs reach an anonymous reader (RLS, ADR-014).
+    supabase
+      .from("drink_logs")
+      .select(DRINK_LOG_COLUMNS)
+      .eq("user_id", profileId)
+      .order("drunk_on", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(50),
   ]);
-  return { reviews: reviews.data ?? [], favorites: favorites.data ?? [] };
+  return {
+    reviews: reviews.data ?? [],
+    favorites: favorites.data ?? [],
+    logs: (logs.data ?? []) as DrinkLogRow[],
+  };
 }
 
 function cocktailHref(slug: string) {
@@ -66,7 +79,7 @@ function cocktailHref(slug: string) {
 export default async function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const profile = await getProfile((await params).username);
   if (!profile) notFound();
-  const { reviews, favorites } = await getActivity(profile.id);
+  const { reviews, favorites, logs } = await getActivity(profile.id);
 
   const joined = new Date(profile.created_at).toLocaleDateString("tr-TR", { month: "long", year: "numeric" });
 
@@ -111,6 +124,21 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
           </ul>
         )}
       </section>
+
+      {logs.length > 0 && (
+        <section className="mt-12">
+          <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.15em] text-text-muted">
+            İçki günlüğü <span className="text-text-muted/60">({logs.length})</span>
+          </h2>
+          <ul className="space-y-3">
+            {logs.map((log) => (
+              <li key={log.id}>
+                <DrinkLogEntry log={log} mode="public" />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="mt-12">
         <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.15em] text-text-muted">

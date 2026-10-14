@@ -4,9 +4,9 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-14 (M4 live check) · **Handing off:** **M4 — reviews and favourites
-is done** (live check passed over mobile data, Google sign-in on the live domain works). **Next:
-M5 — Drink log** — Step 1 below is done; start at Step 2.
+**Prepared by session:** 2026-10-14 (M5 build) · **Handing off:** **M5 — drink log is built,
+tested end to end on `localhost` and deployed**; only the live check on the domain is left (Step 1).
+**Next: M6 — community recipes and feeds** (Step 2).
 
 ---
 
@@ -51,36 +51,39 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — M5 drink log
+## 🎯 This Session's Task — M5 live check, then M6
 
 ### Step 0 — state check
 
 `curl -s -H "apikey: $KEY" https://qwvnhdghwycqlvsnlvlt.supabase.co/auth/v1/settings` (publishable
-key from `.env` via `grep`) → `"disable_signup": false`. `select username, created_at from public.profiles;`
-— on 2026-10-14 the only profile was the user's own `ahmet_kafa` (Google). **The user said (2026-10-14)
-that accounts are not necessarily real people yet** (no promotion, nobody expected to sign up), but
-still never delete or edit a row you did not create without asking.
+key from `.env` via `grep`) → `"disable_signup": false`. `select username from public.profiles;` and
+`select count(*) from public.drink_logs;` — on 2026-10-14 the only profile was the user's own
+`ahmet_kafa` and there were no logs, reviews or reports. Accounts are not necessarily real people
+yet (the user, 2026-10-14), but never delete or edit a row you did not create without asking.
 
-### Step 1 — M4 live check ✅ done 2026-10-14
+### Step 1 — M5 live check (the user, on an unblocked network)
 
-On `hacininkokteylleri.tech` from an unblocked network (the user's phone): open a recipe, write a
-review, see the card's average change; then delete it. Tick the last box of M4 in plan.md.
+On `hacininkokteylleri.tech` (the user's phone or mobile data): open a recipe → "Günlüğe ekle" →
+change an ingredient → save → it is private on `/account/logs` → edit it to public → it shows on
+`/u/{username}` → delete it. Tick the last box of M5 in plan.md and mark M5 done.
 
-### Step 2 — M5
+### Step 2 — M6: community recipes and feeds
 
-ADR-014 has `drink_logs` (unlimited per cocktail, ADR-012; `recipe jsonb` snapshot validated by a
-check function and size-capped; `rating` per evening, never in the average; `is_public` from
-`account_settings.logs_public_default`, private by default; daily limit 50; moderation columns).
-Pages: "log this" from the recipe card (start from the recipe, edit ingredients — "gin instead of
-vodka"), a personal log page under `/account` or `/u/{username}/logs` (public rows only for others),
-a setting for `logs_public_default` on `/account`. Reports gain `drink_log` targets in the panel.
-Follow ADR-009, ADR-014's grant/RLS pattern, and ADR-016 (read in the browser, write through
-server actions that revalidate; no native dialogs). Update `/privacy` if drink logs need a line
-(they are personal data) — ask the user before it changes.
+ADR-014 fixes the shape: user recipes live in `cocktails` with `author_id → profiles` (null = a
+house recipe); every house-recipe fetcher in `src/lib/content.ts` must filter `author_id is null`
+(the archive and home stay Hacı's); RLS per action (authors write only their own; never a house
+recipe); `save_cocktail` extended for authors; a separate photo bucket under `{user_id}/` with a
+size cap; 10 recipes a day; moderation columns and reports (`cocktail` target). Pages: write/edit a
+recipe (reuse the panel's `CocktailForm` ideas, not its admin actions), recipes on `/u/{username}`,
+a feed. **Ask the user first** about: what "feed" means (all members' latest recipes? people you
+follow — follows are not in ADR-014), whether user recipes can be reviewed/favourited/logged like
+house ones (the tables allow it), and a recipe page URL (`/r/{slug}`?). Update `/privacy` if
+uploads change (ask before it changes). Follow ADR-009, ADR-014, ADR-016, ADR-017.
 
 ### Also open (not blocking)
 
 - The wordmark in the navbar; Hacı's own first admin sign-in (question 5).
+- A log could show what changed against the house recipe (ADR-017 consequence) → Icebox if wanted.
 
 ---
 
@@ -107,12 +110,16 @@ server actions that revalidate; no native dialogs). Update `/privacy` if drink l
 - **Avatars:** `src/app/(site)/account/AvatarField.tsx` (centre square → 256 px WebP →
   `{user_id}/{base36}.webp` → `setAvatar` → old object deleted), `src/components/Avatar.tsx`
   (picture or initial), `avatarUrl()` / `AVATARS_BUCKET` in `src/lib/supabase/config.ts`.
-- **Supabase** (ref `qwvnhdghwycqlvsnlvlt`): 8 migrations; this session added
-  `20261014064956_reviews_favorites` and `20261014071911_reviews_updated_at_on_edit`. Advisors: only
-  leaked-password protection (Pro plan) plus "unused index" infos on the new, still-empty tables.
+- **Supabase** (ref `qwvnhdghwycqlvsnlvlt`): 9 migrations, the latest `20261014073958_drink_logs`.
+  Advisors: only leaked-password protection (Pro plan) plus "unused index" infos on still-empty tables.
 - **M4 (2026-10-14):** `reviews`, `favorites`, `reports`, view `cocktail_ratings`; the site's
   `cocktails/actions.ts`, `useMember`, `CocktailReviews`, `ReportButton`; the panel's
   `/moderation`. All tables empty after the test (the test rows were deleted).
+- **M5 (2026-10-14):** `drink_logs` (migration `20261014073958_drink_logs`, 9 migrations now);
+  `src/lib/drink-log.ts`, `src/app/(site)/account/logs/` (list, `new`, `[id]`, `LogForm`,
+  `actions.ts`), `LogsDefaultToggle` on `/account`, `DrinkLogEntry`, `ReportIfSignedIn`; the panel's
+  moderation lists reported and recent public logs. `/privacy` version `2026-10-14` (drink log line,
+  approved by the user). Tables empty after the test; `ahmet_kafa`'s `logs_public_default` is false.
 - **Admins:** owner "Efe" (`n.efeyigit@outlook.com`, 2FA), editor "Hacı"
   (`furkancam99@hotmail.com`, no sign-in yet, no 2FA yet). The two e-mail users in `auth.users`
   are these admins (no profiles).
@@ -181,7 +188,20 @@ server actions that revalidate; no native dialogs). Update `/privacy` if drink l
 - **The office network blocks the new domain** (a Fortinet FortiGate). Check DNS with
   `https://dns.google/resolve?name=…` and HTTP with check-host.net (plan.md §5.4).
 
-**This session's lessons (M4)**
+**This session's lessons (M5)**
+- **A check constraint lets NULL through.** A validation function used in one must return
+  `false`, never null (`coalesce(…, false)`), and the writing role needs EXECUTE on it.
+- **Tailwind: a shared `w-full` class beats `w-16`** on the same element (both are in the CSS; the
+  later rule wins). Keep widths out of shared field classes.
+- **Screenshots in Chrome can be stale** right after a server restart — check the DOM
+  (`getBoundingClientRect`) before "fixing" what a screenshot shows. A `find` ref click on a Next
+  `<Link>` sometimes does nothing; coordinates or `javascript_tool` `click()` work.
+- The admin session on `admin.localhost:3000` (aal2) was still valid in the user's Chrome, so the
+  panel could be tested without signing in.
+- A `next start` in a background Bash task reports "exit code 127" when its node process is
+  stopped by PID — expected, not an error.
+
+**Lessons from M4**
 - **Clicks in a background Chrome tab do nothing.** When the tab is hidden (`document.hidden`),
   `computer` clicks and screenshots time out or are lost. Use `javascript_tool` to click
   (`button.click()`), `find`/`get_page_text` to read, and SQL to confirm.
@@ -245,7 +265,7 @@ server actions that revalidate; no native dialogs). Update `/privacy` if drink l
 
 ## 🧭 Look-ahead
 
-- **M3** done → **M4** built (live check left) → **M5** drink log → **M6** community
+- **M3**, **M4** done → **M5** built (live check left) → **M6** community
   recipes and feeds → **M7** showcase → **M8** Expo apps (the cherry icon is ready:
   `public/brand/haci-app-icon-1024.png`, `haci-play-store-512.png`; the adaptive-icon foreground
   needs the mark scaled into the 66% safe zone).

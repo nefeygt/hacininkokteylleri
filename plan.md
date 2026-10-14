@@ -9,7 +9,7 @@
 > **Language rule (ADR-002):** everything we write — docs, code, comments, commits, SQL — is
 > **English**. Everything visitors and admins read — UI strings, recipes — is **Turkish**.
 
-**Last updated:** 2026-10-14 · **Active milestone:** **M5 — Drink log** (M4 done 2026-10-14) · **Brand:** `haci` (ADR-015)
+**Last updated:** 2026-10-14 · **Active milestone:** **M5 — Drink log** (built and deployed; live check left) · **Brand:** `haci` (ADR-015)
 
 ---
 
@@ -17,7 +17,7 @@
 
 | Field | State |
 |---|---|
-| Active milestone | **M5 — Drink log** — not started (§6 M5, ADR-014) |
+| Active milestone | **M5 — Drink log** — built, tested end to end on `localhost` (2026-10-14), deployed; **a live check on the domain is left** (§6 M5, ADR-017) |
 | Previous milestone | **M4 — Reviews and favourites** (2026-10-14): tables, policies (29 SQL checks), ratings on cards, reviews and favourites in the recipe card, "Favorilerim" filter, reviews and favourites on profiles, reports, the panel's moderation page — tested end to end on `localhost`; **live check passed on the domain over mobile data** (Google sign-in, review → card average 4,0 (1) → delete). **M4 done**. M3 — Accounts done 2026-10-14 (Google + e-mail sign-in, `/privacy`, opened) |
 | Last completed | **M2 — Domain** (Search Console moved from vercel.app to the domain) and the **brand change to `haci`** with English URLs and the cherry logo (ADR-015). M1 is done except Hacı's own first sign-in |
 | Blockers | None in the code. The network the user's office computer is on (a Fortinet FortiGate) blocks the domain — check from outside (§5.4) |
@@ -67,6 +67,12 @@ around the archive; they never crowd it off the home page except through the sho
   "Favorilerim" filter in the archive; `/cocktails?cocktail={slug}` opens a recipe; profiles
   list favourites and reviews and have "Profili bildir". Panel → **Moderasyon**: open reports,
   latest reviews, hide/show, close a report.
+- **Drink log (M5)** — "Günlüğe ekle" on the recipe card opens `/account/logs/new?cocktail={slug}`:
+  the recipe as made (ingredients, steps, garnish, glass editable), date, that evening's rating
+  (never in the average), note, public or private (private by default; `/account` has the
+  "new logs start public" setting). `/account/logs` lists your logs, `/account/logs/{id}` edits or
+  deletes one. Public logs show on `/u/{username}` with "Bildir"; the panel's Moderasyon lists
+  reported logs and the latest public ones (hide/show).
 
 ### 3.2 Roadmap — what the user has asked for (2026-10-13)
 
@@ -117,6 +123,7 @@ In the user's words, collected while M0 was being built. Milestones in §6.
 | 014 | Community data model: everything hangs off `profiles` | Rules in the database; additive per milestone |
 | 015 | Brand `haci`; English paths, Turkish UI; cherry logo | A global product with one short name |
 | 016 | Member state read in the browser; writes via server actions that revalidate | Static pages stay static; averages update at once |
+| 017 | Drink logs are written on dynamic pages under `/account/logs`; the snapshot is checked in the database | The archive stays static; the recipe as made stays a recipe |
 
 → Full rationale and rejected alternatives: [adr.md](adr.md)
 
@@ -162,6 +169,7 @@ migration file with the version Supabase applied (ADR-009).
 | `reviews` | `id`, `cocktail_id`, `user_id` → `profiles`, `rating` 1–5, `body` ≤ 2000, `updated_at` (moves only when the author edits), `hidden_at`/`hidden_by`; unique `(cocktail_id, user_id)` | everyone (not hidden); author; admins | author (published cocktails only, ≤ 20 writes a day); admins hide/delete |
 | `favorites` | PK `(user_id, cocktail_id)`, `created_at` | everyone | owner (published cocktails only) |
 | `reports` | `reporter_id` → `profiles`, `target_type` enum, `target_id`, `reason` ≤ 500, `resolved_at`/`resolved_by` (stamped by a trigger); unique per reporter and target | admins | members file (≤ 20 a day); admins resolve |
+| `drink_logs` | `id`, `user_id` → `profiles`, `cocktail_id` → `cocktails` (set null), `drunk_on` (2000-01-01 … today + 1), `recipe jsonb` (checked by `private.is_valid_log_recipe`, ≤ 16 KB), `rating` 1–5 null, `note` ≤ 2000, `is_public` (default false), `updated_at` (author edits only), `hidden_at`/`hidden_by` | everyone (public and not hidden); owner; admins | owner (published cocktails only, ≤ 50 new a day); admins hide/delete |
 | view `cocktail_ratings` | `cocktail_id`, `review_count`, `average_rating` — visible reviews by visible profiles (security invoker) | everyone | — |
 
 Functions: `private.is_admin()` (an `admins` row **and** a 2FA session, `aal2` — ADR-011; used
@@ -176,7 +184,9 @@ scales it to 256 px WebP, uploads `{id}/{base36 time}.webp`, then `setAvatar` po
 profile at it and the browser deletes the previous object (never overwritten, ADR-006).
 
 M4 added `private.limit_reviews()` / `private.limit_reports()` (daily limits, security
-definer) and `private.stamp_report_resolution()`.
+definer) and `private.stamp_report_resolution()`. M5 added `private.is_valid_log_recipe(jsonb)`
+(the snapshot's check; executable by `authenticated` because check constraints run as the writer)
+and `private.limit_drink_logs()`.
 
 **The rest of the community model is decided in ADR-014** (drink logs, community recipes in
 `cocktails` with `author_id`, showcase) and is built milestone by milestone.
@@ -193,6 +203,7 @@ src/
       cocktails/page.tsx        archive — server component, ISR 1h
       cocktails/actions.ts      saveReview, deleteReview, setFavorite, reportContent (M4)
       login/ welcome/ account/  member sign-in (Google, e-mail + password), onboarding, account (dynamic; account/actions.ts)
+      account/logs/             drink log (M5): list, new (?cocktail=), [id] edit; LogForm, actions.ts
       reset-password/           new password after the reset e-mail
       u/[username]/             public profile (ISR 5 min)
       privacy/                  KVKK notice (static)
@@ -208,7 +219,8 @@ src/
     icon.svg, apple-icon.png    favicon and touch icon (the cherry, ADR-015)
     robots.ts, sitemap.ts       for search engines
   components/                   site components (CocktailBrowser, CocktailCard, CocktailModal, Tooltip, …);
-                                M4: useMember (session + favourites in the browser), CocktailReviews, Stars, ReportButton
+                                M4: useMember (session + favourites in the browser), CocktailReviews, Stars, ReportButton;
+                                M5: DrinkLogEntry, ReportIfSignedIn (in ReportProfileButton.tsx)
   lib/
     content.ts                  DB rows → the shapes components draw; public fetchers
     admin.ts                    requireAdmin()
@@ -216,6 +228,7 @@ src/
     account-config.ts           ACCOUNTS_OPEN, PRIVACY_NOTICE_VERSION, safeNext() (browser-safe)
     brand.ts                    BRAND = "haci" 
     community.ts                review/report length limits, formatAverage (browser-safe)
+    drink-log.ts                the log's recipe snapshot: type, limits, cleanRecipe, formatting (browser-safe)
     slug.ts                     Turkish-aware slugify
     supabase/                   config, public/server/browser/proxy clients, database.types.ts (generated)
 supabase/
@@ -338,10 +351,15 @@ After any schema change: mirror the migration, regenerate `database.types.ts`, r
 - [x] End to end on `localhost:3000` / `admin.localhost:3000` (2026-10-14) with the user's Google account (`ahmet_kafa`) and a seeded test member: review → average updated at once → edit → report → admin hides (gone from the list and the average) → report closed → delete → favourite on/off → profile report. Test rows deleted
 - [x] Live check on `hacininkokteylleri.tech` (2026-10-14, the user's Chrome over mobile data): Google sign-in as `ahmet_kafa` on the live domain → `/account`; a 4-star review on Kuzu Kulağı Devrimi → the card showed 4,0 (1), also in the cached static page fetched anonymously → review deleted → no rating, 0 rows
 
-### ⚪ M5 — Drink log
+### 🔵 M5 — Drink log `BUILT 2026-10-14 — live check left`
 
-Log a drink from a recipe — as many times as you like (ADR-012) — edit the recipe as made
-(snapshot), date, note; a personal log page.
+- [x] Migration `drink_logs` (ADR-014): the table, `private.is_valid_log_recipe()`, 50 logs a day, moderation guard, `updated_at` only on author edits; 29 policy checks in SQL (rolled back); advisors clean
+- [x] "Günlüğe ekle" on the recipe card → `/account/logs/new?cocktail={slug}` (a picker without a slug); recipe as made, date, rating, note, public/private (ADR-017)
+- [x] `/account/logs` (own logs) and `/account/logs/{id}` (edit, two-step delete); `/account` setting "new logs start public"
+- [x] Public logs on `/u/{username}` with "Bildir"; panel Moderasyon: reported logs and the latest public ones, hide/show
+- [x] `/privacy` names the drink log (the user approved the text, 2026-10-14); notice version `2026-10-14`
+- [x] End to end on `localhost:3000` / `admin.localhost:3000` (2026-10-14) with the user's `ahmet_kafa`: log from the card with vodka → gin, 4 stars → private (not on the profile) → edited to public (on the profile, also for an anonymous fetch) → default setting on (new form pre-ticked) and off again → a seeded member's report in the panel → hidden (gone from the profile, owner sees "gizlendi") → report closed → log deleted. Test rows and the seeded member removed
+- [ ] Live check on `hacininkokteylleri.tech` from an unblocked network (the user's phone)
 
 ### ⚪ M6 — Community recipes and feeds
 
@@ -418,6 +436,7 @@ when it starts.
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-10-14 | M5 build | Migration `drink_logs` (29 policy checks). Log from the recipe card on a dynamic page under `/account/logs` (ADR-017), list/edit/delete, public/private with a default on `/account`, public logs on profiles with reports, the panel's moderation. `/privacy` names the drink log (the user's OK), version `2026-10-14`. Tested end to end in Chrome with the user's account and a seeded reporter (removed). Deployed; live check left |
 | 2026-10-14 | M4 live check | Over the user's mobile data in their Chrome: the domain 200; **Google sign-in on the live domain** works; review → card 4,0 (1) (also the cached static page) → delete → 0 rows. **M4 done**. The supabase.co name on Google's chooser → Icebox (own auth domain) |
 | 2026-10-14 | M4 build | Sign-ups still on; no members yet (the user's own `ahmet_kafa` appeared during the session). Migrations `reviews_favorites` and `reviews_updated_at_on_edit`; 29 policy checks. Ratings on cards, reviews and favourites in the recipe card, profile activity, reports, the panel's moderation page. Tested end to end in Chrome with the user's account and a seeded member (removed). Prompt/confirm dialogs replaced by inline forms (they freeze automation). ADR-016. Deployed |
 | 2026-10-14 | Open M3 | Sign-ups confirmed off at the start. `/privacy` gained Resend as a processor and how the password is stored; the user approved the text. **Accounts opened** (`ACCOUNTS_OPEN = true`, `d487c84`) and sign-ups turned on by the user. Live check: `/`, `/login`, `/privacy` 200 from outside (check-host); the production deployment in Chrome shows no draft banner and the "Giriş" link. **M3 done**; a Google sign-in on the live domain from an unblocked network is left to the user |

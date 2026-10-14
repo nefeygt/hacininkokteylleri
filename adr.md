@@ -26,6 +26,7 @@
 | 014 | The community data model | ✅ Accepted (built milestone by milestone, M3–M7) | 2026-10-13 |
 | 015 | The brand is "haci"; paths and settings are English | ✅ Accepted | 2026-10-13 |
 | 016 | Member state on static pages: read in the browser, written through server actions that revalidate | ✅ Accepted | 2026-10-14 |
+| 017 | Drink logs: written on dynamic account pages, the recipe snapshot checked by the database | ✅ Accepted | 2026-10-14 |
 
 ---
 
@@ -580,3 +581,45 @@ static (ADR-005), and public numbers (averages) that change with every review.
 **Rejected.** *Making `/cocktails` dynamic:* every visit would hit the database (ADR-005).
 *Optimistic averages computed in the browser:* duplicates the view's rules (hidden reviews, hidden
 profiles).
+
+---
+
+## ADR-017 — Drink logs: written on dynamic account pages, the recipe snapshot checked by the database
+
+**Context.** M5 builds `drink_logs` as ADR-014 shaped it. The open questions were where the
+"log this" form lives, how far a member may change the recipe, how the `recipe jsonb` is
+checked, and what admins see of logs that are private by default.
+
+**Decision.**
+- **The form is a page, not part of the recipe card.** "Günlüğe ekle" in the card links to
+  `/account/logs/new?cocktail={slug}` (a picker without a slug); editing is `/account/logs/{id}`
+  and the list `/account/logs`. These are dynamic pages under `/account`, where the proxy already
+  refreshes the session, so the archive stays static (ADR-005) and the modal stays a recipe. The
+  same pages serve a phone's browser and give the Expo app (M8) a model to copy.
+- **The whole recipe as made is editable:** ingredients (name, amount, unit; new rows get the
+  `shot` icon, existing ones keep theirs), steps (one per line), garnish and glass. The name stays
+  the cocktail's. The log keeps `cocktail_id` for the link back; the snapshot is what it shows.
+- **The database checks the snapshot.** `private.is_valid_log_recipe(jsonb)` allows only the keys
+  of `save_cocktail`'s shape, 1–30 ingredients with an icon from the enum, ≤ 30 steps, length caps
+  and ≤ 16 KB, and answers false (never null) for anything else; the check constraint calls it, so
+  `authenticated` may execute it. `cleanRecipe()` in `src/lib/drink-log.ts` mirrors it for
+  friendly errors. Logs can only be added for published cocktails; `drunk_on` may be at most one
+  day ahead of the server's date, because "today" in Turkey is tomorrow in UTC after 21:00.
+- **Privacy.** `is_public` is filled from `account_settings.logs_public_default` (private unless the
+  member changes it) and can be changed per log. Admins could read every log (RLS, `aal2`), but
+  the panel lists only public logs and reported ones; a private log is shown to an admin only
+  after someone reported it while it was public.
+- `/privacy` names the drink log explicitly; the notice version became `2026-10-14`.
+
+**Consequences.**
+- (+) No change to the archive's static rendering; a log costs nothing for visitors who never log.
+- (+) The snapshot cannot grow into a free-form blob, whatever client writes it.
+- (−) Logging leaves the archive for a page; the way back is the browser's back button or the link
+  in the log list.
+- (−) Recipe changes are not marked against the house recipe ("gin instead of vodka" is shown as
+  the new list, not as a diff) — a candidate for later.
+
+**Rejected.** *An inline form inside the recipe modal:* a long, nested form in a scrolling modal
+on a phone, and a second editing surface to keep in step with the edit page. *Storing only the
+changes against the house recipe:* the log must outlive edits and deletion of the recipe
+(ADR-014).

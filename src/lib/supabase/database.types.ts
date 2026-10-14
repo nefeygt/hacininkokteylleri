@@ -167,6 +167,66 @@ export type Database = {
         }
         Relationships: []
       }
+      drink_logs: {
+        Row: {
+          cocktail_id: string | null
+          created_at: string
+          drunk_on: string
+          hidden_at: string | null
+          hidden_by: string | null
+          id: string
+          is_public: boolean
+          note: string | null
+          rating: number | null
+          recipe: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cocktail_id?: string | null
+          created_at?: string
+          drunk_on?: string
+          hidden_at?: string | null
+          hidden_by?: string | null
+          id?: string
+          is_public?: boolean
+          note?: string | null
+          rating?: number | null
+          recipe: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cocktail_id?: string | null
+          created_at?: string
+          drunk_on?: string
+          hidden_at?: string | null
+          hidden_by?: string | null
+          id?: string
+          is_public?: boolean
+          note?: string | null
+          rating?: number | null
+          recipe?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drink_logs_cocktail_id_fkey"
+            columns: ["cocktail_id"]
+            isOneToOne: false
+            referencedRelation: "cocktails"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "drink_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favorites: {
         Row: {
           cocktail_id: string
