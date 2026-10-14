@@ -4,10 +4,9 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-14 (Open M3) · **Handing off:** **M3 is open.** The user
-approved `/privacy` (Resend now listed as a processor, password storage stated) and gave the go;
-`ACCOUNTS_OPEN = true` is pushed and the user was asked to turn on sign-ups in Supabase.
-**Next: confirm sign-ups are on and check the live site from outside, then start M4.**
+**Prepared by session:** 2026-10-14 (Open M3) · **Handing off:** **M3 is done and open to the
+public.** `/privacy` is in effect (Resend listed), `ACCOUNTS_OPEN = true`, sign-ups on. The live
+check passed from outside and in Chrome via the deployment URL. **Next: M4 — Reviews and favourites.**
 
 ---
 
@@ -52,30 +51,26 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — confirm M3 is live, then start M4
+## 🎯 This Session's Task — M4 reviews and favourites
 
-### Step 1 — sign-ups are on
+### Step 0 — sign-ups are still on
 
 `curl -s -H "apikey: $KEY" https://qwvnhdghwycqlvsnlvlt.supabase.co/auth/v1/settings` (publishable
-key from `.env` via `grep`) → `"disable_signup": false`. If it is still `true`, ask the user to
-switch it on (Supabase → Authentication → Sign In / Providers → Allow new users to sign up → Save) —
-the auto-mode classifier does not let the agent flip it.
+key from `.env` via `grep`) → `"disable_signup": false`. Check for new members:
+`select count(*) from public.profiles;` (real people now — never delete or edit their rows).
 
-### Step 2 — live check
+### Step 1 — M4
 
-From outside the office network (check-host.net, plan.md §5.4): `/`, `/login`, `/privacy` answer
-200 and `/privacy` has no "Taslak" banner. Then once in Chrome on the live domain: the navbar shows
-the sign-in link, `/login` → Google → `/welcome`. If a test account is created, delete it from
-`/account` afterwards. Tick the last M3 box in plan.md and mark M3 done.
-
-### Step 3 — M4 reviews and favourites
-
-ADR-014 has the tables. The reserved-username list gets the English route words in that migration
-(plan.md §8). Follow ADR-009 for the migration and ADR-014's grant/RLS pattern.
+ADR-014 has the tables (reviews: one per person per cocktail, ADR-012; favourites). The
+reserved-username list gets the English route words in that migration (plan.md §8). Follow ADR-009
+for the migration and ADR-014's grant/RLS pattern (revoke from `anon`, column grants, one policy per
+role and action). The public pages stay static (ADR-005) — load review/favourite state on the client
+or revalidate on write.
 
 ### Also open (not blocking)
 
-The wordmark in the navbar; Hacı's own first admin sign-in (question 5).
+- A Google sign-in on the live domain from a network that does not block it (the user's phone).
+- The wordmark in the navbar; Hacı's own first admin sign-in (question 5).
 
 ---
 
@@ -92,7 +87,7 @@ The wordmark in the navbar; Hacı's own first admin sign-in (question 5).
 
 - **Production:** `hacininkokteylleri.tech` (apex), `www` → apex, `admin.hacininkokteylleri.tech`;
   `hacininkokteylleri.vercel.app` → 308 to the domain. `main` deploys on push.
-- **Accounts (M3, open 2026-10-14):** Google app **in production** (Google Cloud `haci-511515`, branding: home
+- **Accounts (M3, done and open 2026-10-14):** Google app **in production** (Google Cloud `haci-511515`, branding: home
   page, `/privacy`, authorized domains, no logo). Supabase: Google provider on, TOTP on,
   sign-ups **on** since the opening (2026-10-14, the user flips it). Pages: `/login`, `/auth/callback`, `/welcome`, `/account`
   (profile, **avatar** — new this session, sign out, delete), `/u/{username}` (shows the avatar),
@@ -107,7 +102,7 @@ The wordmark in the navbar; Hacı's own first admin sign-in (question 5).
 - **Admins:** owner "Efe" (`n.efeyigit@outlook.com`, 2FA), editor "Hacı"
   (`furkancam99@hotmail.com`, no sign-in yet, no 2FA yet). The two e-mail users in `auth.users`
   are these admins (no profiles).
-- **Members:** none (the test member was deleted).
+- **Members:** open to the public since 2026-10-14 — any rows in `profiles` are real people.
 - **Search Console** (`wowcubey@gmail.com`): Domain property verified, sitemap submitted, Change
   of Address vercel.app → domain in progress since 2026-10-13.
 
@@ -221,7 +216,7 @@ The wordmark in the navbar; Hacı's own first admin sign-in (question 5).
 
 ## 🧭 Look-ahead
 
-- **M3** live check → **M4** reviews and favourites → **M5** drink log → **M6** community
+- **M3** done → **M4** reviews and favourites → **M5** drink log → **M6** community
   recipes and feeds → **M7** showcase → **M8** Expo apps (the cherry icon is ready:
   `public/brand/haci-app-icon-1024.png`, `haci-play-store-512.png`; the adaptive-icon foreground
   needs the mark scaled into the 66% safe zone).
