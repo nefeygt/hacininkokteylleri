@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { requireAdmin } from "@/lib/admin";
 import { formatAmount, formatLogDate, readRecipe } from "@/lib/drink-log";
+import { STATUS_LABELS } from "@/lib/showcase";
 import type { Json } from "@/lib/supabase/database.types";
 import ModerationButton from "../../ModerationButton";
 
@@ -62,9 +63,21 @@ type CommentRef = {
 
 const COMMENT_COLUMNS = "id, log_id, body, hidden_at, created_at, profiles(username, display_name)";
 
+type EntryRef = {
+  id: string;
+  pitch: string;
+  status: string;
+  hidden_at: string | null;
+  created_at: string;
+  profiles: { username: string; display_name: string };
+  cocktails: { name: string; slug: string };
+};
+
+const ENTRY_COLUMNS = "id, pitch, status, hidden_at, created_at, profiles!showcase_entries_user_id_fkey(username, display_name), cocktails(name, slug)";
+
 /**
  * Open reports, the latest reviews (M4), public drink logs (M5), members'
- * recipes and log comments (M6). Private logs and drafts are listed only when
+ * recipes and log comments (M6), reported showcase entries (M7). Private logs and drafts are listed only when
  * reported. Admins read everything here through their own 2FA session; hiding
  * goes through the moderation guard.
  */
@@ -102,12 +115,14 @@ export default async function ModerationPage() {
   const logIds = reports.filter((r) => r.target_type === "drink_log").map((r) => r.target_id);
   const recipeIds = reports.filter((r) => r.target_type === "cocktail").map((r) => r.target_id);
   const commentIds = reports.filter((r) => r.target_type === "log_comment").map((r) => r.target_id);
+  const entryIds = reports.filter((r) => r.target_type === "showcase_entry").map((r) => r.target_id);
   const [
     { data: reportedReviews },
     { data: reportedProfiles },
     { data: reportedLogs },
     { data: reportedRecipes },
     { data: reportedComments },
+    { data: reportedEntries },
   ] = await Promise.all([
     reviewIds.length
       ? supabase.from("reviews").select(REVIEW_COLUMNS).in("id", reviewIds)
@@ -120,7 +135,11 @@ export default async function ModerationPage() {
     commentIds.length
       ? supabase.from("log_comments").select(COMMENT_COLUMNS).in("id", commentIds)
       : Promise.resolve({ data: [] }),
+    entryIds.length
+      ? supabase.from("showcase_entries").select(ENTRY_COLUMNS).in("id", entryIds)
+      : Promise.resolve({ data: [] }),
   ]);
+  const entriesById = new Map(((reportedEntries ?? []) as unknown as EntryRef[]).map((e) => [e.id, e]));
   const recipesById = new Map(((reportedRecipes ?? []) as RecipeRef[]).map((r) => [r.id, r]));
   const commentsById = new Map(((reportedComments ?? []) as CommentRef[]).map((c) => [c.id, c]));
   const logsById = new Map(((reportedLogs ?? []) as LogRef[]).map((l) => [l.id, l]));
@@ -148,6 +167,7 @@ export default async function ModerationPage() {
               const log = report.target_type === "drink_log" ? logsById.get(report.target_id) : undefined;
               const recipe = report.target_type === "cocktail" ? recipesById.get(report.target_id) : undefined;
               const comment = report.target_type === "log_comment" ? commentsById.get(report.target_id) : undefined;
+              const entry = report.target_type === "showcase_entry" ? entriesById.get(report.target_id) : undefined;
               return (
                 <li key={report.id} className="space-y-2 px-4 py-3">
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] text-text-muted">
@@ -165,7 +185,8 @@ export default async function ModerationPage() {
                   {log && <LogRow log={log} />}
                   {recipe && <RecipeRow recipe={recipe} />}
                   {comment && <CommentRow comment={comment} />}
-                  {!review && !profile && !log && !recipe && !comment && (
+                  {entry && <EntryRow entry={entry} />}
+                  {!review && !profile && !log && !recipe && !comment && !entry && (
                     <p className="font-mono text-[11px] text-text-muted">İçerik artık yok (silinmiş).</p>
                   )}
                 </li>
@@ -244,7 +265,35 @@ const TARGET_LABELS: Record<string, string> = {
   drink_log: "günlük kaydı",
   cocktail: "üye tarifi",
   log_comment: "yorum",
+  showcase_entry: "vitrin başvurusu",
 };
+
+function EntryRow({ entry }: { entry: EntryRef }) {
+  return (
+    <div className={`flex items-start gap-3 ${entry.hidden_at ? "opacity-60" : ""}`}>
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-x-2 font-mono text-[11px] text-text-muted">
+          <a
+            href={`${SITE_URL}/recipes/${entry.cocktails.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-sans text-sm font-semibold text-text-primary hover:text-crimson-glow"
+          >
+            {entry.cocktails.name}
+          </a>
+          <a href={`${SITE_URL}/u/${entry.profiles.username}`} target="_blank" rel="noopener noreferrer" className="hover:text-text-primary">
+            @{entry.profiles.username}
+          </a>
+          <span>{date(entry.created_at)}</span>
+          <span>{STATUS_LABELS[entry.status as keyof typeof STATUS_LABELS] ?? entry.status}</span>
+          {entry.hidden_at && <span className="text-crimson-glow">gizli</span>}
+        </div>
+        <p className="mt-1 whitespace-pre-line break-words text-sm text-text-secondary">“{entry.pitch}”</p>
+      </div>
+      <ModerationButton action={{ kind: "showcase_entry", id: entry.id, hide: !entry.hidden_at }} />
+    </div>
+  );
+}
 
 function RecipeRow({ recipe }: { recipe: RecipeRef }) {
   return (

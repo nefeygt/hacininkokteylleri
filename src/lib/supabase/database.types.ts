@@ -532,6 +532,134 @@ export type Database = {
           },
         ]
       }
+      showcase_entries: {
+        Row: {
+          cocktail_id: string
+          created_at: string
+          hidden_at: string | null
+          hidden_by: string | null
+          id: string
+          period_id: string
+          pitch: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["showcase_status"]
+          user_id: string
+          vote_count: number
+        }
+        Insert: {
+          cocktail_id: string
+          created_at?: string
+          hidden_at?: string | null
+          hidden_by?: string | null
+          id?: string
+          period_id: string
+          pitch: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["showcase_status"]
+          user_id: string
+          vote_count?: number
+        }
+        Update: {
+          cocktail_id?: string
+          created_at?: string
+          hidden_at?: string | null
+          hidden_by?: string | null
+          id?: string
+          period_id?: string
+          pitch?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["showcase_status"]
+          user_id?: string
+          vote_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "showcase_entries_cocktail_id_fkey"
+            columns: ["cocktail_id"]
+            isOneToOne: false
+            referencedRelation: "cocktails"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "showcase_entries_cocktail_id_fkey"
+            columns: ["cocktail_id"]
+            isOneToOne: false
+            referencedRelation: "recipe_popularity"
+            referencedColumns: ["cocktail_id"]
+          },
+          {
+            foreignKeyName: "showcase_entries_period_id_fkey"
+            columns: ["period_id"]
+            isOneToOne: false
+            referencedRelation: "showcase_periods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "showcase_entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      showcase_periods: {
+        Row: {
+          created_at: string
+          ends_at: string
+          id: string
+          starts_at: string
+        }
+        Insert: {
+          created_at?: string
+          ends_at: string
+          id?: string
+          starts_at: string
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string
+          id?: string
+          starts_at?: string
+        }
+        Relationships: []
+      }
+      showcase_votes: {
+        Row: {
+          created_at: string
+          entry_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entry_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entry_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "showcase_votes_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "showcase_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "showcase_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       cocktail_ratings: {
@@ -588,6 +716,7 @@ export type Database = {
         | "drink_log"
         | "showcase_entry"
         | "log_comment"
+      showcase_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -725,6 +854,7 @@ export const Constants = {
         "showcase_entry",
         "log_comment",
       ],
+      showcase_status: ["pending", "approved", "rejected"],
     },
   },
 } as const

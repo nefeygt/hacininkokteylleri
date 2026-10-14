@@ -4,10 +4,10 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-14 (M6 build) · **Handing off:** **M6 — community recipes, the
-feed, follows and log comments are built, tested end to end on `localhost` and deployed** (ADR-018;
-`/privacy` approved by the user, version `2026-10-14.2`). Left: the live check (Step 1). **Next: M7 — the
-showcase** (Step 2).
+**Prepared by session:** 2026-10-14 (M7 build) · **Handing off:** **M7 — the showcase is built,
+tested end to end on `localhost` and deployed** (ADR-019; `/privacy` version `2026-10-14.3`, approved by
+the user). **Left:** the live checks of M6 and M7 on the domain (Step 1, the user). **Next: M8 — the
+Expo app** (Step 2).
 
 ---
 
@@ -52,41 +52,50 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — finish M6, then M7
+## 🎯 This Session's Task — finish M6 and M7, then start M8
 
 ### Step 0 — state check
 
-`git status` — clean, `main` in step with `origin/main`. `curl -s -H "apikey: $KEY"
-https://qwvnhdghwycqlvsnlvlt.supabase.co/auth/v1/settings` (publishable key from `.env` via `grep`)
-→ `"disable_signup": false`. SQL: `select username from public.profiles;` and counts of
-`cocktails where author_id is not null`, `follows`, `log_comments`, `drink_logs` — after the M6
-test (2026-10-14) the only profile was `ahmet_kafa` and all of these were 0. The migration
-`20261014081320_community_recipes` is **already applied** to the live database (the live site's
-old code keeps working with it: house fetchers simply see no `author_id` yet). Never delete or edit
-a row you did not create without asking.
+`git status` — clean, `main` in step with `origin/main`. **Check the tools first:** the Supabase MCP
+(`list_migrations` on `qwvnhdghwycqlvsnlvlt` → 11 migrations, the latest `20261014134219_showcase`) and
+Claude in Chrome (`tabs_context_mcp`). Both are per Claude account — on 2026-10-14 the user had to
+connect them for a new account; if one is missing, ask the user before doing anything that needs it.
+`curl -s -H "apikey: $KEY" https://qwvnhdghwycqlvsnlvlt.supabase.co/auth/v1/settings` (publishable key
+from `.env` via `grep`) → `"disable_signup": false`. SQL: after the M7 test the only profile was
+`ahmet_kafa`, and members' recipes, follows, comments, logs, reviews, reports, showcase periods,
+entries, votes and `recipe-images` objects were all 0. Never delete or edit a row you did not create
+without asking.
 
-### Step 1 — finish M6 (the user)
+### Step 1 — the live checks (the user)
 
-1. **Live check** on `hacininkokteylleri.tech` from an unblocked network (the user's phone):
-   Akış → "+ Tarif yaz" → a recipe with a photo → its page `/recipes/{slug}` → review it → the
-   feed shows it → delete it (photo gone). Optional with a second account: follow, a public log,
-   a comment and a reply. Tick the last boxes of M6 in plan.md and mark M6 done.
+On `hacininkokteylleri.tech` from an unblocked network (the user's phone):
+1. **M6:** Akış → "+ Tarif yaz" → a recipe **with a photo** → its page `/recipes/{slug}` → review it →
+   the feed shows it.
+2. **M7:** panel (`admin.hacininkokteylleri.tech/showcase`, 2FA) → open a one-week period from today →
+   Akış → "Vitrine başvur" with that recipe and a pitch → panel → Onayla → Akış: the entry, upvote,
+   take it back. The winner card on the home page needs an ended period — skip it live (tested on
+   localhost) or ask the agent to move the test period into the past in SQL.
+3. Clean up: panel → Vitrin → "Dönemi sil"; delete the recipe (photo gone). Optional with a second
+   account: follow, a public log, a comment and a reply.
+Then tick the last boxes of M6 and M7 in plan.md and mark both done. **Do not leave a real period open
+by accident** — the first real period is the user's call (see question 6).
 
-### Step 2 — M7: the showcase (vitrin)
+### Step 2 — M8: the Expo app
 
-ADR-014 fixes the tables (`showcase_periods`, `showcase_entries`, `showcase_votes`; upvotes, one per
-user per entry, self-votes allowed; any admin approves; the winner is derived, not stored, and
-featured on the home page). An entry must be the applicant's own published community recipe —
-these now exist (M6). **Ask the user first:** a week or a month per period (or the admin picks each
-time), where the voting page lives (`/showcase`), what the home page shows for the winner, and
-whether applying needs anything beyond a recipe and a pitch. Follow ADR-009, ADR-014, ADR-016,
-ADR-018.
+ADR-013: Expo (React Native + TypeScript + supabase-js), the same Supabase backend and panel. **Ask the
+user first:** a monorepo (this repository) or a second repository; the first version's scope (read the
+archive + sign in + favourites/reviews/logs? the feed and showcase?); iOS and Android both from the
+start, and whose developer accounts (Apple $99/yr, Google $25 once); Google sign-in on mobile (a native
+OAuth client in Google Cloud `haci-511515`). The icons are ready: `public/brand/haci-app-icon-1024.png`,
+`haci-play-store-512.png`; the adaptive-icon foreground needs the mark scaled into the 66% safe zone.
+Write an ADR for the answers before building.
 
 ### Also open (not blocking)
 
 - The wordmark in the navbar; Hacı's own first admin sign-in (question 5).
 - A log could show what changed against the house recipe (ADR-017 consequence) → Icebox if wanted.
-- M6 Icebox items (plan.md §9): follower lists, notifications, comment editing, tuning "popular".
+- Icebox (plan.md §9): follower lists, notifications, comment editing, tuning "popular", a showcase
+  archive of past winners.
 
 ---
 
@@ -96,6 +105,7 @@ ADR-018.
 |---|---|---|---|
 | 3 | **Colour theme:** keep the dark crimson "Rx" look, or explore a lighter/warmer palette? | The user said the theme can change (ADR-015) | Today's palette stays |
 | 5 | **Hacı's first admin sign-in** — when (his phone, a network that does not block the domain)? | His 2FA factor is not enrolled yet | He cannot use the panel |
+| 6 | **The first real showcase period** — when, a week or a month? | Nothing promotes it until a period exists (the feed hides the section) | No period; the feature is invisible |
 
 ---
 
@@ -113,11 +123,16 @@ ADR-018.
 - **Avatars:** `src/app/(site)/account/AvatarField.tsx` (centre square → 256 px WebP →
   `{user_id}/{base36}.webp` → `setAvatar` → old object deleted), `src/components/Avatar.tsx`
   (picture or initial), `avatarUrl()` / `AVATARS_BUCKET` in `src/lib/supabase/config.ts`.
-- **Supabase** (ref `qwvnhdghwycqlvsnlvlt`): 10 migrations, the latest `20261014081320_community_recipes`.
+- **Supabase** (ref `qwvnhdghwycqlvsnlvlt`): 11 migrations, the latest `20261014134219_showcase`.
   Advisors: only leaked-password protection (Pro plan) plus "unused index" infos on still-empty tables.
 - **M4 (2026-10-14):** `reviews`, `favorites`, `reports`, view `cocktail_ratings`; the site's
   `cocktails/actions.ts`, `useMember`, `CocktailReviews`, `ReportButton`; the panel's
   `/moderation`. All tables empty after the test (the test rows were deleted).
+- **M7 (2026-10-14, deployed; live check left):** migration `20261014134219_showcase` (11 migrations
+  now); `src/lib/showcase.ts`, `content.ts` (`getShowcase`, `getShowcaseWinner`), `src/app/(site)/feed/actions.ts`
+  (apply, withdraw, vote), components `ShowcaseEntries`, `ShowcaseApply`; the home page is now ISR 1h
+  with the winner card; the panel's `/showcase` page (`ShowcaseControls.tsx`) and reported applications
+  in Moderasyon. `/privacy` version `2026-10-14.3` (the showcase line), approved by the user.
 - **M6 (2026-10-14, deployed; live check left):** migration `20261014081320_community_recipes` (10
   migrations now, applied live); `src/lib/recipe.ts`, `src/app/(site)/account/recipes/` (list, `new`,
   `[id]`, `RecipeForm`, `actions.ts`), `recipes/[slug]`, `feed`, `logs/[id]` (+ `logs/actions.ts`),
@@ -197,7 +212,20 @@ ADR-018.
 - **The office network blocks the new domain** (a Fortinet FortiGate). Check DNS with
   `https://dns.google/resolve?name=…` and HTTP with check-host.net (plan.md §5.4).
 
-**This session's lessons (M6)**
+**This session's lessons (M7)**
+- **MCP connectors and Claude in Chrome belong to the Claude account.** A new account starts without
+  the Supabase connector and with Chrome's extension signed in to the other account — check both in
+  Step 0 and ask the user to connect them (Connectors / the Claude side panel in Chrome).
+- **Another ambiguous embed:** `showcase_entries → profiles` has two paths (directly and through
+  `showcase_votes`) — name the key, `profiles!showcase_entries_user_id_fkey(...)`.
+- **In a plpgsql test, `r := r || 'text'` on a `text[]` reads the literal as an array** ("malformed
+  array literal") and aborts the step being tested — write `'text'::text`.
+- **JavaScript lowercases "İ" to "i̇"** (with a combining dot): matching CSS-uppercased Turkish button
+  text with `innerText.toLowerCase()` fails; match `textContent` exactly instead.
+- To test the derived winner, move the test period into the past in SQL (`starts_at`/`ends_at`);
+  `next dev` renders the home page on every request, so no rebuild is needed.
+
+**Lessons from M6**
 - **PostgREST refuses an ambiguous embed.** `drink_logs`, `reviews` and `favorites` link
   `cocktails` and `profiles`, so `cocktails → profiles` has several paths: name the key,
   `profiles!cocktails_author_id_fkey(...)`.
@@ -270,6 +298,7 @@ ADR-018.
 | Sign-in methods for the public? | **Google first, then e-mail + password** (Resend) |
 | What is public on a profile? | Username, display name, avatar, bio, reviews, favourites. **Drink logs private by default** (ADR-014) |
 | Showcase voting? | **Upvotes: one per user per entry, self-votes allowed; any admin approves** (ADR-014) |
+| Showcase period length, page, home card, application? | **Admin picks a week or a month each time; apply and vote inside `/feed`; a featured card below the hero; recipe + pitch + photo required** (ADR-019) |
 | Hacı's e-mail? | **`furkancam99@hotmail.com`** — set 2026-10-13 |
 | Brand name? | **`haci`, lowercase, everywhere** (ADR-015) |
 | Domain? | **Stays `hacininkokteylleri.tech`** for now (ADR-010, ADR-015) |
@@ -287,8 +316,7 @@ ADR-018.
 
 ## 🧭 Look-ahead
 
-- **M3**, **M4**, **M5** done → **M6** (deployed; live check left) community
-  recipes and feeds → **M7** showcase → **M8** Expo apps (the cherry icon is ready:
-  `public/brand/haci-app-icon-1024.png`, `haci-play-store-512.png`; the adaptive-icon foreground
-  needs the mark scaled into the 66% safe zone).
+- **M3**–**M5** done → **M6** and **M7** deployed (live checks left) → **M8** Expo apps (the cherry
+  icon is ready: `public/brand/haci-app-icon-1024.png`, `haci-play-store-512.png`; the adaptive-icon
+  foreground needs the mark scaled into the 66% safe zone).
 - Icebox highlights: localization (English first), colour theme review, a `haci` domain.

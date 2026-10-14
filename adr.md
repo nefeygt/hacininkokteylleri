@@ -28,6 +28,7 @@
 | 016 | Member state on static pages: read in the browser, written through server actions that revalidate | ✅ Accepted | 2026-10-14 |
 | 017 | Drink logs: written on dynamic account pages, the recipe snapshot checked by the database | ✅ Accepted | 2026-10-14 |
 | 018 | Community recipes, the feed, follows and log comments | ✅ Accepted | 2026-10-14 |
+| 019 | The showcase: periods chosen per time, applying and voting on the feed, the winner on the home page | ✅ Accepted | 2026-10-14 |
 
 ---
 
@@ -687,3 +688,64 @@ shorter, but opaque in a shared link and in search results. *Comments only from 
 Letterboxd lets anyone comment; following stays a reading choice, and the log's author can delete
 any comment on their log. *Threaded replies:* a flat thread is what Letterboxd uses and what a
 phone screen shows well.
+
+---
+
+## ADR-019 — The showcase: periods chosen per time, applying and voting on the feed, the winner on the home page
+
+**Context.** M7 builds the showcase as ADR-014 shaped it (`showcase_periods`, `showcase_entries`,
+`showcase_votes`; upvotes, one per member per entry, self-votes allowed; any admin approves; the
+winner derived, not stored). On 2026-10-14 the user answered the open questions: **the admin picks a
+week or a month each time**; applying and voting live **inside `/feed`**, not on a page of their own;
+the home page shows the winner as **a featured card below the hero**; an application needs **the
+recipe, a pitch and a photo** — all three required.
+
+**Decision.**
+- **Periods.** An admin opens one in the panel's new **Vitrin** page (`/showcase` on the admin host):
+  a start day and "1 hafta" / "1 ay". A period runs from midnight in Turkey (`+03:00`, no DST) on that
+  day; the end is exclusive (a week = 7 days, a month = the same day next month, clamped to the
+  month's last day — `periodBounds()` in `src/lib/showcase.ts`). Periods never overlap (an exclusion
+  constraint on `tstzrange(starts_at, ends_at, '[)')`). The form suggests the day the latest period
+  ends. Deleting a period removes its applications and votes.
+- **Applications** are open until a period ends — also before it starts, so the next period can fill
+  up. The database checks everything: the applicant's own, published, visible recipe **with a photo**
+  (`image_path is not null`), a pitch of 1–500 characters (`btrim`), one application per member per
+  period, status `pending` (members have no grant on `status`). Pending and rejected applications are
+  seen only by their applicant and admins. A member withdraws (deletes) their own; there is no
+  editing — withdraw and apply again.
+- **Approval.** Any admin approves or rejects (`status`, update policy admins-only, `aal2`);
+  `private.stamp_showcase_review()` writes `reviewed_by`/`reviewed_at`. Hiding (`hidden_at`, the shared
+  moderation guard) is for reported applications, from Moderasyon; `showcase_entry` was already a
+  report target.
+- **Votes** are allowed only on approved, visible entries of the **open** period whose recipe is still
+  published and visible; taking a vote back follows the same window. A voter reads only their own
+  votes; `vote_count` is kept by `private.count_showcase_vote()` (security definer), so totals are
+  public and who voted for what is not.
+- **On the feed** a "Vitrin" section (`#showcase`, above "Bu ay popüler") shows the open period — or,
+  if none is open, the next one — with its approved entries ranked by votes (each card with its pitch,
+  an upvote button and "Bildir"), the member's own application and its status, the application form
+  (recipe picker limited to eligible recipes, pitch), and the last winner. The counts are part of the
+  static page (5-minute ISR, revalidated by every vote); the visitor's own votes and application are
+  read in the browser (ADR-016). The section is hidden until the first period exists.
+- **The winner** is derived at render time (`getShowcaseWinner()` in `content.ts`): the latest period
+  that has ended, its approved visible entry with the most votes, the earlier application on a tie.
+  Hidden entries, and entries whose recipe or author is no longer visible, drop out (RLS and the
+  inner join), so the next visible entry of that period takes their place. The home page became **static with an hourly revalidation** so the winner changes within the
+  hour after a period ends; panel actions, recipe edits/deletes and hiding revalidate `/` at once.
+- `/privacy` names the showcase (pitches public once approved, votes private); version `2026-10-14.3`,
+  approved by the user.
+
+**Consequences.**
+- (+) Every rule is a policy, a constraint or a trigger; 38 SQL checks (rolled back) cover them.
+- (+) No scheduled job: periods open and close by their timestamps; the winner is a query.
+- (−) The winner reaches the home page up to an hour after a period ends (ISR); the feed within five
+  minutes.
+- (−) If the author removes the winning recipe's photo later, the card falls back to the colour; the
+  photo rule binds only at application time.
+- (−) A hidden or withdrawn winner leaves the home page to the next-ranked visible entry of the same
+  period, or to nothing.
+
+**Rejected.** *A `/showcase` page in the navbar:* the user chose the feed. *A stored winner column or
+a cron job:* ADR-014 derives it. *Pitch editing:* withdraw-and-reapply is simpler and loses the votes,
+which is honest for a changed pitch. *Applications only while a period is open:* the next period would
+start empty.

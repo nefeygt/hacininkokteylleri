@@ -3,9 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { adminSession } from "@/lib/admin";
 import { BRAND } from "@/lib/brand";
+import { periodBounds, type PeriodLength } from "@/lib/showcase";
 import { SLUG_PATTERN } from "@/lib/slug";
 import { COCKTAIL_IMAGES_BUCKET } from "@/lib/supabase/config";
-import { Constants } from "@/lib/supabase/database.types";
+import { Constants, type Database } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
 import type { CocktailInput } from "./types";
 
@@ -16,6 +17,8 @@ function revalidatePublicPages() {
 }
 
 export type ActionResult = { error?: string; id?: string; ok?: boolean };
+
+type ShowcaseStatus = Database["public"]["Enums"]["showcase_status"];
 
 // These actions never call redirect(). Next.js renders an action's redirect
 // target internally, bypassing src/proxy.ts, so on the admin host "/" came back
@@ -281,8 +284,11 @@ export async function setProfileHidden(id: string, hidden: boolean): Promise<Act
     .maybeSingle();
   if (error) return { error: `Kaydedilemedi: ${error.message}` };
 
-  // A hidden profile's reviews leave the averages too (cocktail_ratings).
+  // A hidden profile's reviews leave the averages too (cocktail_ratings), and
+  // its recipes the feed and the home page's showcase winner.
   revalidatePublicPages();
+  revalidatePath("/feed");
+  revalidatePath("/");
   if (data) revalidatePath(`/u/${data.username}`);
   revalidatePath("/admin/moderation");
   return { ok: true };
@@ -323,6 +329,7 @@ export async function setRecipeHidden(id: string, hidden: boolean): Promise<Acti
   if (data) revalidatePath(`/recipes/${data.slug}`);
   if (data?.profiles) revalidatePath(`/u/${data.profiles.username}`);
   revalidatePath("/feed");
+  revalidatePath("/");
   revalidatePath("/admin/moderation");
   return { ok: true };
 }
@@ -350,6 +357,67 @@ export async function resolveReport(id: string): Promise<ActionResult> {
   const { error } = await supabase.from("reports").update({ resolved_at: new Date().toISOString() }).eq("id", id);
   if (error) return { error: `Kaydedilemedi: ${error.message}` };
 
+  revalidatePath("/admin/moderation");
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------- showcase (M7)
+
+// Periods, approval and hiding are admin-only in the database (RLS, aal2); the
+// winner is derived from the votes, never written (ADR-014, ADR-019). The feed
+// shows the open period and the home page the latest winner, so both follow.
+function revalidateShowcase() {
+  revalidatePath("/feed");
+  revalidatePath("/");
+  revalidatePath("/admin/showcase");
+}
+
+/** Opens a period: a week or a month from midnight (Turkey) on the chosen day. */
+export async function createShowcasePeriod(startDate: string, length: PeriodLength): Promise<ActionResult> {
+  const bounds = periodBounds(startDate, length);
+  if (!bounds) return { error: "Geçerli bir başlangıç tarihi seç." };
+  const supabase = await adminClient();
+  if (!supabase) return { error: SESSION_LOST };
+
+  const { error } = await supabase.from("showcase_periods").insert({ starts_at: bounds.startsAt, ends_at: bounds.endsAt });
+  if (error) {
+    if (error.code === "23P01") return { error: "Bu tarihler başka bir dönemle çakışıyor." };
+    return { error: `Kaydedilemedi: ${error.message}` };
+  }
+  revalidateShowcase();
+  return { ok: true };
+}
+
+/** Deletes a period with its applications and votes. */
+export async function deleteShowcasePeriod(id: string): Promise<ActionResult> {
+  const supabase = await adminClient();
+  if (!supabase) return { error: SESSION_LOST };
+  const { error } = await supabase.from("showcase_periods").delete().eq("id", id);
+  if (error) return { error: `Silinemedi: ${error.message}` };
+  revalidateShowcase();
+  return { ok: true };
+}
+
+/** Approves or rejects an application (or puts it back to pending); reviewed_by is written by the database. */
+export async function setShowcaseEntryStatus(id: string, status: ShowcaseStatus): Promise<ActionResult> {
+  const supabase = await adminClient();
+  if (!supabase) return { error: SESSION_LOST };
+  const { error } = await supabase.from("showcase_entries").update({ status }).eq("id", id);
+  if (error) return { error: `Kaydedilemedi: ${error.message}` };
+  revalidateShowcase();
+  return { ok: true };
+}
+
+/** Hides or shows an application, e.g. after a report. */
+export async function setShowcaseEntryHidden(id: string, hidden: boolean): Promise<ActionResult> {
+  const supabase = await adminClient();
+  if (!supabase) return { error: SESSION_LOST };
+  const { error } = await supabase
+    .from("showcase_entries")
+    .update({ hidden_at: hidden ? new Date().toISOString() : null })
+    .eq("id", id);
+  if (error) return { error: `Kaydedilemedi: ${error.message}` };
+  revalidateShowcase();
   revalidatePath("/admin/moderation");
   return { ok: true };
 }

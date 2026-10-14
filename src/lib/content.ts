@@ -1,6 +1,7 @@
 import type { Database } from "@/lib/supabase/database.types";
 import { cocktailImageUrl, recipeImageUrl } from "@/lib/supabase/config";
 import { createPublicClient } from "@/lib/supabase/public";
+import type { ShowcasePeriod } from "@/lib/showcase";
 
 // The shapes the site's components draw. Database rows are mapped into these
 // in one place, so a column rename touches this file and nothing else.
@@ -194,6 +195,80 @@ export async function getPopularRecipes(limit: number): Promise<Cocktail[]> {
   const order = new Map(ids.map((id, i) => [id, i]));
   const rows = (data as CocktailRow[]).sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
   return withRatings(rows);
+}
+
+// ---------------------------------------------------------------- showcase (M7)
+
+export interface ShowcaseEntry {
+  id: string;
+  pitch: string;
+  voteCount: number;
+  recipe: Cocktail;
+}
+
+export interface Showcase {
+  /** The open period, or else the next one; null when none is planned. */
+  period: ShowcasePeriod | null;
+  /** Approved entries of that period, most votes first. */
+  entries: ShowcaseEntry[];
+}
+
+type EntryRow = { id: string; pitch: string; vote_count: number; cocktails: CocktailRow };
+
+// The anon client sees only approved, visible entries (RLS); !inner leaves out
+// entries whose recipe or author is no longer visible.
+const ENTRY_COLUMNS = `id, pitch, vote_count, cocktails!inner(${RECIPE_COLUMNS})`;
+
+async function getEntries(periodId: string, limit?: number): Promise<ShowcaseEntry[]> {
+  let query = createPublicClient()
+    .from("showcase_entries")
+    .select(ENTRY_COLUMNS)
+    .eq("period_id", periodId)
+    .order("vote_count", { ascending: false })
+    .order("created_at");
+  if (limit) query = query.limit(limit);
+  const { data, error } = await query;
+  if (error) throw new Error(`Could not load the showcase: ${error.message}`);
+  const rows = data as unknown as EntryRow[];
+  const recipes = await withRatings(rows.map((r) => r.cocktails));
+  return rows.map((row, i) => ({ id: row.id, pitch: row.pitch, voteCount: row.vote_count, recipe: recipes[i] }));
+}
+
+function toPeriod(row: { id: string; starts_at: string; ends_at: string }): ShowcasePeriod {
+  return { id: row.id, startsAt: row.starts_at, endsAt: row.ends_at };
+}
+
+/** The feed's showcase: the open period (or the next one) and its approved entries. */
+export async function getShowcase(): Promise<Showcase> {
+  const { data, error } = await createPublicClient()
+    .from("showcase_periods")
+    .select("id, starts_at, ends_at")
+    .gt("ends_at", new Date().toISOString())
+    .order("starts_at")
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(`Could not load the showcase: ${error.message}`);
+  if (!data) return { period: null, entries: [] };
+  return { period: toPeriod(data), entries: await getEntries(data.id) };
+}
+
+/**
+ * The derived winner (ADR-014): the approved entry with the most votes in the
+ * latest period that has ended, the earlier application on a tie. Shown on the
+ * home page until the next period ends. Never stored.
+ */
+export async function getShowcaseWinner(): Promise<(ShowcaseEntry & { period: ShowcasePeriod }) | null> {
+  const { data, error } = await createPublicClient()
+    .from("showcase_periods")
+    .select("id, starts_at, ends_at")
+    .lte("ends_at", new Date().toISOString())
+    .order("ends_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(`Could not load the showcase winner: ${error.message}`);
+  if (!data) return null;
+  const [winner] = await getEntries(data.id, 1);
+  return winner ? { ...winner, period: toPeriod(data) } : null;
 }
 
 export async function getGlossary(): Promise<Glossary> {

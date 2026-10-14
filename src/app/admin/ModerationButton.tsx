@@ -8,6 +8,7 @@ import {
   setProfileHidden,
   setRecipeHidden,
   setReviewHidden,
+  setShowcaseEntryHidden,
 } from "./actions";
 
 type Action =
@@ -16,6 +17,7 @@ type Action =
   | { kind: "drink_log"; id: string; hide: boolean }
   | { kind: "recipe"; id: string; hide: boolean }
   | { kind: "log_comment"; id: string; hide: boolean }
+  | { kind: "showcase_entry"; id: string; hide: boolean }
   | { kind: "resolve"; id: string };
 
 function label(action: Action) {
@@ -42,7 +44,9 @@ export default function ModerationButton({ action }: { action: Action }) {
                 ? await setRecipeHidden(action.id, action.hide)
                 : action.kind === "log_comment"
                   ? await setLogCommentHidden(action.id, action.hide)
-                  : await setProfileHidden(action.id, action.hide);
+                  : action.kind === "showcase_entry"
+                    ? await setShowcaseEntryHidden(action.id, action.hide)
+                    : await setProfileHidden(action.id, action.hide);
       if (result.error) setError(result.error);
     });
   }

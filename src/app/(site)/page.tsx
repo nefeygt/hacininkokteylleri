@@ -1,8 +1,17 @@
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Wine } from "lucide-react";
+import { ArrowBigUp, ArrowRight, Wine } from "lucide-react";
 import { BRAND } from "@/lib/brand";
+import { getShowcaseWinner } from "@/lib/content";
+import { formatPeriod } from "@/lib/showcase";
 
-export default function Home() {
+// Static, refreshed hourly so the showcase's winner changes soon after a period
+// ends (ADR-005, ADR-019); panel actions revalidate it at once.
+export const revalidate = 3600;
+
+export default async function Home() {
+  const winner = await getShowcaseWinner();
+
   return (
     <div>
       {/* Hero Section */}
@@ -39,6 +48,58 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* The showcase's winner (M7): the only member's recipe on the home page (ADR-014) */}
+      {winner && (
+        <section className="mx-auto max-w-4xl px-6 pb-20">
+          <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-crimson-glow">
+              Rx · Vitrin · {formatPeriod(winner.period)}
+            </div>
+            <Link href="/feed#showcase" className="font-mono text-[11px] text-text-muted hover:text-text-primary">
+              Vitrine göz at →
+            </Link>
+          </div>
+          <Link
+            href={`/recipes/${winner.recipe.slug}`}
+            className="group grid overflow-hidden rounded-sm border border-border bg-bg-card transition-colors hover:border-border-light sm:grid-cols-2"
+          >
+            <div className="relative aspect-video bg-bg-elevated sm:aspect-auto sm:min-h-64">
+              {winner.recipe.imageUrl ? (
+                <Image
+                  src={winner.recipe.imageUrl}
+                  alt={winner.recipe.name}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  sizes="(max-width: 640px) 100vw, 448px"
+                />
+              ) : (
+                <div
+                  className="absolute inset-0 opacity-20"
+                  style={{ background: `radial-gradient(ellipse at 50% 40%, ${winner.recipe.color}, transparent 70%)` }}
+                />
+              )}
+              <div className="film-grain absolute inset-0" />
+              <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: winner.recipe.color }} />
+            </div>
+            <div className="flex flex-col justify-center gap-3 p-6 sm:p-8">
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-muted">Dönemin kazananı</div>
+              <h2 className="text-3xl font-bold tracking-tight text-text-primary transition-colors group-hover:text-crimson-glow">
+                {winner.recipe.name}
+              </h2>
+              {winner.recipe.subtitle && <p className="font-mono text-xs text-text-muted">{winner.recipe.subtitle}</p>}
+              <p className="whitespace-pre-line break-words text-sm leading-relaxed text-text-secondary">“{winner.pitch}”</p>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] text-text-secondary">
+                {winner.recipe.author && <span>@{winner.recipe.author.username}</span>}
+                <span className="flex items-center gap-1 text-crimson-glow">
+                  <ArrowBigUp className="h-3.5 w-3.5" />
+                  {winner.voteCount} oy
+                </span>
+              </div>
+            </div>
+          </Link>
+        </section>
+      )}
 
       {/* Footer */}
       <footer className="border-t border-border px-6 py-8 text-center">

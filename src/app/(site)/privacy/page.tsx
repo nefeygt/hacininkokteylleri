@@ -44,6 +44,7 @@ export default function PrivacyPage() {
           <li>İçki günlüğün: kaydettiğin kokteyller, tarihleri, yaptığın hâliyle tarifleri, o akşamki puanın ve notların. Kayıtların varsayılan olarak yalnızca sana görünür; herkese açık yaptıkların profilinde ve seni takip edenlerin akışında görünür, diğer üyeler bunlara yorum yazabilir.</li>
           <li>Tariflerin: yazdığın kokteyl tarifleri ve yüklersen fotoğrafları. Yayındakiler profilinde ve akışta herkese görünür; taslaklarını yalnızca sen görürsün.</li>
           <li>Takip ve yorumlar: kimi takip ettiğin ve seni kimlerin takip ettiği (profilinde takipçi ve takip sayıların görünür) ile herkese açık günlük kayıtlarına yazdığın yorumlar.</li>
+          <li>Vitrin: başvurduğun tarif ve tanıtım yazın; bir yönetici onaylarsa akışta herkese görünür, kazanırsa ana sayfada da. Verdiğin oyları yalnızca sen görürsün; herkes yalnızca toplam oy sayısını görür.</li>
           <li>Teknik kayıtlar: oturumunu açık tutan çerezler; sunucu kayıtlarında IP adresin ve tarayıcı bilgin.</li>
         </ul>
       </Section>

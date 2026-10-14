@@ -26,6 +26,8 @@ function revalidateRecipe(slug: string, username: string) {
   revalidatePath(`/recipes/${slug}`);
   revalidatePath(`/u/${username}`);
   revalidatePath("/feed");
+  // The showcase's winner on the home page may be this recipe (M7).
+  revalidatePath("/");
 }
 
 /** Creates a recipe (no id) or edits the member's own. The slug is set once, at creation. */

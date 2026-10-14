@@ -101,7 +101,7 @@ export async function setFavorite(cocktailId: string, favorite: boolean): Promis
 
 type ReportTarget = Database["public"]["Enums"]["report_target"];
 
-export type ReportableTarget = Extract<ReportTarget, "review" | "profile" | "drink_log" | "cocktail" | "log_comment">;
+export type ReportableTarget = Extract<ReportTarget, "review" | "profile" | "drink_log" | "cocktail" | "log_comment" | "showcase_entry">;
 
 /**
  * Reports a review, a profile, a public drink log, a member's recipe or a log

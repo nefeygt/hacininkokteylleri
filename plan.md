@@ -9,7 +9,7 @@
 > **Language rule (ADR-002):** everything we write — docs, code, comments, commits, SQL — is
 > **English**. Everything visitors and admins read — UI strings, recipes — is **Turkish**.
 
-**Last updated:** 2026-10-14 · **Active milestone:** **M6 — Community recipes and feeds** (built and deployed; live check left) · **Brand:** `haci` (ADR-015)
+**Last updated:** 2026-10-14 · **Active milestone:** **M7 — The showcase** (built and deployed; live check left; M6's live check also left) · **Brand:** `haci` (ADR-015)
 
 ---
 
@@ -17,8 +17,8 @@
 
 | Field | State |
 |---|---|
-| Active milestone | **M6 — Community recipes and feeds** — built and tested end to end on `localhost` (2026-10-14, ADR-018): members' recipes on `/recipes/{slug}`, `/feed`, follows, comments on public logs, moderation. `/privacy` approved by the user and deployed (2026-10-14). **Left:** the live check on the domain |
-| Previous milestone | **M5 — Drink log** (2026-10-14): log from the recipe card with the recipe as made, private/public with a default, public logs on profiles, reports and moderation (ADR-017) — tested end to end on `localhost`; **live check passed on the user's phone**. **M5 done**. M4 — Reviews and favourites done 2026-10-14; M3 — Accounts done 2026-10-14 |
+| Active milestone | **M7 — The showcase** — built and tested end to end on `localhost` (2026-10-14, ADR-019): admin-opened periods (a week or a month), applications (own published recipe + photo + pitch) and upvotes in the feed's "Vitrin" section, approval in the panel's Vitrin page, the derived winner on the home page. `/privacy` `2026-10-14.3` approved. **Left:** the live check on the domain |
+| Previous milestone | **M6 — Community recipes and feeds** (2026-10-14, ADR-018): built, tested on `localhost`, deployed. **Left:** its live check on the domain (the user's phone) — can be done together with M7's. M5 — Drink log done 2026-10-14 |
 | Last completed | **M2 — Domain** (Search Console moved from vercel.app to the domain) and the **brand change to `haci`** with English URLs and the cherry logo (ADR-015). M1 is done except Hacı's own first sign-in |
 | Blockers | None in the code. The network the user's office computer is on (a Fortinet FortiGate) blocks the domain — check from outside (§5.4) |
 | Next critical decision | **The colour theme** for a global audience (the user is open to change, ADR-015) and, later, localization. The mobile app is decided: Expo, after M3 (ADR-013) |
@@ -82,6 +82,12 @@ around the archive; they never crowd it off the home page except through the sho
   following counts, the member's recipes. Each public log has a page `/logs/{id}` with a flat
   comment thread (the author replies; "kayıt sahibi" badge; delete, report). Panel → Moderasyon:
   members' recipes and comments, reported or recent, hide/show (ADR-018).
+- **The showcase (M7)** — `/feed` opens with "Vitrin" (`/feed#showcase`): the open (or next) period,
+  approved applications ranked by upvotes, "Vitrine başvur" (one of your published recipes with a
+  photo + a pitch; one per period; withdraw), your application's status, the last winner. The home
+  page shows the winner of the latest ended period below the hero. Panel → **Vitrin**: open a period
+  (start day, 1 week / 1 month), approve/reject, votes and the winner, delete a period; reported
+  applications in Moderasyon (ADR-019).
 
 ### 3.2 Roadmap — what the user has asked for (2026-10-13)
 
@@ -134,6 +140,7 @@ In the user's words, collected while M0 was being built. Milestones in §6.
 | 016 | Member state read in the browser; writes via server actions that revalidate | Static pages stay static; averages update at once |
 | 017 | Drink logs are written on dynamic pages under `/account/logs`; the snapshot is checked in the database | The archive stays static; the recipe as made stays a recipe |
 | 018 | Members' recipes on `/recipes/{slug}`; `/feed` (popular + new recipes, followed people's logs); public follows; flat comments on public logs | Letterboxd-style community; the home page and archive stay Hacı's |
+| 019 | Showcase: admin picks a week or a month per period; apply + vote in `/feed`; recipe + photo + pitch required; derived winner as a card on the home page | The user's answers; every rule in the database, no scheduled job |
 
 → Full rationale and rejected alternatives: [adr.md](adr.md)
 
@@ -183,6 +190,9 @@ migration file with the version Supabase applied (ADR-009).
 | view `cocktail_ratings` | `cocktail_id`, `review_count`, `average_rating` — visible reviews by visible profiles (security invoker) | everyone | — |
 | `follows` (M6) | PK `(follower_id, followee_id)` → `profiles`, no self-follows, `created_at` | everyone | the follower (visible profiles only, ≤ 200 a day) |
 | `log_comments` (M6) | `id`, `log_id` → `drink_logs` (cascade), `user_id` → `profiles`, `body` 1–1000, `created_at`, `hidden_at`/`hidden_by` | whoever can read the log (not hidden); commenter; admins | members on visible public logs (≤ 100 a day); deleted by the commenter, the log's author or admins; admins hide |
+| `showcase_periods` (M7) | `id`, `starts_at`, `ends_at` (exclusive; midnight Turkey), never overlapping | everyone | admins (insert, delete) |
+| `showcase_entries` (M7) | `id`, `period_id`, `cocktail_id` (own published recipe with a photo), `user_id`, `pitch` 1–500, `status` `pending`/`approved`/`rejected`, `reviewed_by`/`reviewed_at` (trigger), `vote_count` (trigger), `hidden_at`/`hidden_by`; unique `(period_id, user_id)` | everyone (approved, not hidden); applicant; admins | applicant inserts until the period ends, deletes (withdraws); admins approve/reject/hide |
+| `showcase_votes` (M7) | PK `(entry_id, user_id)`, `created_at` | the voter only | members, on approved visible entries while the period is open (self-votes allowed) |
 | view `recipe_popularity` (M6) | `cocktail_id`, `recent_reviews`, `recent_favorites`, `score` — last 30 days, visible members' recipes only (security invoker) | everyone | — |
 
 Functions: `private.is_admin()` (an `admins` row **and** a 2FA session, `aal2` — ADR-011; used
@@ -203,7 +213,8 @@ and `private.limit_drink_logs()`. M6 added `public.save_recipe(recipe jsonb, ing
 (members' one-transaction save, always their own `author_id`, slug fixed at creation),
 `private.limit_recipes()` / `limit_follows()` / `limit_log_comments()`, the moderation guard on
 `cocktails`, the `log_comment` report target, and the public `recipe-images` bucket (1 MB,
-WebP/JPEG; members write only under `{user_id}/`; admins may delete) — ADR-018.
+WebP/JPEG; members write only under `{user_id}/`; admins may delete) — ADR-018. M7 added
+`private.stamp_showcase_review()` and `private.count_showcase_vote()` (security definer) — ADR-019.
 
 **The rest of the community model is decided in ADR-014** (drink logs, community recipes in
 `cocktails` with `author_id`, showcase) and is built milestone by milestone.
@@ -223,7 +234,8 @@ src/
       account/logs/             drink log (M5): list, new (?cocktail=), [id] edit; LogForm, actions.ts
       account/recipes/          members' recipes (M6): list, new, [id] edit; RecipeForm, actions.ts
       recipes/[slug]/           a member's recipe page (ISR 5 min) → RecipeView
-      feed/                     Akış (ISR 5 min): popular + new recipes, FollowingLogs (browser)
+      page.tsx                  home (ISR 1h): hero + the showcase winner (M7)
+      feed/                     Akış (ISR 5 min): Vitrin (M7), popular + new recipes, FollowingLogs (browser); actions.ts (apply, withdraw, vote)
       logs/[id]/                one public log + its comments (ISR 5 min, noindex); logs/actions.ts (comments)
       u/actions.ts              setFollow (M6)
       reset-password/           new password after the reset e-mail
@@ -233,9 +245,9 @@ src/
       login/                    sign-in
       setup-2fa/                first sign-in: connect an authenticator app (QR code)
       verify/                   later sign-ins: the 6-digit code
-      (panel)/                  everything behind requireAdmin(): list, cocktails/new, cocktails/[id], glossary, moderation
+      (panel)/                  everything behind requireAdmin(): list, cocktails/new, cocktails/[id], glossary, moderation, showcase (M7)
       actions.ts                every write (server actions)
-      CocktailForm.tsx, GlossaryEditor.tsx, PublishToggle.tsx, ModerationButton.tsx
+      CocktailForm.tsx, GlossaryEditor.tsx, PublishToggle.tsx, ModerationButton.tsx, ShowcaseControls.tsx
     auth/callback/route.ts      Google → Supabase → here: code exchange, then /welcome or next
     api/keepalive/route.ts      daily ping (vercel.json cron)
     icon.svg, apple-icon.png    favicon and touch icon (the cherry, ADR-015)
@@ -244,7 +256,8 @@ src/
                                 M4: useMember (session + favourites in the browser), CocktailReviews, Stars, ReportButton;
                                 M5: DrinkLogEntry, ReportIfSignedIn (in ReportProfileButton.tsx);
                                 M6: RecipeDetails (one renderer for every recipe), RecipeActions, RecipeView,
-                                ImageField (shared with the panel), FollowButton, FollowingLogs, LogComments
+                                ImageField (shared with the panel), FollowButton, FollowingLogs, LogComments;
+                                M7: ShowcaseEntries (votes), ShowcaseApply (application form)
   lib/
     content.ts                  DB rows → the shapes components draw; public fetchers
     admin.ts                    requireAdmin()
@@ -254,6 +267,7 @@ src/
     community.ts                review/report length limits, formatAverage (browser-safe)
     drink-log.ts                the log's recipe snapshot: type, limits, cleanRecipe, formatting (browser-safe)
     recipe.ts                   a member's recipe: RecipeInput, limits, icons, cleanRecipeInput (browser-safe)
+    showcase.ts                 periods (bounds in Turkey time, state, formatting), pitch limit, status labels (browser-safe)
     slug.ts                     Turkish-aware slugify
     supabase/                   config, public/server/browser/proxy clients, database.types.ts (generated)
 supabase/
@@ -411,10 +425,29 @@ comments; members' recipes reviewable; `/r/{slug}` "or whichever is better" → 
 - [x] `/privacy` text (recipes, photos, follows, comments; version `2026-10-14.2`) — approved by the user (2026-10-14); deployed
 - [ ] Live check on the domain from an unblocked network (the user's phone)
 
-### ⚪ M7 — The showcase
+### 🔵 M7 — The showcase `BUILT 2026-10-14 — live check left`
 
-Applications, voting periods (week / month), the winner featured on the home page; admin
-review of applications.
+The user's answers (2026-10-14): the admin picks a week or a month each time; applying and voting
+inside `/feed`; the winner as a featured card below the hero; recipe + pitch + photo all required
+(ADR-019).
+
+- [x] Migration `showcase`: `showcase_periods` (no overlaps), `showcase_entries` (own published recipe
+  with a photo, pitch, one per period, admin review stamped by a trigger), `showcase_votes` (open
+  period only, private, `vote_count` by a trigger); 38 policy checks in SQL (rolled back); advisors
+  clean (only the known items)
+- [x] Feed: "Vitrin" section — period, approved entries by votes, upvote/undo, report, apply form,
+  own application status and withdraw, last winner
+- [x] Home page: the derived winner below the hero (ISR 1h; revalidated by panel and recipe actions)
+- [x] Panel: Vitrin page (open a period, approve/reject, votes, winner, delete); reported applications
+  in Moderasyon with hide/show
+- [x] `/privacy` names the showcase (version `2026-10-14.3`) — approved by the user (2026-10-14)
+- [x] End to end on `localhost:3000` / `admin.localhost:3000` (2026-10-14) with the user's
+  `ahmet_kafa`: period opened in the panel → recipe with a photo → applied on the feed (pending, not
+  visible anonymously) → approved → self-vote (1, persisted) → taken back (0) → voted again → period
+  moved into the past in SQL → winner card on the home page, "Son kazanan" on the feed, "★ kazanan" in
+  the panel → a report in Moderasyon → hidden (gone from the home page and the feed) → report closed,
+  period deleted, recipe deleted (photo gone). All test rows removed
+- [ ] Live check on the domain from an unblocked network (the user's phone)
 
 ### ⚪ M8 — Mobile app
 
@@ -476,6 +509,7 @@ when it starts.
 - Editing a comment; threaded replies (M6 comments are flat, delete-only)
 - Tune "popular" (weights, logs, a week vs a month) once there is real traffic
 - House recipes on `/recipes/{slug}` too (the path is ready: slugs are unique across both)
+- Showcase: an archive of past winners; telling applicants when they are approved (M7 shows the status on the feed only)
 - The `haci` wordmark (`public/brand/haci-wordmark-light.svg`) in the navbar instead of text
 - **Our own auth domain** (e.g. `auth.hacininkokteylleri.tech`, Supabase custom domain, a paid
   add-on) plus Google brand verification, so Google's account chooser says `haci` instead of
@@ -487,6 +521,7 @@ when it starts.
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-10-14 | M7 build | A new Claude account: the user connected the Supabase connector and Claude in Chrome. M6 live check still left (the user's). The user answered the M7 questions (period chosen per time, apply/vote in `/feed`, winner card below the hero, recipe + pitch + photo required). Migration `showcase` (38 policy checks). The feed's Vitrin section, the home page winner, the panel's Vitrin page, moderation of applications; `/privacy` `2026-10-14.3` (the user's OK). ADR-019. Tested end to end in Chrome on localhost; test rows removed. Deployed; live check left |
 | 2026-10-14 | M6 build | The user answered the M6 questions (feed like Letterboxd, follows, replies on logs, reviewable recipes, `/recipes/{slug}`). Migration `community_recipes` (33 policy checks). Members' recipes, recipe pages, `/feed`, follows, log comments, moderation; `/privacy` updated (version `2026-10-14.2`, the user's OK). ADR-018. Tested end to end in Chrome (localhost) with the user's account and a seeded member (removed). Deployed; live check left |
 | 2026-10-14 | M5 live check | The user checked the drink log on the live domain from their phone: passed. Database clean afterwards (0 logs). **M5 done**; next M6 |
 | 2026-10-14 | M5 build | Migration `drink_logs` (29 policy checks). Log from the recipe card on a dynamic page under `/account/logs` (ADR-017), list/edit/delete, public/private with a default on `/account`, public logs on profiles with reports, the panel's moderation. `/privacy` names the drink log (the user's OK), version `2026-10-14`. Tested end to end in Chrome with the user's account and a seeded reporter (removed). Deployed; live check left |
