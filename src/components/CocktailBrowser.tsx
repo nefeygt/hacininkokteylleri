@@ -1,10 +1,16 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Search, X, SlidersHorizontal } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { Search, X, SlidersHorizontal, Heart } from "lucide-react";
+import { setFavorite } from "@/app/(site)/cocktails/actions";
 import CocktailCard from "@/components/CocktailCard";
 import CocktailModal from "@/components/CocktailModal";
+import { useMember } from "@/components/useMember";
 import type { Cocktail } from "@/lib/content";
+
+// "/cocktails?cocktail={slug}" opens that recipe, so a link (or the way back
+// from /login) lands on it. Read in the browser: the page itself is static.
+const OPEN_PARAM = "cocktail";
 
 const baseAlcohols = ["Tümü", "Votka", "Cin", "Rom", "Viski", "Tekila"];
 const flavors = ["Tümü", "Tatlı", "Ekşi", "Acı", "Baharatlı"];
@@ -46,10 +52,39 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
   const [selectedBase, setSelectedBase] = useState("Tümü");
   const [selectedFlavor, setSelectedFlavor] = useState("Tümü");
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
-  const [selectedCocktail, setSelectedCocktail] = useState<Cocktail | null>(
-    null
-  );
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(true);
+  const [onlyFavorites, setOnlyFavorites] = useState(false);
+  const { member, favorites, markFavorite } = useMember();
+
+  // Looked up by id so a revalidated page (a new average) updates the open card.
+  const selectedCocktail = cocktails.find((c) => c.id === selectedId) ?? null;
+
+  useEffect(() => {
+    const slug = new URLSearchParams(window.location.search).get(OPEN_PARAM);
+    const match = slug && cocktails.find((c) => c.slug === slug);
+    if (match) setSelectedId(match.id);
+    // Only on arrival; later changes come from clicks.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const openCocktail = (cocktail: Cocktail | null) => {
+    setSelectedId(cocktail?.id ?? null);
+    const url = new URL(window.location.href);
+    if (cocktail) url.searchParams.set(OPEN_PARAM, cocktail.slug);
+    else url.searchParams.delete(OPEN_PARAM);
+    window.history.replaceState(window.history.state, "", url);
+  };
+
+  const toggleFavorite = async (cocktail: Cocktail) => {
+    const on = !favorites.has(cocktail.id);
+    markFavorite(cocktail.id, on);
+    const result = await setFavorite(cocktail.id, on);
+    if (result.error) {
+      markFavorite(cocktail.id, !on);
+      window.alert(result.error);
+    }
+  };
 
   const toggleIngredient = (ing: string) => {
     setSelectedIngredients((prev) =>
@@ -62,16 +97,20 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
     setSelectedBase("Tümü");
     setSelectedFlavor("Tümü");
     setSelectedIngredients([]);
+    setOnlyFavorites(false);
   };
 
   const hasActiveFilters =
     search ||
     selectedBase !== "Tümü" ||
     selectedFlavor !== "Tümü" ||
-    selectedIngredients.length > 0;
+    selectedIngredients.length > 0 ||
+    onlyFavorites;
 
   const filtered = useMemo(() => {
     return cocktails.filter((c) => {
+      if (onlyFavorites && !favorites.has(c.id)) return false;
+
       if (search) {
         const searchTerms = expandSearchTerms(search);
         const searchable = [
@@ -107,7 +146,7 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
 
       return true;
     });
-  }, [cocktails, search, selectedBase, selectedFlavor, selectedIngredients]);
+  }, [cocktails, search, selectedBase, selectedFlavor, selectedIngredients, onlyFavorites, favorites]);
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-10">
@@ -194,6 +233,22 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
             ))}
           </FilterRow>
 
+          {member.state === "ok" && (
+            <FilterRow label="Listem">
+              <button
+                onClick={() => setOnlyFavorites(!onlyFavorites)}
+                className={`flex items-center gap-1.5 rounded-sm px-3 py-1 font-mono text-[11px] transition-colors ${
+                  onlyFavorites
+                    ? "bg-crimson/20 text-crimson-glow"
+                    : "bg-bg-elevated text-text-muted hover:bg-bg-elevated/80 hover:text-text-secondary"
+                }`}
+              >
+                <Heart className={`h-3 w-3 ${onlyFavorites ? "fill-crimson-glow" : ""}`} />
+                Favorilerim ({favorites.size})
+              </button>
+            </FilterRow>
+          )}
+
           {hasActiveFilters && (
             <button
               onClick={clearFilters}
@@ -218,7 +273,8 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
             <CocktailCard
               key={cocktail.id}
               cocktail={cocktail}
-              onClick={() => setSelectedCocktail(cocktail)}
+              favorite={favorites.has(cocktail.id)}
+              onClick={() => openCocktail(cocktail)}
             />
           ))}
         </div>
@@ -238,7 +294,10 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
       {selectedCocktail && (
         <CocktailModal
           cocktail={selectedCocktail}
-          onClose={() => setSelectedCocktail(null)}
+          onClose={() => openCocktail(null)}
+          member={member}
+          favorite={favorites.has(selectedCocktail.id)}
+          onToggleFavorite={() => toggleFavorite(selectedCocktail)}
         />
       )}
     </div>

@@ -140,5 +140,6 @@ export async function deleteAccount(confirmation: string): Promise<AccountResult
 
   await supabase.auth.signOut();
   if (session.state === "ok") revalidatePath(`/u/${session.profile.username}`);
+  revalidatePath("/cocktails"); // their reviews leave the averages
   return { ok: true };
 }

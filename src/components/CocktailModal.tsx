@@ -1,17 +1,25 @@
 "use client";
 
 import { useEffect, useCallback } from "react";
-import { X, Wine, Leaf } from "lucide-react";
+import { X, Wine, Leaf, Heart } from "lucide-react";
 import type { Cocktail } from "@/lib/content";
+import CocktailReviews from "./CocktailReviews";
+import type { Member } from "./useMember";
 import VisualQuantity from "./VisualQuantity";
 import { InstructionText } from "./Tooltip";
 
 export default function CocktailModal({
   cocktail,
   onClose,
+  member,
+  favorite,
+  onToggleFavorite,
 }: {
   cocktail: Cocktail;
   onClose: () => void;
+  member: Member;
+  favorite: boolean;
+  onToggleFavorite: () => void;
 }) {
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -67,9 +75,26 @@ export default function CocktailModal({
                 </span>
               )}
             </div>
-            <h2 className="text-2xl font-bold tracking-tight">
-              {cocktail.name}
-            </h2>
+            <div className="flex items-center gap-3 pr-10">
+              <h2 className="text-2xl font-bold tracking-tight">
+                {cocktail.name}
+              </h2>
+              {member.state === "ok" && (
+                <button
+                  type="button"
+                  onClick={onToggleFavorite}
+                  aria-pressed={favorite}
+                  title={favorite ? "Favorilerden çıkar" : "Favorilere ekle"}
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors ${
+                    favorite
+                      ? "bg-crimson/20 text-crimson-glow"
+                      : "bg-bg-elevated text-text-muted hover:text-crimson-glow"
+                  }`}
+                >
+                  <Heart className={`h-4 w-4 ${favorite ? "fill-crimson-glow" : ""}`} />
+                </button>
+              )}
+            </div>
             <p className="mt-1 font-mono text-sm text-text-secondary">
               {cocktail.subtitle}
             </p>
@@ -147,6 +172,10 @@ export default function CocktailModal({
               </p>
             </div>
           )}
+
+          <div className="mt-8">
+            <CocktailReviews cocktail={cocktail} member={member} />
+          </div>
         </div>
       </div>
     </div>

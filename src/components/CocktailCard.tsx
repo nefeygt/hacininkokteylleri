@@ -1,14 +1,17 @@
 "use client";
 
 import Image from "next/image";
-import { Wine, Leaf, Star } from "lucide-react";
+import { Wine, Leaf, Star, Heart } from "lucide-react";
+import { formatAverage } from "@/lib/community";
 import type { Cocktail } from "@/lib/content";
 
 export default function CocktailCard({
   cocktail,
+  favorite = false,
   onClick,
 }: {
   cocktail: Cocktail;
+  favorite?: boolean;
   onClick: () => void;
 }) {
   return (
@@ -63,16 +66,33 @@ export default function CocktailCard({
               <Leaf className="h-3 w-3" />
             </div>
           )}
-          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-black/40 text-text-muted backdrop-blur-sm">
-            <Star className="h-3 w-3" />
-          </div>
+          {favorite && (
+            <div
+              title="Favorilerinde"
+              className="flex h-6 w-6 items-center justify-center rounded-full bg-black/40 text-crimson-glow backdrop-blur-sm"
+            >
+              <Heart className="h-3 w-3 fill-crimson-glow" />
+            </div>
+          )}
         </div>
       </div>
 
       {/* Content below image */}
       <div className="flex flex-1 flex-col justify-end p-5">
-        <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.2em] text-text-muted">
-          {cocktail.baseAlcohol} · {cocktail.flavor}
+        <div className="mb-1 flex items-center justify-between gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-text-muted">
+          <span>
+            {cocktail.baseAlcohol} · {cocktail.flavor}
+          </span>
+          {cocktail.rating && (
+            <span
+              className="flex shrink-0 items-center gap-1 normal-case tracking-normal text-text-secondary"
+              title={`${cocktail.rating.count} değerlendirme`}
+            >
+              <Star className="h-3 w-3 fill-crimson-glow text-crimson-glow" />
+              {formatAverage(cocktail.rating.average)}
+              <span className="text-text-muted">({cocktail.rating.count})</span>
+            </span>
+          )}
         </div>
         <h3 className="mb-1 text-lg font-bold tracking-tight text-text-primary transition-colors group-hover:text-crimson-glow">
           {cocktail.name}

@@ -28,6 +28,9 @@ export default async function PanelLayout({ children }: { children: React.ReactN
               <Link href="/glossary" className="rounded px-2.5 py-1.5 text-text-secondary hover:bg-bg-elevated hover:text-text-primary">
                 Sözlük
               </Link>
+              <Link href="/moderation" className="rounded px-2.5 py-1.5 text-text-secondary hover:bg-bg-elevated hover:text-text-primary">
+                Moderasyon
+              </Link>
               <a
                 href={SITE_URL}
                 target="_blank"

@@ -1,0 +1,150 @@
+import type { Metadata } from "next";
+import { requireAdmin } from "@/lib/admin";
+import ModerationButton from "../../ModerationButton";
+
+export const metadata: Metadata = { title: "Moderasyon" };
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+
+function date(value: string) {
+  return new Date(value).toLocaleString("tr-TR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+}
+
+type ProfileRef = { id: string; username: string; display_name: string; hidden_at: string | null };
+type ReviewRef = {
+  id: string;
+  rating: number;
+  body: string | null;
+  hidden_at: string | null;
+  updated_at: string;
+  profiles: { username: string; display_name: string };
+  cocktails: { name: string };
+};
+
+const REVIEW_COLUMNS = "id, rating, body, hidden_at, updated_at, profiles(username, display_name), cocktails(name)";
+
+/**
+ * Open reports and the latest reviews (M4). Admins read everything here
+ * through their own 2FA session; hiding goes through the moderation guard.
+ */
+export default async function ModerationPage() {
+  const { supabase } = await requireAdmin();
+
+  const [{ data: reports, error }, { data: recent }] = await Promise.all([
+    supabase
+      .from("reports")
+      .select("id, target_type, target_id, reason, created_at, profiles(username)")
+      .is("resolved_at", null)
+      .order("created_at", { ascending: false })
+      .limit(100),
+    supabase.from("reviews").select(REVIEW_COLUMNS).order("updated_at", { ascending: false }).limit(50),
+  ]);
+  if (error) throw new Error(error.message);
+
+  const reviewIds = reports.filter((r) => r.target_type === "review").map((r) => r.target_id);
+  const profileIds = reports.filter((r) => r.target_type === "profile").map((r) => r.target_id);
+  const [{ data: reportedReviews }, { data: reportedProfiles }] = await Promise.all([
+    reviewIds.length
+      ? supabase.from("reviews").select(REVIEW_COLUMNS).in("id", reviewIds)
+      : Promise.resolve({ data: [] }),
+    profileIds.length
+      ? supabase.from("profiles").select("id, username, display_name, hidden_at").in("id", profileIds)
+      : Promise.resolve({ data: [] }),
+  ]);
+  const reviewsById = new Map(((reportedReviews ?? []) as ReviewRef[]).map((r) => [r.id, r]));
+  const profilesById = new Map(((reportedProfiles ?? []) as ProfileRef[]).map((p) => [p.id, p]));
+
+  return (
+    <div className="space-y-10">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Moderasyon</h1>
+        <p className="mt-1 font-mono text-xs text-text-muted">
+          {reports.length} açık bildirim · gizlenen içerik yalnızca sahibine ve yöneticilere görünür
+        </p>
+      </div>
+
+      <section>
+        <h2 className="mb-3 font-mono text-xs uppercase tracking-[0.15em] text-text-muted">Açık bildirimler</h2>
+        {reports.length === 0 ? (
+          <p className="font-mono text-xs text-text-muted">Bildirim yok.</p>
+        ) : (
+          <ul className="divide-y divide-border overflow-hidden rounded-sm border border-border bg-bg-card">
+            {reports.map((report) => {
+              const review = report.target_type === "review" ? reviewsById.get(report.target_id) : undefined;
+              const profile = report.target_type === "profile" ? profilesById.get(report.target_id) : undefined;
+              return (
+                <li key={report.id} className="space-y-2 px-4 py-3">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] text-text-muted">
+                    <span className="rounded bg-bg-elevated px-1.5 py-0.5 uppercase tracking-wider">
+                      {report.target_type === "review" ? "değerlendirme" : report.target_type === "profile" ? "profil" : report.target_type}
+                    </span>
+                    <span>@{report.profiles?.username ?? "silinmiş"} bildirdi · {date(report.created_at)}</span>
+                    <span className="ml-auto">
+                      <ModerationButton action={{ kind: "resolve", id: report.id }} />
+                    </span>
+                  </div>
+                  {report.reason && <p className="text-sm text-text-secondary">“{report.reason}”</p>}
+                  {review && <ReviewRow review={review} />}
+                  {profile && <ProfileRow profile={profile} />}
+                  {!review && !profile && (
+                    <p className="font-mono text-[11px] text-text-muted">İçerik artık yok (silinmiş).</p>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
+      <section>
+        <h2 className="mb-3 font-mono text-xs uppercase tracking-[0.15em] text-text-muted">Son değerlendirmeler</h2>
+        {!recent?.length ? (
+          <p className="font-mono text-xs text-text-muted">Henüz değerlendirme yok.</p>
+        ) : (
+          <ul className="divide-y divide-border overflow-hidden rounded-sm border border-border bg-bg-card">
+            {(recent as ReviewRef[]).map((review) => (
+              <li key={review.id} className="px-4 py-3">
+                <ReviewRow review={review} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function ReviewRow({ review }: { review: ReviewRef }) {
+  return (
+    <div className={`flex items-start gap-3 ${review.hidden_at ? "opacity-60" : ""}`}>
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-x-2 font-mono text-[11px] text-text-muted">
+          <span className="font-sans text-sm font-semibold text-text-primary">{review.cocktails.name}</span>
+          <span className="text-crimson-glow">{"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</span>
+          <a href={`${SITE_URL}/u/${review.profiles.username}`} target="_blank" rel="noopener noreferrer" className="hover:text-text-primary">
+            @{review.profiles.username}
+          </a>
+          <span>{date(review.updated_at)}</span>
+          {review.hidden_at && <span className="text-crimson-glow">gizli</span>}
+        </div>
+        {review.body && <p className="mt-1 whitespace-pre-line break-words text-sm text-text-secondary">{review.body}</p>}
+      </div>
+      <ModerationButton action={{ kind: "review", id: review.id, hide: !review.hidden_at }} />
+    </div>
+  );
+}
+
+function ProfileRow({ profile }: { profile: ProfileRef }) {
+  return (
+    <div className={`flex items-center gap-3 ${profile.hidden_at ? "opacity-60" : ""}`}>
+      <div className="min-w-0 flex-1 font-mono text-[11px] text-text-muted">
+        <span className="font-sans text-sm font-semibold text-text-primary">{profile.display_name}</span>{" "}
+        <a href={`${SITE_URL}/u/${profile.username}`} target="_blank" rel="noopener noreferrer" className="hover:text-text-primary">
+          @{profile.username}
+        </a>
+        {profile.hidden_at && <span className="ml-2 text-crimson-glow">gizli</span>}
+      </div>
+      <ModerationButton action={{ kind: "profile", id: profile.id, hide: !profile.hidden_at }} />
+    </div>
+  );
+}

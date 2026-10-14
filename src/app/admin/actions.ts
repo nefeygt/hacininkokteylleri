@@ -245,3 +245,57 @@ export async function deleteGlossaryTerm(term: string): Promise<ActionResult> {
   revalidatePath("/admin/glossary");
   return {};
 }
+
+// ---------------------------------------------------------------- moderation (M4)
+
+// Hiding is a column guarded by private.guard_moderation(), which also writes
+// hidden_by; the author still sees the row, marked hidden (ADR-014).
+
+export async function setReviewHidden(id: string, hidden: boolean): Promise<ActionResult> {
+  const supabase = await adminClient();
+  if (!supabase) return { error: SESSION_LOST };
+
+  const { data, error } = await supabase
+    .from("reviews")
+    .update({ hidden_at: hidden ? new Date().toISOString() : null })
+    .eq("id", id)
+    .select("profiles(username)")
+    .maybeSingle();
+  if (error) return { error: `Kaydedilemedi: ${error.message}` };
+
+  revalidatePublicPages();
+  if (data?.profiles) revalidatePath(`/u/${data.profiles.username}`);
+  revalidatePath("/admin/moderation");
+  return { ok: true };
+}
+
+export async function setProfileHidden(id: string, hidden: boolean): Promise<ActionResult> {
+  const supabase = await adminClient();
+  if (!supabase) return { error: SESSION_LOST };
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .update({ hidden_at: hidden ? new Date().toISOString() : null })
+    .eq("id", id)
+    .select("username")
+    .maybeSingle();
+  if (error) return { error: `Kaydedilemedi: ${error.message}` };
+
+  // A hidden profile's reviews leave the averages too (cocktail_ratings).
+  revalidatePublicPages();
+  if (data) revalidatePath(`/u/${data.username}`);
+  revalidatePath("/admin/moderation");
+  return { ok: true };
+}
+
+/** Closes a report; resolved_by is written by the database. */
+export async function resolveReport(id: string): Promise<ActionResult> {
+  const supabase = await adminClient();
+  if (!supabase) return { error: SESSION_LOST };
+
+  const { error } = await supabase.from("reports").update({ resolved_at: new Date().toISOString() }).eq("id", id);
+  if (error) return { error: `Kaydedilemedi: ${error.message}` };
+
+  revalidatePath("/admin/moderation");
+  return { ok: true };
+}

@@ -167,6 +167,39 @@ export type Database = {
         }
         Relationships: []
       }
+      favorites: {
+        Row: {
+          cocktail_id: string
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          cocktail_id: string
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          cocktail_id?: string
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_cocktail_id_fkey"
+            columns: ["cocktail_id"]
+            isOneToOne: false
+            referencedRelation: "cocktails"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       glossary_terms: {
         Row: {
           created_at: string
@@ -224,9 +257,116 @@ export type Database = {
         }
         Relationships: []
       }
+      reports: {
+        Row: {
+          created_at: string
+          id: string
+          reason: string | null
+          reporter_id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          target_id: string
+          target_type: Database["public"]["Enums"]["report_target"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reason?: string | null
+          reporter_id: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          target_id: string
+          target_type: Database["public"]["Enums"]["report_target"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reason?: string | null
+          reporter_id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          target_id?: string
+          target_type?: Database["public"]["Enums"]["report_target"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          body: string | null
+          cocktail_id: string
+          created_at: string
+          hidden_at: string | null
+          hidden_by: string | null
+          id: string
+          rating: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          cocktail_id: string
+          created_at?: string
+          hidden_at?: string | null
+          hidden_by?: string | null
+          id?: string
+          rating: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          cocktail_id?: string
+          created_at?: string
+          hidden_at?: string | null
+          hidden_by?: string | null
+          id?: string
+          rating?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_cocktail_id_fkey"
+            columns: ["cocktail_id"]
+            isOneToOne: false
+            referencedRelation: "cocktails"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
-      [_ in never]: never
+      cocktail_ratings: {
+        Row: {
+          average_rating: number | null
+          cocktail_id: string | null
+          review_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_cocktail_id_fkey"
+            columns: ["cocktail_id"]
+            isOneToOne: false
+            referencedRelation: "cocktails"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       delete_my_account: { Args: never; Returns: undefined }
@@ -238,6 +378,12 @@ export type Database = {
     Enums: {
       admin_role: "owner" | "editor"
       ingredient_icon: "shot" | "dash" | "drop" | "slice" | "spoon" | "topup"
+      report_target:
+        | "profile"
+        | "cocktail"
+        | "review"
+        | "drink_log"
+        | "showcase_entry"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -367,6 +513,13 @@ export const Constants = {
     Enums: {
       admin_role: ["owner", "editor"],
       ingredient_icon: ["shot", "dash", "drop", "slice", "spoon", "topup"],
+      report_target: [
+        "profile",
+        "cocktail",
+        "review",
+        "drink_log",
+        "showcase_entry",
+      ],
     },
   },
 } as const

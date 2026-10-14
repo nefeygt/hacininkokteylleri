@@ -30,6 +30,13 @@ export interface Cocktail {
   glass: string;
   vegan: boolean;
   note?: string;
+  /** Visible reviews only; absent when nobody has reviewed it yet. */
+  rating?: Rating;
+}
+
+export interface Rating {
+  average: number;
+  count: number;
 }
 
 /** Term → explanation, shown as a tooltip wherever the term appears. */
@@ -71,16 +78,25 @@ function toCocktail(row: CocktailRow): Cocktail {
   };
 }
 
-/** Every published cocktail, in display order. */
+/**
+ * Every published cocktail, in display order, with its average rating. The
+ * ratings reach the static page at its revalidation; a review write
+ * revalidates it at once (ADR-005, ADR-014).
+ */
 export async function getPublishedCocktails(): Promise<Cocktail[]> {
-  const { data, error } = await createPublicClient()
-    .from("cocktails")
-    .select(COCKTAIL_COLUMNS)
-    .eq("is_published", true)
-    .order("sort_order");
+  const supabase = createPublicClient();
+  const [{ data, error }, ratings] = await Promise.all([
+    supabase.from("cocktails").select(COCKTAIL_COLUMNS).eq("is_published", true).order("sort_order"),
+    supabase.from("cocktail_ratings").select("cocktail_id, review_count, average_rating"),
+  ]);
 
   if (error) throw new Error(`Could not load cocktails: ${error.message}`);
-  return (data as CocktailRow[]).map(toCocktail);
+  if (ratings.error) throw new Error(`Could not load ratings: ${ratings.error.message}`);
+
+  const byCocktail = new Map(
+    ratings.data.map((r) => [r.cocktail_id, { average: Number(r.average_rating), count: r.review_count ?? 0 }])
+  );
+  return (data as CocktailRow[]).map((row) => ({ ...toCocktail(row), rating: byCocktail.get(row.id) }));
 }
 
 export async function getGlossary(): Promise<Glossary> {
