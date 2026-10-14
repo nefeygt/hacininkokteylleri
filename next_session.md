@@ -62,12 +62,18 @@ Sign-ups on (`/auth/v1/settings` → `"disable_signup": false`). SQL at the end 
 profile `ahmet_kafa`, every community table empty. Never delete or edit a row you did not create
 without asking. `cd mobile && npm ci` on a fresh machine (the app has its own lockfile).
 
-### Step 1 — ask the user first (they change what can be built)
+### Step 1 — the user's accounts (answered 2026-10-14, see Closed Questions)
 
-Questions 7–9 below: the Expo account, and whether the Apple and Google developer accounts are
-**personal or organisation** (the stores show that name as the seller). Remind them that Apple's
-enrolment can take days and that a new personal Google Play account needs a **12-tester, 14-day
-closed test** before production — both should start now, long before step 7.
+- **Expo:** the user already has an account and gives the username this session (they were away from
+  their own laptop). Ask for it; they sign in to EAS themselves (`npx eas-cli@latest login` — never
+  type their password). Then `eas init` links `mobile/` to a project on that account.
+- **Google Play:** a **personal** account already exists. Ask **when it was created**: accounts made
+  after 2023-11-13 need a closed test with **12 testers for 14 days** before production access; start
+  that test as soon as a first Android build exists.
+- **Apple Developer:** **personal**, not opened yet — the user enrols from an iPhone (their
+  girlfriend's) through the Apple Developer app, where it costs ~650 TL a year. Until then: no iOS
+  device builds and no Sign in with Apple testing; build and test Android first and keep the iOS code
+  paths (Apple sign-in) ready but untested.
 
 ### Step 2 — build (ADR-020)
 
@@ -118,9 +124,8 @@ closed test** before production — both should start now, long before step 7.
 | 3 | **Colour theme:** keep the dark crimson "Rx" look, or explore a lighter/warmer palette? | The user said the theme can change (ADR-015) | Today's palette stays (the app copies it from one theme file) |
 | 5 | **Hacı's first admin sign-in** — when (his phone, a network that does not block the domain)? | His 2FA factor is not enrolled yet | He cannot use the panel |
 | 6 | **The first real showcase period** — when, a week or a month? | Nothing promotes it until a period exists (the feed hides the section) | No period; the feature is invisible |
-| 7 | **An Expo account** (expo.dev, free) — which username? | EAS builds the app for devices and stores; Google/Apple sign-in need a development build | Only Expo Go / Expo web testing |
-| 8 | **Apple Developer: personal or organisation?** ($99/yr; organisation needs a D-U-N-S number and shows the company as seller) | The App Store shows the seller's name; enrolment takes days | No iOS build on devices, no Sign in with Apple |
-| 9 | **Google Play: personal or organisation?** ($25; a new personal account needs 12 testers for 14 days before production) | The seller name, and the closed-test wait | No Play release |
+| 7 | **The Expo username** (the account exists; the user brings it this session) | EAS builds; Google sign-in needs a development build | Only Expo Go / Expo web testing |
+| 9 | **When was the Google Play account created?** | After 2023-11-13 → a 12-tester, 14-day closed test before production | Plan for the closed test |
 
 ---
 
@@ -349,6 +354,7 @@ closed test** before production — both should start now, long before step 7.
 | Is `/privacy` final? Open M3? | **Yes and yes** — opened 2026-10-14 |
 | Are the accounts real people? | **Not necessarily yet** (the user, 2026-10-14): nothing promotes sign-up; still never touch rows you did not create without asking |
 | Resend account and sender? | **The user's account; `haci <noreply@hacininkokteylleri.tech>`** |
+| Developer accounts? | **Expo: the user's existing account** (username next session). **Google Play: personal, exists.** **Apple: personal**, opened later from an iPhone through the Apple Developer app (~650 TL/yr) — Android goes first (2026-10-14) |
 | Mobile app: where, scope, platforms, sign-in? | **`mobile/` in this repo; full parity with the site before the first store release; iOS + Android from day one on the user's accounts; native Google + e-mail (+ Sign in with Apple on iOS)** (ADR-020, 2026-10-14) |
 | Admins, 2FA, canonical domain, WHOIS, reviews/logs, mobile stack | See ADR-007, 011, 010, plan.md M2, ADR-012, ADR-013 |
 
