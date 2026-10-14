@@ -9,7 +9,7 @@
 > **Language rule (ADR-002):** everything we write — docs, code, comments, commits, SQL — is
 > **English**. Everything visitors and admins read — UI strings, recipes — is **Turkish**.
 
-**Last updated:** 2026-10-14 · **Active milestone:** **M6 — Community recipes and feeds** (built, tested locally; privacy text approval, deploy and live check left) · **Brand:** `haci` (ADR-015)
+**Last updated:** 2026-10-14 · **Active milestone:** **M6 — Community recipes and feeds** (built and deployed; live check left) · **Brand:** `haci` (ADR-015)
 
 ---
 
@@ -17,7 +17,7 @@
 
 | Field | State |
 |---|---|
-| Active milestone | **M6 — Community recipes and feeds** — built and tested end to end on `localhost` (2026-10-14, ADR-018): members' recipes on `/recipes/{slug}`, `/feed`, follows, comments on public logs, moderation. **Left:** the user's OK on the `/privacy` text, deploy, live check |
+| Active milestone | **M6 — Community recipes and feeds** — built and tested end to end on `localhost` (2026-10-14, ADR-018): members' recipes on `/recipes/{slug}`, `/feed`, follows, comments on public logs, moderation. `/privacy` approved by the user and deployed (2026-10-14). **Left:** the live check on the domain |
 | Previous milestone | **M5 — Drink log** (2026-10-14): log from the recipe card with the recipe as made, private/public with a default, public logs on profiles, reports and moderation (ADR-017) — tested end to end on `localhost`; **live check passed on the user's phone**. **M5 done**. M4 — Reviews and favourites done 2026-10-14; M3 — Accounts done 2026-10-14 |
 | Last completed | **M2 — Domain** (Search Console moved from vercel.app to the domain) and the **brand change to `haci`** with English URLs and the cherry logo (ADR-015). M1 is done except Hacı's own first sign-in |
 | Blockers | None in the code. The network the user's office computer is on (a Fortinet FortiGate) blocks the domain — check from outside (§5.4) |
@@ -386,7 +386,7 @@ After any schema change: mirror the migration, regenerate `database.types.ts`, r
 - [x] End to end on `localhost:3000` / `admin.localhost:3000` (2026-10-14) with the user's `ahmet_kafa`: log from the card with vodka → gin, 4 stars → private (not on the profile) → edited to public (on the profile, also for an anonymous fetch) → default setting on (new form pre-ticked) and off again → a seeded member's report in the panel → hidden (gone from the profile, owner sees "gizlendi") → report closed → log deleted. Test rows and the seeded member removed
 - [x] Live check on `hacininkokteylleri.tech` (2026-10-14, the user's phone): passed. Afterwards 0 logs, reviews and reports; the only profile is `ahmet_kafa`
 
-### 🔵 M6 — Community recipes and feeds `BUILT 2026-10-14 — privacy OK, deploy, live check left`
+### 🔵 M6 — Community recipes and feeds `BUILT 2026-10-14 — live check left`
 
 The user's answers (2026-10-14): the feed = all members' popular recipes (Letterboxd's main page)
 + the latest logs of people you follow; replies on a followed person's log, like Letterboxd review
@@ -408,8 +408,8 @@ comments; members' recipes reviewable; `/r/{slug}` "or whichever is better" → 
   hides the comment, closes the report, hides the recipe (404 for guests, gone from the feed,
   "gizlendi" for the author) → recipe deleted (photo removed, review/favourite gone, the log kept
   its copy). Test rows and the seeded member removed; the archive's card still renders
-- [ ] `/privacy` text (recipes, photos, follows, comments; version `2026-10-14.2`) — the user's OK
-- [ ] Deploy; live check on the domain from an unblocked network (the user's phone)
+- [x] `/privacy` text (recipes, photos, follows, comments; version `2026-10-14.2`) — approved by the user (2026-10-14); deployed
+- [ ] Live check on the domain from an unblocked network (the user's phone)
 
 ### ⚪ M7 — The showcase
 
@@ -487,7 +487,7 @@ when it starts.
 
 | Date | Session | Outcome |
 |---|---|---|
-| 2026-10-14 | M6 build | The user answered the M6 questions (feed like Letterboxd, follows, replies on logs, reviewable recipes, `/recipes/{slug}`). Migration `community_recipes` (33 policy checks). Members' recipes, recipe pages, `/feed`, follows, log comments, moderation; `/privacy` text drafted (version `2026-10-14.2`, awaiting the user's OK). ADR-018. Tested end to end in Chrome (localhost) with the user's account and a seeded member (removed). Not deployed yet |
+| 2026-10-14 | M6 build | The user answered the M6 questions (feed like Letterboxd, follows, replies on logs, reviewable recipes, `/recipes/{slug}`). Migration `community_recipes` (33 policy checks). Members' recipes, recipe pages, `/feed`, follows, log comments, moderation; `/privacy` updated (version `2026-10-14.2`, the user's OK). ADR-018. Tested end to end in Chrome (localhost) with the user's account and a seeded member (removed). Deployed; live check left |
 | 2026-10-14 | M5 live check | The user checked the drink log on the live domain from their phone: passed. Database clean afterwards (0 logs). **M5 done**; next M6 |
 | 2026-10-14 | M5 build | Migration `drink_logs` (29 policy checks). Log from the recipe card on a dynamic page under `/account/logs` (ADR-017), list/edit/delete, public/private with a default on `/account`, public logs on profiles with reports, the panel's moderation. `/privacy` names the drink log (the user's OK), version `2026-10-14`. Tested end to end in Chrome with the user's account and a seeded reporter (removed). Deployed; live check left |
 | 2026-10-14 | M4 live check | Over the user's mobile data in their Chrome: the domain 200; **Google sign-in on the live domain** works; review → card 4,0 (1) (also the cached static page) → delete → 0 rows. **M4 done**. The supabase.co name on Google's chooser → Icebox (own auth domain) |

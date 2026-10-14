@@ -5,8 +5,8 @@
 > it — you shouldn't need to explain anything else.**
 
 **Prepared by session:** 2026-10-14 (M6 build) · **Handing off:** **M6 — community recipes, the
-feed, follows and log comments are built and tested end to end on `localhost`** (ADR-018). Left:
-the user's OK on the `/privacy` text, the deploy, and the live check (Step 1). **Next: M7 — the
+feed, follows and log comments are built, tested end to end on `localhost` and deployed** (ADR-018;
+`/privacy` approved by the user, version `2026-10-14.2`). Left: the live check (Step 1). **Next: M7 — the
 showcase** (Step 2).
 
 ---
@@ -56,8 +56,7 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ### Step 0 — state check
 
-`git status` / `git log -1` — if the M6 commit (`Add community recipes, the feed, follows and log
-comments (M6)`) is not on `origin/main`, the deploy is still pending. `curl -s -H "apikey: $KEY"
+`git status` — clean, `main` in step with `origin/main`. `curl -s -H "apikey: $KEY"
 https://qwvnhdghwycqlvsnlvlt.supabase.co/auth/v1/settings` (publishable key from `.env` via `grep`)
 → `"disable_signup": false`. SQL: `select username from public.profiles;` and counts of
 `cocktails where author_id is not null`, `follows`, `log_comments`, `drink_logs` — after the M6
@@ -68,12 +67,7 @@ a row you did not create without asking.
 
 ### Step 1 — finish M6 (the user)
 
-1. **`/privacy`:** the user approves the three changed lines in section 2 (members' recipes and
-   photos; follows and comments; logs visible in followers' feeds and open to comments) and the
-   version `2026-10-14.2` (`src/lib/account-config.ts`). If they want other wording, change it
-   before the push.
-2. `npm run build`, commit, push (main deploys).
-3. **Live check** on `hacininkokteylleri.tech` from an unblocked network (the user's phone):
+1. **Live check** on `hacininkokteylleri.tech` from an unblocked network (the user's phone):
    Akış → "+ Tarif yaz" → a recipe with a photo → its page `/recipes/{slug}` → review it → the
    feed shows it → delete it (photo gone). Optional with a second account: follow, a public log,
    a comment and a reply. Tick the last boxes of M6 in plan.md and mark M6 done.
@@ -100,7 +94,6 @@ ADR-018.
 
 | # | Question | Why it matters | Until it is answered |
 |---|---|---|---|
-| 6 | **`/privacy` for M6** — approve the new lines (recipes and photos, follows, comments) and version `2026-10-14.2`? | KVKK: the notice must name what is processed before it ships | M6 is not deployed |
 | 3 | **Colour theme:** keep the dark crimson "Rx" look, or explore a lighter/warmer palette? | The user said the theme can change (ADR-015) | Today's palette stays |
 | 5 | **Hacı's first admin sign-in** — when (his phone, a network that does not block the domain)? | His 2FA factor is not enrolled yet | He cannot use the panel |
 
@@ -125,12 +118,12 @@ ADR-018.
 - **M4 (2026-10-14):** `reviews`, `favorites`, `reports`, view `cocktail_ratings`; the site's
   `cocktails/actions.ts`, `useMember`, `CocktailReviews`, `ReportButton`; the panel's
   `/moderation`. All tables empty after the test (the test rows were deleted).
-- **M6 (2026-10-14, built, not deployed):** migration `20261014081320_community_recipes` (10
+- **M6 (2026-10-14, deployed; live check left):** migration `20261014081320_community_recipes` (10
   migrations now, applied live); `src/lib/recipe.ts`, `src/app/(site)/account/recipes/` (list, `new`,
   `[id]`, `RecipeForm`, `actions.ts`), `recipes/[slug]`, `feed`, `logs/[id]` (+ `logs/actions.ts`),
   `u/actions.ts`; components `RecipeDetails`, `RecipeActions`, `RecipeView`, `ImageField` (moved from
   the panel), `FollowButton`, `FollowingLogs`, `LogComments`; the panel's moderation lists members'
-  recipes and comments. `/privacy` drafted, version `2026-10-14.2` — awaiting the user's OK.
+  recipes and comments. `/privacy` version `2026-10-14.2` (recipes and photos, follows, comments), approved by the user.
 - **M5 (2026-10-14):** `drink_logs` (migration `20261014073958_drink_logs`, 9 migrations now);
   `src/lib/drink-log.ts`, `src/app/(site)/account/logs/` (list, `new`, `[id]`, `LogForm`,
   `actions.ts`), `LogsDefaultToggle` on `/account`, `DrinkLogEntry`, `ReportIfSignedIn`; the panel's
@@ -294,7 +287,7 @@ ADR-018.
 
 ## 🧭 Look-ahead
 
-- **M3**, **M4**, **M5** done → **M6** (built; privacy OK, deploy, live check left) community
+- **M3**, **M4**, **M5** done → **M6** (deployed; live check left) community
   recipes and feeds → **M7** showcase → **M8** Expo apps (the cherry icon is ready:
   `public/brand/haci-app-icon-1024.png`, `haci-play-store-512.png`; the adaptive-icon foreground
   needs the mark scaled into the 66% safe zone).
