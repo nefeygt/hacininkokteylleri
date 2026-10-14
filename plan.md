@@ -9,7 +9,7 @@
 > **Language rule (ADR-002):** everything we write — docs, code, comments, commits, SQL — is
 > **English**. Everything visitors and admins read — UI strings, recipes — is **Turkish**.
 
-**Last updated:** 2026-10-14 · **Active milestone:** **M7 — The showcase** (built and deployed; live check left; M6's live check also left) · **Brand:** `haci` (ADR-015)
+**Last updated:** 2026-10-14 · **Active milestone:** **M8 — Mobile app** (not started; questions first) · M6 and M7 done · **Brand:** `haci` (ADR-015)
 
 ---
 
@@ -17,8 +17,8 @@
 
 | Field | State |
 |---|---|
-| Active milestone | **M7 — The showcase** — built and tested end to end on `localhost` (2026-10-14, ADR-019): admin-opened periods (a week or a month), applications (own published recipe + photo + pitch) and upvotes in the feed's "Vitrin" section, approval in the panel's Vitrin page, the derived winner on the home page. `/privacy` `2026-10-14.3` approved. **Left:** the live check on the domain |
-| Previous milestone | **M6 — Community recipes and feeds** (2026-10-14, ADR-018): built, tested on `localhost`, deployed. **Left:** its live check on the domain (the user's phone) — can be done together with M7's. M5 — Drink log done 2026-10-14 |
+| Active milestone | **M8 — Mobile app** (Expo, ADR-013) — not started; the user's answers first (repository, first version's scope, platforms and developer accounts, mobile Google sign-in) |
+| Previous milestone | **M7 — The showcase** (2026-10-14, ADR-019) and **M6 — Community recipes and feeds** (2026-10-14, ADR-018): built, tested on `localhost`, deployed; **live checks passed on the user's phone** (2026-10-14). **Both done**. M5 — Drink log done 2026-10-14 |
 | Last completed | **M2 — Domain** (Search Console moved from vercel.app to the domain) and the **brand change to `haci`** with English URLs and the cherry logo (ADR-015). M1 is done except Hacı's own first sign-in |
 | Blockers | None in the code. The network the user's office computer is on (a Fortinet FortiGate) blocks the domain — check from outside (§5.4) |
 | Next critical decision | **The colour theme** for a global audience (the user is open to change, ADR-015) and, later, localization. The mobile app is decided: Expo, after M3 (ADR-013) |
@@ -400,7 +400,7 @@ After any schema change: mirror the migration, regenerate `database.types.ts`, r
 - [x] End to end on `localhost:3000` / `admin.localhost:3000` (2026-10-14) with the user's `ahmet_kafa`: log from the card with vodka → gin, 4 stars → private (not on the profile) → edited to public (on the profile, also for an anonymous fetch) → default setting on (new form pre-ticked) and off again → a seeded member's report in the panel → hidden (gone from the profile, owner sees "gizlendi") → report closed → log deleted. Test rows and the seeded member removed
 - [x] Live check on `hacininkokteylleri.tech` (2026-10-14, the user's phone): passed. Afterwards 0 logs, reviews and reports; the only profile is `ahmet_kafa`
 
-### 🔵 M6 — Community recipes and feeds `BUILT 2026-10-14 — live check left`
+### ✅ M6 — Community recipes and feeds `DONE 2026-10-14`
 
 The user's answers (2026-10-14): the feed = all members' popular recipes (Letterboxd's main page)
 + the latest logs of people you follow; replies on a followed person's log, like Letterboxd review
@@ -423,9 +423,9 @@ comments; members' recipes reviewable; `/r/{slug}` "or whichever is better" → 
   "gizlendi" for the author) → recipe deleted (photo removed, review/favourite gone, the log kept
   its copy). Test rows and the seeded member removed; the archive's card still renders
 - [x] `/privacy` text (recipes, photos, follows, comments; version `2026-10-14.2`) — approved by the user (2026-10-14); deployed
-- [ ] Live check on the domain from an unblocked network (the user's phone)
+- [x] Live check on the domain from the user's phone (2026-10-14): passed; database clean afterwards
 
-### 🔵 M7 — The showcase `BUILT 2026-10-14 — live check left`
+### ✅ M7 — The showcase `DONE 2026-10-14`
 
 The user's answers (2026-10-14): the admin picks a week or a month each time; applying and voting
 inside `/feed`; the winner as a featured card below the hero; recipe + pitch + photo all required
@@ -447,7 +447,8 @@ inside `/feed`; the winner as a featured card below the hero; recipe + pitch + p
   moved into the past in SQL → winner card on the home page, "Son kazanan" on the feed, "★ kazanan" in
   the panel → a report in Moderasyon → hidden (gone from the home page and the feed) → report closed,
   period deleted, recipe deleted (photo gone). All test rows removed
-- [ ] Live check on the domain from an unblocked network (the user's phone)
+- [x] Live check on the domain from the user's phone (2026-10-14): passed; afterwards 0 periods,
+  entries, votes, members' recipes and recipe photos; the only profile is `ahmet_kafa`
 
 ### ⚪ M8 — Mobile app
 
@@ -521,6 +522,7 @@ when it starts.
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-10-14 | M6 + M7 live check | The user checked both on the live domain from their phone: passed. Database clean afterwards (only `ahmet_kafa`, every community table empty). **M6 and M7 done**; next M8 |
 | 2026-10-14 | M7 build | A new Claude account: the user connected the Supabase connector and Claude in Chrome. M6 live check still left (the user's). The user answered the M7 questions (period chosen per time, apply/vote in `/feed`, winner card below the hero, recipe + pitch + photo required). Migration `showcase` (38 policy checks). The feed's Vitrin section, the home page winner, the panel's Vitrin page, moderation of applications; `/privacy` `2026-10-14.3` (the user's OK). ADR-019. Tested end to end in Chrome on localhost; test rows removed. Deployed; live check left |
 | 2026-10-14 | M6 build | The user answered the M6 questions (feed like Letterboxd, follows, replies on logs, reviewable recipes, `/recipes/{slug}`). Migration `community_recipes` (33 policy checks). Members' recipes, recipe pages, `/feed`, follows, log comments, moderation; `/privacy` updated (version `2026-10-14.2`, the user's OK). ADR-018. Tested end to end in Chrome (localhost) with the user's account and a seeded member (removed). Deployed; live check left |
 | 2026-10-14 | M5 live check | The user checked the drink log on the live domain from their phone: passed. Database clean afterwards (0 logs). **M5 done**; next M6 |

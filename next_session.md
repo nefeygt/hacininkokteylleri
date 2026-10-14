@@ -4,10 +4,9 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-14 (M7 build) · **Handing off:** **M7 — the showcase is built,
-tested end to end on `localhost` and deployed** (ADR-019; `/privacy` version `2026-10-14.3`, approved by
-the user). **Left:** the live checks of M6 and M7 on the domain (Step 1, the user). **Next: M8 — the
-Expo app** (Step 2).
+**Prepared by session:** 2026-10-14 (M7 build + live checks) · **Handing off:** **M6 and M7 are done**
+— built, deployed, and the user's live checks on their phone passed (2026-10-14). **Next: M8 — the Expo
+app** (Step 1: questions first).
 
 ---
 
@@ -52,7 +51,7 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — finish M6 and M7, then start M8
+## 🎯 This Session's Task — start M8
 
 ### Step 0 — state check
 
@@ -66,21 +65,7 @@ from `.env` via `grep`) → `"disable_signup": false`. SQL: after the M7 test th
 entries, votes and `recipe-images` objects were all 0. Never delete or edit a row you did not create
 without asking.
 
-### Step 1 — the live checks (the user)
-
-On `hacininkokteylleri.tech` from an unblocked network (the user's phone):
-1. **M6:** Akış → "+ Tarif yaz" → a recipe **with a photo** → its page `/recipes/{slug}` → review it →
-   the feed shows it.
-2. **M7:** panel (`admin.hacininkokteylleri.tech/showcase`, 2FA) → open a one-week period from today →
-   Akış → "Vitrine başvur" with that recipe and a pitch → panel → Onayla → Akış: the entry, upvote,
-   take it back. The winner card on the home page needs an ended period — skip it live (tested on
-   localhost) or ask the agent to move the test period into the past in SQL.
-3. Clean up: panel → Vitrin → "Dönemi sil"; delete the recipe (photo gone). Optional with a second
-   account: follow, a public log, a comment and a reply.
-Then tick the last boxes of M6 and M7 in plan.md and mark both done. **Do not leave a real period open
-by accident** — the first real period is the user's call (see question 6).
-
-### Step 2 — M8: the Expo app
+### Step 1 — M8: the Expo app
 
 ADR-013: Expo (React Native + TypeScript + supabase-js), the same Supabase backend and panel. **Ask the
 user first:** a monorepo (this repository) or a second repository; the first version's scope (read the
@@ -128,12 +113,12 @@ Write an ADR for the answers before building.
 - **M4 (2026-10-14):** `reviews`, `favorites`, `reports`, view `cocktail_ratings`; the site's
   `cocktails/actions.ts`, `useMember`, `CocktailReviews`, `ReportButton`; the panel's
   `/moderation`. All tables empty after the test (the test rows were deleted).
-- **M7 (2026-10-14, deployed; live check left):** migration `20261014134219_showcase` (11 migrations
+- **M7 (2026-10-14, done; live check passed):** migration `20261014134219_showcase` (11 migrations
   now); `src/lib/showcase.ts`, `content.ts` (`getShowcase`, `getShowcaseWinner`), `src/app/(site)/feed/actions.ts`
   (apply, withdraw, vote), components `ShowcaseEntries`, `ShowcaseApply`; the home page is now ISR 1h
   with the winner card; the panel's `/showcase` page (`ShowcaseControls.tsx`) and reported applications
   in Moderasyon. `/privacy` version `2026-10-14.3` (the showcase line), approved by the user.
-- **M6 (2026-10-14, deployed; live check left):** migration `20261014081320_community_recipes` (10
+- **M6 (2026-10-14, done; live check passed):** migration `20261014081320_community_recipes` (10
   migrations now, applied live); `src/lib/recipe.ts`, `src/app/(site)/account/recipes/` (list, `new`,
   `[id]`, `RecipeForm`, `actions.ts`), `recipes/[slug]`, `feed`, `logs/[id]` (+ `logs/actions.ts`),
   `u/actions.ts`; components `RecipeDetails`, `RecipeActions`, `RecipeView`, `ImageField` (moved from
@@ -316,7 +301,7 @@ Write an ADR for the answers before building.
 
 ## 🧭 Look-ahead
 
-- **M3**–**M5** done → **M6** and **M7** deployed (live checks left) → **M8** Expo apps (the cherry
+- **M3**–**M7** done → **M8** Expo apps (the cherry
   icon is ready: `public/brand/haci-app-icon-1024.png`, `haci-play-store-512.png`; the adaptive-icon
   foreground needs the mark scaled into the 66% safe zone).
 - Icebox highlights: localization (English first), colour theme review, a `haci` domain.
