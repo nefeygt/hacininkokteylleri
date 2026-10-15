@@ -13,9 +13,9 @@ import ReportButton from "./ReportButton";
 import { useMember } from "./useMember";
 
 /**
- * A member's recipe on its own page (M6, ADR-018). The page is static; who is
- * looking — the author, another member, a guest — is read in the browser
- * (ADR-016), like the archive's card.
+ * A recipe on its own page: a member's (M6, ADR-018) or a house recipe
+ * (ADR-025). The page is static; who is looking — the author, another member,
+ * a guest — is read in the browser (ADR-016), like the archive's card.
  */
 export default function RecipeView({ cocktail }: { cocktail: Cocktail }) {
   const { member, favorites, markFavorite } = useMember();
@@ -32,7 +32,13 @@ export default function RecipeView({ cocktail }: { cocktail: Cocktail }) {
 
   return (
     <article className="mx-auto max-w-2xl px-6 py-12">
-      <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.25em] text-crimson-glow">Rx · Üye tarifi</div>
+      {author ? (
+        <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.25em] text-crimson-glow">Rx · Üye tarifi</div>
+      ) : (
+        <Link href="/cocktails" className="mb-2 block font-mono text-[10px] uppercase tracking-[0.25em] text-crimson-glow hover:underline">
+          ← Rx · Arşiv
+        </Link>
+      )}
 
       {cocktail.imageUrl && (
         <div className="relative mb-8 aspect-video w-full overflow-hidden rounded-sm border border-border bg-bg-elevated">

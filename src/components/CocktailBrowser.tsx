@@ -14,10 +14,11 @@ import {
   filterCocktails,
   hasActiveFilters as anyActive,
 } from "@/lib/archive-filter";
-import type { Cocktail } from "@/lib/content";
+import { recipeHref, type Cocktail } from "@/lib/content";
 
-// "/cocktails?cocktail={slug}" opens that recipe, so a link (or the way back
-// from /login) lands on it. Read in the browser: the page itself is static.
+// A card opens the recipe's page; its magnifier opens the recipe over the
+// archive (ADR-025). "/cocktails?cocktail={slug}" still opens that card, so
+// older links keep working. Read in the browser: the page itself is static.
 const OPEN_PARAM = "cocktail";
 
 export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }) {
@@ -215,7 +216,8 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
               key={cocktail.id}
               cocktail={cocktail}
               favorite={favorites.has(cocktail.id)}
-              onClick={() => openCocktail(cocktail)}
+              href={recipeHref(cocktail.slug, false)}
+              onPreview={() => openCocktail(cocktail)}
             />
           ))}
         </div>

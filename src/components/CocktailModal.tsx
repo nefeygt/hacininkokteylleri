@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useCallback } from "react";
-import { X, Leaf } from "lucide-react";
-import type { Cocktail } from "@/lib/content";
+import Link from "next/link";
+import { X, Leaf, ArrowUpRight } from "lucide-react";
+import { recipeHref, type Cocktail } from "@/lib/content";
 import CocktailReviews from "./CocktailReviews";
 import RecipeActions from "./RecipeActions";
 import RecipeDetails from "./RecipeDetails";
@@ -84,6 +85,13 @@ export default function CocktailModal({
             <p className="mt-1 font-mono text-sm text-text-secondary">
               {cocktail.subtitle}
             </p>
+            <Link
+              href={recipeHref(cocktail.slug, Boolean(cocktail.author))}
+              className="mt-3 inline-flex items-center gap-1 font-mono text-[11px] text-text-muted underline underline-offset-2 hover:text-crimson-glow"
+            >
+              Tarifin sayfası
+              <ArrowUpRight className="h-3 w-3" />
+            </Link>
           </div>
 
           <RecipeDetails cocktail={cocktail} />

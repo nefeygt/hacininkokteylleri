@@ -14,6 +14,7 @@ import type { CocktailInput } from "./types";
 // live on the site at once instead of within the hour (ADR-005).
 function revalidatePublicPages() {
   revalidatePath("/cocktails");
+  revalidatePath("/cocktails/[slug]", "page");
 }
 
 export type ActionResult = { error?: string; id?: string; ok?: boolean };

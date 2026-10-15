@@ -23,9 +23,11 @@ async function member() {
 }
 
 // A review or favourite changes an average or the feed's "popular" list:
-// house recipes show on /cocktails, members' recipes on their own pages (M6).
+// house recipes show on /cocktails and their own pages (ADR-025), members'
+// recipes on theirs (M6).
 function revalidateCommunityPages(username: string) {
   revalidatePath("/cocktails");
+  revalidatePath("/cocktails/[slug]", "page");
   revalidatePath("/recipes/[slug]", "page");
   revalidatePath("/feed");
   revalidatePath(`/u/${username}`);

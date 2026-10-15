@@ -102,11 +102,11 @@ function toCocktail(row: CocktailRow): Cocktail {
 }
 
 /**
- * Where a recipe opens: a house recipe in the archive's card, a member's
- * recipe on its own page (ADR-018). Slugs are unique across both.
+ * A recipe's own page: a house recipe under /cocktails (ADR-025), a member's
+ * under /recipes (ADR-018). Slugs are unique across both.
  */
 export function recipeHref(slug: string, isCommunity: boolean): string {
-  return isCommunity ? `/recipes/${slug}` : `/cocktails?cocktail=${encodeURIComponent(slug)}`;
+  return isCommunity ? `/recipes/${slug}` : `/cocktails/${slug}`;
 }
 
 /**
@@ -141,6 +141,21 @@ async function withRatings(rows: CocktailRow[]): Promise<Cocktail[]> {
     data.map((r) => [r.cocktail_id, { average: Number(r.average_rating), count: r.review_count ?? 0 }])
   );
   return rows.map((row) => ({ ...toCocktail(row), rating: byCocktail.get(row.id) }));
+}
+
+/** One published house recipe (Hacı's) by its slug, or null (ADR-025). */
+export async function getCocktail(slug: string): Promise<Cocktail | null> {
+  const { data, error } = await createPublicClient()
+    .from("cocktails")
+    .select(COCKTAIL_COLUMNS)
+    .eq("slug", slug)
+    .is("author_id", null)
+    .eq("is_published", true)
+    .maybeSingle();
+  if (error) throw new Error(`Could not load the cocktail: ${error.message}`);
+  if (!data) return null;
+  const [cocktail] = await withRatings([data as CocktailRow]);
+  return cocktail;
 }
 
 /** One published member's recipe by its slug, or null (M6). */

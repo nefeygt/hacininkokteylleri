@@ -2,22 +2,58 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Wine, Leaf, Star, Heart } from "lucide-react";
+import { Wine, Leaf, Star, Heart, ZoomIn } from "lucide-react";
 import { formatAverage } from "@/lib/community";
 import type { Cocktail } from "@/lib/content";
 
 /**
- * A recipe's poster. In the archive it opens the card (`onClick`); on the feed
- * and profiles a member's recipe links to its page (`href`, M6).
+ * A recipe's poster, linking to the recipe's page (`href`) or calling
+ * `onClick`. In the archive `onPreview` adds a magnifier on the photo that
+ * opens the recipe card over the archive instead (ADR-025).
  */
 export default function CocktailCard({
   cocktail,
   favorite = false,
   onClick,
   href,
+  onPreview,
 }: {
   cocktail: Cocktail;
   favorite?: boolean;
+  onClick?: () => void;
+  href?: string;
+  onPreview?: () => void;
+}) {
+  const card = <CardLink cocktail={cocktail} favorite={favorite} onClick={onClick} href={href} />;
+  if (!onPreview) return card;
+  // The magnifier sits beside the link, not inside it (no button within a link),
+  // over the photo's bottom-right corner.
+  return (
+    <div className="relative flex">
+      {card}
+      <div className="pointer-events-none absolute inset-x-px top-px aspect-video">
+        <button
+          type="button"
+          onClick={onPreview}
+          aria-label={`${cocktail.name}: hızlı bak`}
+          title="Hızlı bak"
+          className="pointer-events-auto absolute bottom-2.5 right-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-text-secondary backdrop-blur-sm transition-colors hover:bg-black/70 hover:text-crimson-glow"
+        >
+          <ZoomIn className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function CardLink({
+  cocktail,
+  favorite,
+  onClick,
+  href,
+}: {
+  cocktail: Cocktail;
+  favorite: boolean;
   onClick?: () => void;
   href?: string;
 }) {

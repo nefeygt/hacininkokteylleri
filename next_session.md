@@ -6,8 +6,9 @@
 
 **Prepared by session:** 2026-10-15 (store release paused) · **Handing off:** M8 steps 1–6 are done — the app does
 everything the site does (Sign in with Apple aside). **The user paused the store release (ADR-024):** it waits for the
-Apple Developer account, or for the user's two other Play apps (one paid closed test for three apps). **Next: web
-improvements — the user names them.** Right before the store process, one app ↔ site parity pass.
+Apple Developer account, or for the user's two other Play apps (one paid closed test for three apps). **M9 (web
+improvements) is open:** house recipe pages are done (ADR-025). **Next: the user picks from M9's list** (plan.md §6) —
+theme/font, filters from the data, the wordmark, or Claude's suggestions. Before the store, one app ↔ site parity pass.
 ---
 
 ## 📋 Prompt to Copy
@@ -51,12 +52,12 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — web improvements (the user picks)
+## 🎯 This Session's Task — M9, web improvements (the user picks)
 
-The mobile store release is paused (ADR-024). Ask the user which web improvements come first; candidates they
-raised earlier are in plan.md §9 Icebox (colour theme, a more readable font, a page per house cocktail, filters
-from the data, the wordmark in the navbar, …) and §8 Known issues. Ideas outside what the user asks for go to
-the Icebox, not into code.
+The mobile store release is paused (ADR-024). M9 in plan.md §6 lists the open items: the user's (theme and font,
+filters from the data, the wordmark) and Claude's suggestions (share button, recipe rich results, "Kaç kişilik?",
+similar cocktails, a content backup, cl ↔ oz). **Ask which come first; build only what the user picks.** Ideas
+outside it go to the Icebox.
 
 **While doing web work:**
 - Add every user-visible web change to **"Web changes since 2026-10-15 (for the parity pass)"** below — it is the
@@ -66,7 +67,9 @@ the Icebox, not into code.
 
 ### Web changes since 2026-10-15 (for the parity pass)
 
-- (none yet)
+- **House recipe pages `/cocktails/{slug}`** (ADR-025). The app already has a recipe screen (`cocktail/[slug]`); for
+  parity: a "share" link should use the site's URL, and links the app opens to house recipes should point here,
+  not to `/cocktails?cocktail=`. The magnifier/quick card is a web-only pattern.
 
 ---
 

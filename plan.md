@@ -9,7 +9,7 @@
 > **Language rule (ADR-002):** everything we write — docs, code, comments, commits, SQL — is
 > **English**. Everything visitors and admins read — UI strings, recipes — is **Turkish**.
 
-**Last updated:** 2026-10-15 (store release paused) · **Active milestone:** **M8 — Mobile app** (steps 1–6 done; **step 7, the store release, paused** until the Apple account or the user's two other Play apps — ADR-024); meanwhile web work · M6 and M7 done · **Brand:** `haci` (ADR-015)
+**Last updated:** 2026-10-15 (M9 start) · **Active milestone:** **M9 — Web improvements** (house recipe pages done, ADR-025) · **M8 — Mobile app** steps 1–6 done, **step 7 (store release) paused** until the Apple account or the user's two other Play apps (ADR-024) · M6 and M7 done · **Brand:** `haci` (ADR-015)
 
 ---
 
@@ -141,6 +141,7 @@ In the user's words, collected while M0 was being built. Milestones in §6.
 | 017 | Drink logs are written on dynamic pages under `/account/logs`; the snapshot is checked in the database | The archive stays static; the recipe as made stays a recipe |
 | 018 | Members' recipes on `/recipes/{slug}`; `/feed` (popular + new recipes, followed people's logs); public follows; flat comments on public logs | Letterboxd-style community; the home page and archive stay Hacı's |
 | 019 | Showcase: admin picks a week or a month per period; apply + vote in `/feed`; recipe + photo + pitch required; derived winner as a card on the home page | The user's answers; every rule in the database, no scheduled job |
+| 025 | House recipes get `/cocktails/{slug}` pages; the archive card links there, a magnifier opens the quick card | Shareable links, search engines; the quick look stays |
 | 020 | Expo app in `mobile/` (this repo), full parity, both stores, native Google + e-mail (+ Apple on iOS); site pages refreshed through `/api/revalidate` | The user's answers; shared types and validation, one handoff |
 | 024 | Store release waits (Apple account / a shared Play closed test); web first, one parity pass before release | Cheaper testers for three apps; no store round for an app that will change |
 
@@ -613,6 +614,25 @@ The admin panel stays web-only.
 - [ ] Step 7 — **paused (ADR-024, 2026-10-15)**; starts with a parity pass (web changes since 2026-10-15, package updates, a new build), then: EAS production builds, store listings (Turkish), age rating 18+/17+,
   privacy forms (App Privacy, Data safety), Play's closed test, App Store review
 
+### 🔵 M9 — Web improvements `IN PROGRESS` (2026-10-15)
+
+While the store release waits (ADR-024), the site gets better first; every user-visible change is listed in
+`next_session.md` for the app's parity pass.
+
+- [x] **Own pages for house recipes** (ADR-025): `/cocktails/{slug}` (static, OG image, sitemap); the archive's
+  card opens the page, a magnifier on the photo opens the quick card, the card links to the page. Checked in
+  the built-in browser (desktop and phone width) and with curl (200/404, canonical, og:image, 37 sitemap URLs)
+- [ ] Colour theme review and a more readable font (site and app together) — needs the user's direction
+- [ ] Base-spirit and flavour filters built from the data (and "Tatlı" matching "Tatlı-Ekşi", §8)
+- [ ] The `haci` wordmark in the navbar
+- **Claude's suggestions (2026-10-15), waiting for the user's pick:**
+  - [ ] "Paylaş" on recipe pages (the phone's share sheet, else copy the link)
+  - [ ] Google recipe rich results (schema.org `Recipe` JSON-LD: photo, rating, ingredients in search results)
+  - [ ] "Kaç kişilik?" — scale a recipe's amounts for 1–8 glasses (batching for guests)
+  - [ ] "Benzer kokteyller" at the bottom of a recipe page (same base spirit or flavour)
+  - [ ] A weekly content backup (the free plan has no backups, §7): the house recipes and glossary exported to the repo
+  - [ ] cl ↔ oz switch for a global audience
+
 ---
 
 ## 7. Risks
@@ -655,7 +675,6 @@ The admin panel stays web-only.
 
 ## 9. Icebox (deferred ideas)
 
-- A page per cocktail (`/kokteyller/[slug]`) for sharing and search engines, with an OG image
 - Filters built from the data instead of hard-coded lists
 - A normalised ingredient catalogue; "what can I make with what I have"
 - Who changed what (`updated_by`) and a change history in the panel
@@ -671,6 +690,7 @@ The admin panel stays web-only.
   especially on phones — review with the colour theme, site and app together
 - **The glass as a picker with glass pictures** (the user, 2026-10-15, unsure): the log's (and the recipe
   form's) "Bardak" chosen from a list with drawings of each glass we would make
+- **Videos for cocktails** (the user, 2026-10-15: "in the future") — generated or shot short clips on the recipe pages
 - A `haci` domain, if the product grows (ADR-015)
 - Paging / "show more" for reviews (the card shows the latest 50; a profile the latest 100)
 - Rating breakdown (how many 5s, 4s, …) and sorting the archive by rating
@@ -691,6 +711,7 @@ The admin panel stays web-only.
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-10-15 | M9 start: recipe pages | The user asked for house recipe pages: the card opens `/cocktails/{slug}`, a magnifier opens the modal (ADR-025); video → Icebox. Built, checked in the built-in browser (Claude in Chrome not connected) and with curl; build passes. M9 opened with Claude's suggestions for the user to pick |
 | 2026-10-15 | Store release paused | Pulled `dc4340d`. The user does not want to publish yet: wait for the Apple account, or for two more Play apps to share one paid closed test; web improvements first, then one parity pass before the store (ADR-024) |
 | 2026-10-15 | M8 step 6 | Claude in Chrome still disconnected → the built-in browser. The showcase in the app: `showcase.ts`, `fetchShowcase`/`fetchShowcaseWinner`, the Vitrin section on the Akış tab (apply, status, withdraw, votes, report, winner). Checked signed in at phone width with a temporary member and a test period (the user's OK); every test row deleted (community tables empty; profiles `ahmet_kafa`, `mustafa_hayat`). **The app has the site's features**; next is the store release. Then Claude in Chrome came back: the signed-out showcase, followed people's logs and reports on another member's entry and comment checked with a seeded member (deleted) |
 | 2026-10-15 | M8 step 5 | Claude in Chrome still disconnected → the built-in browser (Expo web, phone width). Members' recipes in the app (form, photo upload, units from the list, drafts, delete), their screen, the Akış tab, follows on profiles, public log pages with comments; links that opened the site now stay in the app; the site's recipe form uses the unit list. Checked signed in with a temporary member on the owner admin's login (the user's OK), then every test row deleted (community tables empty again; profiles `ahmet_kafa`, `mustafa_hayat`). Bug found and fixed: the web image manipulator needs both sides to resize. A stale Expo server held 8081 again — stopped |

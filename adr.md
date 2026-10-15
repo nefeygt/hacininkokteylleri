@@ -958,3 +958,35 @@ costs less for three apps at once.
 
 **Rejected.** *Release Android now:* pays for testers alone and ships a version that will change. *Keep the
 app in step with every web change:* doubles the work while nothing is published.
+
+---
+
+## ADR-025 — Every house recipe has its own page at `/cocktails/{slug}`; the archive's magnifier keeps the quick card
+
+**Context.** House recipes (Hacı's) only opened in a modal on `/cocktails` (`?cocktail={slug}`), so a link
+to one was a link to the archive with a parameter: weak for sharing and invisible to search engines. The user
+(2026-10-15) wanted both: a card goes straight to the recipe's own page, and a magnifier on the photo still
+opens the quick card while browsing.
+
+**Decision.**
+- **`/cocktails/{slug}`** is a house recipe's page: static, built for every published house recipe at build
+  time (one published later renders on first visit), rebuilt hourly like the archive. It reuses
+  `RecipeView` (photo, details, heart, "Günlüğe ekle", reviews) with "← Rx · Arşiv" instead of an author.
+  Title, description, canonical URL and the photo as the Open Graph image; in the sitemap.
+- **The archive's card is a link to the page; a magnifier ("Hızlı bak") on the photo opens the modal.** The
+  magnifier sits beside the link, not inside it. The modal links to the page ("Tarifin sayfası").
+- **`recipeHref()`** now gives `/cocktails/{slug}` for house recipes, so profiles, drink logs and the review
+  sign-in prompt point to the page. `/cocktails?cocktail={slug}` still opens the modal (older links).
+- **Revalidation:** wherever `/cocktails` is revalidated (panel saves, reviews and favourites, account
+  deletion, the app's `/api/revalidate` calls), `/cocktails/[slug]` pages are too. The app keeps sending
+  `/cocktails`; the route adds the pages.
+
+**Consequences.**
+- (+) Shareable links with a photo preview; 37 recipe pages for search engines.
+- (+) One recipe renderer for house and members' recipes.
+- (−) A review revalidates every house recipe page (37 today) — cheap, the same trade as `/recipes/[slug]`.
+- (−) The app's recipe screens do not open these URLs yet (parity pass, ADR-024).
+
+**Rejected.** *House recipes under `/recipes/{slug}`:* the path is free, but `/cocktails` is the archive's
+home and keeps the two collections apart. *A Next.js intercepting route for the modal:* the archive's filters
+and modal live in one client component; a parallel route would split it for no visible gain.
