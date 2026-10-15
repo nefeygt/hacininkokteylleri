@@ -7,8 +7,8 @@
 **Prepared by session:** 2026-10-15 (M9 backup + cl ↔ oz) · **Handing off:** M8 steps 1–6 are done; **the store release
 is paused (ADR-024)**. **M9 (web improvements):** done and deployed this session (ADR-027): the weekly content backup
 (GitHub Action) and the cl ↔ oz switch; last session's features passed the live check and Google's Rich Results Test.
-**Next: the colour theme and font** — three directions are waiting for the user's pick. Before the store, one app ↔ site
-parity pass.
+**Then the themes (ADR-028):** "Rx" (readable: a sans for text, mono only for labels) is the main look, with five more
+themes in a "Görünüm" picker. **Next: ask the user what M9 still needs**; before the store, one app ↔ site parity pass.
 ---
 
 ## 📋 Prompt to Copy
@@ -59,15 +59,12 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
    a change → a commit by `github-actions[bot]` and **no new Vercel deployment** for it
    (`gh api repos/nefeygt/hacininkokteylleri/commits/<sha>/status`: Vercel should report the build skipped/ignored).
    If Vercel built it anyway, check `ignoreCommand` in `vercel.json` and the project's "Ignored Build Step" setting.
-2. **The theme and font** (question 3). Three directions were shown on 2026-10-15 as an artifact
-   (`https://claude.ai/artifact/JmEZE1ynUC4oWKYN2RVWk7`, the user's, private): **A "Rx, readable"** (today's colours, IBM
-   Plex Sans for text, mono only for amounts/labels), **B "Night bar"** (warm brown-black, the logo's cherry red,
-   Bricolage Grotesque + Source Sans 3), **C "Prescription paper"** (light pale green-grey, Instrument Serif + Atkinson
-   Hyperlegible Next, IBM Plex Mono). The common fix in all three: running text off the monospace font. Ask which (or a
-   mix), then build it: the site's tokens in `src/app/globals.css` (`@theme`) and fonts in `src/app/layout.tsx`
-   (`next/font/google`); `.prescription-text` is the mono body text to change. The app copies the palette from
-   `mobile/src/lib/theme.ts` and loads fonts with `@expo-google-fonts/*` — **the app side waits for the parity pass**
-   (ADR-024); list it below. C (light) also needs a light logo/wordmark and OG images — check `public/brand/`.
+2. **A live look at the themes** on the domain (the user's phone): open "Görünüm" (palette icon, top right), try each
+   theme on a recipe, the archive, `/feed`, `/account` and `/login`. Pages not checked yet in the light themes: the
+   account forms, logs, members' recipes, the feed's showcase, `/privacy`, `/u/{username}` — look for text that vanishes
+   (a fixed colour instead of a token) and fix it with tokens (ADR-028).
+3. **Ask the user what M9 still needs** before the parity pass (Icebox candidates: localization, rating breakdown,
+   "what can I make"). Don't start one without their pick.
 
 **While doing web work:**
 - Add every user-visible web change to **"Web changes since 2026-10-15 (for the parity pass)"** below — it is the
@@ -88,6 +85,10 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
   (`/cocktails/{slug}` or `/recipes/{slug}`).
 - **"Benzer kokteyller"** under house recipes: `similarCocktails(target, archive, 4)` from `@shared/archive-filter`.
 - The wordmark and the recipe JSON-LD are web-only (the app has its own header; no SEO).
+- **Themes and readable type** (ADR-028): the app's `mobile/src/lib/theme.ts` copies Rx's new colours (brighter
+  crimson glow `#d0453a`, greys `#b4b1ae` / `#7d7a78`); reading text in IBM Plex Sans, mono only for labels
+  (`@expo-google-fonts/ibm-plex-sans`); a theme choice from `@shared/themes` (`THEMES`) on the account screen, kept in
+  storage — or decide with the user that the app stays Rx only.
 - **"cl | oz"** on recipes (ADR-027): a toggle beside "Kaç kişilik?" with `convertAmount`, `formatOunces`,
   `isConvertibleUnit` from `@shared/recipe`; remember the choice (AsyncStorage or the app's existing storage).
 
@@ -156,7 +157,6 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
 
 | # | Question | Why it matters | Until it is answered |
 |---|---|---|---|
-| 3 | **Colour theme and font:** A "Rx, readable", B "Night bar" or C "Prescription paper" (artifact above), or a mix? | The user said the theme can change (ADR-015) and the type reads poorly | Today's palette and fonts stay |
 | 5 | **Hacı's first admin sign-in** — when (his phone, a network that does not block the domain)? | His 2FA factor is not enrolled yet | He cannot use the panel |
 | 6 | **The first real showcase period** — when, a week or a month? | Nothing promotes it until a period exists (the feed hides the section) | No period; the feature is invisible |
 | 11 | **Who enrols the Apple Developer account, and when?** The user expects it to be in **another person's name** | That person is the App Store publisher (seller name) and must give EAS access (their Apple ID with 2FA, or an App Store Connect API key); Sign in with Apple and every iOS build wait for it | Android only |
@@ -325,7 +325,16 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
 - **The office network blocks the new domain** (a Fortinet FortiGate). Check DNS with
   `https://dns.google/resolve?name=…` and HTTP with check-host.net (plan.md §5.4).
 
-**This session's lessons (M9 backup + cl ↔ oz)**
+**This session's lessons (M9 themes)**
+- **Tailwind 4 tokens can be themed at runtime:** `@theme` (not `@theme inline`) emits `--color-*`/`--font-*` on
+  `:root` and utilities read them, so `:root[data-theme="…"]` overrides work, `/opacity` modifiers included.
+- next/font variables must not share names with Tailwind's `--font-*` tokens: they are `--ff-*` and the tokens point at
+  them. `preload: false` keeps unused themes' fonts off the first load.
+- The navbar at 375 px has no room left: any new item needs something else to shrink (`scrollWidth` check per theme).
+- Built-in browser screenshots after a `data-theme` change can show a mix of the old and new frame — read
+  `getComputedStyle` before believing a wrong colour.
+
+**Lessons (M9 backup + cl ↔ oz)**
 - **Claude in Chrome's screenshots timed out again** (even without a resize) — `javascript_tool`/`get_page_text` worked.
   For visuals use the built-in browser (`preset: "mobile"`); its screenshots can lag a frame — confirm in the DOM.
 - In `javascript_tool`, two `.click()`s in a row on a React counter apply once (the handler reads stale state) — wait
@@ -542,6 +551,8 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
 
 | Question | Answer |
 |---|---|
+| Colour theme and font? | **"Rx, readable" is the main look; the other directions and combinations are selectable themes** (ADR-028, 2026-10-15) |
+| Backup and oz? | **GitHub Action with the public key, house content + photos; 1 oz = 3 cl** (ADR-027, 2026-10-15) |
 | Where is the backend? | **Supabase, Frankfurt** (ADR-003) |
 | Clerk for public accounts (GitHub Student Pack)? | **No — Supabase Auth** (ADR-014, the user agreed) |
 | Sign-in methods for the public? | **Google first, then e-mail + password** (Resend) |

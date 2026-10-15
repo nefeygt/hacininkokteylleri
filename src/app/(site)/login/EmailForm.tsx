@@ -99,8 +99,8 @@ export default function EmailForm({ next }: { next: string }) {
         </label>
       )}
 
-      {error && <p className="font-mono text-xs text-crimson-glow">{error}</p>}
-      {sent && <p className="font-mono text-xs leading-relaxed text-text-secondary">{sent}</p>}
+      {error && <p className="text-xs text-crimson-glow">{error}</p>}
+      {sent && <p className="text-xs leading-relaxed text-text-secondary">{sent}</p>}
 
       <button disabled={pending} className={primaryButtonClass}>
         {pending && <Loader2 className="h-4 w-4 animate-spin" />}

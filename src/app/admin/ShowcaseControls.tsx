@@ -30,7 +30,7 @@ export function ShowcasePeriodForm({ defaultStart }: { defaultStart: string }) {
   }
 
   const field =
-    "rounded border border-border bg-bg-card px-3 py-1.5 font-mono text-xs text-text-primary outline-none focus:border-crimson-glow/40";
+    "rounded border border-border bg-bg-card px-3 py-1.5 text-xs text-text-primary outline-none focus:border-crimson-glow/40";
 
   return (
     <form onSubmit={submit} className="flex flex-wrap items-end gap-3 rounded-sm border border-border bg-bg-card p-4">
@@ -48,7 +48,7 @@ export function ShowcasePeriodForm({ defaultStart }: { defaultStart: string }) {
       <button
         type="submit"
         disabled={pending || !start}
-        className="rounded bg-crimson px-4 py-1.5 font-mono text-xs text-white hover:opacity-90 disabled:opacity-50"
+        className="rounded bg-crimson px-4 py-1.5 text-xs text-white hover:opacity-90 disabled:opacity-50"
       >
         {pending ? "Açılıyor…" : "Dönem aç"}
       </button>
@@ -57,7 +57,7 @@ export function ShowcasePeriodForm({ defaultStart }: { defaultStart: string }) {
         içinde.
       </p>
       {error && <p className="basis-full font-mono text-[11px] text-crimson-glow">{error}</p>}
-      {done && <p className="basis-full font-mono text-[11px] text-green-400">Dönem açıldı.</p>}
+      {done && <p className="basis-full font-mono text-[11px] text-vegan">Dönem açıldı.</p>}
     </form>
   );
 }
@@ -79,7 +79,7 @@ export function EntryStatusButtons({ id, status }: { id: string; status: Status 
     <span className="flex shrink-0 items-center gap-2">
       {error && <span className="max-w-xs font-mono text-[10px] text-crimson-glow">{error}</span>}
       {status !== "approved" && (
-        <button type="button" onClick={() => set("approved")} disabled={pending} className={`${button} bg-green-900/40 text-green-400 hover:bg-green-900/60`}>
+        <button type="button" onClick={() => set("approved")} disabled={pending} className={`${button} bg-vegan-bg/40 text-vegan hover:bg-vegan-bg/60`}>
           {pending ? "…" : "Onayla"}
         </button>
       )}

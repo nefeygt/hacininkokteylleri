@@ -37,7 +37,7 @@ export default function ProfileForm({
       <label className="block">
         <span className={labelClass}>Kullanıcı adı</span>
         <div className="flex items-center rounded border border-border bg-bg-primary focus-within:border-crimson-glow/50">
-          <span className="pl-3 font-mono text-sm text-text-muted">@</span>
+          <span className="pl-3 text-sm text-text-muted">@</span>
           <input
             name="username"
             defaultValue={username}
@@ -47,7 +47,7 @@ export default function ProfileForm({
             pattern="[a-z0-9_]{3,20}"
             autoCapitalize="none"
             spellCheck={false}
-            className="w-full bg-transparent px-1 py-2.5 font-mono text-sm text-text-primary outline-none"
+            className="w-full bg-transparent px-1 py-2.5 text-sm text-text-primary outline-none"
           />
         </div>
       </label>
@@ -64,7 +64,7 @@ export default function ProfileForm({
       </label>
 
       {message && (
-        <p className={`font-mono text-xs ${message.ok ? "text-text-secondary" : "text-crimson-glow"}`}>{message.text}</p>
+        <p className={`text-xs ${message.ok ? "text-text-secondary" : "text-crimson-glow"}`}>{message.text}</p>
       )}
 
       <button disabled={pending} className={primaryButtonClass}>

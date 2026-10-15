@@ -44,7 +44,7 @@ export default function Tooltip({ term }: { term: string }) {
         <Info className="h-3 w-3 text-crimson-glow/60" />
 
         {visible && (
-          <span className="absolute bottom-full right-1/2 z-[100] mb-2 w-64 translate-x-1/2 rounded border border-border-light bg-bg-elevated px-3 py-2 font-mono text-xs leading-relaxed text-text-secondary shadow-xl shadow-black/60">
+          <span className="absolute bottom-full right-1/2 z-[100] mb-2 w-64 translate-x-1/2 rounded border border-border-light bg-bg-elevated px-3 py-2 text-xs leading-relaxed text-text-secondary shadow-xl shadow-black/60">
             <span className="absolute -bottom-1 right-1/2 h-2 w-2 translate-x-1/2 rotate-45 border-b border-r border-border-light bg-bg-elevated" />
             {text}
           </span>

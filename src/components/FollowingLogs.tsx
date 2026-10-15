@@ -57,11 +57,11 @@ export default function FollowingLogs() {
     };
   }, [memberId]);
 
-  if (member.state === "loading") return <p className="font-mono text-xs text-text-muted">Yükleniyor…</p>;
+  if (member.state === "loading") return <p className="text-xs text-text-muted">Yükleniyor…</p>;
 
   if (member.state === "signed-out") {
     return (
-      <p className="rounded bg-bg-elevated/50 px-4 py-3 font-mono text-xs leading-relaxed text-text-secondary">
+      <p className="rounded bg-bg-elevated/50 px-4 py-3 text-xs leading-relaxed text-text-secondary">
         Takip ettiğin kişilerin içki günlüklerini burada görmek için{" "}
         <Link href={`/login?next=${encodeURIComponent("/feed")}`} className="text-crimson-glow underline underline-offset-2">
           giriş yap
@@ -73,7 +73,7 @@ export default function FollowingLogs() {
 
   if (member.state === "onboarding") {
     return (
-      <p className="rounded bg-bg-elevated/50 px-4 py-3 font-mono text-xs text-text-secondary">
+      <p className="rounded bg-bg-elevated/50 px-4 py-3 text-xs text-text-secondary">
         Önce{" "}
         <Link href="/welcome" className="text-crimson-glow underline underline-offset-2">
           profilini tamamla
@@ -83,11 +83,11 @@ export default function FollowingLogs() {
     );
   }
 
-  if (logs === null) return <p className="font-mono text-xs text-text-muted">Yükleniyor…</p>;
+  if (logs === null) return <p className="text-xs text-text-muted">Yükleniyor…</p>;
 
   if (logs.length === 0) {
     return (
-      <p className="font-mono text-xs leading-relaxed text-text-muted">
+      <p className="text-xs leading-relaxed text-text-muted">
         {followsNobody
           ? "Henüz kimseyi takip etmiyorsun. Bir tarifin sahibinin ya da bir yorumcunun profiline gidip “Takip et”e dokun."
           : "Takip ettiklerin henüz herkese açık bir kayıt paylaşmadı."}

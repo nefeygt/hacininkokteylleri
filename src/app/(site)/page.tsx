@@ -32,7 +32,7 @@ export default async function Home() {
           <h1 className="mb-4 text-7xl font-bold tracking-tight text-crimson-glow md:text-9xl">{BRAND}</h1>
 
           {/* Subtitle */}
-          <p className="mx-auto mb-10 max-w-md font-mono text-sm leading-relaxed text-text-secondary">
+          <p className="mx-auto mb-10 max-w-md text-sm leading-relaxed text-text-secondary">
             Her biri özenle formüle edilmiş kokteyl reçeteleri.
           </p>
 
@@ -40,7 +40,7 @@ export default async function Home() {
           <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Link
               href="/cocktails"
-              className="group inline-flex items-center gap-2 rounded bg-crimson px-6 py-3 font-mono text-sm font-medium text-white transition-colors hover:bg-crimson-light"
+              className="group inline-flex items-center gap-2 rounded bg-crimson px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-crimson-light"
             >
               Kokteyllere Git
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
@@ -87,7 +87,7 @@ export default async function Home() {
               <h2 className="text-3xl font-bold tracking-tight text-text-primary transition-colors group-hover:text-crimson-glow">
                 {winner.recipe.name}
               </h2>
-              {winner.recipe.subtitle && <p className="font-mono text-xs text-text-muted">{winner.recipe.subtitle}</p>}
+              {winner.recipe.subtitle && <p className="text-xs text-text-muted">{winner.recipe.subtitle}</p>}
               <p className="whitespace-pre-line break-words text-sm leading-relaxed text-text-secondary">“{winner.pitch}”</p>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] text-text-secondary">
                 {winner.recipe.author && <span>@{winner.recipe.author.username}</span>}

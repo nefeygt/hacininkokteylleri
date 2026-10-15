@@ -69,7 +69,7 @@ export default async function ShowcaseAdminPage() {
     <div className="space-y-10">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Vitrin</h1>
-        <p className="mt-1 font-mono text-xs text-text-muted">
+        <p className="mt-1 text-xs text-text-muted">
           {pendingCount} başvuru onay bekliyor · kazanan, biten son dönemin en çok oy alan onaylı başvurusudur ve ana
           sayfada gösterilir
         </p>
@@ -81,7 +81,7 @@ export default async function ShowcaseAdminPage() {
       </section>
 
       {periods.length === 0 ? (
-        <p className="font-mono text-xs text-text-muted">Henüz dönem yok.</p>
+        <p className="text-xs text-text-muted">Henüz dönem yok.</p>
       ) : (
         periods.map((period) => {
           const state = periodState({ startsAt: period.starts_at, endsAt: period.ends_at });
@@ -98,7 +98,7 @@ export default async function ShowcaseAdminPage() {
                 </h2>
                 <span
                   className={`rounded px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider ${
-                    state === "open" ? "bg-green-900/40 text-green-400" : "bg-bg-elevated text-text-muted"
+                    state === "open" ? "bg-vegan-bg/40 text-vegan" : "bg-bg-elevated text-text-muted"
                   }`}
                 >
                   {STATE_LABELS[state]}
@@ -109,7 +109,7 @@ export default async function ShowcaseAdminPage() {
                 </span>
               </div>
               {list.length === 0 ? (
-                <p className="font-mono text-xs text-text-muted">Başvuru yok.</p>
+                <p className="text-xs text-text-muted">Başvuru yok.</p>
               ) : (
                 <ul className="divide-y divide-border overflow-hidden rounded-sm border border-border bg-bg-card">
                   {list.map((entry) => (
@@ -135,7 +135,7 @@ export default async function ShowcaseAdminPage() {
                           <span
                             className={
                               entry.status === "approved"
-                                ? "text-green-400"
+                                ? "text-vegan"
                                 : entry.status === "rejected"
                                   ? "text-crimson-glow"
                                   : "text-text-secondary"

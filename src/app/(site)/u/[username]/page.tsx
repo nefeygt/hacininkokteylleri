@@ -103,7 +103,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
         <Avatar path={profile.avatar_path} name={profile.display_name} size={88} />
         <div>
           <h1 className="text-3xl font-bold">{profile.display_name}</h1>
-          <p className="mt-1 font-mono text-sm text-text-muted">@{profile.username}</p>
+          <p className="mt-1 text-sm text-text-muted">@{profile.username}</p>
         </div>
       </div>
       {profile.bio && <p className="mt-6 max-w-xl whitespace-pre-line leading-relaxed text-text-secondary">{profile.bio}</p>}
@@ -137,7 +137,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
           Favoriler <span className="text-text-muted/60">({favorites.length})</span>
         </h2>
         {favorites.length === 0 ? (
-          <p className="font-mono text-xs text-text-muted">Henüz favori yok.</p>
+          <p className="text-xs text-text-muted">Henüz favori yok.</p>
         ) : (
           <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {favorites.map(({ cocktails: c }) => (
@@ -178,7 +178,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
           Değerlendirmeler <span className="text-text-muted/60">({reviews.length})</span>
         </h2>
         {reviews.length === 0 ? (
-          <p className="font-mono text-xs text-text-muted">Henüz değerlendirme yok.</p>
+          <p className="text-xs text-text-muted">Henüz değerlendirme yok.</p>
         ) : (
           <ul className="space-y-5">
             {reviews.map((review) => (

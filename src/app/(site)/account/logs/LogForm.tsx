@@ -36,7 +36,7 @@ const rowFrom = (i: LogRecipe["ingredients"][number]): IngredientRow => ({
 });
 
 const smallField =
-  "rounded border border-border bg-bg-primary px-2.5 py-2 font-mono text-sm text-text-primary outline-none transition-colors focus:border-crimson-glow/50";
+  "rounded border border-border bg-bg-primary px-2.5 py-2 text-sm text-text-primary outline-none transition-colors focus:border-crimson-glow/50";
 
 /**
  * A drink log: starts from the recipe and lets the member change it to what
@@ -180,7 +180,7 @@ export default function LogForm({ initial, id, today }: { initial: LogFormValues
           <button
             type="button"
             onClick={() => setRows((prev) => [...prev, { key: nextKey++, name: "", amount: "", unit: "cl", icon: "shot" }])}
-            className="mt-3 flex items-center gap-1.5 font-mono text-xs text-text-muted hover:text-text-primary"
+            className="mt-3 flex items-center gap-1.5 text-xs text-text-muted hover:text-text-primary"
           >
             <Plus className="h-3.5 w-3.5" />
             Malzeme ekle
@@ -282,12 +282,12 @@ export default function LogForm({ initial, id, today }: { initial: LogFormValues
           onChange={(e) => setIsPublic(e.target.checked)}
           className="mt-0.5 h-4 w-4 accent-crimson"
         />
-        <span className="font-mono text-xs leading-relaxed text-text-secondary">
+        <span className="text-xs leading-relaxed text-text-secondary">
           Herkese açık — profilinde görünsün. İşaretlemezsen yalnızca sen görürsün.
         </span>
       </label>
 
-      {error && <p className="font-mono text-xs text-crimson-glow">{error}</p>}
+      {error && <p className="text-xs text-crimson-glow">{error}</p>}
 
       <div className="space-y-3">
         <button type="button" onClick={save} disabled={pending} className={primaryButtonClass}>
@@ -299,7 +299,7 @@ export default function LogForm({ initial, id, today }: { initial: LogFormValues
             type="button"
             onClick={() => router.back()}
             disabled={pending}
-            className="font-mono text-xs text-text-muted hover:text-text-primary"
+            className="text-xs text-text-muted hover:text-text-primary"
           >
             Vazgeç
           </button>
@@ -308,7 +308,7 @@ export default function LogForm({ initial, id, today }: { initial: LogFormValues
               type="button"
               onClick={remove}
               disabled={pending}
-              className={`font-mono text-xs underline underline-offset-2 hover:text-crimson-glow ${
+              className={`text-xs underline underline-offset-2 hover:text-crimson-glow ${
                 confirmingDelete ? "text-crimson-glow" : "text-text-muted"
               }`}
             >

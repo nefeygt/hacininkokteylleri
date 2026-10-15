@@ -43,11 +43,11 @@ export default async function FeedPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Akış</h1>
-          <p className="mt-1 font-mono text-xs text-text-muted">Üyelerin tarifleri ve takip ettiklerinin günlükleri.</p>
+          <p className="mt-1 text-xs text-text-muted">Üyelerin tarifleri ve takip ettiklerinin günlükleri.</p>
         </div>
         <Link
           href="/account/recipes/new"
-          className="inline-flex items-center rounded bg-crimson px-4 py-2 font-mono text-xs text-white transition-opacity hover:opacity-90"
+          className="inline-flex items-center rounded bg-crimson px-4 py-2 text-xs text-white transition-opacity hover:opacity-90"
         >
           + Tarif yaz
         </Link>
@@ -101,7 +101,7 @@ function ShowcaseSection({ showcase, winner }: { showcase: Showcase; winner: Sho
           <ShowcaseEntries period={period} entries={entries} />
         </>
       ) : (
-        <p className="font-mono text-xs text-text-muted">Şu an açık bir vitrin dönemi yok.</p>
+        <p className="text-xs text-text-muted">Şu an açık bir vitrin dönemi yok.</p>
       )}
 
       {winner && (
@@ -135,7 +135,7 @@ function RecipeRow({
         {hint && <span className="font-mono text-[10px] text-text-muted/70">{hint}</span>}
       </div>
       {recipes.length === 0 ? (
-        <p className="font-mono text-xs text-text-muted">{empty}</p>
+        <p className="text-xs text-text-muted">{empty}</p>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {recipes.map((recipe) => (

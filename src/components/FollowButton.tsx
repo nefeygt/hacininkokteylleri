@@ -44,7 +44,7 @@ export default function FollowButton({ profileId, username }: { profileId: strin
     return (
       <Link
         href={`/login?next=${encodeURIComponent(`/u/${username}`)}`}
-        className="rounded border border-border px-4 py-1.5 font-mono text-xs text-text-secondary transition-colors hover:border-crimson-glow/50 hover:text-text-primary"
+        className="rounded border border-border px-4 py-1.5 text-xs text-text-secondary transition-colors hover:border-crimson-glow/50 hover:text-text-primary"
       >
         Takip et
       </Link>
@@ -74,7 +74,7 @@ export default function FollowButton({ profileId, username }: { profileId: strin
         onClick={toggle}
         disabled={pending}
         aria-pressed={following}
-        className={`rounded px-4 py-1.5 font-mono text-xs transition-colors disabled:opacity-60 ${
+        className={`rounded px-4 py-1.5 text-xs transition-colors disabled:opacity-60 ${
           following
             ? "border border-border text-text-secondary hover:border-crimson-glow/50 hover:text-crimson-glow"
             : "bg-crimson text-white hover:bg-crimson-light"

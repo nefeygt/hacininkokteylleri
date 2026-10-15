@@ -36,7 +36,7 @@ export default async function SignInPage({
     >
       <div className="space-y-4">
         {error && (
-          <p className="rounded border border-crimson/40 bg-crimson/10 p-3 font-mono text-xs text-text-secondary">
+          <p className="rounded border border-crimson/40 bg-crimson/10 p-3 text-xs text-text-secondary">
             {ERRORS[error] ?? ERRORS.google}
           </p>
         )}

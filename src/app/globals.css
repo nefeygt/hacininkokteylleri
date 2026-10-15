@@ -2,6 +2,13 @@
 /* The Expo app (mobile/) is not part of the site. */
 @source not "../../mobile";
 
+/*
+ * Themes (ADR-028). The @theme block is "rx", the default: near-black, crimson, IBM Plex Sans to
+ * read and JetBrains Mono for amounts and labels. The others redefine the same tokens under
+ * :root[data-theme="…"] (src/lib/themes.ts lists them). Fonts come from next/font as --ff-* in
+ * src/app/layout.tsx. Three roles: --font-display (headings), --font-sans (reading text, the
+ * default), --font-mono (amounts, labels, small print).
+ */
 @theme {
   --color-bg-primary: #0d0d0d;
   --color-bg-secondary: #161616;
@@ -9,15 +16,110 @@
   --color-bg-elevated: #222222;
   --color-crimson: #8b1a1a;
   --color-crimson-light: #a52a2a;
-  --color-crimson-glow: #c0392b;
+  --color-crimson-glow: #d0453a;
   --color-text-primary: #e8e6e3;
-  --color-text-secondary: #9b9b9b;
-  --color-text-muted: #6b6b6b;
+  --color-text-secondary: #b4b1ae;
+  --color-text-muted: #7d7a78;
   --color-border: #2a2a2a;
   --color-border-light: #3a3a3a;
+  --color-vegan: #4ade80;
+  --color-vegan-bg: #14532d;
 
-  --font-mono: "JetBrains Mono", "Fira Code", "SF Mono", ui-monospace, monospace;
-  --font-sans: "Inter", "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--ff-plex-sans), "Helvetica Neue", Arial, sans-serif;
+  --font-sans: var(--ff-plex-sans), "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--ff-jetbrains-mono), "SF Mono", ui-monospace, monospace;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+/* Palettes */
+:root:is([data-theme="night-bar"], [data-theme="night-serif"]) {
+  --color-bg-primary: #17110f;
+  --color-bg-secondary: #1d1613;
+  --color-bg-card: #221a16;
+  --color-bg-elevated: #2c221d;
+  --color-crimson: #9e2430;
+  --color-crimson-light: #b72f3c;
+  --color-crimson-glow: #e8505b;
+  --color-text-primary: #f2e9e1;
+  --color-text-secondary: #cdbfb4;
+  --color-text-muted: #93857b;
+  --color-border: #33271f;
+  --color-border-light: #45362c;
+  --color-vegan: #7fd99a;
+  --color-vegan-bg: #1e3a26;
+}
+
+:root[data-theme="negroni"] {
+  --color-bg-primary: #120d0b;
+  --color-bg-secondary: #19120f;
+  --color-bg-card: #1e1612;
+  --color-bg-elevated: #281d17;
+  --color-crimson: #a8441c;
+  --color-crimson-light: #c0522a;
+  --color-crimson-glow: #f07a3a;
+  --color-text-primary: #f3e8de;
+  --color-text-secondary: #cdb9a8;
+  --color-text-muted: #8f7b6c;
+  --color-border: #31241c;
+  --color-border-light: #433227;
+  --color-vegan: #7fd99a;
+  --color-vegan-bg: #1e3a26;
+}
+
+:root:is([data-theme="paper"], [data-theme="paper-rx"]) {
+  color-scheme: light;
+  --color-bg-primary: #eef1ed;
+  --color-bg-secondary: #e6eae5;
+  --color-bg-card: #f7f9f6;
+  --color-bg-elevated: #dfe5de;
+  --color-crimson: #9e1b2a;
+  --color-crimson-light: #b3212f;
+  --color-crimson-glow: #b3212f;
+  --color-text-primary: #1b2420;
+  --color-text-secondary: #3e4a44;
+  --color-text-muted: #66726b;
+  --color-border: #cdd5cf;
+  --color-border-light: #b9c3bc;
+  --color-vegan: #1f7a3f;
+  --color-vegan-bg: #d4ecd9;
+}
+
+/* Fonts */
+:root[data-theme="night-bar"] {
+  --font-display: var(--ff-bricolage), "Helvetica Neue", Arial, sans-serif;
+  --font-sans: var(--ff-source-sans), "Helvetica Neue", Arial, sans-serif;
+}
+
+:root[data-theme="negroni"] {
+  --font-display: var(--ff-bricolage), "Helvetica Neue", Arial, sans-serif;
+  --font-sans: var(--ff-atkinson), "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--ff-plex-mono), "SF Mono", ui-monospace, monospace;
+}
+
+:root:is([data-theme="paper"], [data-theme="night-serif"]) {
+  --font-display: var(--ff-instrument-serif), Georgia, serif;
+  --font-sans: var(--ff-atkinson), "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--ff-plex-mono), "SF Mono", ui-monospace, monospace;
+}
+
+/* Instrument Serif has one weight; a synthetic bold smears it. */
+:root:is([data-theme="paper"], [data-theme="night-serif"]) :is(h1, h2, h3):not(.font-mono) {
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+/* The wordmark: the light drawing on dark themes, the dark one on light themes. */
+.wordmark-on-light {
+  display: none;
+}
+:root:is([data-theme="paper"], [data-theme="paper-rx"]) .wordmark-on-dark {
+  display: none;
+}
+:root:is([data-theme="paper"], [data-theme="paper-rx"]) .wordmark-on-light {
+  display: block;
 }
 
 @layer base {
@@ -31,6 +133,12 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
   }
 
   ::selection {
@@ -55,11 +163,11 @@
 }
 
 @layer components {
+  /* Recipe text: ingredients, steps, garnish. Reading text, so the body font (ADR-028). */
   .prescription-text {
-    font-family: var(--font-mono);
-    font-size: 0.85rem;
-    letter-spacing: 0.02em;
-    line-height: 1.7;
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    line-height: 1.6;
   }
 
   .rx-symbol::before {

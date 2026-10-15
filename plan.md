@@ -9,7 +9,7 @@
 > **Language rule (ADR-002):** everything we write — docs, code, comments, commits, SQL — is
 > **English**. Everything visitors and admins read — UI strings, recipes — is **Turkish**.
 
-**Last updated:** 2026-10-15 (M9 backup + cl ↔ oz) · **Active milestone:** **M9 — Web improvements** (recipe pages, data filters, wordmark, rich results, share, servings, similar, weekly backup, cl ↔ oz — ADR-025, ADR-026, ADR-027; the theme and font left) · **M8 — Mobile app** steps 1–6 done, **step 7 (store release) paused** until the Apple account or the user's two other Play apps (ADR-024) · M6 and M7 done · **Brand:** `haci` (ADR-015)
+**Last updated:** 2026-10-15 (M9 backup + cl ↔ oz) · **Active milestone:** **M9 — Web improvements** (recipe pages, data filters, wordmark, rich results, share, servings, similar, weekly backup, cl ↔ oz, six themes with readable type — ADR-025 to ADR-028) · **M8 — Mobile app** steps 1–6 done, **step 7 (store release) paused** until the Apple account or the user's two other Play apps (ADR-024) · M6 and M7 done · **Brand:** `haci` (ADR-015)
 
 ---
 
@@ -21,7 +21,7 @@
 | Previous milestone | **M7 — The showcase** (2026-10-14, ADR-019) and **M6 — Community recipes and feeds** (2026-10-14, ADR-018): built, tested on `localhost`, deployed; **live checks passed on the user's phone** (2026-10-14). **Both done**. M5 — Drink log done 2026-10-14 |
 | Last completed | **M2 — Domain** (Search Console moved from vercel.app to the domain) and the **brand change to `haci`** with English URLs and the cherry logo (ADR-015). M1 is done except Hacı's own first sign-in |
 | Blockers | None in the code. **The user's accounts for M8:** Expo `nefeygt` (EAS project `@nefeygt/haci`, linked 2026-10-15); Google Play — personal, **created after 2023-11-13**, developer name **"KZN"** (renamed by the user 2026-10-15; haci is published from it), so a 12-tester, 14-day closed test comes before production (the user sources the testers); Apple Developer — **not opened yet, and likely in another person's name** (the user, 2026-10-15), so Android is built and tested first. The office network (FortiGate) blocks the domain — check from outside (§5.4) |
-| Next critical decision | **The colour theme** for a global audience (the user is open to change, ADR-015) and, later, localization. The mobile app is decided: Expo, after M3 (ADR-013) |
+| Next critical decision | What M9 still needs before the parity pass (the theme is decided: Rx readable + five more, ADR-028) and, later, localization. The mobile app is decided: Expo, after M3 (ADR-013) |
 
 ---
 
@@ -144,6 +144,7 @@ In the user's words, collected while M0 was being built. Milestones in §6.
 | 025 | House recipes get `/cocktails/{slug}` pages; the archive card links there, a magnifier opens the quick card | Shareable links, search engines; the quick look stays |
 | 026 | Chips from the data; servings, share, JSON-LD, similar recipes | A new value gets its chip; recipes describe themselves |
 | 027 | Weekly backup of house content by a GitHub Action with the public key; cl ↔ oz at 1 oz = 3 cl | Free plan has no backups; pourable ounces |
+| 028 | Six themes (Rx default) via `data-theme` + an inline boot script; reading text in a sans, mono for labels | Readable on phones; a choice of looks |
 | 020 | Expo app in `mobile/` (this repo), full parity, both stores, native Google + e-mail (+ Apple on iOS); site pages refreshed through `/api/revalidate` | The user's answers; shared types and validation, one handoff |
 | 024 | Store release waits (Apple account / a shared Play closed test); web first, one parity pass before release | Cheaper testers for three apps; no store round for an app that will change |
 
@@ -270,6 +271,7 @@ src/
     account.ts                  accountSession(), requireMember() (server only)
     account-config.ts           ACCOUNTS_OPEN, PRIVACY_NOTICE_VERSION, safeNext() (browser-safe)
     brand.ts                    BRAND = "haci" 
+    themes.ts                   THEMES (ids, Turkish names, swatches), THEME_BOOT_SCRIPT (ADR-028); tokens in app/globals.css
     community.ts                review/report length limits, formatAverage (browser-safe)
     drink-log.ts                the log's recipe snapshot: type, limits, cleanRecipe, formatting (browser-safe)
     recipe.ts                   a member's recipe: RecipeInput, limits, icons, cleanRecipeInput (browser-safe)
@@ -646,8 +648,11 @@ While the store release waits (ADR-024), the site gets better first; every user-
 - [x] **cl ↔ oz** (ADR-027): "cl | oz" next to "Kaç kişilik?", 1 oz = 3 cl, quarter ounces as fractions, remembered in the
   browser. Checked: build, the app's typecheck, Claude in Chrome (6 cl → 2 oz, 10 cl → 3¼ oz; two glasses 20 cl → 6¾ oz;
   kept on another page) and the built-in browser at 375 px (no horizontal scroll)
-- [ ] Colour theme review and a more readable font (site and app together) — **three directions shown to the user
-  (2026-10-15, an artifact: A "Rx, readable", B "Night bar", C "Prescription paper")**; build what they pick
+- [x] **Six themes and readable type** (ADR-028): the user picked A "Rx, readable" as the main look and wanted the others
+  as themes too — Rx, Gece Barı, Negroni, Gece Serifi, Reçete Kâğıdı, Kâğıt Rx; "Görünüm" in the navbar; reading text off
+  the mono font (153 places, site and panel). Checked: build, the built-in browser at 375 px (every theme 375 wide, the
+  open menu too; the account link is icon-only on phones), paper on home/archive/recipe (dark wordmark), a chosen theme
+  kept after a reload. The app's theme and fonts wait for the parity pass
 
 ---
 
@@ -698,9 +703,7 @@ While the store release waits (ADR-024), the site gets better first; every user-
 - **Localization** — English first, then others; UI strings out of the components (the user,
   2026-10-13: later, once the current work is done). **Includes an English privacy notice next to
   the Turkish one** for global users (the user, 2026-10-13)
-- **Colour theme review** for a wider audience (the user is open to change; logo colours follow)
-- **A more readable font** (the user, 2026-10-15): today's type gives a cinema feel but reads poorly,
-  especially on phones — review with the colour theme, site and app together
+- Themes in the admin panel; the theme saved on the account; light OG images and e-mail templates (ADR-028)
 - **The glass as a picker with glass pictures** (the user, 2026-10-15, unsure): the log's (and the recipe
   form's) "Bardak" chosen from a list with drawings of each glass we would make
 - **Videos for cocktails** (the user, 2026-10-15: "in the future") — generated or shot short clips on the recipe pages
@@ -723,6 +726,7 @@ While the store release waits (ADR-024), the site gets better first; every user-
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-10-15 | M9 themes | The user picked A ("Rx, readable") as the main look and asked for the other directions and more combinations as themes → six themes with a "Görünüm" picker, reading text off the mono font (ADR-028). The extra navbar button overflowed 375 px → the account link is icon-only on phones. Checked in the built-in browser; build passes |
 | 2026-10-15 | M9 backup + cl ↔ oz | The user chose the GitHub Action backup (public key, published house content only, photos too) and 1 oz = 3 cl. Built both (ADR-027); the backup ran locally, Vercel skips backup-only commits. Live check: last session's features on the domain and Google's Rich Results Test (1 valid Recipe). Claude in Chrome's screenshots timed out again; DOM checks there, visuals in the built-in browser. Three theme/font directions published as an artifact for the user to pick |
 | 2026-10-15 | M9 quick wins | The user picked the order: quick wins first, theme and font last. Built (ADR-026): chips from the data with flavour notes (site and app), the wordmark in the navbar, recipe JSON-LD, "Paylaş", "Kaç kişilik?", "Benzer kokteyller". Fixed on the way: the wordmark shrank to 0 px on phones and the bar overflowed 375 px. Checked: build, the app's typecheck (`npm ci` in `mobile/` first — `node_modules` was missing), Claude in Chrome (its screenshots timed out after a resize) and the built-in browser |
 | 2026-10-15 | M9 start: recipe pages | The user asked for house recipe pages: the card opens `/cocktails/{slug}`, a magnifier opens the modal (ADR-025); video → Icebox. Built, checked in the built-in browser (Claude in Chrome not connected) and with curl; build passes; deployed `149e6fa`, live page 200 from the user's home network. M9 opened with Claude's suggestions — the user liked them all; order next session |

@@ -31,11 +31,11 @@ export default function LogsDefaultToggle({ initial }: { initial: boolean }) {
           onChange={(e) => change(e.target.checked)}
           className="mt-0.5 h-4 w-4 accent-crimson"
         />
-        <span className="font-mono text-xs leading-relaxed text-text-secondary">
+        <span className="text-xs leading-relaxed text-text-secondary">
           Yeni kayıtlarım herkese açık başlasın. Her kaydı ayrıca açıp kapatabilirsin; mevcut kayıtlar değişmez.
         </span>
       </label>
-      {error && <p className="mt-2 font-mono text-xs text-crimson-glow">{error}</p>}
+      {error && <p className="mt-2 text-xs text-crimson-glow">{error}</p>}
     </div>
   );
 }

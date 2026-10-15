@@ -100,7 +100,7 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
           Arşiv
         </span>
         <h1 className="text-3xl font-bold tracking-tight">Kokteyller</h1>
-        <p className="mt-2 font-mono text-sm text-text-muted">
+        <p className="mt-2 text-sm text-text-muted">
           Hacı onaylı <b>{cocktails.length}</b> reçete.
         </p>
       </div>
@@ -114,7 +114,7 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Kokteyl, malzeme veya etiket ara..."
-            className="w-full rounded border border-border bg-bg-card py-2.5 pl-10 pr-4 font-mono text-sm text-text-primary placeholder-text-muted outline-none transition-colors focus:border-crimson-glow/40"
+            className="w-full rounded border border-border bg-bg-card py-2.5 pl-10 pr-4 text-sm text-text-primary placeholder-text-muted outline-none transition-colors focus:border-crimson-glow/40"
           />
           {search && (
             <button
@@ -127,7 +127,7 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
         </div>
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className={`flex items-center gap-2 rounded border px-4 font-mono text-xs transition-colors ${
+          className={`flex items-center gap-2 rounded border px-4 text-xs transition-colors ${
             showFilters
               ? "border-crimson/30 bg-crimson/10 text-crimson-glow"
               : "border-border bg-bg-card text-text-secondary hover:border-border-light"
@@ -228,7 +228,7 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
           <p className="mb-2 text-text-secondary">Sonuç bulunamadı.</p>
           <button
             onClick={clearFilters}
-            className="font-mono text-sm text-crimson-glow underline underline-offset-2"
+            className="text-sm text-crimson-glow underline underline-offset-2"
           >
             Filtreleri temizle
           </button>

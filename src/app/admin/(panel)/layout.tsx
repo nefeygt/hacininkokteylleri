@@ -21,7 +21,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
                 YÖNETİM
               </span>
             </Link>
-            <nav className="flex items-center gap-1 font-mono text-xs">
+            <nav className="flex items-center gap-1 text-xs">
               <Link href="/" className="rounded px-2.5 py-1.5 text-text-secondary hover:bg-bg-elevated hover:text-text-primary">
                 Kokteyller
               </Link>

@@ -27,7 +27,7 @@ export default function AuthCard({
         </div>
 
         <h1 className="mb-1 text-xl font-bold">{title}</h1>
-        <p className="mb-6 font-mono text-xs leading-relaxed text-text-muted">{subtitle}</p>
+        <p className="mb-6 text-xs leading-relaxed text-text-muted">{subtitle}</p>
 
         {children}
 

@@ -36,17 +36,17 @@ export default function EnrollTotp() {
   if (!factor) {
     return (
       <div className="space-y-4">
-        <ol className="list-decimal space-y-1.5 pl-4 font-mono text-xs leading-relaxed text-text-secondary">
+        <ol className="list-decimal space-y-1.5 pl-4 text-xs leading-relaxed text-text-secondary">
           <li>Telefonuna Google Authenticator, Microsoft Authenticator ya da benzeri bir uygulama kur.</li>
           <li>Aşağıdaki düğmeyle QR kodu oluştur ve uygulamayla tara.</li>
           <li>Uygulamanın gösterdiği 6 haneli kodu gir.</li>
         </ol>
-        {error && <p className="font-mono text-xs text-crimson-glow">{error}</p>}
+        {error && <p className="text-xs text-crimson-glow">{error}</p>}
         <button
           type="button"
           onClick={begin}
           disabled={pending}
-          className="flex w-full items-center justify-center gap-2 rounded bg-crimson px-4 py-2.5 font-mono text-sm font-medium text-white hover:bg-crimson-light disabled:opacity-60"
+          className="flex w-full items-center justify-center gap-2 rounded bg-crimson px-4 py-2.5 text-sm font-medium text-white hover:bg-crimson-light disabled:opacity-60"
         >
           {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <QrCode className="h-4 w-4" />}
           QR kodu oluştur
@@ -66,10 +66,10 @@ export default function EnrollTotp() {
         <code className="mt-2 block break-all rounded bg-bg-primary p-2 text-text-secondary">{factor.secret}</code>
       </details>
       <CodeInput value={code} onChange={setCode} />
-      {error && <p className="font-mono text-xs text-crimson-glow">{error}</p>}
+      {error && <p className="text-xs text-crimson-glow">{error}</p>}
       <button
         disabled={pending || code.length !== 6}
-        className="flex w-full items-center justify-center gap-2 rounded bg-crimson px-4 py-2.5 font-mono text-sm font-medium text-white hover:bg-crimson-light disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-2 rounded bg-crimson px-4 py-2.5 text-sm font-medium text-white hover:bg-crimson-light disabled:opacity-60"
       >
         {pending && <Loader2 className="h-4 w-4 animate-spin" />}
         Doğrula ve bitir

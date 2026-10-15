@@ -54,7 +54,7 @@ export default function RecipeView({ cocktail, similar }: { cocktail: Cocktail; 
             {[cocktail.baseAlcohol, cocktail.flavor, cocktail.glass].filter(Boolean).join(" · ")}
           </span>
           {cocktail.vegan && (
-            <span className="flex items-center gap-1 rounded bg-green-900/30 px-1.5 py-0.5 font-mono text-[9px] uppercase text-green-400">
+            <span className="flex items-center gap-1 rounded bg-vegan-bg/30 px-1.5 py-0.5 font-mono text-[9px] uppercase text-vegan">
               <Leaf className="h-2.5 w-2.5" />
               Vegan
             </span>
@@ -65,7 +65,7 @@ export default function RecipeView({ cocktail, similar }: { cocktail: Cocktail; 
           <RecipeActions cocktail={cocktail} member={member} favorite={favorite} onToggleFavorite={toggleFavorite} />
           <ShareButton title={cocktail.name} text={cocktail.subtitle || undefined} />
         </div>
-        {cocktail.subtitle && <p className="mt-1 font-mono text-sm text-text-secondary">{cocktail.subtitle}</p>}
+        {cocktail.subtitle && <p className="mt-1 text-sm text-text-secondary">{cocktail.subtitle}</p>}
 
         {author && (
           <div className="mt-5 flex flex-wrap items-center gap-3">

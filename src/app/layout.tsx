@@ -1,19 +1,65 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import {
+  Atkinson_Hyperlegible_Next,
+  Bricolage_Grotesque,
+  IBM_Plex_Mono,
+  IBM_Plex_Sans,
+  Instrument_Serif,
+  JetBrains_Mono,
+  Source_Sans_3,
+} from "next/font/google";
 import "./globals.css";
 import { BRAND } from "@/lib/brand";
+import { THEME_BOOT_SCRIPT } from "@/lib/themes";
 
-const inter = Inter({
+// Every theme's fonts (ADR-028). Only the default theme's two are preloaded; the others
+// download when a theme that uses them is picked.
+const plexSans = IBM_Plex_Sans({
   subsets: ["latin", "latin-ext"],
-  variable: "--font-sans",
+  variable: "--ff-plex-sans",
   display: "swap",
 });
-
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin", "latin-ext"],
-  variable: "--font-mono",
+  variable: "--ff-jetbrains-mono",
   display: "swap",
 });
+const bricolage = Bricolage_Grotesque({
+  subsets: ["latin", "latin-ext"],
+  variable: "--ff-bricolage",
+  display: "swap",
+  preload: false,
+});
+const sourceSans = Source_Sans_3({
+  subsets: ["latin", "latin-ext"],
+  variable: "--ff-source-sans",
+  display: "swap",
+  preload: false,
+});
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin", "latin-ext"],
+  weight: "400",
+  variable: "--ff-instrument-serif",
+  display: "swap",
+  preload: false,
+});
+const atkinson = Atkinson_Hyperlegible_Next({
+  subsets: ["latin", "latin-ext"],
+  variable: "--ff-atkinson",
+  display: "swap",
+  preload: false,
+});
+const plexMono = IBM_Plex_Mono({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "600"],
+  variable: "--ff-plex-mono",
+  display: "swap",
+  preload: false,
+});
+
+const fontVariables = [plexSans, jetbrainsMono, bricolage, sourceSans, instrumentSerif, atkinson, plexMono]
+  .map((font) => font.variable)
+  .join(" ");
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://hacininkokteylleri.tech"),
@@ -32,7 +78,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="tr" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+    // The boot script sets data-theme before React loads, hence the suppressed warning.
+    <html lang="tr" className={fontVariables} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+      </head>
       {/* Browser extensions add attributes to <body> before React loads. */}
       <body className="min-h-screen bg-bg-primary text-text-primary antialiased" suppressHydrationWarning>
         {children}

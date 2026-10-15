@@ -110,7 +110,7 @@ export default function AvatarField({
             type="button"
             disabled={busy}
             onClick={() => input.current?.click()}
-            className="inline-flex items-center gap-2 rounded border border-border px-3 py-2 font-mono text-xs text-text-secondary hover:border-border-light hover:text-text-primary disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded border border-border px-3 py-2 text-xs text-text-secondary hover:border-border-light hover:text-text-primary disabled:opacity-60"
           >
             <ImagePlus className="h-3.5 w-3.5" /> {current ? "Fotoğrafı değiştir" : "Fotoğraf yükle"}
           </button>
@@ -119,13 +119,13 @@ export default function AvatarField({
               type="button"
               disabled={busy}
               onClick={remove}
-              className="inline-flex items-center gap-1.5 rounded px-3 py-2 font-mono text-xs text-text-muted hover:text-crimson-glow disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 rounded px-3 py-2 text-xs text-text-muted hover:text-crimson-glow disabled:opacity-60"
             >
               <X className="h-3.5 w-3.5" /> Kaldır
             </button>
           )}
         </div>
-        {error && <p className="mt-2 font-mono text-xs text-crimson-glow">{error}</p>}
+        {error && <p className="mt-2 text-xs text-crimson-glow">{error}</p>}
       </div>
 
       <input

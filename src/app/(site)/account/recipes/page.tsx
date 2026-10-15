@@ -25,7 +25,7 @@ export default async function RecipesPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Tariflerim</h1>
-          <p className="mt-1 font-mono text-xs text-text-muted">
+          <p className="mt-1 text-xs text-text-muted">
             Yazdığın tarifler. Yayındakiler profilinde ve akışta görünür; taslakları yalnızca sen görürsün.
           </p>
         </div>
@@ -36,14 +36,14 @@ export default async function RecipesPage() {
 
       <Link
         href="/account/recipes/new"
-        className="mt-8 inline-flex items-center rounded bg-crimson px-4 py-2 font-mono text-xs text-white transition-opacity hover:opacity-90"
+        className="mt-8 inline-flex items-center rounded bg-crimson px-4 py-2 text-xs text-white transition-opacity hover:opacity-90"
       >
         + Yeni tarif
       </Link>
 
       <section className="mt-8">
         {data.length === 0 ? (
-          <p className="font-mono text-xs leading-relaxed text-text-muted">Henüz tarif yok. İlk tarifini yaz.</p>
+          <p className="text-xs leading-relaxed text-text-muted">Henüz tarif yok. İlk tarifini yaz.</p>
         ) : (
           <ul className="space-y-2">
             {data.map((r) => (

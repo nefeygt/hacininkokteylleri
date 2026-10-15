@@ -10,7 +10,7 @@ export default function SignOutButton() {
     <button
       type="button"
       disabled={pending}
-      className="rounded border border-border px-4 py-2 font-mono text-xs text-text-secondary transition-colors hover:border-border-light hover:text-text-primary disabled:opacity-60"
+      className="rounded border border-border px-4 py-2 text-xs text-text-secondary transition-colors hover:border-border-light hover:text-text-primary disabled:opacity-60"
       onClick={() =>
         startTransition(async () => {
           await signOut();

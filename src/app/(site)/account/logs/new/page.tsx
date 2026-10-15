@@ -60,7 +60,7 @@ export default async function NewLogPage({ searchParams }: { searchParams: Promi
   if (!cocktail) {
     return (
       <AccountCard title="Günlüğe ekle" subtitle="Bu kokteyl bulunamadı.">
-        <Link href="/account/logs/new" className="font-mono text-xs text-crimson-glow underline underline-offset-2">
+        <Link href="/account/logs/new" className="text-xs text-crimson-glow underline underline-offset-2">
           Başka bir kokteyl seç
         </Link>
       </AccountCard>

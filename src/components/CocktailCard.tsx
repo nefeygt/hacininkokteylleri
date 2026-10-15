@@ -120,7 +120,7 @@ function CardContent({ cocktail, favorite }: { cocktail: Cocktail; favorite: boo
         {/* Top right badges */}
         <div className="absolute right-2.5 top-2.5 flex flex-col gap-1.5">
           {cocktail.vegan && (
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-900/60 text-green-400 backdrop-blur-sm">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-vegan-bg/60 text-vegan backdrop-blur-sm">
               <Leaf className="h-3 w-3" />
             </div>
           )}
@@ -155,7 +155,7 @@ function CardContent({ cocktail, favorite }: { cocktail: Cocktail; favorite: boo
         <h3 className="mb-1 text-lg font-bold tracking-tight text-text-primary transition-colors group-hover:text-crimson-glow">
           {cocktail.name}
         </h3>
-        <p className="font-mono text-xs text-text-muted line-clamp-2">
+        <p className="text-xs text-text-muted line-clamp-2">
           {cocktail.subtitle}
         </p>
         {cocktail.author && (

@@ -25,7 +25,7 @@ export default async function AccountPage() {
     <AccountCard title="Hesabım" subtitle={user.email ? `${user.email} ile giriş yaptın.` : undefined} wide>
       <div className="space-y-8">
         {profile.hidden_at && (
-          <p className="rounded border border-crimson/40 bg-crimson/10 p-3 font-mono text-xs text-text-secondary">
+          <p className="rounded border border-crimson/40 bg-crimson/10 p-3 text-xs text-text-secondary">
             Profilin bir yönetici tarafından gizlendi; şu an yalnızca sen görüyorsun.
           </p>
         )}
@@ -60,7 +60,7 @@ export default async function AccountPage() {
               Tariflerim →
             </Link>
           </div>
-          <p className="mt-2 font-mono text-xs text-text-muted">Kendi tariflerini yaz; yayındakiler profilinde ve akışta görünür.</p>
+          <p className="mt-2 text-xs text-text-muted">Kendi tariflerini yaz; yayındakiler profilinde ve akışta görünür.</p>
         </section>
 
         <section className="border-t border-border pt-6">
@@ -77,13 +77,13 @@ export default async function AccountPage() {
         </section>
 
         <section className="flex items-center justify-between border-t border-border pt-6">
-          <span className="font-mono text-xs text-text-muted">Bu cihazdan çık</span>
+          <span className="text-xs text-text-muted">Bu cihazdan çık</span>
           <SignOutButton />
         </section>
 
         <section className="border-t border-border pt-6">
           <h2 className="mb-2 font-mono text-xs uppercase tracking-[0.15em] text-crimson-glow">Hesabı sil</h2>
-          <p className="mb-4 font-mono text-xs leading-relaxed text-text-muted">
+          <p className="mb-4 text-xs leading-relaxed text-text-muted">
             Hesabın, profilin ve yazdığın her şey kalıcı olarak silinir. Bu geri alınamaz.
           </p>
           <DeleteAccount userId={user.id} username={profile.username} />

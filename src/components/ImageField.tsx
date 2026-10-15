@@ -113,7 +113,7 @@ export default function ImageField({
         {url ? (
           <img src={url} alt="" className="h-full w-full object-cover" />
         ) : (
-          <div className="flex h-full items-center justify-center font-mono text-xs text-text-muted">
+          <div className="flex h-full items-center justify-center text-xs text-text-muted">
             Fotoğraf yok
           </div>
         )}
@@ -129,7 +129,7 @@ export default function ImageField({
           type="button"
           disabled={busy}
           onClick={() => input.current?.click()}
-          className="inline-flex items-center gap-2 rounded border border-border px-3 py-2 font-mono text-xs text-text-secondary hover:border-border-light hover:text-text-primary disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded border border-border px-3 py-2 text-xs text-text-secondary hover:border-border-light hover:text-text-primary disabled:opacity-60"
         >
           <ImagePlus className="h-3.5 w-3.5" /> {url ? "Fotoğrafı değiştir" : "Fotoğraf yükle"}
         </button>
@@ -138,7 +138,7 @@ export default function ImageField({
             type="button"
             disabled={busy}
             onClick={() => onChange(null)}
-            className="inline-flex items-center gap-1.5 rounded px-3 py-2 font-mono text-xs text-text-muted hover:text-crimson-glow"
+            className="inline-flex items-center gap-1.5 rounded px-3 py-2 text-xs text-text-muted hover:text-crimson-glow"
           >
             <X className="h-3.5 w-3.5" /> Kaldır
           </button>
@@ -165,7 +165,7 @@ export default function ImageField({
           if (file) upload(file);
         }}
       />
-      {error && <p className="mt-2 font-mono text-xs text-crimson-glow">{error}</p>}
+      {error && <p className="mt-2 text-xs text-crimson-glow">{error}</p>}
     </div>
   );
 }

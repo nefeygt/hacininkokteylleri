@@ -151,7 +151,7 @@ export default async function ModerationPage() {
     <div className="space-y-10">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Moderasyon</h1>
-        <p className="mt-1 font-mono text-xs text-text-muted">
+        <p className="mt-1 text-xs text-text-muted">
           {reports.length} açık bildirim · gizlenen içerik yalnızca sahibine ve yöneticilere görünür
         </p>
       </div>
@@ -159,7 +159,7 @@ export default async function ModerationPage() {
       <section>
         <h2 className="mb-3 font-mono text-xs uppercase tracking-[0.15em] text-text-muted">Açık bildirimler</h2>
         {reports.length === 0 ? (
-          <p className="font-mono text-xs text-text-muted">Bildirim yok.</p>
+          <p className="text-xs text-text-muted">Bildirim yok.</p>
         ) : (
           <ul className="divide-y divide-border overflow-hidden rounded-sm border border-border bg-bg-card">
             {reports.map((report) => {
@@ -200,7 +200,7 @@ export default async function ModerationPage() {
       <section>
         <h2 className="mb-3 font-mono text-xs uppercase tracking-[0.15em] text-text-muted">Son değerlendirmeler</h2>
         {!recent?.length ? (
-          <p className="font-mono text-xs text-text-muted">Henüz değerlendirme yok.</p>
+          <p className="text-xs text-text-muted">Henüz değerlendirme yok.</p>
         ) : (
           <ul className="divide-y divide-border overflow-hidden rounded-sm border border-border bg-bg-card">
             {(recent as ReviewRef[]).map((review) => (
@@ -215,7 +215,7 @@ export default async function ModerationPage() {
       <section>
         <h2 className="mb-3 font-mono text-xs uppercase tracking-[0.15em] text-text-muted">Son üye tarifleri</h2>
         {!recentRecipes?.length ? (
-          <p className="font-mono text-xs text-text-muted">Henüz üye tarifi yok.</p>
+          <p className="text-xs text-text-muted">Henüz üye tarifi yok.</p>
         ) : (
           <ul className="divide-y divide-border overflow-hidden rounded-sm border border-border bg-bg-card">
             {(recentRecipes as RecipeRef[]).map((recipe) => (
@@ -230,7 +230,7 @@ export default async function ModerationPage() {
       <section>
         <h2 className="mb-3 font-mono text-xs uppercase tracking-[0.15em] text-text-muted">Son günlük yorumları</h2>
         {!recentComments?.length ? (
-          <p className="font-mono text-xs text-text-muted">Henüz yorum yok.</p>
+          <p className="text-xs text-text-muted">Henüz yorum yok.</p>
         ) : (
           <ul className="divide-y divide-border overflow-hidden rounded-sm border border-border bg-bg-card">
             {(recentComments as CommentRef[]).map((comment) => (
@@ -245,7 +245,7 @@ export default async function ModerationPage() {
       <section>
         <h2 className="mb-3 font-mono text-xs uppercase tracking-[0.15em] text-text-muted">Son herkese açık günlük kayıtları</h2>
         {!recentLogs?.length ? (
-          <p className="font-mono text-xs text-text-muted">Henüz herkese açık kayıt yok.</p>
+          <p className="text-xs text-text-muted">Henüz herkese açık kayıt yok.</p>
         ) : (
           <ul className="divide-y divide-border overflow-hidden rounded-sm border border-border bg-bg-card">
             {(recentLogs as LogRef[]).map((log) => (

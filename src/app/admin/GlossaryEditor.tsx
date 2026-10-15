@@ -7,7 +7,7 @@ import { deleteGlossaryTerm, saveGlossaryTerm } from "./actions";
 type Term = { term: string; definition: string };
 
 const field =
-  "w-full rounded border border-border bg-bg-primary px-3 py-2 font-mono text-sm text-text-primary outline-none transition-colors focus:border-crimson-glow/50";
+  "w-full rounded border border-border bg-bg-primary px-3 py-2 text-sm text-text-primary outline-none transition-colors focus:border-crimson-glow/50";
 
 function TermRow({ initial }: { initial: Term | null }) {
   const [term, setTerm] = useState(initial?.term ?? "");
@@ -51,7 +51,7 @@ function TermRow({ initial }: { initial: Term | null }) {
           type="button"
           disabled={!dirty || pending}
           onClick={save}
-          className="inline-flex items-center gap-1.5 rounded bg-crimson px-3 py-2 font-mono text-xs text-white hover:bg-crimson-light disabled:opacity-40"
+          className="inline-flex items-center gap-1.5 rounded bg-crimson px-3 py-2 text-xs text-white hover:bg-crimson-light disabled:opacity-40"
         >
           {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : initial ? null : <Plus className="h-3.5 w-3.5" />}
           {initial ? "Kaydet" : "Ekle"}
@@ -68,7 +68,7 @@ function TermRow({ initial }: { initial: Term | null }) {
           </button>
         )}
       </div>
-      {error && <p className="font-mono text-xs text-crimson-glow sm:col-span-3">{error}</p>}
+      {error && <p className="text-xs text-crimson-glow sm:col-span-3">{error}</p>}
     </li>
   );
 }

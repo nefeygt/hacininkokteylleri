@@ -145,7 +145,7 @@ export default function RecipeDetails({ cocktail }: { cocktail: Cocktail }) {
             className="mt-0.5 h-4 w-4 shrink-0 text-crimson-glow/60"
             strokeWidth={1.5}
           />
-          <p className="whitespace-pre-line font-mono text-xs italic leading-relaxed text-text-muted">
+          <p className="whitespace-pre-line text-sm italic leading-relaxed text-text-secondary">
             {cocktail.note}
           </p>
         </div>

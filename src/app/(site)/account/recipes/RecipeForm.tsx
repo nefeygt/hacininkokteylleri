@@ -259,7 +259,7 @@ export default function RecipeForm({
           <button
             type="button"
             onClick={() => set("ingredients", [...form.ingredients, { name: "", amount: 1, unit: "cl", icon: "shot" }])}
-            className="mt-3 inline-flex items-center gap-1.5 font-mono text-xs text-text-secondary hover:text-crimson-glow"
+            className="mt-3 inline-flex items-center gap-1.5 text-xs text-text-secondary hover:text-crimson-glow"
           >
             <Plus className="h-3.5 w-3.5" /> Malzeme ekle
           </button>
@@ -296,7 +296,7 @@ export default function RecipeForm({
           <button
             type="button"
             onClick={() => set("instructions", [...form.instructions, ""])}
-            className="mt-3 inline-flex items-center gap-1.5 font-mono text-xs text-text-secondary hover:text-crimson-glow"
+            className="mt-3 inline-flex items-center gap-1.5 text-xs text-text-secondary hover:text-crimson-glow"
           >
             <Plus className="h-3.5 w-3.5" /> Adım ekle
           </button>
@@ -313,11 +313,11 @@ export default function RecipeForm({
             <span className={labelClass}>Not (isteğe bağlı)</span>
             <textarea rows={3} maxLength={L.note} value={form.note} onChange={(e) => set("note", e.target.value)} className={`${fieldClass} resize-y`} />
           </label>
-          <label className="flex items-center gap-2 font-mono text-sm text-text-secondary">
+          <label className="flex items-center gap-2 text-sm text-text-secondary">
             <input type="checkbox" checked={form.vegan} onChange={(e) => set("vegan", e.target.checked)} className="accent-crimson-glow" />
             Vegan
           </label>
-          <label className="flex items-start gap-2 font-mono text-sm text-text-secondary">
+          <label className="flex items-start gap-2 text-sm text-text-secondary">
             <input
               type="checkbox"
               checked={form.isPublished}
@@ -336,7 +336,7 @@ export default function RecipeForm({
 
       {id && (
         <Section title="Tarifi sil">
-          <p className="mb-3 font-mono text-xs text-text-muted">
+          <p className="mb-3 text-xs text-text-muted">
             Tarif, fotoğrafı ve ona yazılan değerlendirmeler kalıcı olarak silinir. Günlük kayıtları kendi kopyalarını korur.
           </p>
           <div className="flex flex-wrap items-center gap-3">
@@ -344,14 +344,14 @@ export default function RecipeForm({
               type="button"
               disabled={pending}
               onClick={remove}
-              className={`inline-flex items-center gap-1.5 rounded px-3 py-1.5 font-mono text-xs ${
+              className={`inline-flex items-center gap-1.5 rounded px-3 py-1.5 text-xs ${
                 confirmingDelete ? "bg-crimson text-white hover:bg-crimson-light" : "border border-crimson/50 text-crimson-glow hover:bg-crimson/10"
               }`}
             >
               <Trash2 className="h-3.5 w-3.5" /> {confirmingDelete ? "Emin misin? Evet, sil" : "Tarifi sil"}
             </button>
             {confirmingDelete && (
-              <button type="button" onClick={() => setConfirmingDelete(false)} className="font-mono text-xs text-text-muted hover:text-text-primary">
+              <button type="button" onClick={() => setConfirmingDelete(false)} className="text-xs text-text-muted hover:text-text-primary">
                 Vazgeç
               </button>
             )}
@@ -361,23 +361,23 @@ export default function RecipeForm({
 
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-bg-primary/95 backdrop-blur-md">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3">
-          <div className="min-w-0 font-mono text-xs">
+          <div className="min-w-0 text-xs">
             {error ? (
               <span className="text-crimson-glow">{error}</span>
             ) : saved ? (
-              <span className="inline-flex items-center gap-1.5 text-green-400">
+              <span className="inline-flex items-center gap-1.5 text-vegan">
                 <Check className="h-3.5 w-3.5" /> Kaydedildi.
               </span>
             ) : null}
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <Link href="/account/recipes" className="rounded px-3 py-2 font-mono text-xs text-text-muted hover:text-text-primary">
+            <Link href="/account/recipes" className="rounded px-3 py-2 text-xs text-text-muted hover:text-text-primary">
               Tariflerim
             </Link>
             <button
               type="submit"
               disabled={pending}
-              className="inline-flex items-center gap-2 rounded bg-crimson px-5 py-2 font-mono text-sm font-medium text-white hover:bg-crimson-light disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded bg-crimson px-5 py-2 text-sm font-medium text-white hover:bg-crimson-light disabled:opacity-60"
             >
               {pending && <Loader2 className="h-4 w-4 animate-spin" />}
               {id ? "Kaydet" : form.isPublished ? "Yayınla" : "Taslak olarak kaydet"}

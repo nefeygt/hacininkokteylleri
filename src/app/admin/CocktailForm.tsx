@@ -22,7 +22,7 @@ const ICONS: { value: IngredientIcon; label: string }[] = [
 
 const label = "mb-1.5 block font-mono text-[10px] uppercase tracking-[0.15em] text-text-muted";
 const field =
-  "w-full rounded border border-border bg-bg-primary px-3 py-2 font-mono text-sm text-text-primary outline-none transition-colors focus:border-crimson-glow/50";
+  "w-full rounded border border-border bg-bg-primary px-3 py-2 text-sm text-text-primary outline-none transition-colors focus:border-crimson-glow/50";
 const iconButton =
   "flex h-8 w-8 shrink-0 items-center justify-center rounded text-text-muted hover:bg-bg-elevated hover:text-text-primary disabled:opacity-30";
 
@@ -254,7 +254,7 @@ export default function CocktailForm({
         <button
           type="button"
           onClick={() => set("ingredients", [...form.ingredients, { name: "", amount: 1, unit: "cl", icon: "shot" }])}
-          className="mt-3 inline-flex items-center gap-1.5 font-mono text-xs text-text-secondary hover:text-crimson-glow"
+          className="mt-3 inline-flex items-center gap-1.5 text-xs text-text-secondary hover:text-crimson-glow"
         >
           <Plus className="h-3.5 w-3.5" /> Malzeme ekle
         </button>
@@ -287,7 +287,7 @@ export default function CocktailForm({
         <button
           type="button"
           onClick={() => set("instructions", [...form.instructions, ""])}
-          className="mt-3 inline-flex items-center gap-1.5 font-mono text-xs text-text-secondary hover:text-crimson-glow"
+          className="mt-3 inline-flex items-center gap-1.5 text-xs text-text-secondary hover:text-crimson-glow"
         >
           <Plus className="h-3.5 w-3.5" /> Adım ekle
         </button>
@@ -317,11 +317,11 @@ export default function CocktailForm({
             />
           </label>
           <div className="flex flex-col justify-end gap-3 pb-1">
-            <label className="flex items-center gap-2 font-mono text-sm text-text-secondary">
+            <label className="flex items-center gap-2 text-sm text-text-secondary">
               <input type="checkbox" checked={form.vegan} onChange={(e) => set("vegan", e.target.checked)} className="accent-crimson-glow" />
               Vegan
             </label>
-            <label className="flex items-center gap-2 font-mono text-sm text-text-secondary">
+            <label className="flex items-center gap-2 text-sm text-text-secondary">
               <input type="checkbox" checked={form.isPublished} onChange={(e) => set("isPublished", e.target.checked)} className="accent-crimson-glow" />
               Sitede yayında
             </label>
@@ -333,18 +333,18 @@ export default function CocktailForm({
         <Section title="Tehlikeli bölge">
           {confirmingDelete ? (
             <div className="flex flex-wrap items-center gap-3">
-              <span className="font-mono text-xs text-text-secondary">
+              <span className="text-xs text-text-secondary">
                 Kokteyl ve fotoğrafı kalıcı olarak silinecek.
               </span>
-              <button type="button" onClick={() => setConfirmingDelete(false)} className="rounded border border-border px-3 py-1.5 font-mono text-xs text-text-secondary hover:text-text-primary">
+              <button type="button" onClick={() => setConfirmingDelete(false)} className="rounded border border-border px-3 py-1.5 text-xs text-text-secondary hover:text-text-primary">
                 Vazgeç
               </button>
-              <button type="button" disabled={pending} onClick={remove} className="rounded bg-crimson px-3 py-1.5 font-mono text-xs text-white hover:bg-crimson-light disabled:opacity-60">
+              <button type="button" disabled={pending} onClick={remove} className="rounded bg-crimson px-3 py-1.5 text-xs text-white hover:bg-crimson-light disabled:opacity-60">
                 Evet, sil
               </button>
             </div>
           ) : (
-            <button type="button" onClick={() => setConfirmingDelete(true)} className="inline-flex items-center gap-1.5 font-mono text-xs text-text-muted hover:text-crimson-glow">
+            <button type="button" onClick={() => setConfirmingDelete(true)} className="inline-flex items-center gap-1.5 text-xs text-text-muted hover:text-crimson-glow">
               <Trash2 className="h-3.5 w-3.5" /> Kokteyli sil
             </button>
           )}
@@ -353,23 +353,23 @@ export default function CocktailForm({
 
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-bg-primary/95 backdrop-blur-md">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
-          <div className="min-w-0 font-mono text-xs">
+          <div className="min-w-0 text-xs">
             {error ? (
               <span className="text-crimson-glow">{error}</span>
             ) : saved ? (
-              <span className="inline-flex items-center gap-1.5 text-green-400">
+              <span className="inline-flex items-center gap-1.5 text-vegan">
                 <Check className="h-3.5 w-3.5" /> Kaydedildi, sitede güncel.
               </span>
             ) : null}
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <Link href="/" className="rounded px-3 py-2 font-mono text-xs text-text-muted hover:text-text-primary">
+            <Link href="/" className="rounded px-3 py-2 text-xs text-text-muted hover:text-text-primary">
               Listeye dön
             </Link>
             <button
               type="submit"
               disabled={pending}
-              className="inline-flex items-center gap-2 rounded bg-crimson px-5 py-2 font-mono text-sm font-medium text-white hover:bg-crimson-light disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded bg-crimson px-5 py-2 text-sm font-medium text-white hover:bg-crimson-light disabled:opacity-60"
             >
               {pending && <Loader2 className="h-4 w-4 animate-spin" />}
               {isNew ? "Oluştur" : "Kaydet"}

@@ -33,7 +33,8 @@ export default function AccountLink({ active }: { active: boolean }) {
       }`}
     >
       <UserRound className="h-3.5 w-3.5" />
-      {signedIn ? "Hesabım" : "Giriş"}
+      {/* Icon only on phones, so the bar (with "Görünüm") fits 375 px. */}
+      <span className="sr-only sm:not-sr-only">{signedIn ? "Hesabım" : "Giriş"}</span>
     </Link>
   );
 }

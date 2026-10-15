@@ -31,7 +31,7 @@ export default async function EditLogPage({ params }: { params: Promise<{ id: st
   return (
     <AccountCard title={recipe.name} subtitle={`${formatLogDate(log.drunk_on)} kaydını düzenle.`} wide>
       {log.hidden_at && (
-        <p className="mb-6 rounded border border-crimson/40 bg-crimson/10 p-3 font-mono text-xs text-text-secondary">
+        <p className="mb-6 rounded border border-crimson/40 bg-crimson/10 p-3 text-xs text-text-secondary">
           Bu kayıt bir yönetici tarafından gizlendi; yalnızca sen görüyorsun.
         </p>
       )}

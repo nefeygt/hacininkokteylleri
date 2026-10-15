@@ -34,7 +34,7 @@ export default function GoogleButton({ next }: { next: string }) {
         {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleMark />}
         Google ile devam et
       </button>
-      {error && <p className="font-mono text-xs text-crimson-glow">{error}</p>}
+      {error && <p className="text-xs text-crimson-glow">{error}</p>}
     </div>
   );
 }

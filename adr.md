@@ -37,6 +37,7 @@
 | 025 | Every house recipe has its own page at `/cocktails/{slug}` | ✅ Accepted | 2026-10-15 |
 | 026 | M9 quick wins: filters read the data, a flavour is a set of notes, recipes scale and describe themselves | ✅ Accepted | 2026-10-15 |
 | 027 | A weekly backup of house content through a GitHub Action; recipes switch between cl and oz at 1 oz = 3 cl | ✅ Accepted | 2026-10-15 |
+| 028 | Six site themes, "Rx" the default; reading text leaves the monospace font | ✅ Accepted | 2026-10-15 |
 
 ---
 
@@ -1064,3 +1065,43 @@ For a global audience the recipes also needed ounces. The user chose both answer
 
 **Rejected.** *A Vercel cron:* nowhere durable to write without a secret key. *The service key in a GitHub secret to
 include drafts:* a secret key outside Supabase for little gain. *The exact 2,957 cl:* awkward numbers nobody pours.
+
+---
+
+## ADR-028 — Six site themes, "Rx" the default; reading text leaves the monospace font
+
+**Context.** The type gave a cinema feel but read poorly, especially on phones (the user, 2026-10-15): almost every
+text on the site was JetBrains Mono. Three directions were shown on 2026-10-15; the user picked **A ("Rx, readable")**
+as the main look and asked for the other two, and further combinations, as themes to choose from.
+
+**Decision.**
+- **Three font roles:** `--font-display` (h1–h3), `--font-sans` (reading text, the default), `--font-mono` (amounts,
+  small labels, uppercase eyebrows). Mono was removed from reading text — every class string with `text-xs`/`text-sm`
+  and no uppercase/tracking (153 places, site and panel); `.prescription-text` (ingredients, steps, garnish) uses the
+  body font; the recipe note is `text-sm`.
+- **Themes** (`src/lib/themes.ts`, tokens in `src/app/globals.css`): **Rx** (default, the `@theme` block: near-black,
+  crimson with a brighter glow and lighter greys for contrast, IBM Plex Sans + JetBrains Mono), **Gece Barı**
+  (`night-bar`: warm brown-black, the logo's cherry red, Bricolage Grotesque + Source Sans 3), **Negroni** (`negroni`:
+  dark, bitter orange, Bricolage + Atkinson Hyperlegible Next + IBM Plex Mono), **Gece Serifi** (`night-serif`: Gece
+  Barı's colours with the paper's fonts), **Reçete Kâğıdı** (`paper`: light pale green-grey, Instrument Serif +
+  Atkinson + IBM Plex Mono), **Kâğıt Rx** (`paper-rx`: the paper's colours with Rx's fonts).
+- **How a theme applies:** `data-theme` on `<html>` (none for Rx) redefines the colour and font tokens; an inline
+  script in the root layout's `<head>` (`THEME_BOOT_SCRIPT`) applies the stored choice before the first paint, so
+  static pages stay static (ADR-005) and nothing flashes. The choice lives in the browser (`localStorage`
+  `haci.theme`), not in the account. Fonts come from `next/font`; only Rx's two are preloaded.
+- **"Görünüm"** — a palette button at the end of the navbar opens the list (swatch, name, hint, a check on the current
+  one). To fit 375 px the account link is its icon only on phones (the text stays for screen readers).
+- **Light themes** swap in the dark wordmark (`.wordmark-on-dark` / `.wordmark-on-light`) and set `color-scheme:
+  light`; the vegan badge uses `--color-vegan` / `--color-vegan-bg` instead of fixed greens.
+
+**Consequences.**
+- (+) Readable recipes in every theme; visitors who want the light or warmer look can have it.
+- (+) A new theme is one block of tokens and one row in `THEMES`.
+- (−) Six themes to keep in step: a new colour must be a token, never a fixed Tailwind colour (`text-white` on
+  `bg-crimson` buttons and photo overlays are the deliberate exceptions).
+- (−) The admin panel inherits the default theme only (no picker there). The app (mobile/) still has the old fonts and
+  no themes until the parity pass (ADR-024).
+- (−) OG images, app icons and e-mail templates keep the dark look.
+
+**Rejected.** *Store the theme on the profile:* signed-out visitors need it too, and reading it would make pages
+dynamic. *Follow the system's light/dark setting by default:* the user chose Rx as the main look.

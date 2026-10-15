@@ -74,7 +74,7 @@ export default function ShowcaseEntries({ period, entries }: { period: ShowcaseP
   }
 
   if (entries.length === 0) {
-    return <p className="font-mono text-xs text-text-muted">Henüz onaylanmış başvuru yok.</p>;
+    return <p className="text-xs text-text-muted">Henüz onaylanmış başvuru yok.</p>;
   }
 
   return (
@@ -97,7 +97,7 @@ export default function ShowcaseEntries({ period, entries }: { period: ShowcaseP
                       disabled={pending}
                       aria-pressed={mine}
                       title={mine ? "Oyunu geri al" : "Oy ver"}
-                      className={`flex items-center gap-1.5 rounded px-3 py-1 font-mono text-xs transition-colors disabled:opacity-60 ${
+                      className={`flex items-center gap-1.5 rounded px-3 py-1 text-xs transition-colors disabled:opacity-60 ${
                         mine
                           ? "bg-crimson text-white hover:bg-crimson-light"
                           : "border border-border text-text-secondary hover:border-crimson-glow/50 hover:text-text-primary"
@@ -109,13 +109,13 @@ export default function ShowcaseEntries({ period, entries }: { period: ShowcaseP
                   ) : open && member.state === "signed-out" ? (
                     <Link
                       href={`/login?next=${encodeURIComponent("/feed#showcase")}`}
-                      className="flex items-center gap-1.5 rounded border border-border px-3 py-1 font-mono text-xs text-text-secondary hover:border-crimson-glow/50 hover:text-text-primary"
+                      className="flex items-center gap-1.5 rounded border border-border px-3 py-1 text-xs text-text-secondary hover:border-crimson-glow/50 hover:text-text-primary"
                     >
                       <ArrowBigUp className="h-4 w-4" />
                       {count}
                     </Link>
                   ) : (
-                    <span className="flex items-center gap-1.5 font-mono text-xs text-text-muted">
+                    <span className="flex items-center gap-1.5 text-xs text-text-muted">
                       <ArrowBigUp className="h-4 w-4" />
                       {count} oy
                     </span>

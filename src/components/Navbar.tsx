@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Film } from "lucide-react";
 import { BRAND } from "@/lib/brand";
 import AccountLink from "./AccountLink";
+import ThemePicker from "./ThemePicker";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -15,7 +16,9 @@ export default function Navbar() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 px-4 sm:px-6">
         {/* The wordmark carries the cherry over the "i" (ADR-015); on phones it is the only link home. */}
         <Link href="/" aria-label={`${BRAND} — Ana Sayfa`} className="flex shrink-0 items-center opacity-90 transition-opacity hover:opacity-100">
-          <Image src="/brand/haci-wordmark-light.svg" alt={BRAND} width={69} height={32} priority />
+          {/* Light themes swap in the dark drawing (globals.css). */}
+          <Image src="/brand/haci-wordmark-light.svg" alt={BRAND} width={69} height={32} priority className="wordmark-on-dark" />
+          <Image src="/brand/haci-wordmark-dark.svg" alt="" width={69} height={32} className="wordmark-on-light" />
         </Link>
 
         <div className="flex items-center gap-1">
@@ -38,6 +41,7 @@ export default function Navbar() {
           >
             <Film className="h-4 w-4" />
           </a>
+          <ThemePicker />
         </div>
       </div>
     </nav>

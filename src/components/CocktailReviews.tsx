@@ -63,7 +63,7 @@ export default function CocktailReviews({ cocktail, member }: { cocktail: Cockta
       <div className="mb-4 flex items-baseline justify-between gap-3">
         <h3 className="font-mono text-xs uppercase tracking-[0.15em] text-text-muted">Değerlendirmeler</h3>
         {cocktail.rating && (
-          <span className="flex items-center gap-2 font-mono text-xs text-text-secondary">
+          <span className="flex items-center gap-2 text-xs text-text-secondary">
             <Stars value={cocktail.rating.average} size={12} />
             {formatAverage(cocktail.rating.average)} · {cocktail.rating.count}
           </span>
@@ -73,9 +73,9 @@ export default function CocktailReviews({ cocktail, member }: { cocktail: Cockta
       <OwnReview cocktail={cocktail} member={member} own={own} onSaved={load} />
 
       {reviews === null ? (
-        <p className="mt-4 font-mono text-xs text-text-muted">Yükleniyor…</p>
+        <p className="mt-4 text-xs text-text-muted">Yükleniyor…</p>
       ) : others.length === 0 ? (
-        <p className="mt-4 font-mono text-xs text-text-muted">
+        <p className="mt-4 text-xs text-text-muted">
           {own ? "Başka değerlendirme yok." : "Henüz değerlendirme yok. İlk sen yaz."}
         </p>
       ) : (
@@ -117,7 +117,7 @@ function OwnReview({
   if (member.state === "signed-out") {
     const next = recipeHref(cocktail.slug, Boolean(cocktail.author));
     return (
-      <p className="rounded bg-bg-elevated/50 px-4 py-3 font-mono text-xs text-text-secondary">
+      <p className="rounded bg-bg-elevated/50 px-4 py-3 text-xs text-text-secondary">
         Değerlendirmek ve favorilere eklemek için{" "}
         <Link href={`/login?next=${encodeURIComponent(next)}`} className="text-crimson-glow underline underline-offset-2">
           giriş yap
@@ -129,7 +129,7 @@ function OwnReview({
 
   if (member.state === "onboarding") {
     return (
-      <p className="rounded bg-bg-elevated/50 px-4 py-3 font-mono text-xs text-text-secondary">
+      <p className="rounded bg-bg-elevated/50 px-4 py-3 text-xs text-text-secondary">
         Değerlendirme yazmak için önce{" "}
         <Link href="/welcome" className="text-crimson-glow underline underline-offset-2">
           profilini tamamla
@@ -214,13 +214,13 @@ function OwnReview({
         placeholder="Nasıldı? (isteğe bağlı)"
         className="w-full resize-y rounded border border-border bg-bg-card px-3 py-2 text-sm text-text-primary placeholder-text-muted outline-none focus:border-crimson-glow/40"
       />
-      {error && <p className="mt-2 font-mono text-xs text-crimson-glow">{error}</p>}
+      {error && <p className="mt-2 text-xs text-crimson-glow">{error}</p>}
       <div className="mt-3 flex items-center gap-3">
         <button
           type="button"
           onClick={save}
           disabled={pending}
-          className="rounded bg-crimson px-4 py-1.5 font-mono text-xs text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+          className="rounded bg-crimson px-4 py-1.5 text-xs text-white transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           {pending ? "Kaydediliyor…" : "Kaydet"}
         </button>
@@ -236,7 +236,7 @@ function OwnReview({
                 setBody(own.body ?? "");
               }}
               disabled={pending}
-              className="font-mono text-xs text-text-muted hover:text-text-primary"
+              className="text-xs text-text-muted hover:text-text-primary"
             >
               Vazgeç
             </button>
@@ -244,7 +244,7 @@ function OwnReview({
               type="button"
               onClick={remove}
               disabled={pending}
-              className={`ml-auto font-mono text-xs underline underline-offset-2 hover:text-crimson-glow ${
+              className={`ml-auto text-xs underline underline-offset-2 hover:text-crimson-glow ${
                 confirmingDelete ? "text-crimson-glow" : "text-text-muted"
               }`}
             >

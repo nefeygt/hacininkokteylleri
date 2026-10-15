@@ -12,7 +12,7 @@ export default async function GlossaryPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold tracking-tight">Sözlük</h1>
-      <p className="mb-6 mt-1 max-w-xl font-mono text-xs leading-relaxed text-text-muted">
+      <p className="mb-6 mt-1 max-w-xl text-xs leading-relaxed text-text-muted">
         Buradaki terimler malzeme adlarında ve hazırlanış adımlarında geçtiği her yerde altı çizili gösterilir;
         üzerine gelince açıklaması çıkar. Büyük-küçük harf birebir eşleşmeli.
       </p>

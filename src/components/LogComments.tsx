@@ -73,9 +73,9 @@ export default function LogComments({ logId, ownerId }: { logId: string; ownerId
       </h2>
 
       {comments === null ? (
-        <p className="font-mono text-xs text-text-muted">Yükleniyor…</p>
+        <p className="text-xs text-text-muted">Yükleniyor…</p>
       ) : comments.length === 0 ? (
-        <p className="font-mono text-xs text-text-muted">Henüz yorum yok.</p>
+        <p className="text-xs text-text-muted">Henüz yorum yok.</p>
       ) : (
         <ul className="space-y-4">
           {comments.map((comment) => (
@@ -93,7 +93,7 @@ export default function LogComments({ logId, ownerId }: { logId: string; ownerId
 
       <div className="mt-6">
         {member.state === "loading" ? null : member.state === "signed-out" ? (
-          <p className="rounded bg-bg-elevated/50 px-4 py-3 font-mono text-xs text-text-secondary">
+          <p className="rounded bg-bg-elevated/50 px-4 py-3 text-xs text-text-secondary">
             Yorum yazmak için{" "}
             <Link
               href={`/login?next=${encodeURIComponent(`/logs/${logId}`)}`}
@@ -104,7 +104,7 @@ export default function LogComments({ logId, ownerId }: { logId: string; ownerId
             .
           </p>
         ) : member.state === "onboarding" ? (
-          <p className="rounded bg-bg-elevated/50 px-4 py-3 font-mono text-xs text-text-secondary">
+          <p className="rounded bg-bg-elevated/50 px-4 py-3 text-xs text-text-secondary">
             Yorum yazmak için önce{" "}
             <Link href="/welcome" className="text-crimson-glow underline underline-offset-2">
               profilini tamamla
@@ -122,11 +122,11 @@ export default function LogComments({ logId, ownerId }: { logId: string; ownerId
               placeholder={memberId === ownerId ? "Yanıt yaz…" : "Yorum yaz…"}
               className="w-full resize-y rounded border border-border bg-bg-card px-3 py-2 text-sm text-text-primary placeholder-text-muted outline-none focus:border-crimson-glow/40"
             />
-            {error && <p className="mt-2 font-mono text-xs text-crimson-glow">{error}</p>}
+            {error && <p className="mt-2 text-xs text-crimson-glow">{error}</p>}
             <button
               type="submit"
               disabled={pending || !body.trim()}
-              className="mt-2 rounded bg-crimson px-4 py-1.5 font-mono text-xs text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+              className="mt-2 rounded bg-crimson px-4 py-1.5 text-xs text-white transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               {pending ? "Gönderiliyor…" : "Gönder"}
             </button>

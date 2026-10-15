@@ -110,7 +110,7 @@ export default function NewPasswordForm({ next }: { next: string }) {
         </label>
       )}
 
-      {error && <p className="font-mono text-xs text-crimson-glow">{error}</p>}
+      {error && <p className="text-xs text-crimson-glow">{error}</p>}
 
       <button disabled={pending} className={primaryButtonClass}>
         {pending && <Loader2 className="h-4 w-4 animate-spin" />}

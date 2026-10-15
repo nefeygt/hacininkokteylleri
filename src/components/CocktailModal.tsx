@@ -70,7 +70,7 @@ export default function CocktailModal({
                 {cocktail.baseAlcohol} · {cocktail.flavor} · {cocktail.glass}
               </span>
               {cocktail.vegan && (
-                <span className="flex items-center gap-1 rounded bg-green-900/30 px-1.5 py-0.5 font-mono text-[9px] uppercase text-green-400">
+                <span className="flex items-center gap-1 rounded bg-vegan-bg/30 px-1.5 py-0.5 font-mono text-[9px] uppercase text-vegan">
                   <Leaf className="h-2.5 w-2.5" />
                   Vegan
                 </span>
@@ -82,7 +82,7 @@ export default function CocktailModal({
               </h2>
               <RecipeActions cocktail={cocktail} member={member} favorite={favorite} onToggleFavorite={onToggleFavorite} />
             </div>
-            <p className="mt-1 font-mono text-sm text-text-secondary">
+            <p className="mt-1 text-sm text-text-secondary">
               {cocktail.subtitle}
             </p>
             <Link

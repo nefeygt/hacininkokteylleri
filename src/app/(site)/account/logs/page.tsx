@@ -30,7 +30,7 @@ export default async function LogsPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">İçki günlüğüm</h1>
-          <p className="mt-1 font-mono text-xs text-text-muted">
+          <p className="mt-1 text-xs text-text-muted">
             Yaptığın ya da içtiğin her kokteyl, o akşamki hâliyle. Herkese açık olmayanları yalnızca sen görürsün.
           </p>
         </div>
@@ -41,14 +41,14 @@ export default async function LogsPage() {
 
       <Link
         href="/account/logs/new"
-        className="mt-8 inline-flex items-center rounded bg-crimson px-4 py-2 font-mono text-xs text-white transition-opacity hover:opacity-90"
+        className="mt-8 inline-flex items-center rounded bg-crimson px-4 py-2 text-xs text-white transition-opacity hover:opacity-90"
       >
         + Yeni kayıt
       </Link>
 
       <section className="mt-8">
         {logs.length === 0 ? (
-          <p className="font-mono text-xs leading-relaxed text-text-muted">
+          <p className="text-xs leading-relaxed text-text-muted">
             Henüz kayıt yok. Arşivde bir tarifi açıp &ldquo;Günlüğe ekle&rdquo;ye dokun ya da yukarıdan bir kokteyl seç.
           </p>
         ) : (

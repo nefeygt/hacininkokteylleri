@@ -41,7 +41,7 @@ export default async function EditRecipePage({ params }: { params: Promise<{ id:
         )}
       </div>
       {r.hidden_at && (
-        <p className="mb-6 rounded border border-crimson/40 bg-crimson/10 p-3 font-mono text-xs text-text-secondary">
+        <p className="mb-6 rounded border border-crimson/40 bg-crimson/10 p-3 text-xs text-text-secondary">
           Bu tarif bir yönetici tarafından gizlendi; yalnızca sen görüyorsun.
         </p>
       )}

@@ -45,7 +45,7 @@ export default function DeleteAccount({ userId, username }: { userId: string; us
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded border border-crimson/50 px-4 py-2 font-mono text-xs text-crimson-glow transition-colors hover:bg-crimson/10"
+        className="rounded border border-crimson/50 px-4 py-2 text-xs text-crimson-glow transition-colors hover:bg-crimson/10"
       >
         Hesabımı silmek istiyorum
       </button>
@@ -67,14 +67,14 @@ export default function DeleteAccount({ userId, username }: { userId: string; us
         />
       </label>
 
-      {error && <p className="font-mono text-xs text-crimson-glow">{error}</p>}
+      {error && <p className="text-xs text-crimson-glow">{error}</p>}
 
       <div className="flex gap-2">
         <button
           type="button"
           onClick={remove}
           disabled={pending || confirmation.trim().toLowerCase() !== username}
-          className="flex items-center gap-2 rounded bg-crimson px-4 py-2 font-mono text-xs font-medium text-white transition-colors hover:bg-crimson-light disabled:opacity-50"
+          className="flex items-center gap-2 rounded bg-crimson px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-crimson-light disabled:opacity-50"
         >
           {pending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
           Kalıcı olarak sil
@@ -87,7 +87,7 @@ export default function DeleteAccount({ userId, username }: { userId: string; us
             setError(null);
           }}
           disabled={pending}
-          className="rounded border border-border px-4 py-2 font-mono text-xs text-text-secondary hover:text-text-primary"
+          className="rounded border border-border px-4 py-2 text-xs text-text-secondary hover:text-text-primary"
         >
           Vazgeç
         </button>

@@ -70,7 +70,7 @@ export default function ShowcaseApply({ period }: { period: ShowcasePeriod }) {
     return (
       <Link
         href={`/login?next=${encodeURIComponent("/feed#showcase")}`}
-        className="inline-flex rounded border border-border px-4 py-2 font-mono text-xs text-text-secondary hover:border-crimson-glow/50 hover:text-text-primary"
+        className="inline-flex rounded border border-border px-4 py-2 text-xs text-text-secondary hover:border-crimson-glow/50 hover:text-text-primary"
       >
         Başvurmak için giriş yap
       </Link>
@@ -115,7 +115,7 @@ export default function ShowcaseApply({ period }: { period: ShowcasePeriod }) {
           <span
             className={`rounded px-1.5 py-0.5 ${
               mine.status === "approved"
-                ? "bg-green-900/40 text-green-400"
+                ? "bg-vegan-bg/40 text-vegan"
                 : mine.status === "rejected"
                   ? "bg-crimson/15 text-crimson-glow"
                   : "bg-bg-elevated text-text-secondary"
@@ -157,7 +157,7 @@ export default function ShowcaseApply({ period }: { period: ShowcasePeriod }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex rounded bg-crimson px-4 py-2 font-mono text-xs text-white transition-opacity hover:opacity-90"
+        className="inline-flex rounded bg-crimson px-4 py-2 text-xs text-white transition-opacity hover:opacity-90"
       >
         Vitrine başvur
       </button>
@@ -167,7 +167,7 @@ export default function ShowcaseApply({ period }: { period: ShowcasePeriod }) {
   return (
     <div className="max-w-xl rounded border border-border bg-bg-card/60 p-4">
       {eligible.length === 0 ? (
-        <p className="font-mono text-xs leading-relaxed text-text-muted">
+        <p className="text-xs leading-relaxed text-text-muted">
           Başvurmak için yayında ve fotoğraflı bir tarifin olmalı.{" "}
           <Link href="/account/recipes" className="text-text-secondary underline hover:text-text-primary">
             Tariflerine git
@@ -213,7 +213,7 @@ export default function ShowcaseApply({ period }: { period: ShowcasePeriod }) {
             type="button"
             onClick={submit}
             disabled={pending || !pitch.trim() || !cocktailId}
-            className="rounded bg-crimson px-4 py-1.5 font-mono text-xs text-white hover:opacity-90 disabled:opacity-50"
+            className="rounded bg-crimson px-4 py-1.5 text-xs text-white hover:opacity-90 disabled:opacity-50"
           >
             {pending ? "Gönderiliyor…" : "Başvur"}
           </button>
@@ -222,7 +222,7 @@ export default function ShowcaseApply({ period }: { period: ShowcasePeriod }) {
           type="button"
           onClick={() => setOpen(false)}
           disabled={pending}
-          className="font-mono text-xs text-text-muted hover:text-text-primary"
+          className="text-xs text-text-muted hover:text-text-primary"
         >
           Vazgeç
         </button>

@@ -22,7 +22,7 @@ export default function PrivacyPage() {
       <h1 className="mb-8 text-3xl font-bold text-text-primary">Kişisel Verilerin İşlenmesine İlişkin Aydınlatma Metni</h1>
 
       {!ACCOUNTS_OPEN && (
-        <p className="mb-8 rounded border border-border bg-bg-card p-3 font-mono text-xs text-text-muted">
+        <p className="mb-8 rounded border border-border bg-bg-card p-3 text-xs text-text-muted">
           Taslak: üyelik açıldığında yürürlüğe girer.
         </p>
       )}

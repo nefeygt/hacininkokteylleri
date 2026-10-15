@@ -21,10 +21,10 @@ export default function VerifyForm() {
   return (
     <form action={submit} className="space-y-4">
       <CodeInput name="code" />
-      {error && <p className="font-mono text-xs text-crimson-glow">{error}</p>}
+      {error && <p className="text-xs text-crimson-glow">{error}</p>}
       <button
         disabled={pending}
-        className="flex w-full items-center justify-center gap-2 rounded bg-crimson px-4 py-2.5 font-mono text-sm font-medium text-white hover:bg-crimson-light disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-2 rounded bg-crimson px-4 py-2.5 text-sm font-medium text-white hover:bg-crimson-light disabled:opacity-60"
       >
         {pending && <Loader2 className="h-4 w-4 animate-spin" />}
         Doğrula
