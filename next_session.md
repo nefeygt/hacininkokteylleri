@@ -4,12 +4,11 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-15 (M8 phone pass) · **Handing off:** **M8 step 3 mostly checked on the
-phone** with the new Android development build: Google sign-in, review edit, and the new after-sign-in flow —
-the member returns to the recipe that asked, the heart tapped before signing in is saved with a notice,
-otherwise the archive (ADR-022). Review layout and keyboard fixes (`KeyboardScrollView`). **Left: three
-signed-in checks (review delete, "Favorilerim", report), cleaning the test rows, the user's reset retry; then
-M8 step 4 — the drink log in the app.**
+**Prepared by session:** 2026-10-15 (M8 step 4 build) · **Handing off:** **M8 step 4 — the drink log in the
+app — is built** (add from a recipe or a picker, list, edit, two-step delete, public/private, public logs on
+profiles); typecheck, all three bundles and the site build pass. **Not checked in a browser or on the phone:**
+Claude in Chrome was not connected. **Also still open from before:** the step-3 signed-in checks (review delete,
+"Favorilerim", report), cleaning `ahmet_kafa`'s test rows, the user's password-reset retry.
 
 ---
 
@@ -54,41 +53,50 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — close M8 step 3 with the user, then M8 step 4
+## 🎯 This Session's Task — check M8 steps 3 and 4 with the user, then M8 step 5
 
 ### Step 0 — state check
 
 `git status` — clean, `main` in step with `origin/main`. **Tools:** the Supabase MCP (`list_migrations`
-on `qwvnhdghwycqlvsnlvlt` → still 11, the latest `20261014134219_showcase`; steps 2 and 3 needed no schema
-change) and Claude in Chrome (`tabs_context_mcp`). `npx eas-cli@latest whoami` → `nefeygt`. SQL: the only
+on `qwvnhdghwycqlvsnlvlt` → still 11, the latest `20261014134219_showcase`; steps 2–4 needed no schema
+change) and **Claude in Chrome (`tabs_context_mcp`) — it was not connected last session; if it still is not,
+ask the user to open the Claude side panel in Chrome.** `npx eas-cli@latest whoami` → `nefeygt`. SQL: the only
 profile is `ahmet_kafa`; it still has **test rows from 2026-10-15**: 2 reviews (`kiki-42`, `raspberry-dream`)
-and 4 favourites (`caipiroska`, `mavi-isci`, `kiki-42`, `raspberry-dream`); `reports` empty. `cd mobile && npm ci` on a fresh machine.
+and 4 favourites (`caipiroska`, `mavi-isci`, `kiki-42`, `raspberry-dream`); `reports` and `drink_logs` empty
+(check). `cd mobile && npm ci` on a fresh machine. Port 8081 may be held by an old Expo server — check its command
+line, stop it by PID.
 
-### Step 1 — the user's checks (ask first; Claude cannot type passwords)
+### Step 1 — Expo web check of step 4 (Claude, signed out)
 
-1. **Password reset (ADR-021).** The user asks for a reset (site or app), opens the newest e-mail on any
-   device → `/auth/callback?…type=recovery&token_hash=…` → `/reset-password`. The account they used,
-   `n.efeyigit@outlook.com`, is the **owner admin with 2FA**, so the form shows "Doğrulama kodu": the
-   6-digit code from their authenticator. Old e-mails (sent before 2026-10-15 ~09:30 UTC) still have the old
-   link — use only a new one. If it fails: Supabase auth logs (`query_logs`, source `auth_logs`, `/verify`,
-   `/user`) say why.
-2. **Step 3 signed in — what is left** (the development build on the phone: `cd mobile && npx expo start`,
-   `adb reverse tcp:8081 tcp:8081`, then open `haci://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081`).
-   Already passed on 2026-10-15: Google sign-in, write/edit a review, the heart, sign-in from a heart (back
-   to the recipe, heart saved). Left: the two-step review delete; "Filtrele → Listem → Favorilerim"; a profile
-   from a review's avatar; "Bildir" on someone else's review (needs a second member — otherwise check in SQL
-   as in M4). Check rows in SQL, then delete the test rows (reviews, favourites, reports) with the user's OK.
-   **Ask which account:** `n.efeyigit@outlook.com` is the owner admin and has no profile — signing in to the
-   app sends it to onboarding and would make the admin a member too. `ahmet_kafa` (Google) is the member account.
+`cd mobile && npx expo start --web --port 8081`, then in Chrome: a recipe shows "Günlüğe ekle" under the name;
+signed out it opens the Hesap tab; `localhost:8081/logs`, `/logs/new` and `/logs/new?cocktail=kiki-42` show the
+sign-in prompt; `ahmet_kafa`'s profile renders (no logs section while they have no public logs). Fix what breaks.
 
-### Step 2 — M8 step 4 (plan.md §6): the drink log in the app
+### Step 2 — the user's checks (ask first; Claude cannot type passwords)
 
-Mirror the site (ADR-017): "Günlüğe ekle" on the recipe screen next to the heart, the log form (date,
-note, rating?, the recipe snapshot from `src/lib/drink-log.ts` — `cleanRecipe` and limits are shared),
-the list of my logs, edit/delete (two-step), public/private with the default from `account_settings`,
-public logs on the profile screen (and "Bildir" on them). Writes go straight to Supabase, then
-`revalidateSite()` with the paths the site's `account/logs/actions.ts` revalidates (`/u/{username}`,
-`/logs/{id}`, `/feed`). Read the site's `LogForm`, `DrinkLogEntry` and `account/logs/actions.ts` first.
+1. **Step 4 signed in (the development build on the phone** — `cd mobile && npx expo start`,
+   `adb reverse tcp:8081 tcp:8081`, `haci://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081`; the JS
+   changes need no new build): "Günlüğe ekle" on a recipe → the form (date stepper and chips, change an
+   ingredient, add/remove a row, stars and "Puanı kaldır", note, public) → saved → "İçki günlüğüm" (the back
+   button returns to the recipe); edit from the list; two-step delete; Hesap → "Günlüğüm →" → "+ Yeni kayıt" →
+   picker; the account's public default switch → a new form starts with it; a public log on the profile screen.
+   Check rows in SQL (`drink_logs`, the snapshot) and that `/u/ahmet_kafa` on the site shows the public log.
+2. **Step 3 signed in — left:** the two-step review delete; "Filtrele → Listem → Favorilerim"; "Bildir" on
+   someone else's review (needs a second member — otherwise check in SQL as in M4).
+3. Then delete the test rows (reviews, favourites, logs, reports) **with the user's OK**.
+4. **Password reset (ADR-021)** — the user's retry: a new e-mail only (old ones carry the old link); the owner
+   admin `n.efeyigit@outlook.com` has 2FA, so the form asks for the authenticator code. If it fails: Supabase auth
+   logs (`query_logs`, `auth_logs`, `/verify`, `/user`).
+   **Ask which account for app checks:** the owner admin has no profile — signing in to the app sends it to
+   onboarding and would make the admin a member too. `ahmet_kafa` (Google) is the member account.
+
+### Step 3 — M8 step 5 (plan.md §6): members' recipes, recipe pages, the feed, follows, log comments
+
+Mirror the site (ADR-018): the recipe form with a photo upload (`src/lib/recipe.ts` is shared; photos as on the
+site's `ImageField`, WebP, never overwritten — ADR-006), `/recipes/{slug}` as a screen (the profile's and the
+log entry's links to members' recipes still open the site — switch them), the Akış tab (popular + new recipes,
+followed people's logs), the follow button on profiles, comments on public logs (`DrinkLogEntry`'s "Yorumlar"
+opens the site today). Read the site's `account/recipes/`, `feed/`, `logs/[id]`, `FollowButton`, `LogComments` first.
 
 ### Also open (not blocking)
 
@@ -124,6 +132,13 @@ public logs on the profile screen (and "Bildir" on them). Writes go straight to 
 
 ## 📍 Current State
 
+- **The app's drink log (M8 step 4, 2026-10-15):** `mobile/src/lib/drink-logs.ts` (`fetchMyLogs`, `fetchMyLog`,
+  `fetchPublicLogs` — filtered to public + visible, since the owner's session reads private logs too —
+  `saveDrinkLog`, `deleteDrinkLog`, `recipeOf`, `shiftDate`; revalidates `/u/{username}` and `/logs/{id}` like the
+  site); components `LogForm` (date stepper, no native picker), `DrinkLogEntry` (own/public, "Bildir", comments
+  open on the site), `MemberGate` (sign-in prompt → `askToSignIn(from)`); screens `logs/index`, `logs/new`
+  (`?cocktail=`; picker without it), `logs/[id]`; "Günlüğe ekle" on the recipe; "Günlüğüm →" on the account;
+  the logs-default switch reloads the session. **Unchecked in a browser and on the phone.**
 - **After sign-in and the keyboard (2026-10-15, ADR-022):** `mobile/src/lib/after-sign-in.ts` (`askToSignIn`,
   `leaveAfterSignIn`, `takePendingFavorite`, `forgetSignInRequest`) — used by the heart (`favorites.tsx`,
   `toggle(id, from)`), the review prompt, the Hesap tab (signed out → member) and `welcome.tsx`;
@@ -257,7 +272,16 @@ public logs on the profile screen (and "Bildir" on them). Writes go straight to 
 - **The office network blocks the new domain** (a Fortinet FortiGate). Check DNS with
   `https://dns.google/resolve?name=…` and HTTP with check-host.net (plan.md §5.4).
 
-**This session's lessons (M8 phone pass)**
+**This session's lessons (M8 step 4)**
+- **Claude in Chrome can be disconnected for a whole session** — `tabs_context_mcp` says so; the user reconnects
+  it from Chrome's Claude side panel. Leave the browser check open rather than claim it.
+- **A stale Expo server on 8081** makes `npx expo start` ask for another port and quit in non-interactive mode,
+  and the typed routes (`.expo/types/router.d.ts`) are not regenerated → `tsc` rejects new routes like `"/logs"`.
+  Stop the old one by PID and start again; the types appear within seconds.
+- Run the site's `npm run build` with an absolute path (PowerShell `Set-Location`): parallel Bash calls with
+  `cd` raced and one ran in `mobile/` ("Missing script: build").
+
+**Lessons (M8 phone pass)**
 - **Drive the phone over adb:** `adb exec-out screencap -p > file.png` and Read it; `adb exec-out uiautomator dump
   /dev/tty` gives bounds (`content-desc` = `accessibilityLabel`) for `adb shell input tap x y`; deep links
   `adb shell am start -a android.intent.action.VIEW -d "haci://cocktail/<slug>" tech.hacininkokteylleri.haci`.
@@ -438,7 +462,7 @@ public logs on the profile screen (and "Bildir" on them). Writes go straight to 
 
 ## 🧭 Look-ahead
 
-- **M8** steps 4–7 (plan.md §6): drink log → members' recipes, feed,
+- **M8** steps 5–7 (plan.md §6): members' recipes, feed,
   follows, comments → showcase → store release (EAS production builds, Turkish listings, 18+ rating,
   privacy forms, Play's closed test, App Store review).
 - Icebox highlights: localization (English first), colour theme review, a `haci` domain.

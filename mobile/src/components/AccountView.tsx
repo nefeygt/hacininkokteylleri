@@ -56,8 +56,11 @@ export default function AccountView({
       </View>
 
       <View style={[styles.section, styles.ruled]}>
-        <Label style={styles.sectionTitle}>İçki günlüğü</Label>
-        <LogsDefaultToggle userId={profile.id} initial={settings.logs_public_default} />
+        <View style={styles.sectionHead}>
+          <Label style={styles.sectionTitle}>İçki günlüğü</Label>
+          <Button kind="link" title="Günlüğüm →" onPress={() => router.push("/logs")} />
+        </View>
+        <LogsDefaultToggle userId={profile.id} initial={settings.logs_public_default} reload={reload} />
       </View>
 
       <View style={[styles.section, styles.ruled, styles.row]}>
@@ -217,7 +220,7 @@ function ProfileForm({ profile, reload }: { profile: Profile; reload: () => Prom
 }
 
 /** Whether new drink logs start public; private unless the member changes it (ADR-014). */
-function LogsDefaultToggle({ userId, initial }: { userId: string; initial: boolean }) {
+function LogsDefaultToggle({ userId, initial, reload }: { userId: string; initial: boolean; reload: () => Promise<void> }) {
   const [checked, setChecked] = useState(initial);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -231,7 +234,10 @@ function LogsDefaultToggle({ userId, initial }: { userId: string; initial: boole
     if (error) {
       setChecked(!next);
       setError(`Kaydedilemedi: ${error.message}`);
+      return;
     }
+    // The log form reads the default from the session.
+    await reload();
   }
 
   return (

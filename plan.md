@@ -9,7 +9,7 @@
 > **Language rule (ADR-002):** everything we write — docs, code, comments, commits, SQL — is
 > **English**. Everything visitors and admins read — UI strings, recipes — is **Turkish**.
 
-**Last updated:** 2026-10-15 · **Active milestone:** **M8 — Mobile app** (step 1 done; step 2 done except Apple; step 3 built — signed in on the phone in part, three checks left) · M6 and M7 done · **Brand:** `haci` (ADR-015)
+**Last updated:** 2026-10-15 · **Active milestone:** **M8 — Mobile app** (step 1 done; step 2 done except Apple; step 3 built — signed in on the phone in part, three checks left; step 4 built — browser and phone checks left) · M6 and M7 done · **Brand:** `haci` (ADR-015)
 
 ---
 
@@ -17,7 +17,7 @@
 
 | Field | State |
 |---|---|
-| Active milestone | **M8 — Mobile app** (Expo SDK 57, ADR-013, ADR-020) — `mobile/` in this repo, **full parity with the site** before the first store release, iOS + Android, native Google + e-mail sign-in (+ Sign in with Apple on iOS). Step 1 done (2026-10-14): shell, theme, icons, the archive with search/filters and the recipe screen. **Step 2 built (2026-10-15):** e-mail sign-in/up/reset, onboarding, account (profile, avatar, logs default, sign out, delete), native Google (Android + iOS clients) and Apple code, `POST /api/revalidate` on the site; EAS project `@nefeygt/haci`, first Android development build. Checked in Chrome (Expo web) with a test account and **on the user's Android phone** (Google sign-in, avatar). **Step 3 built (2026-10-15):** reviews (write/edit/two-step delete/report), the heart, "Favorilerim", public profiles as a screen; signed-out paths checked in Chrome, the signed-in check is the user's. **Password reset fixed** the same day (e-mail links with `token_hash`, the 2FA code on the reset form, ADR-021) — the user's retry is left. **Phone pass (2026-10-15, new development build):** Google sign-in; after a sign-in the app returns to the recipe that asked and saves the heart tapped before it (ADR-022); review edit layout and the keyboard fixed |
+| Active milestone | **M8 — Mobile app** (Expo SDK 57, ADR-013, ADR-020) — `mobile/` in this repo, **full parity with the site** before the first store release, iOS + Android, native Google + e-mail sign-in (+ Sign in with Apple on iOS). Step 1 done (2026-10-14): shell, theme, icons, the archive with search/filters and the recipe screen. **Step 2 built (2026-10-15):** e-mail sign-in/up/reset, onboarding, account (profile, avatar, logs default, sign out, delete), native Google (Android + iOS clients) and Apple code, `POST /api/revalidate` on the site; EAS project `@nefeygt/haci`, first Android development build. Checked in Chrome (Expo web) with a test account and **on the user's Android phone** (Google sign-in, avatar). **Step 3 built (2026-10-15):** reviews (write/edit/two-step delete/report), the heart, "Favorilerim", public profiles as a screen; signed-out paths checked in Chrome, the signed-in check is the user's. **Password reset fixed** the same day (e-mail links with `token_hash`, the 2FA code on the reset form, ADR-021) — the user's retry is left. **Phone pass (2026-10-15, new development build):** Google sign-in; after a sign-in the app returns to the recipe that asked and saves the heart tapped before it (ADR-022); review edit layout and the keyboard fixed. **Step 4 built (2026-10-15):** the drink log in the app (add from a recipe or a picker, list, edit, two-step delete, public logs on profiles); typecheck, bundles and site build pass — the browser and phone checks are left |
 | Previous milestone | **M7 — The showcase** (2026-10-14, ADR-019) and **M6 — Community recipes and feeds** (2026-10-14, ADR-018): built, tested on `localhost`, deployed; **live checks passed on the user's phone** (2026-10-14). **Both done**. M5 — Drink log done 2026-10-14 |
 | Last completed | **M2 — Domain** (Search Console moved from vercel.app to the domain) and the **brand change to `haci`** with English URLs and the cherry logo (ADR-015). M1 is done except Hacı's own first sign-in |
 | Blockers | None in the code. **The user's accounts for M8:** Expo `nefeygt` (EAS project `@nefeygt/haci`, linked 2026-10-15); Google Play — personal, **created after 2023-11-13**, developer name **"KZN"** (renamed by the user 2026-10-15; haci is published from it), so a 12-tester, 14-day closed test comes before production (the user sources the testers); Apple Developer — **not opened yet, and likely in another person's name** (the user, 2026-10-15), so Android is built and tested first. The office network (FortiGate) blocks the domain — check from outside (§5.4) |
@@ -283,9 +283,11 @@ mobile/                         the Expo app (M8, ADR-020) — its own package.j
   src/components/               the site's components rebuilt for React Native (CocktailCard, RecipeDetails, …);
                                 M8 step 2: SignIn, AccountView, Form (fields, buttons), Avatar;
                                 M8 step 3: Stars, ReportButton, CocktailReviews; screen u/[username]
+                                M8 step 4: LogForm, DrinkLogEntry, MemberGate; screens logs/index, logs/new, logs/[id]
   src/lib/                      supabase client, theme, content fetchers, archive context; session.tsx (SessionProvider),
                                 native-auth.ts (Google, Apple), revalidate.ts (revalidateSite);
                                 M8 step 3: community.ts (reviews, favourites, reports), favorites.tsx (FavoritesProvider)
+                                M8 step 4: drink-logs.ts (fetch, save, delete, public logs, recipeOf, shiftDate)
   eas.json                      EAS build profiles: development (dev client APK), preview, production
   .env                          public settings (EXPO_PUBLIC_*: Supabase, site, Google client IDs), committed (ADR-008)
 ```
@@ -534,7 +536,21 @@ The admin panel stays web-only.
     "Favorilerine eklendi." shown, otherwise to the archive (ADR-022); the search hint shortened to fit
   - [ ] Signed in, left (the user): two-step review delete, "Favorilerim", report another member's review;
     then clean up the test rows (2 reviews, 4 favourites of `ahmet_kafa`) with the user's OK
-- [ ] Step 4 — drink log (new / list / edit, public or private, the default setting)
+- [ ] Step 4 — drink log (built 2026-10-15; the browser and signed-in checks left):
+  - [x] `mobile/src/lib/drink-logs.ts` — the site's `account/logs/actions.ts` as direct writes (same errors and
+    checks, `cleanRecipe` shared) + `revalidateSite(["/u/{username}", "/logs/{id}"])`, as the site revalidates
+  - [x] "Günlüğe ekle" on the recipe screen under the name (signed out → the Hesap tab, back to the recipe);
+    screens `logs/new` (from a recipe, or a picker of house recipes), `logs/index` ("İçki günlüğüm", reloads on
+    focus), `logs/[id]` (edit, two-step delete, hidden notice); "Günlüğüm →" on the account
+  - [x] The form: the date a day at a time (‹ ›, "Bugün", "Dün", "1 hafta önce"; never after today in Turkey —
+    no native date picker until a development build needs rebuilding anyway), ingredients as made, steps,
+    garnish, glass, optional stars, note, public/private starting from `logs_public_default` (the account's
+    switch now reloads the session so a new form sees it)
+  - [x] Public logs on the profile screen (filtered to public and visible: the owner's own session can read
+    private ones), "Bildir" on them; comments open on the site until step 5
+  - [x] Checked: typecheck, all three bundles, site build
+  - [ ] Expo web in Chrome (Claude in Chrome was not connected on 2026-10-15) and signed in on the phone: add,
+    edit, two-step delete, public/private, the profile section, "Bildir"; then remove the test rows
 - [ ] Step 5 — members' recipes (form, photo upload), recipe pages, the feed, follows, log comments
 - [ ] Step 6 — the showcase (period, entries, votes, apply/withdraw, the winner)
 - [ ] Step 7 — store release: EAS production builds, store listings (Turkish), age rating 18+/17+,
@@ -614,6 +630,7 @@ The admin panel stays web-only.
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-10-15 | M8 step 4 build | Step 1 (the user's signed-in phone checks) needs the user, so step 4 came first: the drink log in the app (`drink-logs.ts`, `LogForm`, `DrinkLogEntry`, `MemberGate`, screens `logs/*`, "Günlüğe ekle" on the recipe, public logs on profiles). The date is a day stepper (no native picker without a new build). Checked: typecheck, all three bundles, site build. Claude in Chrome was not connected, so the Expo web check is left with the phone check. A leftover Expo web server from an earlier session held port 8081 — stopped |
 | 2026-10-15 | M8 phone pass | The new Android development build on the user's phone, driven over adb with Metro. Google sign-in passed. The user asked to land on the archive after signing in, not the account, and reported a jumpy review edit; Claude also checked edge cases. Fixed: stars spilling out of the edit box, the keyboard covering the form (edge to edge Android does not resize → `KeyboardScrollView`), the search hint wrapping. After a sign-in the app returns to the recipe that asked and saves the pending heart with a notice (ADR-022) — a second tab navigator pushed by `navigate("/account")` made it redirect twice until fixed. Checked on the phone by the user and over adb. Left: review delete, "Favorilerim", report, the reset retry |
 | 2026-10-15 | M8 step 3 + reset fix | Step 3 in the app: reviews, heart, "Favorilerim", reports, the profile screen; checked signed out in Chrome. Mid-session the user's password reset failed twice: app-requested links landed with a `#hash` the callback could not read, and the owner admin's 2FA blocked the change behind a wrong "8 characters" message. Fixed (callback verifies `token_hash`, templates updated in the dashboard with the user's OK, the reset form asks for the 2FA code) → ADR-021. Deployed `0ccafb3`. Left: the user's reset retry and the signed-in step-3 check |
 | 2026-10-15 | M8 step 2 phone check | The user installed the development build: Google sign-in and the avatar passed. Google picked the last account without asking → the app forgets it before each sign-in. Leftover test user deleted (the user's OK); Play developer name "KZN"; the Apple account will likely be in another person's name |

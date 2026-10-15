@@ -56,6 +56,9 @@ export default function RootLayout() {
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="cocktail/[slug]" options={{ title: "" }} />
               <Stack.Screen name="u/[username]" options={{ title: "" }} />
+              <Stack.Screen name="logs/index" options={{ title: "İçki günlüğüm" }} />
+              <Stack.Screen name="logs/new" options={{ title: "Günlüğe ekle" }} />
+              <Stack.Screen name="logs/[id]" options={{ title: "Kaydı düzenle" }} />
               <Stack.Screen name="welcome" options={{ title: "Hoş geldin" }} />
             </Stack>
           </ArchiveProvider>

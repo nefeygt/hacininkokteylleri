@@ -3,16 +3,18 @@ import * as WebBrowser from "expo-web-browser";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import Avatar from "@/components/Avatar";
+import DrinkLogEntry from "@/components/DrinkLogEntry";
 import ReportButton from "@/components/ReportButton";
 import Stars from "@/components/Stars";
 import { Body, Heading, Label, Mono } from "@/components/Type";
 import { formatDay } from "@/lib/community";
+import { fetchPublicLogs, type DrinkLog } from "@/lib/drink-logs";
 import { SITE_URL, supabase } from "@/lib/supabase";
 import { colors, fonts, readable } from "@/lib/theme";
 
 // A member's public profile — the site's /u/{username}: avatar, bio, follow
-// counts, favourites and reviews. Recipes, public drink logs and the follow
-// button arrive with M8 steps 4 and 5.
+// counts, favourites, public drink logs and reviews. Recipes and the follow
+// button arrive with M8 step 5.
 
 type CocktailLink = { id: string; slug: string; name: string; subtitle: string; color: string; author_id: string | null };
 
@@ -20,6 +22,7 @@ interface ProfileData {
   profile: { id: string; username: string; display_name: string; avatar_path: string | null; bio: string | null; created_at: string };
   favorites: CocktailLink[];
   reviews: { id: string; rating: number; body: string | null; updated_at: string; cocktails: CocktailLink }[];
+  logs: DrinkLog[];
   followers: number;
   following: number;
 }
@@ -36,7 +39,7 @@ async function fetchProfile(username: string): Promise<ProfileData | null> {
   if (error) throw new Error(error.message);
   if (!profile) return null;
 
-  const [reviews, favorites, followers, following] = await Promise.all([
+  const [reviews, favorites, logs, followers, following] = await Promise.all([
     supabase
       .from("reviews")
       .select(`id, rating, body, updated_at, cocktails!inner(${LINK_COLUMNS})`)
@@ -50,6 +53,7 @@ async function fetchProfile(username: string): Promise<ProfileData | null> {
       .eq("user_id", profile.id)
       .order("created_at", { ascending: false })
       .limit(200),
+    fetchPublicLogs(profile.id),
     supabase.from("follows").select("follower_id", { count: "exact", head: true }).eq("followee_id", profile.id),
     supabase.from("follows").select("followee_id", { count: "exact", head: true }).eq("follower_id", profile.id),
   ]);
@@ -60,6 +64,7 @@ async function fetchProfile(username: string): Promise<ProfileData | null> {
     profile,
     reviews: reviews.data as ProfileData["reviews"],
     favorites: (favorites.data ?? []).map((f) => f.cocktails as CocktailLink),
+    logs,
     followers: followers.count ?? 0,
     following: following.count ?? 0,
   };
@@ -114,7 +119,7 @@ export default function ProfileScreen() {
     );
   }
 
-  const { profile, favorites, reviews, followers, following } = data;
+  const { profile, favorites, logs, reviews, followers, following } = data;
   const joined = new Date(profile.created_at).toLocaleDateString("tr-TR", { month: "long", year: "numeric" });
 
   return (
@@ -183,6 +188,19 @@ export default function ProfileScreen() {
           )}
         </View>
 
+        {logs.length > 0 && (
+          <View style={styles.section}>
+            <Label style={styles.sectionTitle}>
+              İçki günlüğü <Label style={styles.sectionCount}>({logs.length})</Label>
+            </Label>
+            <View style={styles.logs}>
+              {logs.map((log) => (
+                <DrinkLogEntry key={log.id} log={log} mode="public" />
+              ))}
+            </View>
+          </View>
+        )}
+
         <View style={styles.section}>
           <Label style={styles.sectionTitle}>
             Değerlendirmeler <Label style={styles.sectionCount}>({reviews.length})</Label>
@@ -230,6 +248,7 @@ const styles = StyleSheet.create({
   sectionCount: { fontSize: 11, color: colors.textMuted, opacity: 0.6 },
   empty: { fontSize: 12, color: colors.textMuted },
   favorites: { gap: 8 },
+  logs: { gap: 12 },
   favorite: {
     flexDirection: "row",
     alignItems: "center",
