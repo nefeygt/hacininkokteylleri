@@ -145,6 +145,7 @@ In the user's words, collected while M0 was being built. Milestones in §6.
 | 026 | Chips from the data; servings, share, JSON-LD, similar recipes | A new value gets its chip; recipes describe themselves |
 | 027 | Weekly backup of house content by a GitHub Action with the public key; cl ↔ oz at 1 oz = 3 cl | Free plan has no backups; pourable ounces |
 | 028 | Six themes (Rx default) via `data-theme` + an inline boot script; reading text in a sans, mono for labels | Readable on phones; a choice of looks |
+| 029 | An `ingredients` catalogue; house recipe lines link to it; `/what-can-i-make` matches house recipes (ready + one missing) | The user chose the database over groups in code; house only |
 | 020 | Expo app in `mobile/` (this repo), full parity, both stores, native Google + e-mail (+ Apple on iOS); site pages refreshed through `/api/revalidate` | The user's answers; shared types and validation, one handoff |
 | 024 | Store release waits (Apple account / a shared Play closed test); web first, one parity pass before release | Cheaper testers for three apps; no store round for an app that will change |
 
@@ -184,7 +185,8 @@ migration file with the version Supabase applied (ADR-009).
 | Table | Key columns | Who reads | Who writes |
 |---|---|---|---|
 | `cocktails` | `id uuid`, `slug` unique, `name`, `subtitle`, `base_alcohol`, `flavor`, `tags text[]`, `color #rrggbb`, `image_path`, `instructions text[]`, `garnish`, `glass`, `vegan`, `note`, `sort_order`, `is_published`; M6: `author_id` → `profiles` (null = house recipe), `hidden_at`/`hidden_by`, length caps for members' rows | everyone (published, not hidden); the author (own drafts); admins (all) | admins (any); members only rows with their own `author_id`, via `save_recipe` (≤ 10 new a day) |
-| `cocktail_ingredients` | `cocktail_id`, `position` (unique together), `name` ≤ 100, `amount numeric(6,2)`, `unit` ≤ 20, `icon` enum | as its cocktail | admins; the recipe's author |
+| `cocktail_ingredients` | `cocktail_id`, `position` (unique together), `name` ≤ 100, `amount numeric(6,2)`, `unit` ≤ 20, `icon` enum, `ingredient_id` → `ingredients` (required on house recipes by `save_cocktail`, ADR-029) | as its cocktail | admins; the recipe's author |
+| `ingredients` (M9) | `id`, `name` unique (case-insensitive) ≤ 60, `category` enum, `always_at_hand` | everyone | admins |
 | `glossary_terms` | `term` PK, `definition` | everyone | admins |
 | `admins` | `user_id` → `auth.users`, `role` (`owner`/`editor`), `display_name` | own row; admins (all) | nobody over the API — SQL only |
 | `account_settings` | `user_id` PK → `auth.users`, `adult_confirmed_at` (server time), `privacy_notice_version`, `logs_public_default` | owner; admins | owner (column grants) |
@@ -655,6 +657,11 @@ While the store release waits (ADR-024), the site gets better first; every user-
   kept after a reload. The app's theme and fonts wait for the parity pass
 - [x] **The Letterboxd link left the navbar** (the user, 2026-10-15: not needed; the bar is tighter on phones). Checked: build,
   Claude in Chrome at 320 and 375 px (no horizontal scroll, the theme button ends at 359 px)
+- [x] **"Elimde ne var?"** (ADR-029, the user's pick 2026-10-15): the `ingredients` catalogue (52 items, every house line
+  linked), the panel's per-line catalogue select and "Malzemeler" page, the page `/what-can-i-make` (chips by group,
+  "Yapabileceklerin" + "Bir malzeme eksik", kept in the browser, a results bar on phones). Checked: build, both typechecks,
+  SQL (the save rule, RLS), Claude in Chrome DOM checks (Votka + Limon + Şeker Şurubu → the 2 recipes SQL predicted;
+  375 px no horizontal scroll; the choice kept after a reload). **Not yet checked: the panel signed in** (needs 2FA)
 
 ---
 
@@ -678,8 +685,7 @@ While the store release waits (ADR-024), the site gets better first; every user-
 ## 8. Known issues (not yet scheduled)
 
 - The chips are read from the data (ADR-026), so a misspelling in the panel becomes its own chip.
-- Ingredient names are free text ("Vodka" and "Votka" both exist), which the future
-  drink log and "what can I make" features will want normalised.
+- Members' ingredient names are still free text (house lines link to the catalogue since ADR-029).
 - A photo uploaded in the panel and then abandoned (form not saved) stays in the bucket; the same
   for a member's recipe form (the file stays in their folder until they delete their account).
 - The owner's authenticator entry is named "Hacı'nın Kokteylleri" (the old issuer); harmless.
@@ -696,7 +702,7 @@ While the store release waits (ADR-024), the site gets better first; every user-
 
 ## 9. Icebox (deferred ideas)
 
-- A normalised ingredient catalogue; "what can I make with what I have"
+- Members' recipes in "Elimde ne var?": a catalogue picker in the member form and the app (ADR-029)
 - Who changed what (`updated_by`) and a change history in the panel
 - Drag-and-drop ordering in the panel
 - Google sign-in for admins
@@ -728,6 +734,7 @@ While the store release waits (ADR-024), the site gets better first; every user-
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-10-15 | M9 "Elimde ne var?" | The user picked "what can I make", then the database catalogue (not groups in code), its own page, ready + one missing, house recipes only → ADR-029. Migrations `ingredient_catalogue` (+ `_drafts` for an unpublished draft's lower-case lines), panel select + "Malzemeler" page, `/what-can-i-make`. Bug found in the browser and fixed: quick taps lost a choice (stale state). A build failed once on a next/font fetch (network); the retry passed. Panel not yet seen signed in |
 | 2026-10-15 | M9 navbar | The user asked to remove the Letterboxd icon from the navbar → removed. The first build failed on a transient Supabase 500 while loading cocktails (project healthy; the retry passed). Checked in Claude in Chrome at 320/375 px through an iframe (the window cannot be resized while maximized). The weekly backup's first scheduled run is Monday 2026-10-19; the theme look on the phone and the M9 question are still open |
 | 2026-10-15 | M9 themes | The user picked A ("Rx, readable") as the main look and asked for the other directions and more combinations as themes → six themes with a "Görünüm" picker, reading text off the mono font (ADR-028). The extra navbar button overflowed 375 px → the account link is icon-only on phones. Checked in the built-in browser; build passes |
 | 2026-10-15 | M9 backup + cl ↔ oz | The user chose the GitHub Action backup (public key, published house content only, photos too) and 1 oz = 3 cl. Built both (ADR-027); the backup ran locally, Vercel skips backup-only commits. Live check: last session's features on the domain and Google's Rich Results Test (1 valid Recipe). Claude in Chrome's screenshots timed out again; DOM checks there, visuals in the built-in browser. Three theme/font directions published as an artifact for the user to pick |

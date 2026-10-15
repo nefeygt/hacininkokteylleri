@@ -72,6 +72,7 @@ export type Database = {
           cocktail_id: string
           icon: Database["public"]["Enums"]["ingredient_icon"]
           id: string
+          ingredient_id: string | null
           name: string
           position: number
           unit: string
@@ -81,6 +82,7 @@ export type Database = {
           cocktail_id: string
           icon: Database["public"]["Enums"]["ingredient_icon"]
           id?: string
+          ingredient_id?: string | null
           name: string
           position: number
           unit: string
@@ -90,6 +92,7 @@ export type Database = {
           cocktail_id?: string
           icon?: Database["public"]["Enums"]["ingredient_icon"]
           id?: string
+          ingredient_id?: string | null
           name?: string
           position?: number
           unit?: string
@@ -108,6 +111,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "recipe_popularity"
             referencedColumns: ["cocktail_id"]
+          },
+          {
+            foreignKeyName: "cocktail_ingredients_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -349,6 +359,30 @@ export type Database = {
           definition?: string
           term?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      ingredients: {
+        Row: {
+          always_at_hand: boolean
+          category: Database["public"]["Enums"]["ingredient_category"]
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          always_at_hand?: boolean
+          category: Database["public"]["Enums"]["ingredient_category"]
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          always_at_hand?: boolean
+          category?: Database["public"]["Enums"]["ingredient_category"]
+          created_at?: string
+          id?: string
+          name?: string
         }
         Relationships: []
       }
@@ -708,6 +742,14 @@ export type Database = {
     }
     Enums: {
       admin_role: "owner" | "editor"
+      ingredient_category:
+        | "spirit"
+        | "liqueur"
+        | "juice"
+        | "sweetener"
+        | "mixer"
+        | "fresh"
+        | "other"
       ingredient_icon: "shot" | "dash" | "drop" | "slice" | "spoon" | "topup"
       report_target:
         | "profile"
@@ -845,6 +887,15 @@ export const Constants = {
   public: {
     Enums: {
       admin_role: ["owner", "editor"],
+      ingredient_category: [
+        "spirit",
+        "liqueur",
+        "juice",
+        "sweetener",
+        "mixer",
+        "fresh",
+        "other",
+      ],
       ingredient_icon: ["shot", "dash", "drop", "slice", "spoon", "topup"],
       report_target: [
         "profile",

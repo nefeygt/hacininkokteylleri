@@ -15,7 +15,7 @@ export default async function EditCocktailPage({ params }: { params: Promise<{ i
     loadSuggestions(supabase),
     supabase
       .from("cocktails")
-      .select("*, cocktail_ingredients(position, name, amount, unit, icon)")
+      .select("*, cocktail_ingredients(position, name, amount, unit, icon, ingredient_id)")
       .eq("id", id)
       .is("author_id", null)
       .maybeSingle(),
@@ -34,7 +34,13 @@ export default async function EditCocktailPage({ params }: { params: Promise<{ i
     imagePath: c.image_path,
     ingredients: [...c.cocktail_ingredients]
       .sort((a, b) => a.position - b.position)
-      .map((i) => ({ name: i.name, amount: Number(i.amount), unit: i.unit, icon: i.icon })),
+      .map((i) => ({
+        name: i.name,
+        amount: Number(i.amount),
+        unit: i.unit,
+        icon: i.icon,
+        ingredientId: i.ingredient_id ?? "",
+      })),
     instructions: c.instructions,
     garnish: c.garnish,
     glass: c.glass,

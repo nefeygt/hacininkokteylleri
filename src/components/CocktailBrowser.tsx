@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import Link from "next/link";
 import { Search, X, SlidersHorizontal, Heart } from "lucide-react";
 import { setFavorite } from "@/app/(site)/cocktails/actions";
 import CocktailCard from "@/components/CocktailCard";
@@ -101,7 +102,10 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
         </span>
         <h1 className="text-3xl font-bold tracking-tight">Kokteyller</h1>
         <p className="mt-2 text-sm text-text-muted">
-          Hacı onaylı <b>{cocktails.length}</b> reçete.
+          Hacı onaylı <b>{cocktails.length}</b> reçete.{" "}
+          <Link href="/what-can-i-make" className="text-crimson-glow hover:underline">
+            Elimde ne var? →
+          </Link>
         </p>
       </div>
 

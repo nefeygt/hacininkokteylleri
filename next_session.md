@@ -8,7 +8,8 @@
 is paused (ADR-024)**. **M9 (web improvements):** done and deployed this session (ADR-027): the weekly content backup
 (GitHub Action) and the cl ↔ oz switch; last session's features passed the live check and Google's Rich Results Test.
 **Then the themes (ADR-028):** "Rx" (readable: a sans for text, mono only for labels) is the main look, with five more
-themes in a "Görünüm" picker. **A later session (2026-10-15) removed the Letterboxd icon from the navbar.**
+themes in a "Görünüm" picker. **A later session (2026-10-15) removed the Letterboxd icon from the navbar and built "Elimde ne var?" (ADR-029): an
+ingredient catalogue in the database and the page `/what-can-i-make`.**
 **Next: ask the user what M9 still needs**; before the store, one app ↔ site parity pass.
 ---
 
@@ -64,8 +65,12 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
    theme on a recipe, the archive, `/feed`, `/account` and `/login`. Pages not checked yet in the light themes: the
    account forms, logs, members' recipes, the feed's showcase, `/privacy`, `/u/{username}` — look for text that vanishes
    (a fixed colour instead of a token) and fix it with tokens (ADR-028).
-3. **Ask the user what M9 still needs** before the parity pass (Icebox candidates: localization, rating breakdown,
-   "what can I make"). Don't start one without their pick.
+3. **"Elimde ne var?" (ADR-029), deployed 2026-10-15:** live check on the domain (pick Votka + Limon + Şeker Şurubu →
+   0 ready, 2 one short: Mavi İşçi without Blue Curaçao, Bee's Knees without Cin), and **the panel signed in** (needs
+   the owner's 2FA — the user, or the user's code): open a house recipe, see every row's catalogue select filled, save
+   unchanged; add and delete a test item on "Malzemeler".
+4. **Ask the user what M9 still needs** before the parity pass (Icebox candidates: localization, rating breakdown,
+   members' recipes in "Elimde ne var?"). Don't start one without their pick.
 
 **While doing web work:**
 - Add every user-visible web change to **"Web changes since 2026-10-15 (for the parity pass)"** below — it is the
@@ -87,6 +92,9 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 - **"Benzer kokteyller"** under house recipes: `similarCocktails(target, archive, 4)` from `@shared/archive-filter`.
 - The wordmark and the recipe JSON-LD are web-only (the app has its own header; no SEO).
 - **The Letterboxd icon is gone from the navbar** (the user, 2026-10-15). The app never had it — nothing to port.
+- **"Elimde ne var?"** (ADR-029): a screen (or a section on the archive tab) with chips from `ingredients`
+  (`groupByCategory`) and `matchCocktails` from `@shared/ingredients`; the app's cocktail query must select
+  `cocktail_ingredients.ingredient_id` and map it to `ingredientId`. Keep the choice in AsyncStorage.
 - **Themes and readable type** (ADR-028): the app's `mobile/src/lib/theme.ts` copies Rx's new colours (brighter
   crimson glow `#d0453a`, greys `#b4b1ae` / `#7d7a78`); reading text in IBM Plex Sans, mono only for labels
   (`@expo-google-fonts/ibm-plex-sans`); a theme choice from `@shared/themes` (`THEMES`) on the account screen, kept in
@@ -105,7 +113,7 @@ a new development build and a phone pass. Then:
 ### State check (when resuming)
 
 `git status` — clean, `main` in step with `origin/main`. **Tools:** the Supabase MCP (`list_migrations` on
-`qwvnhdghwycqlvsnlvlt` → 12, the latest `20261015120719_half_star_ratings`) and a browser: **Claude in Chrome was
+`qwvnhdghwycqlvsnlvlt` → 14, the latest `20261015194832_ingredient_catalogue_drafts`) and a browser: **Claude in Chrome was
 disconnected most of 2026-10-15; the user reconnected it at the end** — try `tabs_context_mcp`; if it still fails, use the built-in browser
 (`mcp__Claude_Browser__*`; it reaches `localhost:8081`; read the DOM, screenshots lag). Store consoles (Play Console,
 expo.dev) need the user's signed-in Chrome — ask them to reconnect Claude in Chrome for those. The built-in browser holds the
@@ -238,7 +246,7 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
 - **Avatars:** `src/app/(site)/account/AvatarField.tsx` (centre square → 256 px WebP →
   `{user_id}/{base36}.webp` → `setAvatar` → old object deleted), `src/components/Avatar.tsx`
   (picture or initial), `avatarUrl()` / `AVATARS_BUCKET` in `src/lib/supabase/config.ts`.
-- **Supabase** (ref `qwvnhdghwycqlvsnlvlt`): 12 migrations, the latest `20261015120719_half_star_ratings`.
+- **Supabase** (ref `qwvnhdghwycqlvsnlvlt`): 14 migrations, the latest `20261015194832_ingredient_catalogue_drafts`.
   Advisors: only leaked-password protection (Pro plan) plus "unused index" infos on still-empty tables.
 - **M4 (2026-10-14):** `reviews`, `favorites`, `reports`, view `cocktail_ratings`; the site's
   `cocktails/actions.ts`, `useMember`, `CocktailReviews`, `ReportButton`; the panel's
@@ -287,6 +295,8 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
 - `next.config.mjs` redirects run before the proxy, so one list covers both hosts.
 
 **Supabase**
+- A new house ingredient must exist in `ingredients` first; `save_cocktail` refuses an unlinked line on a house
+  recipe (ADR-029). The panel's "Malzemeler" page adds items.
 - A build can fail on a transient Supabase 500 ("Could not load cocktails: Internal server error" in
   `generateStaticParams`) — check `get_project` is healthy and run the build again before digging.
 - New tables are fully granted to `anon` by default: `revoke all`, grant only what is needed

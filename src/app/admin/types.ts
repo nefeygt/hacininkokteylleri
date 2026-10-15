@@ -1,10 +1,13 @@
 import type { IngredientIcon } from "@/lib/content";
+import type { CatalogueIngredient } from "@/lib/ingredients";
 
 export interface IngredientInput {
   name: string;
   amount: number;
   unit: string;
   icon: IngredientIcon;
+  /** The catalogue ingredient (ADR-029); "" until one is picked. */
+  ingredientId: string;
 }
 
 /** What the cocktail form edits and `saveCocktail` receives. */
@@ -34,4 +37,6 @@ export interface Suggestions {
   flavors: string[];
   glasses: string[];
   units: string[];
+  /** The ingredient catalogue every line picks from. */
+  catalogue: CatalogueIngredient[];
 }

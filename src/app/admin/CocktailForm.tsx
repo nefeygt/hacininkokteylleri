@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowDown, ArrowUp, Check, Loader2, Plus, Trash2 } from "lucide-react";
 import type { IngredientIcon } from "@/lib/content";
+import { groupByCategory } from "@/lib/ingredients";
 import { slugify } from "@/lib/slug";
 import { deleteCocktail, saveCocktail } from "./actions";
 import ImageField from "@/components/ImageField";
@@ -59,6 +60,7 @@ export default function CocktailForm({
   const [saved, setSaved] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [pending, startTransition] = useTransition();
+  const catalogueGroups = groupByCategory(suggestions.catalogue);
 
   function set<K extends keyof CocktailInput>(key: K, value: CocktailInput[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -200,10 +202,35 @@ export default function CocktailForm({
       <Section title="Malzemeler">
         <div className="space-y-3">
           {form.ingredients.map((ing, i) => (
-            <div key={i} className="grid grid-cols-[1fr_auto] gap-2 rounded border border-border/60 p-3 sm:grid-cols-[2fr_90px_100px_160px_auto] sm:border-0 sm:p-0">
+            <div key={i} className="grid grid-cols-[1fr_auto] gap-2 rounded border border-border/60 p-3 sm:grid-cols-[1.3fr_1.5fr_80px_90px_150px_auto] sm:border-0 sm:p-0">
+              {/* The catalogue item drives "what can I make" (ADR-029); the name is what the recipe shows. */}
+              <select
+                required
+                aria-label="Katalogdaki malzeme"
+                value={ing.ingredientId}
+                onChange={(e) => {
+                  const picked = suggestions.catalogue.find((c) => c.id === e.target.value);
+                  setIngredient(i, {
+                    ingredientId: e.target.value,
+                    ...(picked && !ing.name.trim() ? { name: picked.name } : {}),
+                  });
+                }}
+                className={`${field} col-span-2 sm:col-span-1 ${ing.ingredientId ? "" : "text-text-muted"}`}
+              >
+                <option value="">Katalogdan seç…</option>
+                {catalogueGroups.map((g) => (
+                  <optgroup key={g.value} label={g.label}>
+                    {g.items.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
               <input
                 required
-                placeholder="Malzeme"
+                placeholder="Tarifte görünen ad"
                 value={ing.name}
                 onChange={(e) => setIngredient(i, { name: e.target.value })}
                 className={`${field} col-span-2 sm:col-span-1`}
@@ -253,7 +280,7 @@ export default function CocktailForm({
         </div>
         <button
           type="button"
-          onClick={() => set("ingredients", [...form.ingredients, { name: "", amount: 1, unit: "cl", icon: "shot" }])}
+          onClick={() => set("ingredients", [...form.ingredients, { name: "", amount: 1, unit: "cl", icon: "shot", ingredientId: "" }])}
           className="mt-3 inline-flex items-center gap-1.5 text-xs text-text-secondary hover:text-crimson-glow"
         >
           <Plus className="h-3.5 w-3.5" /> Malzeme ekle

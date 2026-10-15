@@ -20,7 +20,7 @@ export default async function NewCocktailPage() {
     tags: [],
     color: "#c0392b",
     imagePath: null,
-    ingredients: [{ name: "", amount: 4, unit: "cl", icon: "shot" }],
+    ingredients: [{ name: "", amount: 4, unit: "cl", icon: "shot", ingredientId: "" }],
     instructions: [""],
     garnish: "",
     glass: "",

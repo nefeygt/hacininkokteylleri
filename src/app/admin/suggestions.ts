@@ -10,9 +10,10 @@ function distinct(values: string[]): string[] {
 
 /** Values already in use, so the form can suggest them instead of inviting typos. */
 export async function loadSuggestions(supabase: SupabaseClient<Database>): Promise<Suggestions> {
-  const [{ data: cocktails }, { data: ingredients }] = await Promise.all([
+  const [{ data: cocktails }, { data: ingredients }, { data: catalogue }] = await Promise.all([
     supabase.from("cocktails").select("base_alcohol, flavor, glass").is("author_id", null),
     supabase.from("cocktail_ingredients").select("unit, cocktails!inner(author_id)").is("cocktails.author_id", null),
+    supabase.from("ingredients").select("id, name, category, always_at_hand").order("name"),
   ]);
 
   return {
@@ -20,5 +21,11 @@ export async function loadSuggestions(supabase: SupabaseClient<Database>): Promi
     flavors: distinct((cocktails ?? []).map((c) => c.flavor)),
     glasses: distinct((cocktails ?? []).map((c) => c.glass)),
     units: distinct((ingredients ?? []).map((i) => i.unit)),
+    catalogue: (catalogue ?? []).map((i) => ({
+      id: i.id,
+      name: i.name,
+      category: i.category,
+      alwaysAtHand: i.always_at_hand,
+    })),
   };
 }

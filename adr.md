@@ -1105,3 +1105,42 @@ as the main look and asked for the other two, and further combinations, as theme
 
 **Rejected.** *Store the theme on the profile:* signed-out visitors need it too, and reading it would make pages
 dynamic. *Follow the system's light/dark setting by default:* the user chose Rx as the main look.
+
+---
+
+## ADR-029 — An ingredient catalogue in the database; "Elimde ne var?" matches house recipes against it
+
+**Context.** The user picked "what can I make" as the next M9 item (2026-10-15). Recipe ingredient names are free
+text with variants ("Vodka"/"Votka", "Kahlua"/"Kahve Likörü (Kahlua)", "Nane"/"Taze Nane"), so matching needs a
+normalised list. Offered: groups kept in code (fast, no schema change) or a catalogue in the database; **the user
+chose the database catalogue**, a page of its own, "makeable + one missing", and **house recipes only**.
+
+**Decision.**
+- **`public.ingredients`** (`id`, `name` unique case-insensitively, ≤ 60, `category` enum `ingredient_category`:
+  spirit, liqueur, juice, sweetener, mixer, fresh, other; `always_at_hand` — counted as present, never picked: water).
+  Everyone reads; only admins (2FA) write. 52 rows at creation.
+- **`cocktail_ingredients.ingredient_id`** → `ingredients` (`on delete restrict`, nullable). The line keeps its own
+  wording for the recipe; the link is for matching. All 157 house lines were backfilled (migrations
+  `ingredient_catalogue`, `ingredient_catalogue_drafts`). **`save_cocktail` refuses a house recipe with an unlinked
+  line**; members' recipes (`save_recipe`) stay free text and are not matched.
+- **Merges, for forgiving matches:** Beyaz Rom → Rom; İrlanda Viskisi → Viski; Limon Suyu → Limon; Lime Suyu → Lime;
+  Salatalık Suyu → Salatalık; Espresso / Sıcak Kahve → Kahve; Krema/Süt → Krema; Taze Nane → Nane.
+- **The panel:** each ingredient row picks its catalogue item (grouped select; picking fills an empty name); a new
+  "Malzemeler" page adds, renames, regroups and deletes catalogue items (an item in use cannot be deleted).
+- **The page `/what-can-i-make` ("Elimde ne var?")**: static (ISR 1h, revalidated by panel writes, ADR-005); chips by
+  category, only items some published house recipe uses; results "Yapabileceklerin" (nothing missing) and "Bir
+  malzeme eksik" (exactly one missing, named, and only recipes that use something the visitor has). Ice and garnish
+  are not ingredients, so they never count. The choice lives in `localStorage` (`haci.pantry`). Linked from the
+  archive's header and the sitemap, not from the navbar (it must fit 375 px). Matching is `matchCocktails` in the
+  shared `src/lib/ingredients.ts`, so the app can reuse it.
+
+**Consequences.**
+- (+) One list of ingredients for future features (drink log statistics, shopping lists, filters).
+- (+) Recipe text keeps Hacı's wording ("Lime (Dilimlenmiş)") while matching stays exact.
+- (−) A new house ingredient needs a catalogue item first (the panel's "Malzemeler" page).
+- (−) Members' recipes are not matched; linking them means a picker in the member form and the app (Icebox).
+- (−) The app has no "Elimde ne var?" until the parity pass.
+
+**Rejected.** *Groups kept in code:* the user preferred the database. *Members' recipes too:* their free-text names
+would rarely match. *Fuzzy name matching:* unpredictable ("Elma" vs "Elma Suyu").
+

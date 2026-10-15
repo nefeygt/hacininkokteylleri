@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { adminSession } from "@/lib/admin";
 import { BRAND } from "@/lib/brand";
+import { CATALOGUE_NAME_MAX, type IngredientCategory } from "@/lib/ingredients";
 import { periodBounds, type PeriodLength } from "@/lib/showcase";
 import { SLUG_PATTERN } from "@/lib/slug";
 import { COCKTAIL_IMAGES_BUCKET } from "@/lib/supabase/config";
@@ -15,6 +16,7 @@ import type { CocktailInput } from "./types";
 function revalidatePublicPages() {
   revalidatePath("/cocktails");
   revalidatePath("/cocktails/[slug]", "page");
+  revalidatePath("/what-can-i-make");
 }
 
 export type ActionResult = { error?: string; id?: string; ok?: boolean };
@@ -119,6 +121,7 @@ function validate(input: CocktailInput): string | null {
   for (const [i, ing] of input.ingredients.entries()) {
     const n = i + 1;
     if (!ing.name.trim()) return `${n}. malzemenin adı boş.`;
+    if (!ing.ingredientId) return `${n}. malzeme için katalogdan bir malzeme seç.`;
     if (!(ing.amount > 0 && ing.amount < 10000)) return `${n}. malzemenin miktarı 0'dan büyük olmalı.`;
     if (Math.round(ing.amount * 100) !== ing.amount * 100) {
       return `${n}. malzemenin miktarında en fazla iki ondalık olabilir.`;
@@ -168,6 +171,7 @@ export async function saveCocktail(input: CocktailInput): Promise<ActionResult> 
       amount: i.amount,
       unit: i.unit.trim(),
       icon: i.icon,
+      ingredient_id: i.ingredientId,
     })),
   });
 
@@ -247,6 +251,49 @@ export async function deleteGlossaryTerm(term: string): Promise<ActionResult> {
   if (error) return { error: error.message };
   revalidatePublicPages();
   revalidatePath("/admin/glossary");
+  return {};
+}
+
+// ---------------------------------------------------------------- ingredient catalogue (ADR-029)
+
+export async function saveCatalogueIngredient(
+  id: string | null,
+  name: string,
+  category: IngredientCategory,
+  alwaysAtHand: boolean
+): Promise<ActionResult> {
+  const supabase = await adminClient();
+  if (!supabase) return { error: SESSION_LOST };
+  name = name.trim();
+  if (!name) return { error: "Malzemenin bir adı olmalı." };
+  if (name.length > CATALOGUE_NAME_MAX) return { error: `Ad en fazla ${CATALOGUE_NAME_MAX} karakter olabilir.` };
+  if (!Constants.public.Enums.ingredient_category.includes(category)) return { error: "Grup geçersiz." };
+
+  const row = { name, category, always_at_hand: alwaysAtHand };
+  const { error } = id
+    ? await supabase.from("ingredients").update(row).eq("id", id)
+    : await supabase.from("ingredients").insert(row);
+
+  if (error) {
+    if (error.code === "23505") return { error: "Bu malzeme katalogda zaten var." };
+    return { error: error.message };
+  }
+
+  revalidatePublicPages();
+  revalidatePath("/admin/ingredients");
+  return {};
+}
+
+export async function deleteCatalogueIngredient(id: string): Promise<ActionResult> {
+  const supabase = await adminClient();
+  if (!supabase) return { error: SESSION_LOST };
+  const { error } = await supabase.from("ingredients").delete().eq("id", id);
+  if (error) {
+    if (error.code === "23503") return { error: "Bu malzeme tariflerde kullanılıyor; önce tariflerden çıkar." };
+    return { error: error.message };
+  }
+  revalidatePublicPages();
+  revalidatePath("/admin/ingredients");
   return {};
 }
 

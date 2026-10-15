@@ -2,6 +2,7 @@ import type { Database } from "@/lib/supabase/database.types";
 import { cocktailImageUrl, recipeImageUrl } from "@/lib/supabase/config";
 import { createPublicClient } from "@/lib/supabase/public";
 import type { ShowcasePeriod } from "@/lib/showcase";
+import type { CatalogueIngredient } from "@/lib/ingredients";
 
 // The shapes the site's components draw. Database rows are mapped into these
 // in one place, so a column rename touches this file and nothing else.
@@ -13,6 +14,8 @@ export interface Ingredient {
   amount: number;
   unit: string;
   iconType: IngredientIcon;
+  /** The catalogue ingredient (ADR-029); house recipes always have one. */
+  ingredientId?: string;
 }
 
 export interface Cocktail {
@@ -53,7 +56,7 @@ export interface Rating {
 export type Glossary = Record<string, string>;
 
 const COCKTAIL_COLUMNS =
-  "id, slug, name, subtitle, base_alcohol, flavor, tags, color, image_path, instructions, garnish, glass, vegan, note, author_id, cocktail_ingredients(position, name, amount, unit, icon)";
+  "id, slug, name, subtitle, base_alcohol, flavor, tags, color, image_path, instructions, garnish, glass, vegan, note, author_id, cocktail_ingredients(position, name, amount, unit, icon, ingredient_id)";
 
 // Members' recipes carry their author; !inner leaves out recipes whose author
 // is hidden (the profiles policies hide them from everyone else).
@@ -66,7 +69,7 @@ type CocktailRow = Pick<
 > & {
   cocktail_ingredients: Pick<
     Database["public"]["Tables"]["cocktail_ingredients"]["Row"],
-    "position" | "name" | "amount" | "unit" | "icon"
+    "position" | "name" | "amount" | "unit" | "icon" | "ingredient_id"
   >[];
   profiles?: { id: string; username: string; display_name: string; avatar_path: string | null } | null;
 };
@@ -84,7 +87,13 @@ function toCocktail(row: CocktailRow): Cocktail {
     imageUrl: row.author_id ? recipeImageUrl(row.image_path) : cocktailImageUrl(row.image_path),
     ingredients: [...row.cocktail_ingredients]
       .sort((a, b) => a.position - b.position)
-      .map((i) => ({ name: i.name, amount: Number(i.amount), unit: i.unit, iconType: i.icon })),
+      .map((i) => ({
+        name: i.name,
+        amount: Number(i.amount),
+        unit: i.unit,
+        iconType: i.icon,
+        ingredientId: i.ingredient_id ?? undefined,
+      })),
     instructions: row.instructions,
     garnish: row.garnish,
     glass: row.glass,
@@ -128,6 +137,16 @@ export async function getPublishedCocktails(): Promise<Cocktail[]> {
     ratings.data.map((r) => [r.cocktail_id, { average: Number(r.average_rating), count: r.review_count ?? 0 }])
   );
   return (data as CocktailRow[]).map((row) => ({ ...toCocktail(row), rating: byCocktail.get(row.id) }));
+}
+
+/** The ingredient catalogue (ADR-029), for "what can I make". */
+export async function getIngredientCatalogue(): Promise<CatalogueIngredient[]> {
+  const { data, error } = await createPublicClient()
+    .from("ingredients")
+    .select("id, name, category, always_at_hand")
+    .order("name");
+  if (error) throw new Error(`Could not load ingredients: ${error.message}`);
+  return data.map((i) => ({ id: i.id, name: i.name, category: i.category, alwaysAtHand: i.always_at_hand }));
 }
 
 async function withRatings(rows: CocktailRow[]): Promise<Cocktail[]> {
