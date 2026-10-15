@@ -10,7 +10,8 @@ is paused (ADR-024)**. **M9 (web improvements):** done and deployed this session
 **Then the themes (ADR-028):** "Rx" (readable: a sans for text, mono only for labels) is the main look, with five more
 themes in a "Görünüm" picker. **A later session (2026-10-15) removed the Letterboxd icon from the navbar and built "Elimde ne var?" (ADR-029): an
 ingredient catalogue in the database and the page `/what-can-i-make`.**
-**Next: ask the user what M9 still needs**; before the store, one app ↔ site parity pass.
+**Next (the user's pick, 2026-10-15): members' recipes join "Elimde ne var?"** through a catalogue picker in the member
+form; before the store, one app ↔ site parity pass.
 ---
 
 ## 📋 Prompt to Copy
@@ -54,7 +55,39 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — M9, the colour theme and a more readable font
+## 🎯 This Session's Task — M9, members' recipes in "Elimde ne var?"
+
+**The user asked for it on 2026-10-15** (it amends ADR-029, which said "house recipes only" — the user's own change,
+so amend the ADR, don't ask again). Goal: a member links each line of their recipe to the catalogue, and their
+published recipes appear on `/what-can-i-make` next to the house recipes.
+
+**What the last session found (not started; nothing written):**
+- `public.save_recipe(recipe, ingredients)` deletes and re-inserts the lines **without `ingredient_id`** → a migration
+  must read `t.item ->> 'ingredient_id'` like `save_cocktail` does (`20261015194807_ingredient_catalogue.sql`).
+  Members can only pick existing items (the catalogue is admin-only); the FK checks the id.
+- **The trap: the app's recipe form** (`mobile/src/lib/recipes.ts`: `fetchMyRecipe` selects `cocktail_ingredients(position,
+  name, amount, unit, icon)`, `saveRecipe` sends `recipe.ingredients` as they are). Until the app has the picker, an
+  edit in the app would **wipe the links**. At least carry `ingredient_id` through the app (select it, keep it on the
+  line, send it back) in this session, even without a picker UI; `npm run typecheck` in `mobile/`.
+- Site form: `src/app/(site)/account/recipes/RecipeForm.tsx` + `actions.ts` (`cleanRecipeInput` in `src/lib/recipe.ts`,
+  type `RecipeIngredient` — add `ingredientId`). The pages `account/recipes/new` and `[id]` load the form; the catalogue
+  comes from `getIngredientCatalogue()` in `src/lib/content.ts`. The panel's `CocktailForm.tsx` has a grouped select
+  to copy (`groupByCategory`).
+- **Decide (small calls, your judgement):** the picker is optional for members ("Katalogda yok" for things the catalogue
+  lacks); a recipe joins the matching only when **every** line is linked — change `matchCocktails` in
+  `src/lib/ingredients.ts`, which today ignores unlinked lines. Existing members' rows are **not** backfilled (never
+  touch `mustafa_hayat`'s rows); they link when the member edits.
+- Page: `src/app/(site)/what-can-i-make/page.tsx` loads only house recipes (`getPublishedCocktails`); add published,
+  visible members' recipes (RECIPE_COLUMNS in `content.ts`; `recipeHref(slug, true)` for their links — `WhatCanIMake.tsx`
+  calls `recipeHref(c.slug, false)` today; use `!!c.author`).
+- Revalidation: the member actions' `revalidateRecipe` (`account/recipes/actions.ts`) must add `/what-can-i-make`; the
+  app's saves go through `POST /api/revalidate`, whose allowlist (`src/app/api/revalidate/route.ts`, `SHAPES`) must
+  accept `/what-can-i-make`, and `mobile/src/lib/recipes.ts` must send it.
+- Maybe a hint on the member form explaining why linking matters ("Elimde ne var?"'da görünsün diye).
+- Check: build, both typechecks, SQL (a member saves with links; a bad id is refused), Claude in Chrome with a
+  temporary member (ask the user first; delete it afterwards) — or the user signs in themselves in the agent's tab.
+
+**Also open:**
 
 1. **Check the backup** (ADR-027; a manual run on 2026-10-15 passed with "Nothing changed"; on Thursday 2026-10-15 no scheduled run had happened yet — the first is **Monday 2026-10-19**): the Action "Back up content" ran on Monday 03:00 UTC, or start it by hand
    (`gh workflow run backup-content.yml`, then `gh run list --workflow backup-content.yml`). Nothing changed → no commit;
@@ -65,10 +98,8 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
    theme on a recipe, the archive, `/feed`, `/account` and `/login`. Pages not checked yet in the light themes: the
    account forms, logs, members' recipes, the feed's showcase, `/privacy`, `/u/{username}` — look for text that vanishes
    (a fixed colour instead of a token) and fix it with tokens (ADR-028).
-3. **"Elimde ne var?" (ADR-029)** is deployed and passed its live check on 2026-10-15 (panel signed in, the page on
-   the domain). Nothing left there; the user may want to look at it on the phone.
-4. **Ask the user what M9 still needs** before the parity pass (Icebox candidates: localization, rating breakdown,
-   members' recipes in "Elimde ne var?"). Don't start one without their pick.
+3. After this task, **ask the user what M9 still needs** before the parity pass (Icebox candidates: localization,
+   rating breakdown). Don't start one without their pick.
 
 **While doing web work:**
 - Add every user-visible web change to **"Web changes since 2026-10-15 (for the parity pass)"** below — it is the

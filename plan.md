@@ -664,6 +664,8 @@ While the store release waits (ADR-024), the site gets better first; every user-
   375 px no horizontal scroll; the choice kept after a reload). **Live check passed (2026-10-15, Claude in Chrome, the
   user signed in with 2FA):** a house recipe shows every line's catalogue item and saves unchanged ("Kaydedildi");
   "Malzemeler" adds and deletes a test item, in-use items cannot be deleted; the live page gives the predicted 2 results
+- [ ] **Members' recipes in "Elimde ne var?"** (the user, 2026-10-15, for the next session): a catalogue picker in the
+  member form, `save_recipe` keeping the links, the app carrying them; amends ADR-029
 
 ---
 
@@ -704,7 +706,6 @@ While the store release waits (ADR-024), the site gets better first; every user-
 
 ## 9. Icebox (deferred ideas)
 
-- Members' recipes in "Elimde ne var?": a catalogue picker in the member form and the app (ADR-029)
 - Who changed what (`updated_by`) and a change history in the panel
 - Drag-and-drop ordering in the panel
 - Google sign-in for admins
