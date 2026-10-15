@@ -17,7 +17,7 @@
 
 | Field | State |
 |---|---|
-| Active milestone | **M8 — Mobile app** (Expo SDK 57, ADR-013, ADR-020) — `mobile/` in this repo, **full parity with the site** before the first store release, iOS + Android, native Google + e-mail sign-in (+ Sign in with Apple on iOS). Step 1 done (2026-10-14): shell, theme, icons, the archive with search/filters and the recipe screen. **Step 2 built (2026-10-15):** e-mail sign-in/up/reset, onboarding, account (profile, avatar, logs default, sign out, delete), native Google (Android + iOS clients) and Apple code, `POST /api/revalidate` on the site; EAS project `@nefeygt/haci`, first Android development build. Checked in Chrome (Expo web) with a test account; Google sign-in and the avatar picker still need a phone |
+| Active milestone | **M8 — Mobile app** (Expo SDK 57, ADR-013, ADR-020) — `mobile/` in this repo, **full parity with the site** before the first store release, iOS + Android, native Google + e-mail sign-in (+ Sign in with Apple on iOS). Step 1 done (2026-10-14): shell, theme, icons, the archive with search/filters and the recipe screen. **Step 2 built (2026-10-15):** e-mail sign-in/up/reset, onboarding, account (profile, avatar, logs default, sign out, delete), native Google (Android + iOS clients) and Apple code, `POST /api/revalidate` on the site; EAS project `@nefeygt/haci`, first Android development build. Checked in Chrome (Expo web) with a test account and **on the user's Android phone** (Google sign-in, avatar) |
 | Previous milestone | **M7 — The showcase** (2026-10-14, ADR-019) and **M6 — Community recipes and feeds** (2026-10-14, ADR-018): built, tested on `localhost`, deployed; **live checks passed on the user's phone** (2026-10-14). **Both done**. M5 — Drink log done 2026-10-14 |
 | Last completed | **M2 — Domain** (Search Console moved from vercel.app to the domain) and the **brand change to `haci`** with English URLs and the cherry logo (ADR-015). M1 is done except Hacı's own first sign-in |
 | Blockers | None in the code. **The user's accounts for M8:** Expo `nefeygt` (EAS project `@nefeygt/haci`, linked 2026-10-15); Google Play — personal, **created after 2023-11-13**, developer name **"KZN"** (renamed by the user 2026-10-15; haci is published from it), so a 12-tester, 14-day closed test comes before production (the user sources the testers); Apple Developer — **not opened yet, and likely in another person's name** (the user, 2026-10-15), so Android is built and tested first. The office network (FortiGate) blocks the domain — check from outside (§5.4) |
@@ -508,7 +508,10 @@ The admin panel stays web-only.
     and the first Android development build (2026-10-15)
   - [x] Checked in Chrome (Expo web) with the user's test account: sign-up mode switches, onboarding
     (age check, reserved name refused), profile edit, logs default, delete → every row gone
-  - [ ] On a phone with the development build: Google sign-in, the avatar picker, sign out (the user)
+  - [x] On the user's Android phone with the development build (2026-10-15): passed — native Google
+    sign-in reached the existing `ahmet_kafa` account (no second user), a new avatar from the gallery
+    (one 10 KB WebP, the old one deleted). The user wanted Google's account chooser on every sign-in →
+    the app now forgets the last account before signing in (JavaScript only; recheck next session)
   - [ ] Sign in with Apple: Apple Developer account → Supabase Apple provider (bundle ID) → test on an
     iPhone; `/privacy` names Apple (draft, **the user approves**). Also whether iOS Google needs
     "Skip nonce checks" in Supabase
@@ -590,6 +593,7 @@ The admin panel stays web-only.
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-10-15 | M8 step 2 phone check | The user installed the development build: Google sign-in and the avatar passed. Google picked the last account without asking → the app forgets it before each sign-in. Leftover test user deleted (the user's OK); Play developer name "KZN"; the Apple account will likely be in another person's name |
 | 2026-10-15 | M8 step 2 build | The user: Expo `nefeygt`, Play account created after 2023-11-13 (they will buy tester services for the closed test; alternatives noted in next_session). `POST /api/revalidate`; the app's session, e-mail sign-in/up/reset, onboarding, account (profile, avatar, logs default, sign out, delete), native Google and Apple code; shared `profile.ts`. Google Cloud: iOS and Android OAuth clients, IDs in Supabase. EAS project linked, first Android development build (APK). Checked in Chrome with the user's test account (deleted afterwards). The user found the e-mail texts unclear and mails in spam → step-by-step notices, spam hint on the site too |
 | 2026-10-14 | M8 start | State clean. The user answered the M8 questions (this repo, full parity, both stores, native Google + e-mail) → ADR-020. Expo SDK 57 app in `mobile/`: theme, icons, shared `src/lib` modules (`archive-filter.ts` new, shared with the site), the archive and the recipe screen; Turkish uppercase fixed in labels. Checked: typecheck, expo-doctor, all three bundles, Expo web in Chrome, the site's build and filters |
 | 2026-10-14 | M6 + M7 live check | The user checked both on the live domain from their phone: passed. Database clean afterwards (only `ahmet_kafa`, every community table empty). **M6 and M7 done**; next M8 |

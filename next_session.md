@@ -7,8 +7,8 @@
 **Prepared by session:** 2026-10-15 (M8 step 2) · **Handing off:** **M8 step 2 built** — accounts in
 the app (e-mail, onboarding, account, delete; Google and Apple code), `POST /api/revalidate` on the
 site, Google iOS/Android OAuth clients, EAS project `@nefeygt/haci` and the first Android development
-build. Checked in Chrome (Expo web). **Next: the user's phone check of step 2, then M8 step 3 —
-reviews, favourites, reports, public profiles in the app.**
+build. Checked in Chrome (Expo web). The user's Android phone check **passed** (Google sign-in, avatar).
+**Next: M8 step 3 — reviews, favourites, reports, public profiles in the app.**
 
 ---
 
@@ -64,7 +64,13 @@ this machine is signed in; on another machine the user runs `npx eas-cli@latest 
 login, never type their password). SQL: the only profile is `ahmet_kafa`. `auth.users` holds only the two admins and `ahmet_kafa`'s Google account (the leftover test user
 `nefeygt@outlook.com` was deleted with the user's OK, 2026-10-15). `cd mobile && npm ci` on a fresh machine.
 
-### Step 1 — the step-2 phone check (with the user)
+### Step 1 — the step-2 phone check (passed 2026-10-15; one recheck)
+
+The user ran the flow on their Android phone: Google sign-in reached `ahmet_kafa`, the avatar upload
+worked. **Recheck:** Google's account chooser should now appear on every sign-in (the app calls
+`GoogleSignin.signOut()` first; before that it reused the last account silently). For reference, how
+the phone was set up:
+
 
 1. The user installs the development build on their Android phone (open the link in the phone's
    browser, download, allow "install unknown apps" for the browser, install; Play Protect may warn

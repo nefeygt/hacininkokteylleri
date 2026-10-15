@@ -31,6 +31,9 @@ export async function signInWithGoogle(): Promise<NativeSignInResult> {
 
     try {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      // The module reuses the account picked last time; forgetting it first
+      // makes Google show its account chooser on every sign-in.
+      await GoogleSignin.signOut().catch(() => null);
       const response = await GoogleSignin.signIn();
       if (!isSuccessResponse(response)) return { cancelled: true };
       const token = response.data.idToken;
