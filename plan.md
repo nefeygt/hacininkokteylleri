@@ -9,7 +9,7 @@
 > **Language rule (ADR-002):** everything we write — docs, code, comments, commits, SQL — is
 > **English**. Everything visitors and admins read — UI strings, recipes — is **Turkish**.
 
-**Last updated:** 2026-10-14 · **Active milestone:** **M8 — Mobile app** (step 1 of 7 done: the shell and the archive) · M6 and M7 done · **Brand:** `haci` (ADR-015)
+**Last updated:** 2026-10-15 · **Active milestone:** **M8 — Mobile app** (step 1 of 7 done; step 2, accounts, built — device checks left) · M6 and M7 done · **Brand:** `haci` (ADR-015)
 
 ---
 
@@ -17,10 +17,10 @@
 
 | Field | State |
 |---|---|
-| Active milestone | **M8 — Mobile app** (Expo SDK 57, ADR-013, ADR-020) — `mobile/` in this repo, **full parity with the site** before the first store release, iOS + Android, native Google + e-mail sign-in (+ Sign in with Apple on iOS). Step 1 done (2026-10-14): shell, theme, icons, the archive with search/filters and the recipe screen, checked in Chrome (Expo web). Next: accounts |
+| Active milestone | **M8 — Mobile app** (Expo SDK 57, ADR-013, ADR-020) — `mobile/` in this repo, **full parity with the site** before the first store release, iOS + Android, native Google + e-mail sign-in (+ Sign in with Apple on iOS). Step 1 done (2026-10-14): shell, theme, icons, the archive with search/filters and the recipe screen. **Step 2 built (2026-10-15):** e-mail sign-in/up/reset, onboarding, account (profile, avatar, logs default, sign out, delete), native Google (Android + iOS clients) and Apple code, `POST /api/revalidate` on the site; EAS project `@nefeygt/haci`, first Android development build. Checked in Chrome (Expo web) with a test account; Google sign-in and the avatar picker still need a phone |
 | Previous milestone | **M7 — The showcase** (2026-10-14, ADR-019) and **M6 — Community recipes and feeds** (2026-10-14, ADR-018): built, tested on `localhost`, deployed; **live checks passed on the user's phone** (2026-10-14). **Both done**. M5 — Drink log done 2026-10-14 |
 | Last completed | **M2 — Domain** (Search Console moved from vercel.app to the domain) and the **brand change to `haci`** with English URLs and the cherry logo (ADR-015). M1 is done except Hacı's own first sign-in |
-| Blockers | None in the code. **The user's accounts for M8:** Expo — exists (username next session); Google Play — personal, exists (if created after 2023-11-13: a 12-tester, 14-day closed test before production); Apple Developer — personal, **not opened yet** (from an iPhone, ~650 TL/yr), so Android is built and tested first. The office network (FortiGate) blocks the domain — check from outside (§5.4) |
+| Blockers | None in the code. **The user's accounts for M8:** Expo `nefeygt` (EAS project `@nefeygt/haci`, linked 2026-10-15); Google Play — personal, **created after 2023-11-13**, so a 12-tester, 14-day closed test comes before production (the user sources the testers); Apple Developer — personal, **not opened yet** (from an iPhone, ~650 TL/yr), so Android is built and tested first. The office network (FortiGate) blocks the domain — check from outside (§5.4) |
 | Next critical decision | **The colour theme** for a global audience (the user is open to change, ADR-015) and, later, localization. The mobile app is decided: Expo, after M3 (ADR-013) |
 
 ---
@@ -251,6 +251,7 @@ src/
       CocktailForm.tsx, GlossaryEditor.tsx, PublishToggle.tsx, ModerationButton.tsx, ShowcaseControls.tsx
     auth/callback/route.ts      Google → Supabase → here: code exchange, then /welcome or next
     api/keepalive/route.ts      daily ping (vercel.json cron)
+    api/revalidate/route.ts     the app's writes refresh static pages: member token + known path shapes (M8, ADR-020)
     icon.svg, apple-icon.png    favicon and touch icon (the cherry, ADR-015)
     robots.ts, sitemap.ts       for search engines
   components/                   site components (CocktailBrowser, CocktailCard, CocktailModal, Tooltip, …);
@@ -270,6 +271,7 @@ src/
     recipe.ts                   a member's recipe: RecipeInput, limits, icons, cleanRecipeInput (browser-safe)
     showcase.ts                 periods (bounds in Turkey time, state, formatting), pitch limit, status labels (browser-safe)
     slug.ts                     Turkish-aware slugify
+    profile.ts                  profile field rules and messages, suggestUsername (site actions and the app)
     supabase/                   config, public/server/browser/proxy clients, database.types.ts (generated)
 supabase/
   migrations/                   {version}_{name}.sql — mirrors of what is applied (ADR-009)
@@ -277,10 +279,13 @@ supabase/
   templates/                    Supabase Auth e-mail templates (Turkish), mirrored by hand
 public/brand/                   logo sources (SVG) and exported PNGs; scripts/export-brand.mjs renders them (and the app's icons)
 mobile/                         the Expo app (M8, ADR-020) — its own package.json; see mobile/README.md
-  src/app/                      Expo Router screens: (tabs)/index (archive), feed, account; cocktail/[slug]
-  src/components/               the site's components rebuilt for React Native (CocktailCard, RecipeDetails, …)
-  src/lib/                      supabase client, theme, content fetchers, archive context
-  .env                          public settings (EXPO_PUBLIC_*), committed (ADR-008)
+  src/app/                      Expo Router screens: (tabs)/index (archive), feed, account; cocktail/[slug]; welcome
+  src/components/               the site's components rebuilt for React Native (CocktailCard, RecipeDetails, …);
+                                M8 step 2: SignIn, AccountView, Form (fields, buttons), Avatar
+  src/lib/                      supabase client, theme, content fetchers, archive context; session.tsx (SessionProvider),
+                                native-auth.ts (Google, Apple), revalidate.ts (revalidateSite)
+  eas.json                      EAS build profiles: development (dev client APK), preview, production
+  .env                          public settings (EXPO_PUBLIC_*: Supabase, site, Google client IDs), committed (ADR-008)
 ```
 
 `src/lib/archive-filter.ts` (the archive's search and filters) and the other browser-safe modules
@@ -343,7 +348,8 @@ After any schema change: mirror the migration, regenerate `database.types.ts`, r
 | Supabase | org `hacininkokteylleri` (free); project **`hacininkokteylleri-eu`**, ref **`qwvnhdghwycqlvsnlvlt`**, eu-central-1 | Connected to Claude through the Supabase MCP. Old Seoul project `kdicsywipwkauonkxcdc` paused — the user deletes it |
 | Domain | `hacininkokteylleri.tech` at get.tech / Namify (`manage.get.tech`) | Registered 2026-10-13, expires 2027-10-13; **auto-renew on, $29.99 on 2027-09-11**; WHOIS privacy off |
 | Google Search Console | account `wowcubey@gmail.com`; **Domain property `hacininkokteylleri.tech`** (DNS TXT at Namify); sitemap submitted | The old `https://hacininkokteylleri.vercel.app/` property is **moving** to the domain (Change of Address, started 2026-10-13). It stays verified by the meta tag in `src/app/layout.tsx` and `public/googlece68c38f8ad9ec89.html` (served on vercel.app without the redirect) — keep both for 180 days |
-| Google Cloud | account `n.efeyigit@gmail.com`, project **`haci`** (`haci-511515`) | Google Auth Platform: app name `haci`, External, **In production** since 2026-10-13 (home page, `/privacy`, domains `hacininkokteylleri.tech` + the Supabase host; no logo, so no verification). OAuth web client "haci web (Supabase Auth)": origins the domain and `http://localhost:3000`, redirect `https://qwvnhdghwycqlvsnlvlt.supabase.co/auth/v1/callback`. The secret lives only in Supabase |
+| Google Cloud | account `n.efeyigit@gmail.com`, project **`haci`** (`haci-511515`) | Google Auth Platform: app name `haci`, External, **In production** since 2026-10-13 (home page, `/privacy`, domains `hacininkokteylleri.tech` + the Supabase host; no logo, so no verification). OAuth web client "haci web (Supabase Auth)" (`533154070020-18t31…`): origins the domain and `http://localhost:3000`, redirect `https://qwvnhdghwycqlvsnlvlt.supabase.co/auth/v1/callback`. The secret lives only in Supabase. **M8 (2026-10-15):** iOS client "haci iOS" (bundle `tech.hacininkokteylleri.haci`, `…-cgdp0r24…`) and Android client "haci Android (EAS upload key)" (package + SHA-1 `01:AE:1B:63:…:58:A7` of the EAS keystore, `…-j5mc784i…`); all three IDs are in Supabase → Google → Client IDs (web first). **Play's app-signing SHA-1 needs its own Android client** once the app is on Play |
+| Expo / EAS | account **`nefeygt`** (the user's; also has a team `nefeygts-team`), project **`@nefeygt/haci`** (ID `2d7a45f4-…`) | The CLI on this machine is signed in as `nefeygt`. Android keystore generated and held by EAS (2026-10-15). Free plan build queue (~20 min a build) |
 
 ---
 
@@ -485,10 +491,25 @@ The admin panel stays web-only.
   aliases, filters, pull to refresh) and the recipe screen (glossary terms open on tap). Checked:
   typecheck, expo-doctor 21/21, Android/iOS/web bundles, Expo web in Chrome; the site's build and
   its filters unchanged
-- [ ] Step 2 — accounts: e-mail sign-in/up/reset, Google (Android + iOS OAuth clients in Google Cloud,
-  client IDs in Supabase), Sign in with Apple (iOS), onboarding (username, 18+, privacy notice),
-  profile + avatar, sign out, delete account; `/privacy` names Apple (the user's OK); `POST
-  /api/revalidate` on the site; first EAS development build
+- [ ] Step 2 — accounts (built 2026-10-15; device checks and Apple left):
+  - [x] `POST /api/revalidate` (member token checked with Supabase Auth, known path shapes only, ≤ 8,
+    CORS for bearer tokens); checked locally: 401 without/with a bad token, 400 for other paths, and a
+    cached `/u/{username}` showed the new bio only after the call
+  - [x] `SessionProvider`; Hesap tab: sign-in, onboarding prompt, account
+  - [x] E-mail sign-in / sign-up / forgot password (links open the site); step-by-step "sent" notices
+    (spam folder, already-registered addresses get no mail)
+  - [x] Onboarding (`/welcome`): username suggestion, 18+, privacy notice → `account_settings` then `profiles`
+  - [x] Account: profile edit, avatar (picker → centre square → 256 px WebP), logs-public default, sign out,
+    delete (Storage first, then `delete_my_account()`)
+  - [x] Shared `src/lib/profile.ts` and `authErrorMessage()` (the site uses them too)
+  - [x] Google: iOS + Android OAuth clients, client IDs in Supabase, native sign-in code; EAS project
+    and the first Android development build (2026-10-15)
+  - [x] Checked in Chrome (Expo web) with the user's test account: sign-up mode switches, onboarding
+    (age check, reserved name refused), profile edit, logs default, delete → every row gone
+  - [ ] On a phone with the development build: Google sign-in, the avatar picker, sign out (the user)
+  - [ ] Sign in with Apple: Apple Developer account → Supabase Apple provider (bundle ID) → test on an
+    iPhone; `/privacy` names Apple (draft, **the user approves**). Also whether iOS Google needs
+    "Skip nonce checks" in Supabase
 - [ ] Step 3 — reviews, favourites ("Favorilerim"), reports, public profiles
 - [ ] Step 4 — drink log (new / list / edit, public or private, the default setting)
 - [ ] Step 5 — members' recipes (form, photo upload), recipe pages, the feed, follows, log comments
@@ -525,6 +546,11 @@ The admin panel stays web-only.
 - A photo uploaded in the panel and then abandoned (form not saved) stays in the bucket; the same
   for a member's recipe form (the file stays in their folder until they delete their account).
 - The owner's authenticator entry is named "Hacı'nın Kokteylleri" (the old issuer); harmless.
+- **Auth e-mails land in Outlook's spam folder** (seen 2026-10-15). The texts now point to the spam
+  folder; a real fix is deliverability work (DMARC beyond `p=none`, sending volume, Outlook's sender
+  support) — not scheduled.
+- After deleting an account in the app, the site's pages drop the member only when their ISR window
+  ends (the token no longer belongs to a user, so `/api/revalidate` refuses it).
 
 ---
 
@@ -562,6 +588,7 @@ The admin panel stays web-only.
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-10-15 | M8 step 2 build | The user: Expo `nefeygt`, Play account created after 2023-11-13 (they will buy tester services for the closed test; alternatives noted in next_session). `POST /api/revalidate`; the app's session, e-mail sign-in/up/reset, onboarding, account (profile, avatar, logs default, sign out, delete), native Google and Apple code; shared `profile.ts`. Google Cloud: iOS and Android OAuth clients, IDs in Supabase. EAS project linked, first Android development build (APK). Checked in Chrome with the user's test account (deleted afterwards). The user found the e-mail texts unclear and mails in spam → step-by-step notices, spam hint on the site too |
 | 2026-10-14 | M8 start | State clean. The user answered the M8 questions (this repo, full parity, both stores, native Google + e-mail) → ADR-020. Expo SDK 57 app in `mobile/`: theme, icons, shared `src/lib` modules (`archive-filter.ts` new, shared with the site), the archive and the recipe screen; Turkish uppercase fixed in labels. Checked: typecheck, expo-doctor, all three bundles, Expo web in Chrome, the site's build and filters |
 | 2026-10-14 | M6 + M7 live check | The user checked both on the live domain from their phone: passed. Database clean afterwards (only `ahmet_kafa`, every community table empty). **M6 and M7 done**; next M8 |
 | 2026-10-14 | M7 build | A new Claude account: the user connected the Supabase connector and Claude in Chrome. M6 live check still left (the user's). The user answered the M7 questions (period chosen per time, apply/vote in `/feed`, winner card below the hero, recipe + pitch + photo required). Migration `showcase` (38 policy checks). The feed's Vitrin section, the home page winner, the panel's Vitrin page, moderation of applications; `/privacy` `2026-10-14.3` (the user's OK). ADR-019. Tested end to end in Chrome on localhost; test rows removed. Deployed; live check left |

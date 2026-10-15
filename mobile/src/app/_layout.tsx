@@ -6,6 +6,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { ArchiveProvider } from "@/lib/archive";
+import { SessionProvider } from "@/lib/session";
 import { colors, fonts } from "@/lib/theme";
 
 SplashScreen.preventAutoHideAsync();
@@ -40,19 +41,22 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={theme}>
       <StatusBar style="light" />
-      <ArchiveProvider>
-        <Stack
-          screenOptions={{
-            headerStyle: { backgroundColor: colors.bgSecondary },
-            headerTintColor: colors.textPrimary,
-            headerTitleStyle: { fontFamily: fonts.sansBold },
-            contentStyle: { backgroundColor: colors.bgPrimary },
-          }}
-        >
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="cocktail/[slug]" options={{ title: "" }} />
-        </Stack>
-      </ArchiveProvider>
+      <SessionProvider>
+        <ArchiveProvider>
+          <Stack
+            screenOptions={{
+              headerStyle: { backgroundColor: colors.bgSecondary },
+              headerTintColor: colors.textPrimary,
+              headerTitleStyle: { fontFamily: fonts.sansBold },
+              contentStyle: { backgroundColor: colors.bgPrimary },
+            }}
+          >
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="cocktail/[slug]" options={{ title: "" }} />
+            <Stack.Screen name="welcome" options={{ title: "Hoş geldin" }} />
+          </Stack>
+        </ArchiveProvider>
+      </SessionProvider>
     </ThemeProvider>
   );
 }

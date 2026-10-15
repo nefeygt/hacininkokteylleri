@@ -35,6 +35,9 @@ export const space = {
   xxl: 32,
 } as const;
 
+/** Forms and account screens keep a readable width on tablets and the web. */
+export const readable = { width: "100%", maxWidth: 520, alignSelf: "center" } as const;
+
 /** A colour with an alpha, from "#rrggbb". */
 export function alpha(hex: string, opacity: number): string {
   const n = parseInt(hex.slice(1), 16);

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { fieldClass, labelClass, primaryButtonClass } from "@/components/AccountCard";
-import { MIN_PASSWORD_LENGTH } from "@/lib/account-config";
+import { authErrorMessage as authError, MIN_PASSWORD_LENGTH } from "@/lib/account-config";
 import { createClient } from "@/lib/supabase/browser";
 
 type Mode = "sign-in" | "sign-up" | "forgot";
@@ -13,16 +13,6 @@ const TITLES: Record<Mode, string> = {
   "sign-up": "Hesap oluştur",
   forgot: "Sıfırlama bağlantısı gönder",
 };
-
-/** Supabase Auth's messages, in words a visitor understands. */
-function authError(message: string): string {
-  if (/invalid login credentials/i.test(message)) return "E-posta ya da şifre yanlış.";
-  if (/email not confirmed/i.test(message)) return "Önce e-postana gelen bağlantıyla adresini onayla.";
-  if (/signups? not allowed/i.test(message)) return "Üyelik henüz açılmadı. Çok yakında!";
-  if (/password/i.test(message)) return `Şifre en az ${MIN_PASSWORD_LENGTH} karakter olmalı.`;
-  if (/rate limit|too many/i.test(message)) return "Çok fazla deneme yapıldı. Biraz bekleyip tekrar dene.";
-  return "Bir şeyler ters gitti. Tekrar dene.";
-}
 
 export default function EmailForm({ next }: { next: string }) {
   const [mode, setMode] = useState<Mode>("sign-in");
@@ -66,11 +56,11 @@ export default function EmailForm({ next }: { next: string }) {
       const { error } = await auth.signUp({ email, password, options: { emailRedirectTo: callback(next) } });
       if (error) setError(authError(error.message));
       // Supabase answers the same way for an address that already has an account.
-      else setSent("Onay bağlantısını e-postana gönderdik. Bağlantıya tıklayınca hesabın açılır.");
+      else setSent("Onay bağlantısını e-postana gönderdik. Bağlantıya tıklayınca hesabın açılır. Gelmediyse Gereksiz/Spam klasörüne bak; bu adresle zaten bir hesap varsa e-posta gelmez, giriş yap ya da şifreni sıfırla.");
     } else {
       const { error } = await auth.resetPasswordForEmail(email, { redirectTo: callback("/reset-password") });
       if (error) setError(authError(error.message));
-      else setSent("Bu adresle bir hesap varsa, şifre sıfırlama bağlantısını gönderdik.");
+      else setSent("Bu adresle bir hesap varsa, şifre sıfırlama bağlantısını gönderdik. Gelmediyse Gereksiz/Spam klasörüne bak.");
     }
     setPending(false);
   }

@@ -13,7 +13,8 @@
       "supportsTablet": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "usesAppleSignIn": true
     },
     "android": {
       "package": "tech.hacininkokteylleri.haci",
@@ -38,11 +39,33 @@
           "imageWidth": 140
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-apple-authentication",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Profil fotoğrafını ve tarif fotoğraflarını seçmek için fotoğraflarına erişim gerekiyor.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ],
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.533154070020-cgdp0r243jej8p17etlpn09hc3rsc44n"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2d7a45f4-6421-4ca7-9980-2e38049bc795"
+      }
+    },
+    "owner": "nefeygt"
   }
 }

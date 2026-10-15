@@ -4,9 +4,11 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-14 (M8 start) · **Handing off:** **M8 step 1 done** — the Expo app
-exists in `mobile/` (SDK 57): shell, theme, icons, the archive and the recipe screen, checked in
-Chrome through Expo web. **Next: M8 step 2 — accounts in the app** (plus `/api/revalidate` on the site).
+**Prepared by session:** 2026-10-15 (M8 step 2) · **Handing off:** **M8 step 2 built** — accounts in
+the app (e-mail, onboarding, account, delete; Google and Apple code), `POST /api/revalidate` on the
+site, Google iOS/Android OAuth clients, EAS project `@nefeygt/haci` and the first Android development
+build. Checked in Chrome (Expo web). **Next: the user's phone check of step 2, then M8 step 3 —
+reviews, favourites, reports, public profiles in the app.**
 
 ---
 
@@ -51,67 +53,57 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — M8 step 2: accounts in the app
+## 🎯 This Session's Task — finish M8 step 2 on a phone, then M8 step 3
 
 ### Step 0 — state check
 
 `git status` — clean, `main` in step with `origin/main`. **Tools:** the Supabase MCP (`list_migrations`
-on `qwvnhdghwycqlvsnlvlt` → still 11, the latest `20261014134219_showcase`) and Claude in Chrome
-(`tabs_context_mcp`) — both belong to the Claude account; ask the user to connect a missing one.
-Sign-ups on (`/auth/v1/settings` → `"disable_signup": false`). SQL at the end of 2026-10-14: the only
-profile `ahmet_kafa`, every community table empty. Never delete or edit a row you did not create
-without asking. `cd mobile && npm ci` on a fresh machine (the app has its own lockfile).
+on `qwvnhdghwycqlvsnlvlt` → still 11, the latest `20261014134219_showcase`; step 2 needed no schema
+change) and Claude in Chrome (`tabs_context_mcp`). `npx eas-cli@latest whoami` → `nefeygt` (the CLI on
+this machine is signed in; on another machine the user runs `npx eas-cli@latest login` — browser
+login, never type their password). SQL: the only profile is `ahmet_kafa`. **A leftover test user:**
+`nefeygt@outlook.com` (unconfirmed, no profile, made by the user on 2026-10-15) — ask the user before
+deleting it. `cd mobile && npm ci` on a fresh machine.
 
-### Step 1 — the user's accounts (answered 2026-10-14, see Closed Questions)
+### Step 1 — the step-2 phone check (with the user)
 
-- **Expo:** the user already has an account and gives the username this session (they were away from
-  their own laptop). Ask for it; they sign in to EAS themselves (`npx eas-cli@latest login` — never
-  type their password). Then `eas init` links `mobile/` to a project on that account.
-- **Google Play:** a **personal** account already exists. Ask **when it was created**: accounts made
-  after 2023-11-13 need a closed test with **12 testers for 14 days** before production access; start
-  that test as soon as a first Android build exists.
-- **Apple Developer:** **personal**, not opened yet — the user enrols from an iPhone (their
-  girlfriend's) through the Apple Developer app, where it costs ~650 TL a year. Until then: no iOS
-  device builds and no Sign in with Apple testing; build and test Android first and keep the iOS code
-  paths (Apple sign-in) ready but untested.
+1. The user installs the development build on their Android phone:
+   `https://expo.dev/artifacts/eas/dESd3FeeKhx4nzos6VN-twKn2US8Iop34v1k2AmpZIU.apk` (build
+   `82f94a67`, also on the project's Builds page). Then `cd mobile && npx expo start` on the same
+   network and open the project from the development build (not Expo Go).
+2. Checks: **Google sign-in** (Android client with the EAS key's SHA-1; Google says new clients can take
+   minutes to hours) → onboarding → avatar from the gallery → sign out → e-mail sign-in → delete. Check
+   in SQL that rows and `avatars/{id}/…` are gone.
+3. If Google fails with `DEVELOPER_ERROR`: the SHA-1 or package in the Android client is wrong — compare
+   with expo.dev → Credentials (copy button) and Google Cloud → Clients.
+4. Changing a **native** dependency or `app.json` plugins needs a new development build (`eas build
+   --profile development --platform android`); JavaScript changes do not.
 
-### Step 2 — build (ADR-020)
+### Step 2 — M8 step 3 (plan.md §6): reviews, favourites, reports, public profiles
 
-1. **`POST /api/revalidate`** on the site (`src/app/api/revalidate/route.ts`): `Authorization: Bearer
-   <member access token>`, verified with `supabase.auth.getUser(token)` (members only, no secret key);
-   body `{ paths: string[] }`, at most ~8, each matching `/`, `/cocktails`, `/feed`, `/recipes/{slug}`,
-   `/u/{username}`, `/logs/{uuid}`; `revalidatePath` each (`/recipes/[slug]` "page" when a review
-   touches every recipe page, as `cocktails/actions.ts` does). The app calls it after every write;
-   failures are ignored (ISR catches up).
-2. **The session in the app:** a `SessionProvider` (session, profile, `account_settings`) mirroring
-   the site's `useMember`/`accountSession()`; the Hesap tab shows sign-in or the account.
-3. **E-mail:** sign in, sign up (`emailRedirectTo` = the site's `/auth/callback`, so the confirmation
-   link opens the website; then sign in in the app), forgot password (the reset link opens the site's
-   `/reset-password`). Copy the Turkish strings and error mapping from `src/app/(site)/login/`.
-4. **Onboarding** as `/welcome`: username (suggested with `@shared/slug`), display name, 18+, the
-   privacy notice (link to the site's `/privacy`; `PRIVACY_NOTICE_VERSION` — move it or read it from
-   `@shared/account-config`, which is browser-safe), writes `account_settings` then `profiles`.
-5. **Account:** edit profile, avatar (expo-image-picker → expo-image-manipulator: centre square,
-   256 px WebP → `avatars/{id}/{base36}.webp`, then point the profile at it and delete the old object
-   — ADR-006), logs-public default, sign out, **delete account** (remove the user's Storage objects
-   first, then `delete_my_account()` — as `/account` does; the stores require in-app deletion).
-6. **Google:** `@react-native-google-signin/google-signin` (config plugin) → `signInWithIdToken`.
-   Needs, in Google Cloud `haci-511515` (`n.efeyigit@gmail.com`, `authuser=1`): an **iOS client**
-   (bundle `tech.hacininkokteylleri.haci`) and an **Android client** (package + the SHA-1 of the EAS
-   signing key — create the key with the first EAS build or `eas credentials`; later also the Play
-   app-signing SHA-1). Add every client ID to Supabase → Auth → Google → "Client IDs" (the web client
-   stays first). Not testable in Expo Go — needs an EAS **development build** (the user's Expo account).
-7. **Sign in with Apple (iOS only):** `expo-apple-authentication` → `signInWithIdToken({ provider:
-   "apple" })`; Supabase Apple provider with the bundle ID as client ID; needs the Apple Developer
-   account. `/privacy` must name Apple → draft the text, **the user approves** before deploying.
-8. Verify: e-mail flows and onboarding in Expo web (Chrome) against the real project with a test
-   account the user creates or approves — never type passwords yourself; Google/Apple on a device
-   with the development build (the user). Delete test rows afterwards.
+Mirror the site (ADR-012, ADR-016): on the recipe screen the average, the heart, the reviews list
+(write / edit / two-step delete / report), "Favorilerim" in the archive filters, public profiles
+(`/u/{username}` as a screen: avatar, bio, favourites, reviews, "Profili bildir"), and reports.
+Reuse `src/lib/community.ts`. After each write call `revalidateSite()` with the paths the site's
+`revalidateCommunityPages()` uses (`/cocktails`, `/recipes/[slug]`, `/feed`, `/u/{username}`).
+Use the session from `useSession()`; a signed-out tap sends the member to the Hesap tab.
 
 ### Also open (not blocking)
 
+- **Sign in with Apple:** waits for the Apple Developer account (the user enrols from an iPhone). Then:
+  Supabase → Auth → Apple provider with the bundle ID as client ID; an iOS build; `/privacy` names
+  Apple (draft the text, **the user approves**); check whether iOS Google sign-in needs "Skip nonce
+  checks" in Supabase (the free google-signin module cannot pass a nonce).
+- **Google Play closed test:** the account was created after 2023-11-13, so 12 testers for 14 days
+  before production. **The user's plan:** buy a tester service (Fiverr, cheaper for several apps at
+  once). Alternatives offered: haci's own audience through a Google Group (real feedback — Play's
+  production-access form asks how testers engaged), free tester-exchange communities, or an
+  organization account (needs a D-U-N-S number; skips the rule). Start it once a preview build is
+  worth testing; the app needs Play's app-signing SHA-1 in a further Android OAuth client then.
+- 5 Expo packages have newer patch releases (`npx expo install --check`); update together with the
+  next development build, not alone.
+- Auth e-mails land in Outlook's spam (plan.md §8).
 - The wordmark in the navbar; Hacı's own first admin sign-in (question 5).
-- A log could show what changed against the house recipe (ADR-017 consequence) → Icebox if wanted.
 - Icebox (plan.md §9): follower lists, notifications, comment editing, tuning "popular", a showcase
   archive of past winners.
 
@@ -124,13 +116,24 @@ without asking. `cd mobile && npm ci` on a fresh machine (the app has its own lo
 | 3 | **Colour theme:** keep the dark crimson "Rx" look, or explore a lighter/warmer palette? | The user said the theme can change (ADR-015) | Today's palette stays (the app copies it from one theme file) |
 | 5 | **Hacı's first admin sign-in** — when (his phone, a network that does not block the domain)? | His 2FA factor is not enrolled yet | He cannot use the panel |
 | 6 | **The first real showcase period** — when, a week or a month? | Nothing promotes it until a period exists (the feed hides the section) | No period; the feature is invisible |
-| 7 | **The Expo username** (the account exists; the user brings it this session) | EAS builds; Google sign-in needs a development build | Only Expo Go / Expo web testing |
-| 9 | **When was the Google Play account created?** | After 2023-11-13 → a 12-tester, 14-day closed test before production | Plan for the closed test |
+| 10 | **Delete the leftover test user `nefeygt@outlook.com`?** (unconfirmed, no profile) | Keep `auth.users` clean | It stays |
+| 11 | **When does the Apple Developer enrolment happen?** | Sign in with Apple and every iOS build wait for it | Android only |
 
 ---
 
 ## 📍 Current State
 
+- **The app's accounts (M8 step 2, 2026-10-15):** `mobile/src/lib/session.tsx` (`SessionProvider`,
+  `useSession()`: loading / signed-out / onboarding / ok with profile and settings), `native-auth.ts`
+  (Google through `@react-native-google-signin/google-signin`, loaded with `require` so Expo Go does
+  not crash; Apple through `expo-apple-authentication`), `revalidate.ts` (`revalidateSite(paths)` →
+  the site's `POST /api/revalidate`), screens `(tabs)/account.tsx` and `welcome.tsx`, components
+  `SignIn`, `AccountView`, `Form`, `Avatar`. Shared with the site: `src/lib/profile.ts`
+  (`checkProfile`, `profileError`, `suggestUsername`) and `authErrorMessage()` in `account-config.ts`.
+  `mobile/.env` holds the Google web and iOS client IDs; `app.json` the google-signin plugin with the
+  iOS URL scheme, `expo-apple-authentication`, `expo-image-picker` (photos only). `eas.json`: profiles
+  development / preview / production. EAS project `@nefeygt/haci`, Android keystore on EAS (SHA-1
+  `01:AE:1B:63:CB:81:EC:A3:20:9F:32:C3:BC:21:5D:2B:43:58:58:A7`).
 - **The app (M8, 2026-10-14):** `mobile/` — Expo SDK 57, Expo Router, React Native 0.86, its own
   `package.json`/lockfile/`.env` (`EXPO_PUBLIC_*`, public). Identifiers `tech.hacininkokteylleri.haci`,
   name `haci`, scheme `haci`, dark only. Screens: tabs Kokteyller (archive: search with aliases,
@@ -239,7 +242,33 @@ without asking. `cd mobile && npm ci` on a fresh machine (the app has its own lo
 - **The office network blocks the new domain** (a Fortinet FortiGate). Check DNS with
   `https://dns.google/resolve?name=…` and HTTP with check-host.net (plan.md §5.4).
 
-**This session's lessons (M8 step 1)**
+**This session's lessons (M8 step 2)**
+- **Supabase answers "sent" for a sign-up with an address that already has an account, and sends
+  nothing** (so nobody can probe addresses). The user hit this with `n.efeyigit@outlook.com` (the
+  admin). The texts now say so.
+- **Chrome autofills the user's saved e-mail and password into the app's sign-in form** on
+  `localhost:8081`. Never submit it; signed-in tests need the user to sign in themselves.
+- **The google-signin config plugin throws without `iosUrlScheme`** — it is the iOS client ID reversed
+  (`com.googleusercontent.apps.…`), already in `app.json`.
+- **Google Cloud pages:** the "Free Trial" banner appears a few seconds after load and shifts everything
+  down ~40 px; a click aimed at a field hit a help link once. Screenshot right before each click, or go
+  straight to `…/auth/clients/create?project=haci-511515&authuser=1`. Client IDs: read them from
+  `document.body.innerText` (the screenshot truncates them).
+- **expo.dev truncates fingerprints** (`01:AE...58:A7`) and the full value is not in the DOM. Wrap
+  `navigator.clipboard.writeText` in `javascript_tool`, then click the copy button.
+- `eas build --non-interactive` creates the Android keystore by itself; `eas init --non-interactive
+  --force` creates and links the project.
+- **Typed routes** (`router.push("/welcome")`) fail `tsc` until `.expo/types/router.d.ts` is regenerated:
+  start `npx expo start` once.
+- `StyleSheet.absoluteFillObject` is gone in React Native 0.86 — use `StyleSheet.absoluteFill`.
+- In a Python script, `"\n"` inside a triple-quoted string becomes a real line break in the TypeScript
+  it writes — use the Edit tool for string literals with escapes.
+- **The site's pages are not CORS-enabled** — fetch them with curl; only `/api/revalidate` answers
+  other origins (bearer tokens, never cookies).
+- A background `next start` / `expo start` keeps its node process after `TaskStop`: free ports 3000 and
+  8081 by PID (`Get-NetTCPConnection` → `Stop-Process`).
+
+**Lessons from M8 step 1**
 - **`CI=1 npx expo start` disables file watching** — edits never reach the browser and the bundle looks
   stale. Run `npx expo start --web --port 8081` without it (add `--clear` after config changes).
 - **Expo web in a background Chrome tab:** screenshots time out and typed keys are lost, but the DOM
@@ -355,6 +384,8 @@ without asking. `cd mobile && npm ci` on a fresh machine (the app has its own lo
 | Are the accounts real people? | **Not necessarily yet** (the user, 2026-10-14): nothing promotes sign-up; still never touch rows you did not create without asking |
 | Resend account and sender? | **The user's account; `haci <noreply@hacininkokteylleri.tech>`** |
 | Developer accounts? | **Expo: the user's existing account** (username next session). **Google Play: personal, exists.** **Apple: personal**, opened later from an iPhone through the Apple Developer app (~650 TL/yr) — Android goes first (2026-10-14) |
+| Expo username? | **`nefeygt`** — EAS project `@nefeygt/haci` (2026-10-15) |
+| When was the Play account created? | **After 2023-11-13** → a closed test (12 testers, 14 days) before production; **the user sources the testers** (paid tester services; alternatives offered, their call) (2026-10-15) |
 | Mobile app: where, scope, platforms, sign-in? | **`mobile/` in this repo; full parity with the site before the first store release; iOS + Android from day one on the user's accounts; native Google + e-mail (+ Sign in with Apple on iOS)** (ADR-020, 2026-10-14) |
 | Admins, 2FA, canonical domain, WHOIS, reviews/logs, mobile stack | See ADR-007, 011, 010, plan.md M2, ADR-012, ADR-013 |
 

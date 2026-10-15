@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { accountSession, PRIVACY_NOTICE_VERSION } from "@/lib/account";
+import { checkProfile, profileError, type ProfileFields } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
 
 // Like the panel's actions, these never call redirect(); the browser navigates
@@ -9,31 +10,14 @@ import { createClient } from "@/lib/supabase/server";
 
 export type AccountResult = { ok?: boolean; error?: string };
 
-const USERNAME = /^[a-z0-9_]{3,20}$/;
 const SESSION_LOST = "Oturumun sona ermiş. Sayfayı yenileyip tekrar giriş yap.";
 
-type ProfileFields = { username: string; displayName: string; bio: string | null };
-
 function readProfile(formData: FormData): ProfileFields | { error: string } {
-  const username = String(formData.get("username") ?? "").trim().toLowerCase();
-  const displayName = String(formData.get("display_name") ?? "").trim();
-  const bio = String(formData.get("bio") ?? "").trim();
-
-  if (!USERNAME.test(username)) {
-    return { error: "Kullanıcı adı 3–20 karakter olmalı: küçük harf, rakam ya da alt çizgi." };
-  }
-  if (displayName.length < 1 || displayName.length > 50) {
-    return { error: "Görünen ad 1–50 karakter olmalı." };
-  }
-  if (bio.length > 280) return { error: "Hakkında en fazla 280 karakter olabilir." };
-  return { username, displayName, bio: bio || null };
-}
-
-/** Postgres errors from the profile constraints, in words a member understands. */
-function profileError(code: string | undefined, message: string): string {
-  if (code === "23505") return "Bu kullanıcı adı alınmış. Başka bir tane dene.";
-  if (code === "23514") return "Bu kullanıcı adı kullanılamaz. Başka bir tane dene.";
-  return `Kaydedilemedi: ${message}`;
+  return checkProfile({
+    username: String(formData.get("username") ?? ""),
+    displayName: String(formData.get("display_name") ?? ""),
+    bio: String(formData.get("bio") ?? ""),
+  });
 }
 
 /** Onboarding: the 18+ confirmation and privacy notice first, then the profile (ADR-014). */

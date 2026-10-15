@@ -17,19 +17,26 @@ npm run typecheck
 npx expo-doctor
 ```
 
-Native modules that are not in Expo Go (Google and Apple sign-in, later in M8) need a
-development build through EAS: `npx eas-cli@latest build --profile development`.
+Native modules that are not in Expo Go (Google and Apple sign-in) need a development build
+through EAS on the `@nefeygt/haci` project (`eas.json`): `npx eas-cli@latest build --profile
+development --platform android`, install the APK on the phone, then `npx expo start` and open the
+project from the development build instead of Expo Go. In Expo Go and on the web the Google button
+is hidden; e-mail sign-in works everywhere.
 
 ## Layout
 
 ```
-src/app/            screens (Expo Router): (tabs)/index (archive), feed, account; cocktail/[slug]
+src/app/            screens (Expo Router): (tabs)/index (archive), feed, account; cocktail/[slug]; welcome (onboarding)
 src/components/     the site's components rebuilt for React Native
-src/lib/            supabase client, theme, content fetchers, the archive context
+src/lib/            supabase client, theme, content fetchers, the archive context, the session
+                    (session.tsx), native Google/Apple sign-in (native-auth.ts), revalidateSite()
 assets/images/      icons, rendered from public/brand by scripts/export-brand.mjs (repo root)
 .env                public settings only (ADR-008)
 ```
 
 `@shared/*` resolves to the site's `src/lib/*` (Metro watches that folder): the generated
 database types and the browser-safe modules (`archive-filter`, `recipe`, `drink-log`,
-`showcase`, `community`, `slug`, `brand`). Keep those free of Next.js imports.
+`showcase`, `community`, `slug`, `brand`, `profile`, `account-config`).
+
+After every write the app calls `revalidateSite(paths)` (`src/lib/revalidate.ts`) so the site's
+static pages show it: `POST /api/revalidate` with the member's token (ADR-020). Keep those free of Next.js imports.

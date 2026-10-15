@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import AccountCard from "@/components/AccountCard";
 import { accountSession, safeNext } from "@/lib/account";
-import { slugify } from "@/lib/slug";
+import { suggestUsername } from "@/lib/profile";
 import OnboardingForm from "./OnboardingForm";
 
 export const metadata: Metadata = {
@@ -23,7 +23,6 @@ export default async function OnboardingPage({
   if (session.state === "ok") redirect(destination);
 
   const name = session.user.name ?? "";
-  const suggestion = slugify(name).replace(/-/g, "_").slice(0, 20);
 
   return (
     <AccountCard
@@ -31,7 +30,7 @@ export default async function OnboardingPage({
       subtitle="Son bir adım: herkesin göreceği adını seç. Bunları sonra hesabından değiştirebilirsin."
     >
       <OnboardingForm
-        defaultUsername={suggestion.length >= 3 ? suggestion : ""}
+        defaultUsername={suggestUsername(name)}
         defaultDisplayName={name.slice(0, 50)}
         next={destination}
       />
