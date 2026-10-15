@@ -854,3 +854,38 @@ password was refused with "at least 8 characters". The auth logs showed two sepa
 **Rejected.** *PKCE in the app:* its verifier stays on the phone, so the site still could not
 finish the link. *A client-side page reading the `#hash`:* fixes only the app's links, keeps tokens
 in URLs and leaves the cross-browser PKCE failure.
+
+---
+
+## ADR-022 — After signing in, the app returns to the screen that asked and finishes the action; fields stay above the keyboard
+
+**Context.** On the phone (2026-10-15) a sign-in left the member on the Hesap tab, on their account
+form. The user wanted the archive instead, and — when the sign-in started from a recipe's heart — that
+recipe, with the cocktail saved and a message saying so. The same pass showed the review form hidden
+behind the keyboard: React Native 0.86 draws Android apps edge to edge, so the window no longer
+shrinks for the keyboard, and `KeyboardAvoidingView` would need every screen's header height.
+
+**Decision.**
+- **`mobile/src/lib/after-sign-in.ts`.** A screen that needs a member calls `askToSignIn(from,
+  cocktailId?)`: it remembers the way back (and a heart), closes the stack screens and opens the Hesap
+  tab. When the session goes from signed out to a member, the Hesap tab calls `leaveAfterSignIn()`:
+  the archive tab, then the remembered recipe pushed on top. A new member gets there after onboarding.
+  `FavoritesProvider` saves the remembered heart before it reads the list and the recipe shows
+  "Favorilerine eklendi." for four seconds. Leaving the Hesap tab still signed out forgets both. A
+  session restored at launch moves nobody; a sign-in from the Hesap tab itself lands on the archive.
+- **`KeyboardScrollView`** replaces `KeyboardAvoidingView` on the recipe, Hesap and onboarding screens:
+  it adds the keyboard's height at the bottom and scrolls the focused field (and ~72 px under it, room
+  for its buttons) above the keyboard; screens underneath (`useIsFocused`) ignore it. Taps reach buttons
+  while the keyboard is open (`keyboardShouldPersistTaps="handled"`).
+
+**Consequences.**
+- (+) A sign-in prompt costs the member nothing: they are back where they were, the heart done.
+- (+) One component for every form screen; it works the same on iOS.
+- (−) The way back lives in module memory: an app restart in the middle of a sign-in forgets it (the
+  member lands on the archive).
+- (−) Review prompts return to the recipe but do not reopen the form; the member taps again.
+
+**Rejected.** *`router.navigate("/account")` from the recipe:* it pushed a second tab navigator, so two
+Hesap tabs reacted to the sign-in and the second sent the member to the archive. *A keyboard library
+(react-native-keyboard-controller):* a native module and a new development build for what one
+component does.

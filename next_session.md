@@ -4,11 +4,12 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-15 (M8 step 3) · **Handing off:** **M8 step 3 built** — reviews,
-the heart, "Favorilerim", reports and public profiles in the app (`0ccafb3`, checked signed out in Chrome).
-**Password reset fixed** mid-session (ADR-021): e-mail links carry a `token_hash` the site verifies, and the
-reset form asks for the 2FA code on accounts that have one. **Left: the user's reset retry and the signed-in
-step-3 check; then M8 step 4 — the drink log in the app.**
+**Prepared by session:** 2026-10-15 (M8 phone pass) · **Handing off:** **M8 step 3 mostly checked on the
+phone** with the new Android development build: Google sign-in, review edit, and the new after-sign-in flow —
+the member returns to the recipe that asked, the heart tapped before signing in is saved with a notice,
+otherwise the archive (ADR-022). Review layout and keyboard fixes (`KeyboardScrollView`). **Left: three
+signed-in checks (review delete, "Favorilerim", report), cleaning the test rows, the user's reset retry; then
+M8 step 4 — the drink log in the app.**
 
 ---
 
@@ -60,7 +61,8 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 `git status` — clean, `main` in step with `origin/main`. **Tools:** the Supabase MCP (`list_migrations`
 on `qwvnhdghwycqlvsnlvlt` → still 11, the latest `20261014134219_showcase`; steps 2 and 3 needed no schema
 change) and Claude in Chrome (`tabs_context_mcp`). `npx eas-cli@latest whoami` → `nefeygt`. SQL: the only
-profile is `ahmet_kafa`; `reviews`, `favorites`, `reports` should be empty. `cd mobile && npm ci` on a fresh machine.
+profile is `ahmet_kafa`; it still has **test rows from 2026-10-15**: 2 reviews (`kiki-42`, `raspberry-dream`)
+and 4 favourites (`caipiroska`, `mavi-isci`, `kiki-42`, `raspberry-dream`); `reports` empty. `cd mobile && npm ci` on a fresh machine.
 
 ### Step 1 — the user's checks (ask first; Claude cannot type passwords)
 
@@ -70,11 +72,12 @@ profile is `ahmet_kafa`; `reviews`, `favorites`, `reports` should be empty. `cd 
    6-digit code from their authenticator. Old e-mails (sent before 2026-10-15 ~09:30 UTC) still have the old
    link — use only a new one. If it fails: Supabase auth logs (`query_logs`, source `auth_logs`, `/verify`,
    `/user`) say why.
-2. **Step 3 signed in** (the development build on the phone with `npx expo start`, or Expo web
-   `npx expo start --web --port 8081` in Chrome where the user signs in themselves): write a review →
-   edit → two-step delete; the heart on a recipe and "Filtrele → Listem → Favorilerim"; a profile from a
-   review's avatar; "Bildir" on someone else's review (needs a second member — otherwise check in SQL as in
-   M4). Check rows in SQL, then delete the test rows (reviews, favourites, reports) with the user's OK.
+2. **Step 3 signed in — what is left** (the development build on the phone: `cd mobile && npx expo start`,
+   `adb reverse tcp:8081 tcp:8081`, then open `haci://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081`).
+   Already passed on 2026-10-15: Google sign-in, write/edit a review, the heart, sign-in from a heart (back
+   to the recipe, heart saved). Left: the two-step review delete; "Filtrele → Listem → Favorilerim"; a profile
+   from a review's avatar; "Bildir" on someone else's review (needs a second member — otherwise check in SQL
+   as in M4). Check rows in SQL, then delete the test rows (reviews, favourites, reports) with the user's OK.
    **Ask which account:** `n.efeyigit@outlook.com` is the owner admin and has no profile — signing in to the
    app sends it to onboarding and would make the admin a member too. `ahmet_kafa` (Google) is the member account.
 
@@ -121,6 +124,12 @@ public logs on the profile screen (and "Bildir" on them). Writes go straight to 
 
 ## 📍 Current State
 
+- **After sign-in and the keyboard (2026-10-15, ADR-022):** `mobile/src/lib/after-sign-in.ts` (`askToSignIn`,
+  `leaveAfterSignIn`, `takePendingFavorite`, `forgetSignInRequest`) — used by the heart (`favorites.tsx`,
+  `toggle(id, from)`), the review prompt, the Hesap tab (signed out → member) and `welcome.tsx`;
+  `FavoritesProvider.savedOnSignIn` drives the recipe's "Favorilerine eklendi." notice.
+  `components/KeyboardScrollView.tsx` on the recipe, Hesap and onboarding screens. The archive's search
+  hint is "Kokteyl, malzeme ara".
 - **The app's community (M8 step 3, 2026-10-15):** `mobile/src/lib/community.ts` (`fetchReviews`, `saveReview`,
   `deleteReview`, `setFavorite`, `reportContent`, each revalidating the site), `favorites.tsx`
   (`FavoritesProvider` / `useFavorites()`), components `Stars`, `ReportButton` (hidden for signed-out visitors
@@ -247,6 +256,20 @@ public logs on the profile screen (and "Bildir" on them). Writes go straight to 
   not select it). Host name empty = apex.
 - **The office network blocks the new domain** (a Fortinet FortiGate). Check DNS with
   `https://dns.google/resolve?name=…` and HTTP with check-host.net (plan.md §5.4).
+
+**This session's lessons (M8 phone pass)**
+- **Drive the phone over adb:** `adb exec-out screencap -p > file.png` and Read it; `adb exec-out uiautomator dump
+  /dev/tty` gives bounds (`content-desc` = `accessibilityLabel`) for `adb shell input tap x y`; deep links
+  `adb shell am start -a android.intent.action.VIEW -d "haci://cocktail/<slug>" tech.hacininkokteylleri.haci`.
+  JS logs: `adb logcat -s ReactNativeJS:*`. `adb reverse` is lost on reconnect — set it again.
+- **`router.navigate("/account")` from a stack screen pushes a second `(tabs)` navigator** in Expo Router 57
+  (back from the recipe went to Hesap; two Hesap tabs both reacted to a sign-in). Dismiss to the root first
+  (`router.dismissAll()`), as `askToSignIn` does.
+- **Edge to edge Android does not resize for the keyboard** — `KeyboardAvoidingView` with no behaviour does
+  nothing; use `KeyboardScrollView`. Effects of a provider run after its children's: the Hesap tab reacts to
+  a sign-in before `FavoritesProvider` does.
+- **The supabase auth logs show each sign-in** (`/token`, `grant_type=id_token`) — useful to tell whether the
+  user actually signed in again.
 
 **This session's lessons (M8 step 3)**
 - **E-mail links must carry `token_hash` (ADR-021).** `{{ .ConfirmationURL }}` finishes with the requesting

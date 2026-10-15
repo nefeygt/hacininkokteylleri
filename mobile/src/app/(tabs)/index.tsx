@@ -77,7 +77,8 @@ export default function ArchiveScreen() {
           <TextInput
             value={filters.search}
             onChangeText={(search) => set({ search })}
-            placeholder="Kokteyl, malzeme veya etiket ara..."
+            placeholder="Kokteyl, malzeme ara"
+            numberOfLines={1}
             placeholderTextColor={colors.textMuted}
             style={styles.searchInput}
             autoCorrect={false}

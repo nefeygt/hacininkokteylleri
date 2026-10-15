@@ -1,11 +1,13 @@
-import { Redirect, router } from "expo-router";
+import { Redirect } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { PRIVACY_NOTICE_VERSION } from "@shared/account-config";
 import { checkProfile, DISPLAY_NAME_MAX, profileError, suggestUsername } from "@shared/profile";
 import { Button, Checkbox, Field, Message } from "@/components/Form";
+import KeyboardScrollView from "@/components/KeyboardScrollView";
 import { Body, Heading, Mono } from "@/components/Type";
+import { leaveAfterSignIn } from "@/lib/after-sign-in";
 import { nameOf, useSession } from "@/lib/session";
 import { SITE_URL, supabase } from "@/lib/supabase";
 import { colors, readable } from "@/lib/theme";
@@ -52,14 +54,13 @@ function OnboardingForm({ userId, name, reload }: { userId: string; name: string
       return setError(profileError(error.code, error.message));
     }
 
+    // The Hesap tab now holds the account; the member goes back to where they were.
+    leaveAfterSignIn();
     await reload();
-    if (router.canGoBack()) router.back();
-    else router.replace("/account");
   }
 
   return (
-    <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <KeyboardScrollView style={styles.screen} contentContainerStyle={styles.content}>
         <Heading style={styles.title}>Hoş geldin</Heading>
         <Body style={styles.subtitle}>
           Son bir adım: herkesin göreceği adını seç. Bunları sonra hesabından değiştirebilirsin.
@@ -96,8 +97,7 @@ function OnboardingForm({ userId, name, reload }: { userId: string; name: string
           {error && <Message error>{error}</Message>}
           <Button title="Hesabımı oluştur" onPress={submit} pending={pending} />
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+    </KeyboardScrollView>
   );
 }
 

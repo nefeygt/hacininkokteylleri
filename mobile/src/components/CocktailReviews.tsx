@@ -1,7 +1,8 @@
 import { REVIEW_MAX_LENGTH, formatAverage } from "@shared/community";
 import { router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { Pressable, StyleSheet, TextInput, View } from "react-native";
+import { Keyboard, Pressable, StyleSheet, TextInput, View } from "react-native";
+import { askToSignIn } from "@/lib/after-sign-in";
 import { deleteReview, fetchReviews, formatDay, saveReview, type Review, type Writer } from "@/lib/community";
 import type { Cocktail } from "@/lib/content";
 import { useSession } from "@/lib/session";
@@ -119,7 +120,11 @@ function OwnReview({
   if (!writer) {
     // Signed out, or signed in without a profile yet: the Hesap tab handles both.
     return (
-      <Pressable onPress={() => router.navigate("/account")} style={styles.prompt} accessibilityRole="link">
+      <Pressable
+        onPress={() => askToSignIn({ pathname: "/cocktail/[slug]", params: { slug: cocktail.slug } })}
+        style={styles.prompt}
+        accessibilityRole="link"
+      >
         <Mono style={styles.promptText}>
           {signedIn ? "Değerlendirme yazmak için önce " : "Değerlendirmek ve favorilere eklemek için "}
           <Mono style={styles.link}>{signedIn ? "profilini tamamla" : "giriş yap"}</Mono>.
@@ -147,6 +152,7 @@ function OwnReview({
   }
 
   async function save() {
+    Keyboard.dismiss();
     setError(null);
     if (rating < 1) {
       setError("Önce bir puan seç.");
@@ -165,6 +171,7 @@ function OwnReview({
   }
 
   async function remove() {
+    Keyboard.dismiss();
     if (!confirmingDelete) {
       setConfirmingDelete(true);
       return;
@@ -193,10 +200,9 @@ function OwnReview({
 
   return (
     <View style={styles.box}>
-      <View style={styles.boxHead}>
-        <Label>{own ? "Değerlendirmeni düzenle" : "Değerlendir"}</Label>
-        <Stars value={rating} size={22} onChange={setRating} />
-      </View>
+      {/* The stars get their own row: next to the label they ran out of the box on a phone. */}
+      <Label>{own ? "Değerlendirmeni düzenle" : "Değerlendir"}</Label>
+      <Stars value={rating} size={22} onChange={setRating} />
       <TextInput
         value={body}
         onChangeText={setBody}

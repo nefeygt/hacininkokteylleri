@@ -2,9 +2,10 @@ import { Image } from "expo-image";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { Heart, Leaf } from "lucide-react-native";
 import { useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import CocktailReviews from "@/components/CocktailReviews";
-import { Message } from "@/components/Form";
+import KeyboardScrollView from "@/components/KeyboardScrollView";
+import { Message, Notice } from "@/components/Form";
 import RecipeDetails from "@/components/RecipeDetails";
 import { Body, Heading, Label, Mono } from "@/components/Type";
 import { useArchive } from "@/lib/archive";
@@ -15,7 +16,7 @@ import { alpha, colors } from "@/lib/theme";
 export default function CocktailScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const { archive, refresh } = useArchive();
-  const { favorites, toggle } = useFavorites();
+  const { favorites, toggle, savedOnSignIn } = useFavorites();
   const [favoriteError, setFavoriteError] = useState<string | null>(null);
   const cocktail = archive?.cocktails.find((c) => c.slug === slug);
 
@@ -36,7 +37,7 @@ export default function CocktailScreen() {
   }
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+    <KeyboardScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <Stack.Screen options={{ title: cocktail.name }} />
       <View style={[styles.accent, { backgroundColor: cocktail.color }]} />
       {cocktail.imageUrl && <Image source={cocktail.imageUrl} style={styles.photo} contentFit="cover" />}
@@ -59,11 +60,12 @@ export default function CocktailScreen() {
             on={favorites.has(cocktail.id)}
             onPress={async () => {
               setFavoriteError(null);
-              setFavoriteError(await toggle(cocktail.id));
+              setFavoriteError(await toggle(cocktail.id, { pathname: "/cocktail/[slug]", params: { slug: cocktail.slug } }));
             }}
           />
         </View>
         {favoriteError && <Message error>{favoriteError}</Message>}
+        {savedOnSignIn === cocktail.id && <Notice>Favorilerine eklendi.</Notice>}
         <Mono style={styles.subtitle}>{cocktail.subtitle}</Mono>
 
         <View style={styles.details}>
@@ -72,7 +74,7 @@ export default function CocktailScreen() {
 
         <CocktailReviews cocktail={cocktail} onChanged={refresh} />
       </View>
-    </ScrollView>
+    </KeyboardScrollView>
   );
 }
 
