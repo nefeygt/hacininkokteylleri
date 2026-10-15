@@ -4,7 +4,7 @@
 // photos never-overwritten (ADR-006) and ask the site to refresh the pages
 // that show the recipe (ADR-018, ADR-020).
 
-import { cleanRecipeInput, type RecipeInput } from "@shared/recipe";
+import { cleanRecipeInput, toSavedIngredients, type RecipeInput } from "@shared/recipe";
 import { slugify } from "@shared/slug";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
@@ -58,12 +58,13 @@ function writeError(code: string | undefined, message: string): string {
   if (message.includes("Daily recipe limit")) return "Bugün yeterince tarif ekledin. Yarın tekrar dene.";
   if (code === "23514") return "Tarif geçersiz: alanları kontrol et.";
   if (code === "P0002") return "Tarif bulunamadı.";
+  if (code === "23503") return "Katalogdaki bir malzeme bulunamadı. Tarifi kapatıp yeniden aç.";
   return `Kaydedilemedi: ${message}`;
 }
 
 /** The pages a recipe write changes — the site's revalidateRecipe(); "/" for the showcase's winner. */
 function recipePages(slug: string, username: string): string[] {
-  return [`/recipes/${slug}`, `/u/${username}`, "/feed", "/"];
+  return [`/recipes/${slug}`, `/u/${username}`, "/feed", "/", "/what-can-i-make"];
 }
 
 /** The member's recipes, drafts and published, newest first. */
@@ -80,7 +81,7 @@ export async function fetchMyRecipes(memberId: string): Promise<OwnRecipe[]> {
 export async function fetchMyRecipe(memberId: string, id: string): Promise<EditableRecipe | null> {
   const { data: r, error } = await supabase
     .from("cocktails")
-    .select("*, cocktail_ingredients(position, name, amount, unit, icon)")
+    .select("*, cocktail_ingredients(position, name, amount, unit, icon, ingredient_id)")
     .eq("id", id)
     .eq("author_id", memberId)
     .maybeSingle();
@@ -100,7 +101,14 @@ export async function fetchMyRecipe(memberId: string, id: string): Promise<Edita
       imagePath: r.image_path,
       ingredients: [...r.cocktail_ingredients]
         .sort((a, b) => a.position - b.position)
-        .map((i) => ({ name: i.name, amount: Number(i.amount), unit: i.unit, icon: i.icon })),
+        // The catalogue link rides along so an edit in the app keeps it (ADR-029).
+        .map((i) => ({
+          name: i.name,
+          amount: Number(i.amount),
+          unit: i.unit,
+          icon: i.icon,
+          ingredientId: i.ingredient_id ?? undefined,
+        })),
       instructions: r.instructions,
       garnish: r.garnish,
       glass: r.glass,
@@ -147,7 +155,7 @@ export async function saveRecipe(writer: Writer, input: RecipeInput, id?: string
   let slug = previous?.slug ?? base;
   let savedId: string | null = null;
   for (let attempt = 0; attempt < 4; attempt++) {
-    const { data, error } = await supabase.rpc("save_recipe", { recipe: { ...fields, slug }, ingredients: recipe.ingredients });
+    const { data, error } = await supabase.rpc("save_recipe", { recipe: { ...fields, slug }, ingredients: toSavedIngredients(recipe.ingredients) });
     if (!error) {
       savedId = data;
       break;

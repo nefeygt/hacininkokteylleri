@@ -21,6 +21,8 @@ interface IngredientRow {
   amount: string; // as typed; "1,5" works too
   unit: string;
   icon: IngredientIcon;
+  /** The catalogue link, kept through an edit until the app has a picker (ADR-029). */
+  ingredientId?: string;
 }
 
 interface StepRow {
@@ -78,7 +80,14 @@ export default function RecipeForm({
   const [form, setForm] = useState(initial);
   const [tagsText, setTagsText] = useState(initial.tags.join(", "));
   const [rows, setRows] = useState<IngredientRow[]>(() =>
-    initial.ingredients.map((i) => ({ key: nextKey++, name: i.name, amount: String(i.amount).replace(".", ","), unit: i.unit, icon: i.icon }))
+    initial.ingredients.map((i) => ({
+      key: nextKey++,
+      name: i.name,
+      amount: String(i.amount).replace(".", ","),
+      unit: i.unit,
+      icon: i.icon,
+      ingredientId: i.ingredientId,
+    }))
   );
   const [steps, setSteps] = useState<StepRow[]>(() => initial.instructions.map((text) => ({ key: nextKey++, text })));
   const [sheet, setSheet] = useState<{ key: number; kind: "unit" | "icon" } | null>(null);
@@ -137,6 +146,7 @@ export default function RecipeForm({
         amount: r.amount.trim() ? Number(r.amount.replace(",", ".")) : NaN,
         unit: r.unit,
         icon: r.icon,
+        ingredientId: r.ingredientId,
       })),
       instructions: steps.map((s) => s.text),
     };

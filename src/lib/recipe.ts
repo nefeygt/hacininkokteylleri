@@ -13,7 +13,18 @@ export type RecipeIngredient = {
   amount: number;
   unit: string;
   icon: IngredientIcon;
+  /** The catalogue item (ADR-029); empty when the catalogue lacks it ("Katalogda yok"). */
+  ingredientId?: string;
 };
+
+/** A line as save_recipe reads it: the catalogue link travels as ingredient_id. */
+export type SavedRecipeIngredient = Omit<RecipeIngredient, "ingredientId"> & { ingredient_id: string | null };
+
+export function toSavedIngredients(ingredients: RecipeIngredient[]): SavedRecipeIngredient[] {
+  return ingredients.map(({ ingredientId, ...line }) => ({ ...line, ingredient_id: ingredientId || null }));
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export interface RecipeInput {
   name: string;
@@ -101,7 +112,8 @@ export function cleanRecipeInput(input: RecipeInput): RecipeInput | { error: str
     if (!(amount > 0) || amount > L.amount) return { error: `"${ingredientName}" için geçerli bir miktar yaz.` };
     if (!unit || unit.length > L.unit) return { error: `"${ingredientName}" için bir birim yaz (cl, dash, dilim…).` };
     const icon = ICONS.includes(raw.icon) ? raw.icon : "shot";
-    ingredients.push({ name: ingredientName, amount, unit, icon });
+    const ingredientId = typeof raw.ingredientId === "string" && UUID.test(raw.ingredientId) ? raw.ingredientId : undefined;
+    ingredients.push({ name: ingredientName, amount, unit, icon, ingredientId });
   }
   if (ingredients.length === 0) return { error: "En az bir malzeme ekle." };
   if (ingredients.length > L.ingredients) return { error: `En fazla ${L.ingredients} malzeme olabilir.` };

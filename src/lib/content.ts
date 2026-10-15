@@ -208,6 +208,24 @@ export async function getNewRecipes(limit: number, authorId?: string): Promise<C
 }
 
 /**
+ * Published members' recipes whose every line names a catalogue ingredient,
+ * newest first: the ones "what can I make" can match (ADR-029).
+ */
+export async function getMatchableRecipes(): Promise<Cocktail[]> {
+  const { data, error } = await createPublicClient()
+    .from("cocktails")
+    .select(RECIPE_COLUMNS)
+    .not("author_id", "is", null)
+    .eq("is_published", true)
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(`Could not load recipes: ${error.message}`);
+  const rows = (data as CocktailRow[]).filter(
+    (r) => r.cocktail_ingredients.length > 0 && r.cocktail_ingredients.every((i) => i.ingredient_id)
+  );
+  return withRatings(rows);
+}
+
+/**
  * Members' recipes with the most reviews and favourites in the last 30 days
  * (the recipe_popularity view), Letterboxd's "popular this week". Recipes
  * nobody has touched yet are left to the "new" list.

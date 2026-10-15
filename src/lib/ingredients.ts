@@ -44,9 +44,17 @@ export interface MatchResult<T> {
 }
 
 /**
+ * Whether every line names a catalogue ingredient. Only such recipes take part
+ * in "what can I make": a line the catalogue lacks could be anything. House
+ * recipes always are (save_cocktail); members' recipes are when every line is linked.
+ */
+export function isFullyLinked(cocktail: { ingredients: { ingredientId?: string }[] }): boolean {
+  return cocktail.ingredients.length > 0 && cocktail.ingredients.every((i) => Boolean(i.ingredientId));
+}
+
+/**
  * Splits recipes by what the visitor has. A recipe counts by its distinct
- * catalogue ingredients; lines without one (members' recipes) are ignored, and
- * a recipe with none at all never matches.
+ * catalogue ingredients; a recipe with an unlinked line never matches.
  */
 export function matchCocktails<T extends { ingredients: { ingredientId?: string }[] }>(
   cocktails: T[],
@@ -58,8 +66,8 @@ export function matchCocktails<T extends { ingredients: { ingredientId?: string 
   if (have.size === 0) return result;
 
   for (const cocktail of cocktails) {
-    const needed = new Set(cocktail.ingredients.flatMap((i) => (i.ingredientId ? [i.ingredientId] : [])));
-    if (needed.size === 0) continue;
+    if (!isFullyLinked(cocktail)) continue;
+    const needed = new Set(cocktail.ingredients.map((i) => i.ingredientId as string));
     const missing = [...needed].filter((id) => !have.has(id) && !byId.get(id)?.alwaysAtHand);
     if (missing.length === 0) result.ready.push(cocktail);
     // One short only counts when the visitor has something the recipe uses.

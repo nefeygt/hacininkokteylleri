@@ -9,7 +9,7 @@
 > **Language rule (ADR-002):** everything we write — docs, code, comments, commits, SQL — is
 > **English**. Everything visitors and admins read — UI strings, recipes — is **Turkish**.
 
-**Last updated:** 2026-10-15 (M9 backup + cl ↔ oz) · **Active milestone:** **M9 — Web improvements** (recipe pages, data filters, wordmark, rich results, share, servings, similar, weekly backup, cl ↔ oz, six themes with readable type — ADR-025 to ADR-028) · **M8 — Mobile app** steps 1–6 done, **step 7 (store release) paused** until the Apple account or the user's two other Play apps (ADR-024) · M6 and M7 done · **Brand:** `haci` (ADR-015)
+**Last updated:** 2026-10-15 (M9 members' recipes in "Elimde ne var?") · **Active milestone:** **M9 — Web improvements** (recipe pages, data filters, wordmark, rich results, share, servings, similar, weekly backup, cl ↔ oz, six themes with readable type — ADR-025 to ADR-028) · **M8 — Mobile app** steps 1–6 done, **step 7 (store release) paused** until the Apple account or the user's two other Play apps (ADR-024) · M6 and M7 done · **Brand:** `haci` (ADR-015)
 
 ---
 
@@ -185,7 +185,7 @@ migration file with the version Supabase applied (ADR-009).
 | Table | Key columns | Who reads | Who writes |
 |---|---|---|---|
 | `cocktails` | `id uuid`, `slug` unique, `name`, `subtitle`, `base_alcohol`, `flavor`, `tags text[]`, `color #rrggbb`, `image_path`, `instructions text[]`, `garnish`, `glass`, `vegan`, `note`, `sort_order`, `is_published`; M6: `author_id` → `profiles` (null = house recipe), `hidden_at`/`hidden_by`, length caps for members' rows | everyone (published, not hidden); the author (own drafts); admins (all) | admins (any); members only rows with their own `author_id`, via `save_recipe` (≤ 10 new a day) |
-| `cocktail_ingredients` | `cocktail_id`, `position` (unique together), `name` ≤ 100, `amount numeric(6,2)`, `unit` ≤ 20, `icon` enum, `ingredient_id` → `ingredients` (required on house recipes by `save_cocktail`, ADR-029) | as its cocktail | admins; the recipe's author |
+| `cocktail_ingredients` | `cocktail_id`, `position` (unique together), `name` ≤ 100, `amount numeric(6,2)`, `unit` ≤ 20, `icon` enum, `ingredient_id` → `ingredients` (required on house recipes by `save_cocktail`; optional for members, kept by `save_recipe`, ADR-029) | as its cocktail | admins; the recipe's author |
 | `ingredients` (M9) | `id`, `name` unique (case-insensitive) ≤ 60, `category` enum, `always_at_hand` | everyone | admins |
 | `glossary_terms` | `term` PK, `definition` | everyone | admins |
 | `admins` | `user_id` → `auth.users`, `role` (`owner`/`editor`), `display_name` | own row; admins (all) | nobody over the API — SQL only |
@@ -664,8 +664,13 @@ While the store release waits (ADR-024), the site gets better first; every user-
   375 px no horizontal scroll; the choice kept after a reload). **Live check passed (2026-10-15, Claude in Chrome, the
   user signed in with 2FA):** a house recipe shows every line's catalogue item and saves unchanged ("Kaydedildi");
   "Malzemeler" adds and deletes a test item, in-use items cannot be deleted; the live page gives the predicted 2 results
-- [ ] **Members' recipes in "Elimde ne var?"** (the user, 2026-10-15, for the next session): a catalogue picker in the
-  member form, `save_recipe` keeping the links, the app carrying them; amends ADR-029
+- [x] **Members' recipes in "Elimde ne var?"** (the user, 2026-10-15; amends ADR-029): a catalogue select per line in the
+  member form ("Katalogda yok" allowed, a hint and a linked/unlinked counter), `save_recipe` keeping the links (migration
+  `recipe_ingredient_links`), only fully linked published recipes match, their cards open `/recipes/{slug}`; the app keeps
+  the links through an edit (no picker yet). Checked: build, the app's typecheck, SQL (links kept, unlinked line allowed,
+  a bad id refused, rolled back), advisors unchanged, Claude in Chrome on `localhost:3000` signed in as `ahmet_kafa` (a
+  draft saved and reopened with its links; all linked + published → "Bir malzeme eksik" with Votka + Limon, "Yapabileceklerin"
+  after Şeker Şurubu, card by @ahmet_kafa; form at 375 px no horizontal scroll); the test recipe deleted. Not yet seen live
 
 ---
 
@@ -689,7 +694,7 @@ While the store release waits (ADR-024), the site gets better first; every user-
 ## 8. Known issues (not yet scheduled)
 
 - The chips are read from the data (ADR-026), so a misspelling in the panel becomes its own chip.
-- Members' ingredient names are still free text (house lines link to the catalogue since ADR-029).
+- Members' lines link to the catalogue only if the member picks it (ADR-029 amendment); existing recipes were not backfilled, and the app has no picker yet (it keeps links it loaded, but a renamed line keeps its old link).
 - A photo uploaded in the panel and then abandoned (form not saved) stays in the bucket; the same
   for a member's recipe form (the file stays in their folder until they delete their account).
 - The owner's authenticator entry is named "Hacı'nın Kokteylleri" (the old issuer); harmless.
@@ -737,6 +742,7 @@ While the store release waits (ADR-024), the site gets better first; every user-
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-10-15 | M9 members' recipes in "Elimde ne var?" | The user's request from last session (amends ADR-029). Migration `recipe_ingredient_links` (`save_recipe` keeps `ingredient_id`), a catalogue select per line in the member form, only fully linked recipes match, the page adds published members' recipes, revalidation from member/app saves and moderation; the app carries the links through its form. Found on the way: the app's form rebuilt lines and would have dropped the links — fixed. Checked in Claude in Chrome on localhost with the user signed in as `ahmet_kafa` (test recipe deleted afterwards) |
 | 2026-10-15 | M9 "Elimde ne var?" | The user picked "what can I make", then the database catalogue (not groups in code), its own page, ready + one missing, house recipes only → ADR-029. Migrations `ingredient_catalogue` (+ `_drafts` for an unpublished draft's lower-case lines), panel select + "Malzemeler" page, `/what-can-i-make`. Bug found in the browser and fixed: quick taps lost a choice (stale state). A build failed once on a next/font fetch (network); the retry passed. Then the live check: the user signed in to the panel (Claude in Chrome had no haci session until then); recipe save, catalogue add/delete and the live page passed |
 | 2026-10-15 | M9 navbar | The user asked to remove the Letterboxd icon from the navbar → removed. The first build failed on a transient Supabase 500 while loading cocktails (project healthy; the retry passed). Checked in Claude in Chrome at 320/375 px through an iframe (the window cannot be resized while maximized). The weekly backup's first scheduled run is Monday 2026-10-19; the theme look on the phone and the M9 question are still open |
 | 2026-10-15 | M9 themes | The user picked A ("Rx, readable") as the main look and asked for the other directions and more combinations as themes → six themes with a "Görünüm" picker, reading text off the mono font (ADR-028). The extra navbar button overflowed 375 px → the account link is icon-only on phones. Checked in the built-in browser; build passes |

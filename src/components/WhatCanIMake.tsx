@@ -29,7 +29,7 @@ function usePantry(known: Set<string>): [Set<string>, (change: (current: Set<str
   return [have, update];
 }
 
-/** "Elimde ne var?" (ADR-029): pick what you have, see the house recipes you can make. */
+/** "Elimde ne var?" (ADR-029): pick what you have, see the house and members' recipes you can make. */
 export default function WhatCanIMake({
   cocktails,
   catalogue,
@@ -63,7 +63,7 @@ export default function WhatCanIMake({
         </span>
         <h1 className="text-3xl font-bold tracking-tight">Elimde ne var?</h1>
         <p className="mt-2 max-w-xl text-sm text-text-muted">
-          Evde olan malzemeleri seç; Hacı&apos;nın reçetelerinden hangilerini yapabileceğini gösterelim. Buz ve garnitür
+          Evde olan malzemeleri seç; Hacı&apos;nın reçetelerinden ve üyelerin tariflerinden hangilerini yapabileceğini gösterelim. Buz ve garnitür
           sayılmaz; su hep elde sayılır.
         </p>
       </div>
@@ -132,7 +132,7 @@ export default function WhatCanIMake({
                 ) : (
                   <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                     {ready.map((c) => (
-                      <CocktailCard key={c.id} cocktail={c} href={recipeHref(c.slug, false)} />
+                      <CocktailCard key={c.id} cocktail={c} href={recipeHref(c.slug, !!c.author)} />
                     ))}
                   </div>
                 )}
@@ -145,7 +145,7 @@ export default function WhatCanIMake({
                   <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                     {oneShort.map(({ cocktail, missing }) => (
                       <div key={cocktail.id}>
-                        <CocktailCard cocktail={cocktail} href={recipeHref(cocktail.slug, false)} />
+                        <CocktailCard cocktail={cocktail} href={recipeHref(cocktail.slug, !!cocktail.author)} />
                         <p className="mt-2 text-xs text-text-muted">
                           Eksik: <span className="text-text-secondary">{missing.name}</span>
                         </p>

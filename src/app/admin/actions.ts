@@ -378,6 +378,7 @@ export async function setRecipeHidden(id: string, hidden: boolean): Promise<Acti
   if (data?.profiles) revalidatePath(`/u/${data.profiles.username}`);
   revalidatePath("/feed");
   revalidatePath("/");
+  revalidatePath("/what-can-i-make");
   revalidatePath("/admin/moderation");
   return { ok: true };
 }

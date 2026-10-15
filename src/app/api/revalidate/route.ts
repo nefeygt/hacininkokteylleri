@@ -15,6 +15,7 @@ const SHAPES = [
   /^\/$/,
   /^\/cocktails$/,
   /^\/feed$/,
+  /^\/what-can-i-make$/,
   /^\/u\/[a-z0-9_]{3,20}$/,
   new RegExp(`^/logs/${UUID}$`),
 ];

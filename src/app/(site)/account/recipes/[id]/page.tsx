@@ -22,7 +22,7 @@ export default async function EditRecipePage({ params }: { params: Promise<{ id:
     loadSuggestions(supabase),
     supabase
       .from("cocktails")
-      .select("*, cocktail_ingredients(position, name, amount, unit, icon)")
+      .select("*, cocktail_ingredients(position, name, amount, unit, icon, ingredient_id)")
       .eq("id", id)
       .eq("author_id", user.id)
       .maybeSingle(),
@@ -60,7 +60,13 @@ export default async function EditRecipePage({ params }: { params: Promise<{ id:
           imagePath: r.image_path,
           ingredients: [...r.cocktail_ingredients]
             .sort((a, b) => a.position - b.position)
-            .map((i) => ({ name: i.name, amount: Number(i.amount), unit: i.unit, icon: i.icon })),
+            .map((i) => ({
+              name: i.name,
+              amount: Number(i.amount),
+              unit: i.unit,
+              icon: i.icon,
+              ingredientId: i.ingredient_id ?? undefined,
+            })),
           instructions: r.instructions,
           garnish: r.garnish,
           glass: r.glass,

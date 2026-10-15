@@ -1138,9 +1138,25 @@ chose the database catalogue**, a page of its own, "makeable + one missing", and
 - (+) One list of ingredients for future features (drink log statistics, shopping lists, filters).
 - (+) Recipe text keeps Hacı's wording ("Lime (Dilimlenmiş)") while matching stays exact.
 - (−) A new house ingredient needs a catalogue item first (the panel's "Malzemeler" page).
-- (−) Members' recipes are not matched; linking them means a picker in the member form and the app (Icebox).
+- (−) Members' recipes are not matched; linking them means a picker in the member form and the app (Icebox). *Changed
+  the same day — see the amendment below.*
 - (−) The app has no "Elimde ne var?" until the parity pass.
 
 **Rejected.** *Groups kept in code:* the user preferred the database. *Members' recipes too:* their free-text names
 would rarely match. *Fuzzy name matching:* unpredictable ("Elma" vs "Elma Suyu").
+
+**Amendment (2026-10-15, the user's request): members' recipes join "Elimde ne var?".**
+- Members link lines themselves: the member form (site) has a catalogue select per line, optional — "Katalogda yok" for
+  anything the catalogue lacks (members cannot add catalogue items); picking fills an empty name. A hint links the page
+  and a counter says whether every line is linked.
+- `save_recipe` keeps `ingredient_id` (migration `recipe_ingredient_links`); the foreign key refuses an unknown id
+  (23503, a friendly message). Lines travel to the RPC through `toSavedIngredients()` in `src/lib/recipe.ts`.
+- **A recipe takes part only when every line is linked** (`isFullyLinked` in `src/lib/ingredients.ts`): an unlinked line
+  could be anything, so matching it would lie. House recipes always are (`save_cocktail`).
+- The page loads published members' recipes that are fully linked (`getMatchableRecipes`) after the house recipes;
+  their cards open `/recipes/{slug}` and show the author. Member saves and deletes, the app's saves (through
+  `/api/revalidate`) and hiding a recipe in moderation revalidate `/what-can-i-make`.
+- No backfill of existing members' rows; they link when the member edits. The app carries `ingredient_id` through its
+  form (no picker yet), so an edit there keeps the links; the app's picker comes with the parity pass.
+- (−) A recipe with a line like "Buz" or a homemade syrup never matches unless the member leaves that line out.
 

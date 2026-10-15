@@ -8,6 +8,7 @@ import { fieldClass, labelClass } from "@/components/AccountCard";
 import ImageField from "@/components/ImageField";
 import type { IngredientIcon } from "@/lib/content";
 import { unitChoices } from "@/lib/drink-log";
+import { groupByCategory } from "@/lib/ingredients";
 import { INGREDIENT_ICONS, RECIPE_LIMITS, type RecipeIngredient, type RecipeInput } from "@/lib/recipe";
 import type { Suggestions } from "@/app/admin/types";
 import { deleteRecipe, saveRecipe } from "./actions";
@@ -58,6 +59,8 @@ export default function RecipeForm({
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [pending, startTransition] = useTransition();
   const L = RECIPE_LIMITS;
+  const catalogueGroups = groupByCategory(suggestions.catalogue);
+  const unlinked = form.ingredients.filter((ing) => !ing.ingredientId).length;
 
   function set<K extends keyof RecipeInput>(key: K, value: RecipeInput[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -192,9 +195,16 @@ export default function RecipeForm({
       </Section>
 
       <Section title="Malzemeler">
+        <p className="mb-4 text-xs text-text-muted">
+          Her malzemenin yanında katalogdaki karşılığını seç. Bütün malzemeler eşleşirse tarifin{" "}
+          <Link href="/what-can-i-make" className="text-text-secondary underline underline-offset-2 hover:text-text-primary">
+            Elimde ne var?
+          </Link>{" "}
+          sayfasında da çıkar. Katalogda olmayan bir şey için &quot;Katalogda yok&quot; kalsın.
+        </p>
         <div className="space-y-3">
           {form.ingredients.map((ing, i) => (
-            <div key={i} className="grid grid-cols-[1fr_auto] gap-2 rounded border border-border/60 p-3 sm:grid-cols-[2fr_90px_100px_150px_auto] sm:border-0 sm:p-0">
+            <div key={i} className="grid grid-cols-[1fr_auto] gap-2 rounded border border-border/60 p-3 sm:grid-cols-[1.5fr_1.3fr_80px_90px_140px_auto] sm:border-0 sm:p-0">
               <input
                 required
                 maxLength={L.ingredientName}
@@ -204,6 +214,30 @@ export default function RecipeForm({
                 onChange={(e) => setIngredient(i, { name: e.target.value })}
                 className={`${fieldClass} col-span-2 sm:col-span-1`}
               />
+              {/* The catalogue item lets "Elimde ne var?" match the recipe (ADR-029); the name is what the recipe shows. */}
+              <select
+                aria-label="Katalogdaki karşılığı"
+                value={ing.ingredientId ?? ""}
+                onChange={(e) => {
+                  const picked = suggestions.catalogue.find((c) => c.id === e.target.value);
+                  setIngredient(i, {
+                    ingredientId: e.target.value || undefined,
+                    ...(picked && !ing.name.trim() ? { name: picked.name } : {}),
+                  });
+                }}
+                className={`${fieldClass} col-span-2 sm:col-span-1 ${ing.ingredientId ? "" : "text-text-muted"}`}
+              >
+                <option value="">Katalogda yok</option>
+                {catalogueGroups.map((g) => (
+                  <optgroup key={g.value} label={g.label}>
+                    {g.items.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
               <input
                 required
                 type="number"
@@ -264,6 +298,11 @@ export default function RecipeForm({
             <Plus className="h-3.5 w-3.5" /> Malzeme ekle
           </button>
         )}
+        <p className={`mt-3 text-[11px] ${unlinked === 0 ? "text-vegan" : "text-text-muted"}`}>
+          {unlinked === 0
+            ? "Bütün malzemeler katalogla eşleşti: yayındayken Elimde ne var?'da görünür."
+            : `${unlinked} malzeme katalogla eşleşmedi; tarif Elimde ne var?'da görünmez.`}
+        </p>
       </Section>
 
       <Section title="Hazırlanışı">

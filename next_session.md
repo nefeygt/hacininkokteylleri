@@ -4,14 +4,12 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-15 (M9 backup + cl ↔ oz) · **Handing off:** M8 steps 1–6 are done; **the store release
-is paused (ADR-024)**. **M9 (web improvements):** done and deployed this session (ADR-027): the weekly content backup
-(GitHub Action) and the cl ↔ oz switch; last session's features passed the live check and Google's Rich Results Test.
-**Then the themes (ADR-028):** "Rx" (readable: a sans for text, mono only for labels) is the main look, with five more
-themes in a "Görünüm" picker. **A later session (2026-10-15) removed the Letterboxd icon from the navbar and built "Elimde ne var?" (ADR-029): an
-ingredient catalogue in the database and the page `/what-can-i-make`.**
-**Next (the user's pick, 2026-10-15): members' recipes join "Elimde ne var?"** through a catalogue picker in the member
-form; before the store, one app ↔ site parity pass.
+**Prepared by session:** 2026-10-15 (M9 members' recipes in "Elimde ne var?") · **Handing off:** M8 steps 1–6 are done;
+**the store release is paused (ADR-024)**. **M9 (web improvements)** so far: recipe pages, data filters, share, servings,
+similar recipes, the weekly backup, cl ↔ oz, six themes (ADR-025 to ADR-028), "Elimde ne var?" (ADR-029) — and **this
+session: members' recipes join "Elimde ne var?"** (ADR-029 amendment): a catalogue select per line in the member form,
+`save_recipe` keeps the links, only fully linked recipes match. Built, checked on localhost signed in, deployed.
+**Next: ask the user what M9 still needs** before the app ↔ site parity pass.
 ---
 
 ## 📋 Prompt to Copy
@@ -55,51 +53,35 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — M9, members' recipes in "Elimde ne var?"
+## 🎯 This Session's Task — ask what M9 still needs, then the open checks
 
-**The user asked for it on 2026-10-15** (it amends ADR-029, which said "house recipes only" — the user's own change,
-so amend the ADR, don't ask again). Goal: a member links each line of their recipe to the catalogue, and their
-published recipes appear on `/what-can-i-make` next to the house recipes.
-
-**What the last session found (not started; nothing written):**
-- `public.save_recipe(recipe, ingredients)` deletes and re-inserts the lines **without `ingredient_id`** → a migration
-  must read `t.item ->> 'ingredient_id'` like `save_cocktail` does (`20261015194807_ingredient_catalogue.sql`).
-  Members can only pick existing items (the catalogue is admin-only); the FK checks the id.
-- **The trap: the app's recipe form** (`mobile/src/lib/recipes.ts`: `fetchMyRecipe` selects `cocktail_ingredients(position,
-  name, amount, unit, icon)`, `saveRecipe` sends `recipe.ingredients` as they are). Until the app has the picker, an
-  edit in the app would **wipe the links**. At least carry `ingredient_id` through the app (select it, keep it on the
-  line, send it back) in this session, even without a picker UI; `npm run typecheck` in `mobile/`.
-- Site form: `src/app/(site)/account/recipes/RecipeForm.tsx` + `actions.ts` (`cleanRecipeInput` in `src/lib/recipe.ts`,
-  type `RecipeIngredient` — add `ingredientId`). The pages `account/recipes/new` and `[id]` load the form; the catalogue
-  comes from `getIngredientCatalogue()` in `src/lib/content.ts`. The panel's `CocktailForm.tsx` has a grouped select
-  to copy (`groupByCategory`).
-- **Decide (small calls, your judgement):** the picker is optional for members ("Katalogda yok" for things the catalogue
-  lacks); a recipe joins the matching only when **every** line is linked — change `matchCocktails` in
-  `src/lib/ingredients.ts`, which today ignores unlinked lines. Existing members' rows are **not** backfilled (never
-  touch `mustafa_hayat`'s rows); they link when the member edits.
-- Page: `src/app/(site)/what-can-i-make/page.tsx` loads only house recipes (`getPublishedCocktails`); add published,
-  visible members' recipes (RECIPE_COLUMNS in `content.ts`; `recipeHref(slug, true)` for their links — `WhatCanIMake.tsx`
-  calls `recipeHref(c.slug, false)` today; use `!!c.author`).
-- Revalidation: the member actions' `revalidateRecipe` (`account/recipes/actions.ts`) must add `/what-can-i-make`; the
-  app's saves go through `POST /api/revalidate`, whose allowlist (`src/app/api/revalidate/route.ts`, `SHAPES`) must
-  accept `/what-can-i-make`, and `mobile/src/lib/recipes.ts` must send it.
-- Maybe a hint on the member form explaining why linking matters ("Elimde ne var?"'da görünsün diye).
-- Check: build, both typechecks, SQL (a member saves with links; a bad id is refused), Claude in Chrome with a
-  temporary member (ask the user first; delete it afterwards) — or the user signs in themselves in the agent's tab.
-
-**Also open:**
-
-1. **Check the backup** (ADR-027; a manual run on 2026-10-15 passed with "Nothing changed"; on Thursday 2026-10-15 no scheduled run had happened yet — the first is **Monday 2026-10-19**): the Action "Back up content" ran on Monday 03:00 UTC, or start it by hand
+1. **Ask the user what M9 still needs** before the parity pass (AskUserQuestion). Icebox candidates (plan.md §9):
+   localization, a rating breakdown; also worth offering: a catalogue picker in the app's recipe form now rather than in
+   the parity pass. Don't start one without their pick. If they say M9 is done, the next step is the parity pass below
+   (the list "Web changes since 2026-10-15") — it ends M9 and prepares the store release (ADR-024).
+2. **A live look at members' recipes in "Elimde ne var?"** (deployed this session, not yet seen on the domain): on the
+   user's phone or Claude in Chrome — `/account/recipes/new` shows a catalogue select under each line ("Katalogda yok"
+   by default), the hint and the counter. There are **no members' recipes** in the database, so the page shows house
+   recipes only until a member links one. If the user wants to try it, they write a recipe themselves (don't seed one).
+3. **Check the backup** (ADR-027; a manual run on 2026-10-15 passed with "Nothing changed"; the first scheduled run is
+   **Monday 2026-10-19**): the Action "Back up content" ran on Monday 03:00 UTC, or start it by hand
    (`gh workflow run backup-content.yml`, then `gh run list --workflow backup-content.yml`). Nothing changed → no commit;
    a change → a commit by `github-actions[bot]` and **no new Vercel deployment** for it
    (`gh api repos/nefeygt/hacininkokteylleri/commits/<sha>/status`: Vercel should report the build skipped/ignored).
    If Vercel built it anyway, check `ignoreCommand` in `vercel.json` and the project's "Ignored Build Step" setting.
-2. **A live look at the themes** on the domain (the user's phone): open "Görünüm" (palette icon, top right), try each
+4. **A live look at the themes** on the domain (the user's phone): open "Görünüm" (palette icon, top right), try each
    theme on a recipe, the archive, `/feed`, `/account` and `/login`. Pages not checked yet in the light themes: the
-   account forms, logs, members' recipes, the feed's showcase, `/privacy`, `/u/{username}` — look for text that vanishes
-   (a fixed colour instead of a token) and fix it with tokens (ADR-028).
-3. After this task, **ask the user what M9 still needs** before the parity pass (Icebox candidates: localization,
-   rating breakdown). Don't start one without their pick.
+   account forms (the recipe form's new select too), logs, members' recipes, the feed's showcase, `/privacy`,
+   `/u/{username}` — look for text that vanishes (a fixed colour instead of a token) and fix it with tokens (ADR-028).
+
+**Things that bite (from this session):**
+- The app's recipe form (`mobile/src/components/RecipeForm.tsx`) keeps its own rows (`IngredientRow`); anything new on a
+  line must be carried there too (`ingredientId` now is). A renamed line in the app keeps its old link until the app has
+  a picker.
+- `npm run typecheck` in `mobile/` with PowerShell `Set-Location` leaves the shell there — `npm run build` must run from
+  the repo root.
+- Testing a signed-in form: the user signed in as `ahmet_kafa` in Claude in Chrome on `localhost:3000`; a test recipe was
+  made and deleted through the form. Ask first each time.
 
 **While doing web work:**
 - Add every user-visible web change to **"Web changes since 2026-10-15 (for the parity pass)"** below — it is the
@@ -128,6 +110,9 @@ published recipes appear on `/what-can-i-make` next to the house recipes.
   crimson glow `#d0453a`, greys `#b4b1ae` / `#7d7a78`); reading text in IBM Plex Sans, mono only for labels
   (`@expo-google-fonts/ibm-plex-sans`); a theme choice from `@shared/themes` (`THEMES`) on the account screen, kept in
   storage — or decide with the user that the app stays Rx only.
+- **Members' recipes in "Elimde ne var?"** (ADR-029 amendment): the app's recipe form needs the catalogue select per
+  line ("Katalogda yok", the hint and the counter, `isFullyLinked` from `@shared/ingredients`); catalogue from
+  `ingredients` (`groupByCategory`). It already keeps `ingredientId` through an edit and revalidates `/what-can-i-make`.
 - **"cl | oz"** on recipes (ADR-027): a toggle beside "Kaç kişilik?" with `convertAmount`, `formatOunces`,
   `isConvertibleUnit` from `@shared/recipe`; remember the choice (AsyncStorage or the app's existing storage).
 
@@ -142,7 +127,7 @@ a new development build and a phone pass. Then:
 ### State check (when resuming)
 
 `git status` — clean, `main` in step with `origin/main`. **Tools:** the Supabase MCP (`list_migrations` on
-`qwvnhdghwycqlvsnlvlt` → 14, the latest `20261015194832_ingredient_catalogue_drafts`) and a browser: **Claude in Chrome was
+`qwvnhdghwycqlvsnlvlt` → 15, the latest `20261015203143_recipe_ingredient_links`) and a browser: **Claude in Chrome was
 disconnected most of 2026-10-15; the user reconnected it at the end** — try `tabs_context_mcp`; if it still fails, use the built-in browser
 (`mcp__Claude_Browser__*`; it reaches `localhost:8081`; read the DOM, screenshots lag). Store consoles (Play Console,
 expo.dev) need the user's signed-in Chrome — ask them to reconnect Claude in Chrome for those. The built-in browser holds the
@@ -275,7 +260,7 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
 - **Avatars:** `src/app/(site)/account/AvatarField.tsx` (centre square → 256 px WebP →
   `{user_id}/{base36}.webp` → `setAvatar` → old object deleted), `src/components/Avatar.tsx`
   (picture or initial), `avatarUrl()` / `AVATARS_BUCKET` in `src/lib/supabase/config.ts`.
-- **Supabase** (ref `qwvnhdghwycqlvsnlvlt`): 14 migrations, the latest `20261015194832_ingredient_catalogue_drafts`.
+- **Supabase** (ref `qwvnhdghwycqlvsnlvlt`): 15 migrations, the latest `20261015203143_recipe_ingredient_links`.
   Advisors: only leaked-password protection (Pro plan) plus "unused index" infos on still-empty tables.
 - **M4 (2026-10-14):** `reviews`, `favorites`, `reports`, view `cocktail_ratings`; the site's
   `cocktails/actions.ts`, `useMember`, `CocktailReviews`, `ReportButton`; the panel's

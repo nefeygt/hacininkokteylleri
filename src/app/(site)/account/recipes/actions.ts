@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { accountSession } from "@/lib/account";
-import { cleanRecipeInput, type RecipeInput } from "@/lib/recipe";
+import { cleanRecipeInput, toSavedIngredients, type RecipeInput } from "@/lib/recipe";
 import { slugify } from "@/lib/slug";
 import { RECIPE_IMAGES_BUCKET } from "@/lib/supabase/config";
 
@@ -19,6 +19,7 @@ function writeError(code: string | undefined, message: string): string {
   if (message.includes("Daily recipe limit")) return "Bugün yeterince tarif ekledin. Yarın tekrar dene.";
   if (code === "23514") return "Tarif geçersiz: alanları kontrol et.";
   if (code === "P0002") return "Tarif bulunamadı.";
+  if (code === "23503") return "Katalogdaki bir malzeme bulunamadı. Sayfayı yenileyip malzemeyi yeniden seç.";
   return `Kaydedilemedi: ${message}`;
 }
 
@@ -28,6 +29,8 @@ function revalidateRecipe(slug: string, username: string) {
   revalidatePath("/feed");
   // The showcase's winner on the home page may be this recipe (M7).
   revalidatePath("/");
+  // Fully linked published recipes take part in "Elimde ne var?" (ADR-029).
+  revalidatePath("/what-can-i-make");
 }
 
 /** Creates a recipe (no id) or edits the member's own. The slug is set once, at creation. */
@@ -78,7 +81,7 @@ export async function saveRecipe(input: RecipeInput, id?: string): Promise<Recip
   for (let attempt = 0; attempt < 4; attempt++) {
     const { data, error } = await supabase.rpc("save_recipe", {
       recipe: { ...fields, slug },
-      ingredients: recipe.ingredients,
+      ingredients: toSavedIngredients(recipe.ingredients),
     });
     if (!error) {
       savedId = data;
