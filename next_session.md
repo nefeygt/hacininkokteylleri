@@ -64,12 +64,11 @@ this machine is signed in; on another machine the user runs `npx eas-cli@latest 
 login, never type their password). SQL: the only profile is `ahmet_kafa`. `auth.users` holds only the two admins and `ahmet_kafa`'s Google account (the leftover test user
 `nefeygt@outlook.com` was deleted with the user's OK, 2026-10-15). `cd mobile && npm ci` on a fresh machine.
 
-### Step 1 — the step-2 phone check (passed 2026-10-15; one recheck)
+### Step 1 — the step-2 phone check (passed 2026-10-15, nothing left)
 
 The user ran the flow on their Android phone: Google sign-in reached `ahmet_kafa`, the avatar upload
-worked. **Recheck:** Google's account chooser should now appear on every sign-in (the app calls
-`GoogleSignin.signOut()` first; before that it reused the last account silently). For reference, how
-the phone was set up:
+worked, and Google's account chooser now appears on every sign-in (the app calls
+`GoogleSignin.signOut()` first). For reference, how the phone is set up for the next checks:
 
 
 1. The user installs the development build on their Android phone (open the link in the phone's

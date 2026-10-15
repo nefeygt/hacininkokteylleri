@@ -511,7 +511,7 @@ The admin panel stays web-only.
   - [x] On the user's Android phone with the development build (2026-10-15): passed — native Google
     sign-in reached the existing `ahmet_kafa` account (no second user), a new avatar from the gallery
     (one 10 KB WebP, the old one deleted). The user wanted Google's account chooser on every sign-in →
-    the app now forgets the last account before signing in (JavaScript only; recheck next session)
+    the app now forgets the last account before signing in (rechecked on the phone: the chooser appears)
   - [ ] Sign in with Apple: Apple Developer account → Supabase Apple provider (bundle ID) → test on an
     iPhone; `/privacy` names Apple (draft, **the user approves**). Also whether iOS Google needs
     "Skip nonce checks" in Supabase
