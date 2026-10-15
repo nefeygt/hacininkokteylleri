@@ -1,16 +1,31 @@
 import { Image } from "expo-image";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { Leaf } from "lucide-react-native";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Heart, Leaf } from "lucide-react-native";
+import { useState } from "react";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import CocktailReviews from "@/components/CocktailReviews";
+import { Message } from "@/components/Form";
 import RecipeDetails from "@/components/RecipeDetails";
 import { Body, Heading, Label, Mono } from "@/components/Type";
 import { useArchive } from "@/lib/archive";
-import { colors } from "@/lib/theme";
+import { useFavorites } from "@/lib/favorites";
+import { alpha, colors } from "@/lib/theme";
 
 /** One house recipe — the site's recipe card (/cocktails?cocktail={slug}) as a screen. */
 export default function CocktailScreen() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
-  const cocktail = useArchive().archive?.cocktails.find((c) => c.slug === slug);
+  const { archive, refresh } = useArchive();
+  const { favorites, toggle } = useFavorites();
+  const [favoriteError, setFavoriteError] = useState<string | null>(null);
+  const cocktail = archive?.cocktails.find((c) => c.slug === slug);
+
+  if (!archive) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator color={colors.crimsonGlow} />
+      </View>
+    );
+  }
 
   if (!cocktail) {
     return (
@@ -38,14 +53,42 @@ export default function CocktailScreen() {
             </View>
           )}
         </View>
-        <Heading style={styles.name}>{cocktail.name}</Heading>
+        <View style={styles.nameRow}>
+          <Heading style={styles.name}>{cocktail.name}</Heading>
+          <FavoriteButton
+            on={favorites.has(cocktail.id)}
+            onPress={async () => {
+              setFavoriteError(null);
+              setFavoriteError(await toggle(cocktail.id));
+            }}
+          />
+        </View>
+        {favoriteError && <Message error>{favoriteError}</Message>}
         <Mono style={styles.subtitle}>{cocktail.subtitle}</Mono>
 
         <View style={styles.details}>
           <RecipeDetails cocktail={cocktail} />
         </View>
+
+        <CocktailReviews cocktail={cocktail} onChanged={refresh} />
       </View>
     </ScrollView>
+  );
+}
+
+/** The heart next to the name (the site's RecipeActions); a visitor without a profile goes to the Hesap tab. */
+function FavoriteButton({ on, onPress }: { on: boolean; onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      hitSlop={8}
+      style={[styles.heart, on && styles.heartOn]}
+      accessibilityRole="button"
+      accessibilityLabel={on ? "Favorilerden çıkar" : "Favorilere ekle"}
+      accessibilityState={{ selected: on }}
+    >
+      <Heart size={16} color={on ? colors.crimsonGlow : colors.textMuted} fill={on ? colors.crimsonGlow : "transparent"} />
+    </Pressable>
   );
 }
 
@@ -68,7 +111,10 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   veganText: { fontSize: 9, color: colors.vegan, letterSpacing: 1 },
-  name: { fontSize: 24 },
+  nameRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
+  name: { flex: 1, fontSize: 24 },
+  heart: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center", backgroundColor: colors.bgElevated },
+  heartOn: { backgroundColor: alpha(colors.crimson, 0.2) },
   subtitle: { marginTop: 4, fontSize: 14 },
   details: { marginTop: 32 },
 });

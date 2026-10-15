@@ -6,6 +6,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { ArchiveProvider } from "@/lib/archive";
+import { FavoritesProvider } from "@/lib/favorites";
 import { SessionProvider } from "@/lib/session";
 import { colors, fonts } from "@/lib/theme";
 
@@ -42,20 +43,23 @@ export default function RootLayout() {
     <ThemeProvider value={theme}>
       <StatusBar style="light" />
       <SessionProvider>
-        <ArchiveProvider>
-          <Stack
-            screenOptions={{
-              headerStyle: { backgroundColor: colors.bgSecondary },
-              headerTintColor: colors.textPrimary,
-              headerTitleStyle: { fontFamily: fonts.sansBold },
-              contentStyle: { backgroundColor: colors.bgPrimary },
-            }}
-          >
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="cocktail/[slug]" options={{ title: "" }} />
-            <Stack.Screen name="welcome" options={{ title: "Hoş geldin" }} />
-          </Stack>
-        </ArchiveProvider>
+        <FavoritesProvider>
+          <ArchiveProvider>
+            <Stack
+              screenOptions={{
+                headerStyle: { backgroundColor: colors.bgSecondary },
+                headerTintColor: colors.textPrimary,
+                headerTitleStyle: { fontFamily: fonts.sansBold },
+                contentStyle: { backgroundColor: colors.bgPrimary },
+              }}
+            >
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="cocktail/[slug]" options={{ title: "" }} />
+              <Stack.Screen name="u/[username]" options={{ title: "" }} />
+              <Stack.Screen name="welcome" options={{ title: "Hoş geldin" }} />
+            </Stack>
+          </ArchiveProvider>
+        </FavoritesProvider>
       </SessionProvider>
     </ThemeProvider>
   );

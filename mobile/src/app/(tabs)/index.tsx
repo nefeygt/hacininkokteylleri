@@ -8,12 +8,14 @@ import {
   type ArchiveFilters,
 } from "@shared/archive-filter";
 import { router } from "expo-router";
-import { Search, SlidersHorizontal, X } from "lucide-react-native";
+import { Heart, Search, SlidersHorizontal, X } from "lucide-react-native";
 import { useMemo, useState, type ReactNode } from "react";
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, TextInput, View } from "react-native";
 import CocktailCard from "@/components/CocktailCard";
 import { Body, Heading, Label, Mono } from "@/components/Type";
 import { useArchive } from "@/lib/archive";
+import { useFavorites } from "@/lib/favorites";
+import { useSession } from "@/lib/session";
 import { alpha, colors, fonts } from "@/lib/theme";
 
 /** The archive: Hacı's recipes with the site's search and filters (/cocktails). */
@@ -21,11 +23,26 @@ export default function ArchiveScreen() {
   const { archive, error, refreshing, refresh } = useArchive();
   const [filters, setFilters] = useState<ArchiveFilters>(NO_FILTERS);
   const [showFilters, setShowFilters] = useState(false);
+  const isMember = useSession().state === "ok";
+  const { favorites, reload: reloadFavorites } = useFavorites();
+  const [onlyFavorites, setOnlyFavorites] = useState(false);
 
   const cocktails = archive?.cocktails ?? [];
-  const filtered = useMemo(() => filterCocktails(cocktails, filters), [cocktails, filters]);
-  const active = hasActiveFilters(filters);
+  // "Favorilerim" reads the live set, so un-hearting a recipe drops it from the list.
+  const applied = useMemo(
+    () => ({ ...filters, onlyFavorites: isMember && onlyFavorites ? favorites : null }),
+    [filters, isMember, onlyFavorites, favorites]
+  );
+  const filtered = useMemo(() => filterCocktails(cocktails, applied), [cocktails, applied]);
+  const active = hasActiveFilters(applied);
   const set = (patch: Partial<ArchiveFilters>) => setFilters((f) => ({ ...f, ...patch }));
+  const clearFilters = () => {
+    setFilters(NO_FILTERS);
+    setOnlyFavorites(false);
+  };
+  const refreshAll = async () => {
+    await Promise.all([refresh(), reloadFavorites()]);
+  };
 
   if (!archive) {
     return (
@@ -110,8 +127,25 @@ export default function ArchiveScreen() {
               );
             })}
           </FilterRow>
+          {isMember && (
+            <FilterRow label="Listem">
+              <Pressable
+                onPress={() => setOnlyFavorites(!onlyFavorites)}
+                style={[styles.chip, styles.favoriteChip, onlyFavorites && styles.chipOn]}
+                accessibilityRole="button"
+                accessibilityState={{ selected: onlyFavorites }}
+              >
+                <Heart
+                  size={12}
+                  color={onlyFavorites ? colors.crimsonGlow : colors.textMuted}
+                  fill={onlyFavorites ? colors.crimsonGlow : "transparent"}
+                />
+                <Mono style={[styles.chipText, onlyFavorites && styles.chipTextOn]}>Favorilerim ({favorites.size})</Mono>
+              </Pressable>
+            </FilterRow>
+          )}
           {active && (
-            <Pressable onPress={() => setFilters(NO_FILTERS)}>
+            <Pressable onPress={clearFilters}>
               <Label style={styles.clear}>Filtreleri Temizle</Label>
             </Pressable>
           )}
@@ -132,6 +166,7 @@ export default function ArchiveScreen() {
       renderItem={({ item }) => (
         <CocktailCard
           cocktail={item}
+          favorite={favorites.has(item.id)}
           onPress={() => router.push({ pathname: "/cocktail/[slug]", params: { slug: item.slug } })}
         />
       )}
@@ -139,7 +174,7 @@ export default function ArchiveScreen() {
       ListEmptyComponent={
         <View style={styles.empty}>
           <Body style={styles.muted}>Sonuç bulunamadı.</Body>
-          <Pressable onPress={() => setFilters(NO_FILTERS)}>
+          <Pressable onPress={clearFilters}>
             <Mono style={styles.link}>Filtreleri temizle</Mono>
           </Pressable>
         </View>
@@ -147,7 +182,7 @@ export default function ArchiveScreen() {
       contentContainerStyle={styles.list}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="on-drag"
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.crimsonGlow} />}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshAll} tintColor={colors.crimsonGlow} />}
     />
   );
 }
@@ -221,6 +256,7 @@ const styles = StyleSheet.create({
   filterLabel: { letterSpacing: 1.5 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: { backgroundColor: colors.bgElevated, borderRadius: 2, paddingHorizontal: 12, paddingVertical: 6 },
+  favoriteChip: { flexDirection: "row", alignItems: "center", gap: 6 },
   chipOn: { backgroundColor: alpha(colors.crimson, 0.2) },
   chipText: { fontSize: 11, color: colors.textMuted },
   chipTextOn: { color: colors.crimsonGlow },

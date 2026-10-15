@@ -18,7 +18,7 @@ export function authErrorMessage(message: string): string {
   if (/invalid login credentials/i.test(message)) return "E-posta ya da şifre yanlış.";
   if (/email not confirmed/i.test(message)) return "Önce e-postana gelen bağlantıyla adresini onayla.";
   if (/signups? not allowed/i.test(message)) return "Üyelik henüz açılmadı. Çok yakında!";
-  if (/password/i.test(message)) return `Şifre en az ${MIN_PASSWORD_LENGTH} karakter olmalı.`;
+  if (/password should|at least \d+ characters|weak password/i.test(message)) return `Şifre en az ${MIN_PASSWORD_LENGTH} karakter olmalı.`;
   if (/rate limit|too many/i.test(message)) return "Çok fazla deneme yapıldı. Biraz bekleyip tekrar dene.";
   return "Bir şeyler ters gitti. Tekrar dene.";
 }

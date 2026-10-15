@@ -1,6 +1,6 @@
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
-import * as WebBrowser from "expo-web-browser";
+import { router } from "expo-router";
 import { ImagePlus, X } from "lucide-react-native";
 import { useState } from "react";
 import { ActivityIndicator, StyleSheet, Switch, View } from "react-native";
@@ -8,7 +8,7 @@ import { BIO_MAX, checkProfile, DISPLAY_NAME_MAX, profileError } from "@shared/p
 import { signOutOfGoogle } from "@/lib/native-auth";
 import { revalidateSite } from "@/lib/revalidate";
 import type { Profile, Settings } from "@/lib/session";
-import { SITE_URL, supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { colors, readable } from "@/lib/theme";
 import Avatar from "./Avatar";
 import { Button, Field, Message, Notice } from "./Form";
@@ -48,7 +48,7 @@ export default function AccountView({
           <Button
             kind="link"
             title="Herkese açık profilin →"
-            onPress={() => WebBrowser.openBrowserAsync(`${SITE_URL}/u/${profile.username}`)}
+            onPress={() => router.push({ pathname: "/u/[username]", params: { username: profile.username } })}
           />
         </View>
         <AvatarField profile={profile} reload={reload} />
