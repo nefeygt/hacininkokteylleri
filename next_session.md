@@ -4,10 +4,10 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-15 (M8 step 6) · **Handing off:** **M8 step 6 is done:** the showcase ("Vitrin") on
-the app's Akış tab — the period, apply (own photo recipe + pitch), status and withdraw, approved entries with upvotes and
-"Bildir", the last winner. Checked signed in, in the built-in browser with a temporary member and a test period (all deleted).
-**The app now has every feature of the site** (Sign in with Apple aside). **Next: M8 step 7 — the store release (Android first).**
+**Prepared by session:** 2026-10-15 (store release paused) · **Handing off:** M8 steps 1–6 are done — the app does
+everything the site does (Sign in with Apple aside). **The user paused the store release (ADR-024):** it waits for the
+Apple Developer account, or for the user's two other Play apps (one paid closed test for three apps). **Next: web
+improvements — the user names them.** Right before the store process, one app ↔ site parity pass.
 ---
 
 ## 📋 Prompt to Copy
@@ -51,9 +51,32 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — M8 step 7: the store release, Android first
+## 🎯 This Session's Task — web improvements (the user picks)
 
-### Step 0 — state check
+The mobile store release is paused (ADR-024). Ask the user which web improvements come first; candidates they
+raised earlier are in plan.md §9 Icebox (colour theme, a more readable font, a page per house cocktail, filters
+from the data, the wordmark in the navbar, …) and §8 Known issues. Ideas outside what the user asks for go to
+the Icebox, not into code.
+
+**While doing web work:**
+- Add every user-visible web change to **"Web changes since 2026-10-15 (for the parity pass)"** below — it is the
+  app's checklist before release.
+- A change in a shared module in `src/lib` (the app imports it through `@shared/*`) must keep the app compiling:
+  run `npm run typecheck` in `mobile/` too (PowerShell `Set-Location …\mobile`).
+
+### Web changes since 2026-10-15 (for the parity pass)
+
+- (none yet)
+
+---
+
+## 📦 Parked — M8 step 7: the store release, Android first (resume per ADR-024)
+
+**Resume when:** the Apple Developer account is open, or the user's two other Play apps are ready to share a closed
+test — the user decides. **First:** the parity pass — port every item of the list above to `mobile/`, update packages,
+a new development build and a phone pass. Then:
+
+### State check (when resuming)
 
 `git status` — clean, `main` in step with `origin/main`. **Tools:** the Supabase MCP (`list_migrations` on
 `qwvnhdghwycqlvsnlvlt` → 12, the latest `20261015120719_half_star_ratings`) and a browser: **Claude in Chrome was
@@ -65,7 +88,7 @@ member, delete it afterwards. SQL: profiles `ahmet_kafa` (the user) and **`musta
 their rows**. Every community table was empty at the end of 2026-10-15. **Port 8081:** `Get-NetTCPConnection -LocalPort 8081`
 → stop an old Expo server by PID, then `npx expo start --web --port 8081`.
 
-### Step 1 — M8 step 7 (plan.md §6), what can start without Apple
+### Store steps (plan.md §6), what can start without Apple
 
 1. **The user's go and a phone pass first:** the app has every feature now; the user should run the development build (or a
    preview APK) on their phone through the new screens (members' recipes, the feed, the showcase) before anything reaches a

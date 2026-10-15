@@ -928,3 +928,33 @@ user chose **both reviews and drink logs**.
 **Rejected.** *Half stars for logs only:* two star inputs with different rules. *A strict unit check in
 the database:* would break house recipes and existing logs with other units. *A native date picker:* a new
 development build for one control.
+
+---
+
+## ADR-024 — The store release waits; web work continues, and the app catches up with the site right before release
+
+**Context.** M8 steps 1–6 are done: the app does everything the site does (Sign in with Apple aside). On
+2026-10-15 the user decided not to publish the apps yet. Two things make waiting cheaper: the Apple
+Developer account is not open (iOS and Sign in with Apple wait for it anyway), and the user plans two more
+Android games on the same Play account — a paid tester service for Play's closed test (12 testers, 14 days)
+costs less for three apps at once.
+
+**Decision.**
+- **M8 step 7 (the store release) is paused** until the Apple Developer account exists, or the user's two
+  other Play apps are ready for a shared closed test — whichever the user calls first.
+- **Meanwhile the work goes to the website.** New features land on the site first; the app is not kept in
+  step feature by feature.
+- **Right before the store process starts, one parity pass** brings the app up to the site (every web
+  change since 2026-10-15, plus the waiting Expo package updates and a new build), then step 7 runs as
+  planned in `next_session.md`.
+
+**Consequences.**
+- (+) No paid tester run or store review for an app that changes again soon; one test round for three apps.
+- (+) Web work is faster without porting each change to React Native at once.
+- (−) The app drifts from the site; the parity pass grows with every web change. Keep a list of web
+  changes made after 2026-10-15 in `next_session.md` so the pass has a checklist.
+- (−) Shared modules in `src/lib` (`@shared/*`) still compile into the app: a web change there must keep
+  `npm run typecheck` in `mobile/` passing, or the break is found only at release.
+
+**Rejected.** *Release Android now:* pays for testers alone and ships a version that will change. *Keep the
+app in step with every web change:* doubles the work while nothing is published.
