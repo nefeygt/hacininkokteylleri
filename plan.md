@@ -587,8 +587,8 @@ The admin panel stays web-only.
     member on the owner admin's login, the user's OK): recipe with a photo → published → heart → public log from it →
     owner's reply → follow/unfollow `ahmet_kafa` → feed (popular + new) → profile → edit → comment and recipe deleted (photo
     gone, the log kept its copy). Fixed on the way: the photo resize gave height 0 on the web. All test rows deleted
-  - [ ] Not seen with real data: "Takip ettiklerinden" with logs in it, and "Bildir" on another member's comment or recipe
-    (the components are the ones already checked elsewhere) — needs a second member
+  - [x] Seen with real data (2026-10-15, step 6 session): "Takip ettiklerinden" with a followed member's log, "Bildir" on
+    another member's comment
 - [x] Step 6 — the showcase (2026-10-15):
   - [x] `mobile/src/lib/showcase.ts` — the site's `feed/actions.ts` as direct writes (same errors) + `revalidateSite` (`/feed`
     and `/` on withdraw, `/feed` on a vote, nothing on apply — a pending application is on no page); own application,
@@ -604,7 +604,11 @@ The admin panel stays web-only.
     approved in SQL → listed, vote 0 → 1 → 0 → 1 (matches `vote_count` and `showcase_votes`, survives a reload) → period in the
     past: "Son kazanan … 1 oy" → period in the future: "Başvurular açık", votes read-only → withdraw → recipe without a photo:
     "yayında ve fotoğraflı bir tarifin olmalı". All test rows deleted
-  - [ ] Not seen: the signed-out view (buttons send to the Hesap tab, as elsewhere), a real recipe photo on an entry card
+  - [x] Later the same day, with Claude in Chrome back and a seeded second member (`seed_test`: recipe, approved entry, public
+    log with a comment): signed out in the user's Chrome — "Başvurmak için giriş yap", the count, no "Bildir", the vote opens
+    the Hesap tab; signed in (built-in browser) — follow → "Takip ettiklerinden" shows the log, "Bildir" on the entry and on
+    the other member's comment (both reports stored). Every test row deleted
+  - [ ] Not seen: an entry card with a real recipe photo (the seeded recipe had a placeholder path)
 - [ ] Step 7 — store release: EAS production builds, store listings (Turkish), age rating 18+/17+,
   privacy forms (App Privacy, Data safety), Play's closed test, App Store review
 
@@ -686,7 +690,7 @@ The admin panel stays web-only.
 
 | Date | Session | Outcome |
 |---|---|---|
-| 2026-10-15 | M8 step 6 | Claude in Chrome still disconnected → the built-in browser. The showcase in the app: `showcase.ts`, `fetchShowcase`/`fetchShowcaseWinner`, the Vitrin section on the Akış tab (apply, status, withdraw, votes, report, winner). Checked signed in at phone width with a temporary member and a test period (the user's OK); every test row deleted (community tables empty; profiles `ahmet_kafa`, `mustafa_hayat`). **The app has the site's features**; next is the store release |
+| 2026-10-15 | M8 step 6 | Claude in Chrome still disconnected → the built-in browser. The showcase in the app: `showcase.ts`, `fetchShowcase`/`fetchShowcaseWinner`, the Vitrin section on the Akış tab (apply, status, withdraw, votes, report, winner). Checked signed in at phone width with a temporary member and a test period (the user's OK); every test row deleted (community tables empty; profiles `ahmet_kafa`, `mustafa_hayat`). **The app has the site's features**; next is the store release. Then Claude in Chrome came back: the signed-out showcase, followed people's logs and reports on another member's entry and comment checked with a seeded member (deleted) |
 | 2026-10-15 | M8 step 5 | Claude in Chrome still disconnected → the built-in browser (Expo web, phone width). Members' recipes in the app (form, photo upload, units from the list, drafts, delete), their screen, the Akış tab, follows on profiles, public log pages with comments; links that opened the site now stay in the app; the site's recipe form uses the unit list. Checked signed in with a temporary member on the owner admin's login (the user's OK), then every test row deleted (community tables empty again; profiles `ahmet_kafa`, `mustafa_hayat`). Bug found and fixed: the web image manipulator needs both sides to resize. A stale Expo server held 8081 again — stopped |
 | 2026-10-15 | M8 step 4 feedback | The user's phone pass: 2 logs as `ahmet_kafa`, then requests → ADR-023: calendar, half stars in reviews and logs (the user chose both; migration `half_star_ratings`, constraint checked in SQL, advisors unchanged), bigger stars, a unit list, locked steps; glass picker and a more readable font → Icebox. The phone left, so the signed-in check ran in the built-in browser (Claude in Chrome still disconnected) as `sudiii` — the owner admin's member profile, deleted afterwards with the user's OK (admin login kept). Fixed on the way: a log form opened by URL did not leave after saving. Then all test rows deleted (the user's OK): community tables empty |
 | 2026-10-15 | M8 step 4 build | Step 1 (the user's signed-in phone checks) needs the user, so step 4 came first: the drink log in the app (`drink-logs.ts`, `LogForm`, `DrinkLogEntry`, `MemberGate`, screens `logs/*`, "Günlüğe ekle" on the recipe, public logs on profiles). The date is a day stepper (no native picker without a new build). Checked: typecheck, all three bundles, site build. Claude in Chrome was not connected, so the Expo web check is left with the phone check. A leftover Expo web server from an earlier session held port 8081 — stopped |

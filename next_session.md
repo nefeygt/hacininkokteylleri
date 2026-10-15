@@ -57,7 +57,7 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 `git status` — clean, `main` in step with `origin/main`. **Tools:** the Supabase MCP (`list_migrations` on
 `qwvnhdghwycqlvsnlvlt` → 12, the latest `20261015120719_half_star_ratings`) and a browser: **Claude in Chrome was
-disconnected all of 2026-10-15** — try `tabs_context_mcp`; if it still fails, use the built-in browser
+disconnected most of 2026-10-15; the user reconnected it at the end** — try `tabs_context_mcp`; if it still fails, use the built-in browser
 (`mcp__Claude_Browser__*`; it reaches `localhost:8081`; read the DOM, screenshots lag). Store consoles (Play Console,
 expo.dev) need the user's signed-in Chrome — ask them to reconnect Claude in Chrome for those. The built-in browser holds the
 **owner admin's login** (`n.efeyigit@outlook.com`) **without a profile** (it opens onboarding); ask before making a temporary
@@ -99,8 +99,8 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
   next development build, not alone.
 - Auth e-mails land in Outlook's spam (plan.md §8).
 - The wordmark in the navbar; Hacı's own first admin sign-in (question 5).
-- Not yet seen in the app with real data: "Takip ettiklerinden" with logs, "Bildir" on another member's comment, the
-  showcase's signed-out view and an entry card with a real photo — all need a second member or a real period.
+- Not yet seen in the app: a showcase entry card with a real recipe photo (everything else of steps 5–6 was checked with
+  a seeded second member on 2026-10-15).
 - Icebox (plan.md §9): follower lists, notifications, comment editing, tuning "popular", a showcase
   archive of past winners.
 
@@ -283,6 +283,10 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
 - **A showcase test needs no panel:** insert a period in SQL, apply in the app, approve with
   `update showcase_entries set status='approved'` (postgres passes the admin policy), move `starts_at`/`ends_at` to see the
   winner (past) or the upcoming state (future). A recipe's `image_path` only has to be non-null for the rule.
+- **A second member in SQL** (`auth.users` with an `@example.invalid` e-mail, then `account_settings`, `profiles`, and its
+  rows) covers "someone else's" content; deleting the `auth.users` row cascades everything. Claude in Chrome (signed out of
+  the app) gives the visitor's view, the built-in browser the member's.
+- On the log screen the report form's "Gönder" comes before the comment box's — pick the first, not the last.
 - **A temporary member on the built-in browser's admin login can be made in SQL** (`account_settings` then `profiles` for the
   admin's `auth.users` id) — the app picks it up on reload; delete both rows afterwards (the login stays).
 - The Bash tool's `cd mobile && npx expo export` once ran in the repo root ("platforms array: [web]") — run app commands with
