@@ -63,8 +63,8 @@ disconnected all of 2026-10-15** — try `tabs_context_mcp`; if it still fails, 
 (`mcp__Claude_Browser__*`, it reaches `localhost:8081` and `:3000`; its screenshots lag — read the DOM). The
 user's phone is not available any more ("telefon gitti"): test the app in Expo web at phone width
 (`resize_window` preset mobile). SQL: profiles `ahmet_kafa` (the user) and **`mustafa_hayat` — the user's friend,
-never touch their rows**; `ahmet_kafa` still has test rows (2 reviews, 4 favourites, 2 logs) — **ask the user**
-whether to delete them. `cd mobile && npm ci` on a fresh machine; port 8081 may be held by an old Expo server.
+never touch their rows**. Every community table was empty at the end of 2026-10-15 (test rows deleted with the
+user's OK). `cd mobile && npm ci` on a fresh machine; port 8081 may be held by an old Expo server.
 
 ### Step 1 — M8 step 5 (plan.md §6)
 
