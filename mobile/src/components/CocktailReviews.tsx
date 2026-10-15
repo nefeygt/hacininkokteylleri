@@ -154,7 +154,7 @@ function OwnReview({
   async function save() {
     Keyboard.dismiss();
     setError(null);
-    if (rating < 1) {
+    if (rating < 0.5) {
       setError("Önce bir puan seç.");
       return;
     }
@@ -202,7 +202,7 @@ function OwnReview({
     <View style={styles.box}>
       {/* The stars get their own row: next to the label they ran out of the box on a phone. */}
       <Label>{own ? "Değerlendirmeni düzenle" : "Değerlendir"}</Label>
-      <Stars value={rating} size={22} onChange={setRating} />
+      <Stars value={rating} onChange={setRating} />
       <TextInput
         value={body}
         onChangeText={setBody}

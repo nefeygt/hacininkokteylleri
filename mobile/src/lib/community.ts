@@ -3,7 +3,7 @@
 // cocktail, daily limits); these give the same friendly errors, then ask the
 // site to refresh the static pages that show the result (ADR-020).
 
-import { REPORT_REASON_MAX_LENGTH, REVIEW_MAX_LENGTH } from "@shared/community";
+import { RATING_ERROR, REPORT_REASON_MAX_LENGTH, REVIEW_MAX_LENGTH, isValidRating } from "@shared/community";
 import type { Database } from "@shared/supabase/database.types";
 import { revalidateSite } from "./revalidate";
 import { supabase } from "./supabase";
@@ -60,7 +60,7 @@ export async function fetchReviews(cocktailId: string, memberId: string | null):
 
 /** Writes the member's review of a cocktail, or edits it: one per person per cocktail (ADR-012). */
 export async function saveReview(writer: Writer, cocktailId: string, rating: number, body: string): Promise<CommunityResult> {
-  if (!Number.isInteger(rating) || rating < 1 || rating > 5) return { error: "1 ile 5 arasında bir puan seç." };
+  if (!isValidRating(rating)) return { error: RATING_ERROR };
   const text = body.trim();
   if (text.length > REVIEW_MAX_LENGTH) return { error: `Yorum en fazla ${REVIEW_MAX_LENGTH} karakter olabilir.` };
 

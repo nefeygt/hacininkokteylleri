@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { accountSession } from "@/lib/account";
+import { RATING_ERROR, isValidRating } from "@/lib/community";
 import { LOG_NOTE_MAX_LENGTH, cleanRecipe } from "@/lib/drink-log";
 
 // Drink logs (M5). The database is the rule (RLS, the recipe check function,
@@ -33,9 +34,7 @@ function writeError(code: string | undefined, message: string): string {
 /** Adds a log (no id) or edits the member's own log. */
 export async function saveDrinkLog(input: LogInput, id?: string): Promise<LogResult> {
   if (!DATE.test(input.drunkOn)) return { error: "Geçerli bir tarih seç." };
-  if (input.rating !== null && (!Number.isInteger(input.rating) || input.rating < 1 || input.rating > 5)) {
-    return { error: "Puan 1 ile 5 arasında olmalı." };
-  }
+  if (input.rating !== null && !isValidRating(input.rating)) return { error: RATING_ERROR };
   const note = input.note.trim();
   if (note.length > LOG_NOTE_MAX_LENGTH) return { error: `Not en fazla ${LOG_NOTE_MAX_LENGTH} karakter olabilir.` };
   const recipe = cleanRecipe(input.recipe);

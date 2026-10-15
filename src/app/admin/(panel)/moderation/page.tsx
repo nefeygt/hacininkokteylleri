@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { requireAdmin } from "@/lib/admin";
+import { ratingStars } from "@/lib/community";
 import { formatAmount, formatLogDate, readRecipe } from "@/lib/drink-log";
 import { STATUS_LABELS } from "@/lib/showcase";
 import type { Json } from "@/lib/supabase/database.types";
@@ -357,7 +358,7 @@ function LogRow({ log }: { log: LogRef }) {
         <div className="flex flex-wrap items-center gap-x-2 font-mono text-[11px] text-text-muted">
           <span className="font-sans text-sm font-semibold text-text-primary">{recipe.name}</span>
           {log.rating !== null && (
-            <span className="text-crimson-glow">{"★".repeat(log.rating)}{"☆".repeat(5 - log.rating)}</span>
+            <span className="text-crimson-glow">{ratingStars(log.rating)}</span>
           )}
           <a href={`${SITE_URL}/u/${log.profiles.username}`} target="_blank" rel="noopener noreferrer" className="hover:text-text-primary">
             @{log.profiles.username}
@@ -382,7 +383,7 @@ function ReviewRow({ review }: { review: ReviewRef }) {
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-2 font-mono text-[11px] text-text-muted">
           <span className="font-sans text-sm font-semibold text-text-primary">{review.cocktails.name}</span>
-          <span className="text-crimson-glow">{"★".repeat(review.rating)}{"☆".repeat(5 - review.rating)}</span>
+          <span className="text-crimson-glow">{ratingStars(review.rating)}</span>
           <a href={`${SITE_URL}/u/${review.profiles.username}`} target="_blank" rel="noopener noreferrer" className="hover:text-text-primary">
             @{review.profiles.username}
           </a>

@@ -1,5 +1,5 @@
 import { formatLogDate, readRecipe, todayInTurkey } from "@shared/drink-log";
-import { Stack, router, useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { Notice } from "@/components/Form";
@@ -8,7 +8,7 @@ import LogForm from "@/components/LogForm";
 import MemberGate from "@/components/MemberGate";
 import { Body, Heading, Mono } from "@/components/Type";
 import type { Writer } from "@/lib/community";
-import { fetchMyLog, type DrinkLog } from "@/lib/drink-logs";
+import { fetchMyLog, leave, type DrinkLog } from "@/lib/drink-logs";
 import { colors, readable } from "@/lib/theme";
 
 /** Edit or delete one of the member's own drink logs (the site's /account/logs/{id}). */
@@ -82,7 +82,7 @@ function EditLog({ writer, id }: { writer: Writer; id: string }) {
               note: log.note ?? "",
               isPublic: log.is_public,
             }}
-            onDone={() => router.back()}
+            onDone={leave}
           />
         </View>
       </View>

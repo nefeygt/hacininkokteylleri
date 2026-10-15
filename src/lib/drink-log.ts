@@ -37,6 +37,35 @@ export const LOG_LIMITS = {
   glass: 100,
 } as const;
 
+/**
+ * The units a member picks from in the log form (and later the recipe form).
+ * The database still takes any short unit, so old rows and house recipes with
+ * other units stay valid; the forms offer such a unit next to these.
+ */
+export const UNITS = [
+  "cl",
+  "ml",
+  "adet",
+  "dilim",
+  "yaprak",
+  "dal",
+  "demet",
+  "tutam",
+  "dash",
+  "damla",
+  "bar kaşığı",
+  "çay kaşığı",
+  "tatlı kaşığı",
+  "yemek kaşığı",
+  "kaşık",
+] as const;
+
+/** The list, with `current` in front when it is not one of them (an older or house unit). */
+export function unitChoices(current: string): string[] {
+  const unit = current.trim();
+  return unit && !(UNITS as readonly string[]).includes(unit) ? [unit, ...UNITS] : [...UNITS];
+}
+
 const ICONS: readonly IngredientIcon[] = ["shot", "dash", "drop", "slice", "spoon", "topup"];
 
 /**

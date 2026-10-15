@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { accountSession } from "@/lib/account";
-import { REVIEW_MAX_LENGTH, REPORT_REASON_MAX_LENGTH } from "@/lib/community";
+import { RATING_ERROR, REVIEW_MAX_LENGTH, REPORT_REASON_MAX_LENGTH, isValidRating } from "@/lib/community";
 import type { Database } from "@/lib/supabase/database.types";
 
 // Reviews, favourites and reports (M4). The database is the rule (RLS, one
@@ -39,7 +39,7 @@ function writeError(message: string): string {
 
 /** Writes the member's review of a cocktail, or edits it: one per person per cocktail (ADR-012). */
 export async function saveReview(cocktailId: string, rating: number, body: string): Promise<CommunityResult> {
-  if (!Number.isInteger(rating) || rating < 1 || rating > 5) return { error: "1 ile 5 arasında bir puan seç." };
+  if (!isValidRating(rating)) return { error: RATING_ERROR };
   const text = body.trim();
   if (text.length > REVIEW_MAX_LENGTH) return { error: `Yorum en fazla ${REVIEW_MAX_LENGTH} karakter olabilir.` };
 

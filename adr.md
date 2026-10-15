@@ -31,6 +31,8 @@
 | 019 | The showcase: periods chosen per time, applying and voting on the feed, the winner on the home page | ✅ Accepted | 2026-10-14 |
 | 020 | The Expo app: `mobile/` in this repository, full parity with the site, both stores, native sign-in | ✅ Accepted | 2026-10-14 |
 | 021 | E-mail links carry a `token_hash` verified by the site; a password change on a 2FA account asks for the code | ✅ Accepted | 2026-10-15 |
+| 022 | After signing in, the app returns to the screen that asked and finishes the action; fields stay above the keyboard | ✅ Accepted | 2026-10-15 |
+| 023 | Half-star ratings; units from a list; a logged recipe's steps stay locked unless changed | ✅ Accepted | 2026-10-15 |
 
 ---
 
@@ -889,3 +891,40 @@ shrinks for the keyboard, and `KeyboardAvoidingView` would need every screen's h
 Hesap tabs reacted to the sign-in and the second sent the member to the archive. *A keyboard library
 (react-native-keyboard-controller):* a native module and a new development build for what one
 component does.
+
+---
+
+## ADR-023 — Half-star ratings; units from a list; a logged recipe's steps stay locked unless changed
+
+**Context.** The user's first signed-in pass over the app's drink log (2026-10-15) asked for: a calendar
+behind the log's date (the arrows and "Bugün"/"Dün" stay, "1 hafta önce" goes), half stars and bigger
+stars, units picked from a list ("cl, adet, yaprak, yemek kaşığı…") instead of typed, and the recipe's
+steps shown as the original, looking locked, editable only on request. Asked where half stars apply, the
+user chose **both reviews and drink logs**.
+
+**Decision.**
+- **Ratings are 0.5–5 in half steps** in `reviews` and `drink_logs` (`numeric(2,1)`, check
+  `rating between 0.5 and 5 and rating * 2 = trunc(rating * 2)`; migration `half_star_ratings`).
+  `cocktail_ratings` is unchanged (it already averaged to two decimals). `isValidRating()`, `RATING_ERROR`,
+  `formatRating()` and `ratingStars()` live in `src/lib/community.ts` for the site, the app and the panel.
+  The star input picks n − 0.5 on a star's left half and n on its right half; read-only stars show
+  averages to the nearest half. In the app the input is one "adjustable" control for screen readers.
+- **Units come from a list** (`UNITS`, `unitChoices()` in `src/lib/drink-log.ts`): a select on the site,
+  a sheet in the app. The database keeps accepting any short unit, so house recipes and older rows with
+  other units stay valid — the forms offer such a unit next to the list. Members' recipe forms (M8 step 5
+  in the app, M6 on the site) should use the same list.
+- **Steps start locked** in the log forms: the original is shown faded with a lock; "Değiştir" makes it
+  editable and "Orijinaline dön" restores it. Ingredients stay editable as before (ADR-017).
+- **The app's date** opens a month calendar written in plain React Native (no native module, so no new
+  development build); the site keeps the browser's date input, which already opens a calendar.
+
+**Consequences.**
+- (+) Finer ratings, Letterboxd-style; one star system everywhere.
+- (+) Consistent units in logs, ready for a normalised ingredient catalogue (Icebox).
+- (−) Ratings are decimals now: code that assumed integers (`"★".repeat(rating)`) had to change; new code
+  must use the shared helpers.
+- (−) The unit list is a UI rule only; a client that skips it can still write another short unit.
+
+**Rejected.** *Half stars for logs only:* two star inputs with different rules. *A strict unit check in
+the database:* would break house recipes and existing logs with other units. *A native date picker:* a new
+development build for one control.

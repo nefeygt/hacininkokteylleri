@@ -9,7 +9,7 @@
 > **Language rule (ADR-002):** everything we write — docs, code, comments, commits, SQL — is
 > **English**. Everything visitors and admins read — UI strings, recipes — is **Turkish**.
 
-**Last updated:** 2026-10-15 · **Active milestone:** **M8 — Mobile app** (step 1 done; step 2 done except Apple; step 3 built — signed in on the phone in part, three checks left; step 4 built — browser and phone checks left) · M6 and M7 done · **Brand:** `haci` (ADR-015)
+**Last updated:** 2026-10-15 · **Active milestone:** **M8 — Mobile app** (step 1 done; step 2 done except Apple; steps 3 and 4 checked — signed in, on the phone and in the browser; half stars, unit list, locked steps added (ADR-023)) · M6 and M7 done · **Brand:** `haci` (ADR-015)
 
 ---
 
@@ -17,7 +17,7 @@
 
 | Field | State |
 |---|---|
-| Active milestone | **M8 — Mobile app** (Expo SDK 57, ADR-013, ADR-020) — `mobile/` in this repo, **full parity with the site** before the first store release, iOS + Android, native Google + e-mail sign-in (+ Sign in with Apple on iOS). Step 1 done (2026-10-14): shell, theme, icons, the archive with search/filters and the recipe screen. **Step 2 built (2026-10-15):** e-mail sign-in/up/reset, onboarding, account (profile, avatar, logs default, sign out, delete), native Google (Android + iOS clients) and Apple code, `POST /api/revalidate` on the site; EAS project `@nefeygt/haci`, first Android development build. Checked in Chrome (Expo web) with a test account and **on the user's Android phone** (Google sign-in, avatar). **Step 3 built (2026-10-15):** reviews (write/edit/two-step delete/report), the heart, "Favorilerim", public profiles as a screen; signed-out paths checked in Chrome, the signed-in check is the user's. **Password reset fixed** the same day (e-mail links with `token_hash`, the 2FA code on the reset form, ADR-021) — the user's retry is left. **Phone pass (2026-10-15, new development build):** Google sign-in; after a sign-in the app returns to the recipe that asked and saves the heart tapped before it (ADR-022); review edit layout and the keyboard fixed. **Step 4 built (2026-10-15):** the drink log in the app (add from a recipe or a picker, list, edit, two-step delete, public logs on profiles); typecheck, bundles and site build pass — the browser and phone checks are left |
+| Active milestone | **M8 — Mobile app** (Expo SDK 57, ADR-013, ADR-020) — `mobile/` in this repo, **full parity with the site** before the first store release, iOS + Android, native Google + e-mail sign-in (+ Sign in with Apple on iOS). Step 1 done (2026-10-14): shell, theme, icons, the archive with search/filters and the recipe screen. **Step 2 built (2026-10-15):** e-mail sign-in/up/reset, onboarding, account (profile, avatar, logs default, sign out, delete), native Google (Android + iOS clients) and Apple code, `POST /api/revalidate` on the site; EAS project `@nefeygt/haci`, first Android development build. Checked in Chrome (Expo web) with a test account and **on the user's Android phone** (Google sign-in, avatar). **Step 3 built (2026-10-15):** reviews (write/edit/two-step delete/report), the heart, "Favorilerim", public profiles as a screen; signed-out paths checked in Chrome, the signed-in check is the user's. **Password reset fixed** the same day (e-mail links with `token_hash`, the 2FA code on the reset form, ADR-021) — the user's retry is left. **Phone pass (2026-10-15, new development build):** Google sign-in; after a sign-in the app returns to the recipe that asked and saves the heart tapped before it (ADR-022); review edit layout and the keyboard fixed. **Step 4 done (2026-10-15):** the drink log in the app (add from a recipe or a picker, list, edit, two-step delete, public logs on profiles); the user's pass on the phone asked for a calendar, half stars (reviews and logs, migration `half_star_ratings`), a unit list and locked steps (ADR-023) — built and checked signed in, in the built-in browser |
 | Previous milestone | **M7 — The showcase** (2026-10-14, ADR-019) and **M6 — Community recipes and feeds** (2026-10-14, ADR-018): built, tested on `localhost`, deployed; **live checks passed on the user's phone** (2026-10-14). **Both done**. M5 — Drink log done 2026-10-14 |
 | Last completed | **M2 — Domain** (Search Console moved from vercel.app to the domain) and the **brand change to `haci`** with English URLs and the cherry logo (ADR-015). M1 is done except Hacı's own first sign-in |
 | Blockers | None in the code. **The user's accounts for M8:** Expo `nefeygt` (EAS project `@nefeygt/haci`, linked 2026-10-15); Google Play — personal, **created after 2023-11-13**, developer name **"KZN"** (renamed by the user 2026-10-15; haci is published from it), so a 12-tester, 14-day closed test comes before production (the user sources the testers); Apple Developer — **not opened yet, and likely in another person's name** (the user, 2026-10-15), so Android is built and tested first. The office network (FortiGate) blocks the domain — check from outside (§5.4) |
@@ -94,7 +94,7 @@ around the archive; they never crowd it off the home page except through the sho
 In the user's words, collected while M0 was being built. Milestones in §6.
 
 1. **Accounts.** Sign up / sign in for the public.
-2. **Reviews.** Anyone signed in can review a cocktail — 1–5 stars and optional text, public.
+2. **Reviews.** Anyone signed in can review a cocktail — 0,5–5 stars in half steps (ADR-023) and optional text, public.
    **One review per person per cocktail**, Letterboxd-style (ADR-012).
 3. **Favourites.** Save cocktails to a personal list.
 4. **Drink log.** Log a cocktail you made or drank (Letterboxd for cocktails). The log
@@ -184,10 +184,10 @@ migration file with the version Supabase applied (ADR-009).
 | `admins` | `user_id` → `auth.users`, `role` (`owner`/`editor`), `display_name` | own row; admins (all) | nobody over the API — SQL only |
 | `account_settings` | `user_id` PK → `auth.users`, `adult_confirmed_at` (server time), `privacy_notice_version`, `logs_public_default` | owner; admins | owner (column grants) |
 | `profiles` | `id` PK → `auth.users`, `username` unique `^[a-z0-9_]{3,20}$` minus a reserved list (Turkish and English route words), `display_name`, `avatar_path` (`{id}/…` in the `avatars` bucket), `bio` ≤ 280, `hidden_at`/`hidden_by` | everyone (not hidden); owner; admins | owner, only after `account_settings` exists; admins hide |
-| `reviews` | `id`, `cocktail_id`, `user_id` → `profiles`, `rating` 1–5, `body` ≤ 2000, `updated_at` (moves only when the author edits), `hidden_at`/`hidden_by`; unique `(cocktail_id, user_id)` | everyone (not hidden); author; admins | author (published cocktails only, ≤ 20 writes a day); admins hide/delete |
+| `reviews` | `id`, `cocktail_id`, `user_id` → `profiles`, `rating` 0.5–5 in half steps (ADR-023), `body` ≤ 2000, `updated_at` (moves only when the author edits), `hidden_at`/`hidden_by`; unique `(cocktail_id, user_id)` | everyone (not hidden); author; admins | author (published cocktails only, ≤ 20 writes a day); admins hide/delete |
 | `favorites` | PK `(user_id, cocktail_id)`, `created_at` | everyone | owner (published cocktails only) |
 | `reports` | `reporter_id` → `profiles`, `target_type` enum, `target_id`, `reason` ≤ 500, `resolved_at`/`resolved_by` (stamped by a trigger); unique per reporter and target | admins | members file (≤ 20 a day); admins resolve |
-| `drink_logs` | `id`, `user_id` → `profiles`, `cocktail_id` → `cocktails` (set null), `drunk_on` (2000-01-01 … today + 1), `recipe jsonb` (checked by `private.is_valid_log_recipe`, ≤ 16 KB), `rating` 1–5 null, `note` ≤ 2000, `is_public` (default false), `updated_at` (author edits only), `hidden_at`/`hidden_by` | everyone (public and not hidden); owner; admins | owner (published cocktails only, ≤ 50 new a day); admins hide/delete |
+| `drink_logs` | `id`, `user_id` → `profiles`, `cocktail_id` → `cocktails` (set null), `drunk_on` (2000-01-01 … today + 1), `recipe jsonb` (checked by `private.is_valid_log_recipe`, ≤ 16 KB), `rating` 0.5–5 in half steps or null, `note` ≤ 2000, `is_public` (default false), `updated_at` (author edits only), `hidden_at`/`hidden_by` | everyone (public and not hidden); owner; admins | owner (published cocktails only, ≤ 50 new a day); admins hide/delete |
 | view `cocktail_ratings` | `cocktail_id`, `review_count`, `average_rating` — visible reviews by visible profiles (security invoker) | everyone | — |
 | `follows` (M6) | PK `(follower_id, followee_id)` → `profiles`, no self-follows, `created_at` | everyone | the follower (visible profiles only, ≤ 200 a day) |
 | `log_comments` (M6) | `id`, `log_id` → `drink_logs` (cascade), `user_id` → `profiles`, `body` 1–1000, `created_at`, `hidden_at`/`hidden_by` | whoever can read the log (not hidden); commenter; admins | members on visible public logs (≤ 100 a day); deleted by the commenter, the log's author or admins; admins hide |
@@ -283,7 +283,7 @@ mobile/                         the Expo app (M8, ADR-020) — its own package.j
   src/components/               the site's components rebuilt for React Native (CocktailCard, RecipeDetails, …);
                                 M8 step 2: SignIn, AccountView, Form (fields, buttons), Avatar;
                                 M8 step 3: Stars, ReportButton, CocktailReviews; screen u/[username]
-                                M8 step 4: LogForm, DrinkLogEntry, MemberGate; screens logs/index, logs/new, logs/[id]
+                                M8 step 4: LogForm, DateField (calendar), DrinkLogEntry, MemberGate; screens logs/index, logs/new, logs/[id]
   src/lib/                      supabase client, theme, content fetchers, archive context; session.tsx (SessionProvider),
                                 native-auth.ts (Google, Apple), revalidate.ts (revalidateSite);
                                 M8 step 3: community.ts (reviews, favourites, reports), favorites.tsx (FavoritesProvider)
@@ -519,7 +519,7 @@ The admin panel stays web-only.
   - [ ] Sign in with Apple: Apple Developer account → Supabase Apple provider (bundle ID) → test on an
     iPhone; `/privacy` names Apple (draft, **the user approves**). Also whether iOS Google needs
     "Skip nonce checks" in Supabase
-- [ ] Step 3 — reviews, favourites ("Favorilerim"), reports, public profiles (built 2026-10-15; the signed-in check left):
+- [x] Step 3 — reviews, favourites ("Favorilerim"), reports, public profiles (2026-10-15):
   - [x] `mobile/src/lib/community.ts` — the site's `cocktails/actions.ts` as direct writes (same errors,
     edit-then-insert for reviews) + `revalidateSite()` with the site's paths; `favorites.tsx` (`FavoritesProvider`,
     optimistic heart, signed-out → the Hesap tab)
@@ -534,9 +534,10 @@ The admin panel stays web-only.
     edit (stars ran out of the box → own row; the keyboard covered the form → `KeyboardScrollView`); after a
     sign-in the Hesap tab sends the member back — to the recipe that asked, with its heart saved and
     "Favorilerine eklendi." shown, otherwise to the archive (ADR-022); the search hint shortened to fit
-  - [ ] Signed in, left (the user): two-step review delete, "Favorilerim", report another member's review;
-    then clean up the test rows (2 reviews, 4 favourites of `ahmet_kafa`) with the user's OK
-- [ ] Step 4 — drink log (built 2026-10-15; the browser and signed-in checks left):
+  - [x] Signed in (2026-10-15): the user on the phone, then Claude in the built-in browser with a second
+    member (`sudiii`, the owner admin's own profile — deleted afterwards with the user's OK): a half-star review, a
+    report stored. `ahmet_kafa`'s test rows are still there (the user decides)
+- [x] Step 4 — drink log (2026-10-15):
   - [x] `mobile/src/lib/drink-logs.ts` — the site's `account/logs/actions.ts` as direct writes (same errors and
     checks, `cleanRecipe` shared) + `revalidateSite(["/u/{username}", "/logs/{id}"])`, as the site revalidates
   - [x] "Günlüğe ekle" on the recipe screen under the name (signed out → the Hesap tab, back to the recipe);
@@ -549,8 +550,15 @@ The admin panel stays web-only.
   - [x] Public logs on the profile screen (filtered to public and visible: the owner's own session can read
     private ones), "Bildir" on them; comments open on the site until step 5
   - [x] Checked: typecheck, all three bundles, site build
-  - [ ] Expo web in Chrome (Claude in Chrome was not connected on 2026-10-15) and signed in on the phone: add,
-    edit, two-step delete, public/private, the profile section, "Bildir"; then remove the test rows
+  - [x] The user's phone pass (two logs as `ahmet_kafa`) → their requests (ADR-023): the date opens a month
+    calendar (plain React Native, `DateField`; "1 hafta önce" removed), half stars in reviews and logs and bigger
+    input stars (32 px), units from a shared list (`UNITS`), the steps locked until "Değiştir"; the site's log
+    form got the unit select and locked steps too, the panel shows ratings as "★★★½☆"
+  - [x] Checked signed in, in the built-in browser (Expo web, phone width): calendar (month, future days
+    disabled), unit sheet, steps unlock and keep the edit, 3,5 stars saved and re-saved (numeric arrives as a
+    number), picker → private log, two-step delete, a public log reported from another member's profile, a
+    4,5 review (average 4,8 from two). A form opened by URL now returns to the log list (`leave()`). The site's
+    review list draws the half star. Typecheck, all three bundles, site build
 - [ ] Step 5 — members' recipes (form, photo upload), recipe pages, the feed, follows, log comments
 - [ ] Step 6 — the showcase (period, entries, votes, apply/withdraw, the winner)
 - [ ] Step 7 — store release: EAS production builds, store listings (Turkish), age rating 18+/17+,
@@ -610,6 +618,10 @@ The admin panel stays web-only.
   2026-10-13: later, once the current work is done). **Includes an English privacy notice next to
   the Turkish one** for global users (the user, 2026-10-13)
 - **Colour theme review** for a wider audience (the user is open to change; logo colours follow)
+- **A more readable font** (the user, 2026-10-15): today's type gives a cinema feel but reads poorly,
+  especially on phones — review with the colour theme, site and app together
+- **The glass as a picker with glass pictures** (the user, 2026-10-15, unsure): the log's (and the recipe
+  form's) "Bardak" chosen from a list with drawings of each glass we would make
 - A `haci` domain, if the product grows (ADR-015)
 - Paging / "show more" for reviews (the card shows the latest 50; a profile the latest 100)
 - Rating breakdown (how many 5s, 4s, …) and sorting the archive by rating
@@ -630,6 +642,7 @@ The admin panel stays web-only.
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-10-15 | M8 step 4 feedback | The user's phone pass: 2 logs as `ahmet_kafa`, then requests → ADR-023: calendar, half stars in reviews and logs (the user chose both; migration `half_star_ratings`, constraint checked in SQL, advisors unchanged), bigger stars, a unit list, locked steps; glass picker and a more readable font → Icebox. The phone left, so the signed-in check ran in the built-in browser (Claude in Chrome still disconnected) as `sudiii` — the owner admin's member profile, deleted afterwards with the user's OK (admin login kept). Fixed on the way: a log form opened by URL did not leave after saving |
 | 2026-10-15 | M8 step 4 build | Step 1 (the user's signed-in phone checks) needs the user, so step 4 came first: the drink log in the app (`drink-logs.ts`, `LogForm`, `DrinkLogEntry`, `MemberGate`, screens `logs/*`, "Günlüğe ekle" on the recipe, public logs on profiles). The date is a day stepper (no native picker without a new build). Checked: typecheck, all three bundles, site build. Claude in Chrome was not connected, so the Expo web check is left with the phone check. A leftover Expo web server from an earlier session held port 8081 — stopped |
 | 2026-10-15 | M8 phone pass | The new Android development build on the user's phone, driven over adb with Metro. Google sign-in passed. The user asked to land on the archive after signing in, not the account, and reported a jumpy review edit; Claude also checked edge cases. Fixed: stars spilling out of the edit box, the keyboard covering the form (edge to edge Android does not resize → `KeyboardScrollView`), the search hint wrapping. After a sign-in the app returns to the recipe that asked and saves the pending heart with a notice (ADR-022) — a second tab navigator pushed by `navigate("/account")` made it redirect twice until fixed. Checked on the phone by the user and over adb. Left: review delete, "Favorilerim", report, the reset retry |
 | 2026-10-15 | M8 step 3 + reset fix | Step 3 in the app: reviews, heart, "Favorilerim", reports, the profile screen; checked signed out in Chrome. Mid-session the user's password reset failed twice: app-requested links landed with a `#hash` the callback could not read, and the owner admin's 2FA blocked the change behind a wrong "8 characters" message. Fixed (callback verifies `token_hash`, templates updated in the dashboard with the user's OK, the reset form asks for the 2FA code) → ADR-021. Deployed `0ccafb3`. Left: the user's reset retry and the signed-in step-3 check |

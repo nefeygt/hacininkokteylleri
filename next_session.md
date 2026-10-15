@@ -4,11 +4,11 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-15 (M8 step 4 build) · **Handing off:** **M8 step 4 — the drink log in the
-app — is built** (add from a recipe or a picker, list, edit, two-step delete, public/private, public logs on
-profiles); typecheck, all three bundles and the site build pass. **Not checked in a browser or on the phone:**
-Claude in Chrome was not connected. **Also still open from before:** the step-3 signed-in checks (review delete,
-"Favorilerim", report), cleaning `ahmet_kafa`'s test rows, the user's password-reset retry.
+**Prepared by session:** 2026-10-15 (M8 step 4 + the user's feedback) · **Handing off:** **M8 steps 3 and 4
+are done.** The user's phone pass on the drink log brought ADR-023: half stars (0,5–5) in reviews and logs
+(migration `half_star_ratings`, 12 migrations now), bigger stars, a month calendar behind the log's date, units
+from a shared list, the recipe's steps locked until "Değiştir" — in the app and on the site. Checked signed in, in
+the built-in browser. **Next: M8 step 5** (members' recipes, the feed, follows, log comments).
 
 ---
 
@@ -53,50 +53,28 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — check M8 steps 3 and 4 with the user, then M8 step 5
+## 🎯 This Session's Task — M8 step 5: members' recipes, recipe pages, the feed, follows, log comments
 
 ### Step 0 — state check
 
-`git status` — clean, `main` in step with `origin/main`. **Tools:** the Supabase MCP (`list_migrations`
-on `qwvnhdghwycqlvsnlvlt` → still 11, the latest `20261014134219_showcase`; steps 2–4 needed no schema
-change) and **Claude in Chrome (`tabs_context_mcp`) — it was not connected last session; if it still is not,
-ask the user to open the Claude side panel in Chrome.** `npx eas-cli@latest whoami` → `nefeygt`. SQL: the only
-profile is `ahmet_kafa`; it still has **test rows from 2026-10-15**: 2 reviews (`kiki-42`, `raspberry-dream`)
-and 4 favourites (`caipiroska`, `mavi-isci`, `kiki-42`, `raspberry-dream`); `reports` and `drink_logs` empty
-(check). `cd mobile && npm ci` on a fresh machine. Port 8081 may be held by an old Expo server — check its command
-line, stop it by PID.
+`git status` — clean, `main` in step with `origin/main`. **Tools:** the Supabase MCP (`list_migrations` on
+`qwvnhdghwycqlvsnlvlt` → 12, the latest `20261015120719_half_star_ratings`) and a browser: **Claude in Chrome was
+disconnected all of 2026-10-15** — try `tabs_context_mcp`; if it still fails, the user allowed the built-in browser
+(`mcp__Claude_Browser__*`, it reaches `localhost:8081` and `:3000`; its screenshots lag — read the DOM). The
+user's phone is not available any more ("telefon gitti"): test the app in Expo web at phone width
+(`resize_window` preset mobile). SQL: profiles `ahmet_kafa` (the user) and **`mustafa_hayat` — the user's friend,
+never touch their rows**; `ahmet_kafa` still has test rows (2 reviews, 4 favourites, 2 logs) — **ask the user**
+whether to delete them. `cd mobile && npm ci` on a fresh machine; port 8081 may be held by an old Expo server.
 
-### Step 1 — Expo web check of step 4 (Claude, signed out)
+### Step 1 — M8 step 5 (plan.md §6)
 
-`cd mobile && npx expo start --web --port 8081`, then in Chrome: a recipe shows "Günlüğe ekle" under the name;
-signed out it opens the Hesap tab; `localhost:8081/logs`, `/logs/new` and `/logs/new?cocktail=kiki-42` show the
-sign-in prompt; `ahmet_kafa`'s profile renders (no logs section while they have no public logs). Fix what breaks.
-
-### Step 2 — the user's checks (ask first; Claude cannot type passwords)
-
-1. **Step 4 signed in (the development build on the phone** — `cd mobile && npx expo start`,
-   `adb reverse tcp:8081 tcp:8081`, `haci://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081`; the JS
-   changes need no new build): "Günlüğe ekle" on a recipe → the form (date stepper and chips, change an
-   ingredient, add/remove a row, stars and "Puanı kaldır", note, public) → saved → "İçki günlüğüm" (the back
-   button returns to the recipe); edit from the list; two-step delete; Hesap → "Günlüğüm →" → "+ Yeni kayıt" →
-   picker; the account's public default switch → a new form starts with it; a public log on the profile screen.
-   Check rows in SQL (`drink_logs`, the snapshot) and that `/u/ahmet_kafa` on the site shows the public log.
-2. **Step 3 signed in — left:** the two-step review delete; "Filtrele → Listem → Favorilerim"; "Bildir" on
-   someone else's review (needs a second member — otherwise check in SQL as in M4).
-3. Then delete the test rows (reviews, favourites, logs, reports) **with the user's OK**.
-4. **Password reset (ADR-021)** — the user's retry: a new e-mail only (old ones carry the old link); the owner
-   admin `n.efeyigit@outlook.com` has 2FA, so the form asks for the authenticator code. If it fails: Supabase auth
-   logs (`query_logs`, `auth_logs`, `/verify`, `/user`).
-   **Ask which account for app checks:** the owner admin has no profile — signing in to the app sends it to
-   onboarding and would make the admin a member too. `ahmet_kafa` (Google) is the member account.
-
-### Step 3 — M8 step 5 (plan.md §6): members' recipes, recipe pages, the feed, follows, log comments
-
-Mirror the site (ADR-018): the recipe form with a photo upload (`src/lib/recipe.ts` is shared; photos as on the
-site's `ImageField`, WebP, never overwritten — ADR-006), `/recipes/{slug}` as a screen (the profile's and the
-log entry's links to members' recipes still open the site — switch them), the Akış tab (popular + new recipes,
-followed people's logs), the follow button on profiles, comments on public logs (`DrinkLogEntry`'s "Yorumlar"
-opens the site today). Read the site's `account/recipes/`, `feed/`, `logs/[id]`, `FollowButton`, `LogComments` first.
+Mirror the site (ADR-018): the recipe form with a photo upload (`src/lib/recipe.ts` is shared; photos as the
+site's `ImageField`, WebP, never overwritten — ADR-006; **units from `UNITS`, ADR-023**), `/recipes/{slug}` as a
+screen (the profile's and `DrinkLogEntry`'s links to members' recipes still open the site — switch them), the Akış
+tab (popular + new recipes, followed people's logs), the follow button on profiles, comments on public logs
+(`DrinkLogEntry`'s "Yorumlar" opens the site today). Read the site's `account/recipes/`, `feed/`, `logs/[id]`,
+`FollowButton`, `LogComments` first. Signed-in checks need the user to sign in (by e-mail on Expo web — Google
+sign-in is native only); if a second member is needed, the user said a test account can be made and deleted.
 
 ### Also open (not blocking)
 
@@ -132,13 +110,19 @@ opens the site today). Read the site's `account/recipes/`, `feed/`, `logs/[id]`,
 
 ## 📍 Current State
 
+- **Half stars, units, locked steps (2026-10-15, ADR-023):** `reviews.rating` and `drink_logs.rating` are
+  `numeric(2,1)` 0.5–5 in half steps (PostgREST sends them as numbers). Helpers in `src/lib/community.ts`:
+  `isValidRating`, `RATING_ERROR`, `formatRating`, `ratingStars`; `UNITS` / `unitChoices()` in `src/lib/drink-log.ts`.
+  `Stars` (site and app) draw and pick halves; the app's input is 32 px and one adjustable control. Log forms
+  (site `LogForm`, app `LogForm`) use the unit list and lock the steps; the app's `DateField` has a month calendar.
+  The panel's moderation shows ratings with `ratingStars()`. `leave()` in `drink-logs.ts` goes back, or to the list.
 - **The app's drink log (M8 step 4, 2026-10-15):** `mobile/src/lib/drink-logs.ts` (`fetchMyLogs`, `fetchMyLog`,
   `fetchPublicLogs` — filtered to public + visible, since the owner's session reads private logs too —
   `saveDrinkLog`, `deleteDrinkLog`, `recipeOf`, `shiftDate`; revalidates `/u/{username}` and `/logs/{id}` like the
   site); components `LogForm` (date stepper, no native picker), `DrinkLogEntry` (own/public, "Bildir", comments
   open on the site), `MemberGate` (sign-in prompt → `askToSignIn(from)`); screens `logs/index`, `logs/new`
   (`?cocktail=`; picker without it), `logs/[id]`; "Günlüğe ekle" on the recipe; "Günlüğüm →" on the account;
-  the logs-default switch reloads the session. **Unchecked in a browser and on the phone.**
+  the logs-default switch reloads the session. Checked signed in on 2026-10-15.
 - **After sign-in and the keyboard (2026-10-15, ADR-022):** `mobile/src/lib/after-sign-in.ts` (`askToSignIn`,
   `leaveAfterSignIn`, `takePendingFavorite`, `forgetSignInRequest`) — used by the heart (`favorites.tsx`,
   `toggle(id, from)`), the review prompt, the Hesap tab (signed out → member) and `welcome.tsx`;
@@ -183,7 +167,7 @@ opens the site today). Read the site's `account/recipes/`, `feed/`, `logs/[id]`,
 - **Avatars:** `src/app/(site)/account/AvatarField.tsx` (centre square → 256 px WebP →
   `{user_id}/{base36}.webp` → `setAvatar` → old object deleted), `src/components/Avatar.tsx`
   (picture or initial), `avatarUrl()` / `AVATARS_BUCKET` in `src/lib/supabase/config.ts`.
-- **Supabase** (ref `qwvnhdghwycqlvsnlvlt`): 11 migrations, the latest `20261014134219_showcase`.
+- **Supabase** (ref `qwvnhdghwycqlvsnlvlt`): 12 migrations, the latest `20261015120719_half_star_ratings`.
   Advisors: only leaked-password protection (Pro plan) plus "unused index" infos on still-empty tables.
 - **M4 (2026-10-14):** `reviews`, `favorites`, `reports`, view `cocktail_ratings`; the site's
   `cocktails/actions.ts`, `useMember`, `CocktailReviews`, `ReportButton`; the panel's
@@ -272,7 +256,19 @@ opens the site today). Read the site's `account/recipes/`, `feed/`, `logs/[id]`,
 - **The office network blocks the new domain** (a Fortinet FortiGate). Check DNS with
   `https://dns.google/resolve?name=…` and HTTP with check-host.net (plan.md §5.4).
 
-**This session's lessons (M8 step 4)**
+**This session's lessons (M8 step 4 feedback)**
+- **The built-in browser works for Expo web** (`localhost:8081`) when Claude in Chrome is down; the user signs
+  in there themselves. Its screenshots often show the previous frame — confirm state in the DOM first. A
+  coordinate click needs a screenshot taken first in that turn.
+- **React Native web keeps a closed `Modal`'s nodes in the DOM** — "is the sheet gone?" must be checked visually.
+- **Changing a column's type** needs the views and the `before update of <col>` triggers that use it dropped and
+  recreated (`half_star_ratings` does it); column grants survive.
+- **A screen opened by URL has nothing to go back to** — `router.back()` silently does nothing; use
+  `router.canGoBack()` with a fallback (`leave()`).
+- The owner admin `n.efeyigit@outlook.com` had become a member (`sudiii`) by signing in to the app; that profile
+  was deleted on 2026-10-15 (the admin login stays). Signing in to the app with it again starts onboarding.
+
+**Lessons (M8 step 4)**
 - **Claude in Chrome can be disconnected for a whole session** — `tabs_context_mcp` says so; the user reconnects
   it from Chrome's Claude side panel. Leave the browser check open rather than claim it.
 - **A stale Expo server on 8081** makes `npx expo start` ask for another port and quit in non-interactive mode,

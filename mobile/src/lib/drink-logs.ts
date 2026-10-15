@@ -3,7 +3,9 @@
 // give the same friendly errors, then ask the site to refresh the member's
 // public profile and the log's page (ADR-017, ADR-020).
 
+import { RATING_ERROR, isValidRating } from "@shared/community";
 import { LOG_NOTE_MAX_LENGTH, cleanRecipe, type LogRecipe } from "@shared/drink-log";
+import { router } from "expo-router";
 import type { Json } from "@shared/supabase/database.types";
 import type { Writer } from "./community";
 import type { Cocktail } from "./content";
@@ -102,9 +104,7 @@ export function recipeOf(cocktail: Cocktail): LogRecipe {
 /** Adds a log (no id) or edits the member's own log. */
 export async function saveDrinkLog(writer: Writer, input: LogInput, id?: string): Promise<LogResult> {
   if (!DATE.test(input.drunkOn)) return { error: "Geçerli bir tarih seç." };
-  if (input.rating !== null && (!Number.isInteger(input.rating) || input.rating < 1 || input.rating > 5)) {
-    return { error: "Puan 1 ile 5 arasında olmalı." };
-  }
+  if (input.rating !== null && !isValidRating(input.rating)) return { error: RATING_ERROR };
   const note = input.note.trim();
   if (note.length > LOG_NOTE_MAX_LENGTH) return { error: `Not en fazla ${LOG_NOTE_MAX_LENGTH} karakter olabilir.` };
   const recipe = cleanRecipe(input.recipe);
@@ -148,4 +148,10 @@ export async function deleteDrinkLog(writer: Writer, id: string): Promise<LogRes
 export function shiftDate(date: string, days: number): string {
   const [y, m, d] = date.split("-").map(Number);
   return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
+}
+
+/** Back to the screen before a log form, or to the log list when it was opened directly (a link, the web). */
+export function leave() {
+  if (router.canGoBack()) router.back();
+  else router.replace("/logs");
 }

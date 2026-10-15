@@ -165,7 +165,7 @@ function OwnReview({
 
   function save() {
     setError(null);
-    if (rating < 1) {
+    if (rating < 0.5) {
       setError("Önce bir puan seç.");
       return;
     }
@@ -204,7 +204,7 @@ function OwnReview({
         <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
           {own ? "Değerlendirmeni düzenle" : "Değerlendir"}
         </span>
-        <Stars value={rating} size={20} onChange={setRating} />
+        <Stars value={rating} size={24} onChange={setRating} />
       </div>
       <textarea
         value={body}

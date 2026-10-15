@@ -1,15 +1,15 @@
-import { LOG_LIMITS, LOG_NOTE_MAX_LENGTH, formatLogDate, type LogRecipe } from "@shared/drink-log";
-import { router } from "expo-router";
-import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react-native";
+import { LOG_LIMITS, LOG_NOTE_MAX_LENGTH, unitChoices, type LogRecipe } from "@shared/drink-log";
+import { ChevronDown, Lock, Pencil, Plus, X } from "lucide-react-native";
 import { useState } from "react";
-import { Keyboard, Pressable, StyleSheet, TextInput, View } from "react-native";
+import { Keyboard, Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import type { Writer } from "@/lib/community";
 import type { IngredientIcon } from "@/lib/content";
-import { deleteDrinkLog, saveDrinkLog, shiftDate } from "@/lib/drink-logs";
+import { deleteDrinkLog, leave, saveDrinkLog } from "@/lib/drink-logs";
 import { alpha, colors, fonts } from "@/lib/theme";
+import DateField from "./DateField";
 import { Button, Checkbox, Field, Message } from "./Form";
 import Stars from "./Stars";
-import { Label, Mono } from "./Type";
+import { Body, Label, Mono } from "./Type";
 
 interface IngredientRow {
   key: number;
@@ -28,8 +28,6 @@ export interface LogFormValues {
   isPublic: boolean;
 }
 
-const EARLIEST = "2000-01-01";
-
 let nextKey = 0;
 const rowFrom = (i: LogRecipe["ingredients"][number]): IngredientRow => ({
   key: nextKey++,
@@ -42,8 +40,9 @@ const rowFrom = (i: LogRecipe["ingredients"][number]): IngredientRow => ({
 /**
  * A drink log (the site's LogForm): starts from the recipe and lets the member
  * change it to what they actually made ("gin instead of vodka"). The snapshot
- * is saved with the log (ADR-014). `id` set = editing an existing log.
- * `onDone` runs after a save or delete.
+ * is saved with the log (ADR-014). Units come from a list; the steps stay as
+ * they were unless the member unlocks them. `id` set = editing an existing
+ * log. `onDone` runs after a save or delete.
  */
 export default function LogForm({
   writer,
@@ -58,9 +57,12 @@ export default function LogForm({
   today: string;
   onDone: () => void;
 }) {
+  const originalSteps = initial.recipe.instructions.join("\n");
   const [drunkOn, setDrunkOn] = useState(initial.drunkOn);
   const [rows, setRows] = useState<IngredientRow[]>(() => initial.recipe.ingredients.map(rowFrom));
-  const [steps, setSteps] = useState(initial.recipe.instructions.join("\n"));
+  const [steps, setSteps] = useState(originalSteps);
+  const [editingSteps, setEditingSteps] = useState(false);
+  const [unitFor, setUnitFor] = useState<number | null>(null);
   const [garnish, setGarnish] = useState(initial.recipe.garnish ?? "");
   const [glass, setGlass] = useState(initial.recipe.glass ?? "");
   const [rating, setRating] = useState<number | null>(initial.rating);
@@ -118,6 +120,8 @@ export default function LogForm({
     onDone();
   }
 
+  const stepLines = steps.split("\n").filter((line) => line.trim());
+
   return (
     <View style={styles.form}>
       <DateField value={drunkOn} today={today} onChange={setDrunkOn} />
@@ -145,16 +149,20 @@ export default function LogForm({
               accessibilityLabel="Miktar"
               style={[styles.small, styles.amount]}
             />
-            <TextInput
-              value={row.unit}
-              onChangeText={(unit) => setRow(row.key, { unit })}
-              maxLength={LOG_LIMITS.unit}
-              placeholder="cl"
-              placeholderTextColor={colors.textMuted}
-              accessibilityLabel="Birim"
-              autoCapitalize="none"
+            <Pressable
+              onPress={() => {
+                Keyboard.dismiss();
+                setUnitFor(row.key);
+              }}
               style={[styles.small, styles.unit]}
-            />
+              accessibilityRole="button"
+              accessibilityLabel={`Birim: ${row.unit || "seçilmedi"}`}
+            >
+              <Mono numberOfLines={1} style={[styles.unitText, !row.unit && styles.placeholder]}>
+                {row.unit || "birim"}
+              </Mono>
+              <ChevronDown size={12} color={colors.textMuted} />
+            </Pressable>
             <Pressable
               onPress={() => setRows((prev) => prev.filter((r) => r.key !== row.key))}
               disabled={rows.length === 1}
@@ -181,21 +189,70 @@ export default function LogForm({
         )}
       </View>
 
-      <Field label="Hazırlanışı — her satır bir adım" value={steps} onChangeText={setSteps} multiline style={styles.textarea} />
+      <View style={styles.group}>
+        <View style={styles.stepsHead}>
+          <Label style={styles.label}>Hazırlanışı</Label>
+          {editingSteps ? (
+            <Pressable
+              onPress={() => {
+                setSteps(originalSteps);
+                setEditingSteps(false);
+              }}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Orijinaline dön"
+            >
+              <Mono style={styles.link}>Orijinaline dön</Mono>
+            </Pressable>
+          ) : (
+            <Pressable onPress={() => setEditingSteps(true)} hitSlop={8} style={styles.inline} accessibilityRole="button" accessibilityLabel="Hazırlanışı değiştir">
+              <Pencil size={11} color={colors.textMuted} />
+              <Mono style={styles.link}>Değiştir</Mono>
+            </Pressable>
+          )}
+        </View>
+        {editingSteps ? (
+          <>
+            <TextInput
+              value={steps}
+              onChangeText={setSteps}
+              multiline
+              autoFocus
+              accessibilityLabel="Hazırlanışı, her satır bir adım"
+              style={[styles.stepsInput, styles.textarea]}
+            />
+            <Mono style={styles.hint}>Her satır bir adım. Farklı yaptıysan burada yaz.</Mono>
+          </>
+        ) : (
+          <View style={styles.locked} accessible accessibilityLabel={`Hazırlanışı, değiştirilmedi: ${stepLines.join(". ")}`}>
+            <Lock size={12} color={colors.textMuted} style={styles.lockIcon} />
+            {stepLines.length ? (
+              stepLines.map((line, i) => (
+                <Body key={i} style={styles.lockedStep}>
+                  {i + 1}. {line.trim()}
+                </Body>
+              ))
+            ) : (
+              <Mono style={styles.hint}>Adım yok.</Mono>
+            )}
+          </View>
+        )}
+      </View>
+
       <Field label="Süsleme" value={garnish} onChangeText={setGarnish} maxLength={LOG_LIMITS.garnish} />
       <Field label="Bardak" value={glass} onChangeText={setGlass} maxLength={LOG_LIMITS.glass} />
 
       <View style={styles.group}>
         <Label style={styles.label}>O akşamın puanı (isteğe bağlı)</Label>
         <View style={styles.ratingRow}>
-          <Stars value={rating ?? 0} size={22} onChange={setRating} />
+          <Stars value={rating ?? 0} onChange={setRating} />
           {rating !== null && (
             <Pressable onPress={() => setRating(null)} hitSlop={8} accessibilityRole="button" accessibilityLabel="Puanı kaldır">
-              <Mono style={styles.link}>Puanı kaldır</Mono>
+              <Mono style={styles.link}>Kaldır</Mono>
             </Pressable>
           )}
         </View>
-        <Mono style={styles.hint}>Bu puan yalnızca bu kayda ait; kokteylin ortalamasına sayılmaz.</Mono>
+        <Mono style={styles.hint}>Yarım yıldız için yıldızın sol yarısına dokun. Bu puan yalnızca bu kayda ait; kokteylin ortalamasına sayılmaz.</Mono>
       </View>
 
       <Field
@@ -212,11 +269,20 @@ export default function LogForm({
         <Mono style={styles.checkText}>Herkese açık — profilinde görünsün. İşaretlemezsen yalnızca sen görürsün.</Mono>
       </Checkbox>
 
+      <UnitPicker
+        current={rows.find((r) => r.key === unitFor)?.unit ?? null}
+        onPick={(unit) => {
+          if (unitFor !== null) setRow(unitFor, { unit });
+          setUnitFor(null);
+        }}
+        onClose={() => setUnitFor(null)}
+      />
+
       {error && <Message error>{error}</Message>}
 
       <Button title={id ? "Kaydı güncelle" : "Günlüğe ekle"} onPress={save} pending={pending} />
       <View style={styles.footer}>
-        <Pressable onPress={() => router.back()} disabled={pending} hitSlop={8} accessibilityRole="button" accessibilityLabel="Vazgeç">
+        <Pressable onPress={leave} disabled={pending} hitSlop={8} accessibilityRole="button" accessibilityLabel="Vazgeç">
           <Mono style={styles.muted}>Vazgeç</Mono>
         </Pressable>
         {id && (
@@ -237,63 +303,30 @@ export default function LogForm({
   );
 }
 
-/**
- * The date, a day at a time: a log is nearly always today or a few days back,
- * and a native date picker would need a new development build. Never after
- * today in Turkey (the database allows one day ahead, ADR-017).
- */
-function DateField({ value, today, onChange }: { value: string; today: string; onChange: (date: string) => void }) {
-  const yesterday = shiftDate(today, -1);
-  const atEarliest = value <= EARLIEST;
-  const atToday = value >= today;
-
+/** The shared unit list as a sheet; an older or house unit outside the list is offered first. */
+function UnitPicker({ current, onPick, onClose }: { current: string | null; onPick: (unit: string) => void; onClose: () => void }) {
   return (
-    <View style={styles.group}>
-      <Label style={styles.label}>Tarih</Label>
-      <View style={styles.dateRow}>
-        <Pressable
-          onPress={() => onChange(shiftDate(value, -1))}
-          disabled={atEarliest}
-          hitSlop={6}
-          style={[styles.step, atEarliest && styles.off]}
-          accessibilityRole="button"
-          accessibilityLabel="Önceki gün"
-        >
-          <ChevronLeft size={18} color={colors.textSecondary} />
+    <Modal visible={current !== null} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Kapat">
+        <Pressable style={styles.sheet} onPress={() => {}}>
+          <Label style={[styles.label, styles.sheetTitle]}>Birim</Label>
+          <ScrollView style={styles.sheetList}>
+            {unitChoices(current ?? "").map((unit) => (
+              <Pressable
+                key={unit}
+                onPress={() => onPick(unit)}
+                style={({ pressed }) => [styles.option, unit === current && styles.optionOn, pressed && styles.optionPressed]}
+                accessibilityRole="button"
+                accessibilityLabel={unit}
+                accessibilityState={{ selected: unit === current }}
+              >
+                <Mono style={[styles.optionText, unit === current && styles.optionTextOn]}>{unit}</Mono>
+              </Pressable>
+            ))}
+          </ScrollView>
         </Pressable>
-        <Mono style={styles.date} accessibilityLiveRegion="polite">
-          {formatLogDate(value)}
-        </Mono>
-        <Pressable
-          onPress={() => onChange(shiftDate(value, 1))}
-          disabled={atToday}
-          hitSlop={6}
-          style={[styles.step, atToday && styles.off]}
-          accessibilityRole="button"
-          accessibilityLabel="Sonraki gün"
-        >
-          <ChevronRight size={18} color={colors.textSecondary} />
-        </Pressable>
-      </View>
-      <View style={styles.chips}>
-        {[
-          { label: "Bugün", date: today },
-          { label: "Dün", date: yesterday },
-          { label: "1 hafta önce", date: shiftDate(today, -7) },
-        ].map((chip) => (
-          <Pressable
-            key={chip.label}
-            onPress={() => onChange(chip.date)}
-            style={[styles.chip, value === chip.date && styles.chipOn]}
-            accessibilityRole="button"
-            accessibilityLabel={chip.label}
-            accessibilityState={{ selected: value === chip.date }}
-          >
-            <Mono style={[styles.chipText, value === chip.date && styles.chipTextOn]}>{chip.label}</Mono>
-          </Pressable>
-        ))}
-      </View>
-    </View>
+      </Pressable>
+    </Modal>
   );
 }
 
@@ -315,11 +348,39 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   grow: { flex: 1, minWidth: 0 },
-  amount: { width: 56, textAlign: "right" },
-  unit: { width: 64 },
+  amount: { width: 52, textAlign: "right" },
+  unit: { width: 116, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 4 },
+  unitText: { flexShrink: 1, fontSize: 13, color: colors.textPrimary },
+  placeholder: { color: colors.textMuted },
   remove: { width: 28, height: 32, alignItems: "center", justifyContent: "center" },
   add: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", marginTop: 4 },
   addText: { fontSize: 12, color: colors.textMuted },
+  stepsHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  inline: { flexDirection: "row", alignItems: "center", gap: 4 },
+  stepsInput: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.bgPrimary,
+    borderRadius: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    color: colors.textPrimary,
+    fontFamily: fonts.sans,
+    fontSize: 15,
+  },
+  locked: {
+    gap: 6,
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderColor: colors.border,
+    backgroundColor: alpha(colors.bgElevated, 0.35),
+    borderRadius: 4,
+    paddingLeft: 12,
+    paddingRight: 30,
+    paddingVertical: 10,
+  },
+  lockIcon: { position: "absolute", top: 10, right: 10 },
+  lockedStep: { fontSize: 14, lineHeight: 20, color: colors.textMuted },
   textarea: { minHeight: 96, textAlignVertical: "top" },
   ratingRow: { flexDirection: "row", alignItems: "center", gap: 14 },
   link: { fontSize: 11, color: colors.textMuted, textDecorationLine: "underline" },
@@ -329,19 +390,22 @@ const styles = StyleSheet.create({
   underline: { textDecorationLine: "underline" },
   danger: { fontSize: 12, color: colors.crimsonGlow },
   off: { opacity: 0.3 },
-  dateRow: {
-    flexDirection: "row",
-    alignItems: "center",
+  backdrop: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24, backgroundColor: "rgba(0, 0, 0, 0.6)" },
+  sheet: {
+    width: "100%",
+    maxWidth: 320,
+    maxHeight: "70%",
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.bgPrimary,
-    borderRadius: 4,
+    backgroundColor: colors.bgSecondary,
+    borderRadius: 8,
+    paddingVertical: 12,
   },
-  step: { paddingHorizontal: 12, paddingVertical: 10 },
-  date: { flex: 1, textAlign: "center", fontSize: 14, color: colors.textPrimary },
-  chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  chip: { borderRadius: 999, backgroundColor: colors.bgElevated, paddingHorizontal: 12, paddingVertical: 5 },
-  chipOn: { backgroundColor: alpha(colors.crimson, 0.3) },
-  chipText: { fontSize: 11, color: colors.textMuted },
-  chipTextOn: { color: colors.textPrimary },
+  sheetTitle: { paddingHorizontal: 16, marginBottom: 6 },
+  sheetList: { flexGrow: 0 },
+  option: { paddingHorizontal: 16, paddingVertical: 11 },
+  optionOn: { backgroundColor: alpha(colors.crimson, 0.25) },
+  optionPressed: { backgroundColor: colors.bgElevated },
+  optionText: { fontSize: 14, color: colors.textSecondary },
+  optionTextOn: { color: colors.textPrimary },
 });

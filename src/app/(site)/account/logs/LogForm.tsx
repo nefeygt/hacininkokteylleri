@@ -2,10 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Loader2, Plus, X } from "lucide-react";
+import { Loader2, Lock, Pencil, Plus, X } from "lucide-react";
 import { fieldClass, labelClass, primaryButtonClass } from "@/components/AccountCard";
 import Stars from "@/components/Stars";
-import { LOG_LIMITS, LOG_NOTE_MAX_LENGTH, type LogRecipe } from "@/lib/drink-log";
+import { LOG_LIMITS, LOG_NOTE_MAX_LENGTH, unitChoices, type LogRecipe } from "@/lib/drink-log";
 import type { IngredientIcon } from "@/lib/content";
 import { deleteDrinkLog, saveDrinkLog } from "./actions";
 
@@ -47,7 +47,11 @@ export default function LogForm({ initial, id, today }: { initial: LogFormValues
   const router = useRouter();
   const [drunkOn, setDrunkOn] = useState(initial.drunkOn);
   const [rows, setRows] = useState<IngredientRow[]>(() => initial.recipe.ingredients.map(rowFrom));
-  const [steps, setSteps] = useState(initial.recipe.instructions.join("\n"));
+  const originalSteps = initial.recipe.instructions.join("\n");
+  const [steps, setSteps] = useState(originalSteps);
+  // The steps stay as they were unless the member asks to change them.
+  const [editingSteps, setEditingSteps] = useState(false);
+  const stepLines = steps.split("\n").filter((line) => line.trim());
   const [garnish, setGarnish] = useState(initial.recipe.garnish ?? "");
   const [glass, setGlass] = useState(initial.recipe.glass ?? "");
   const [rating, setRating] = useState<number | null>(initial.rating);
@@ -147,14 +151,18 @@ export default function LogForm({ initial, id, today }: { initial: LogFormValues
                 aria-label="Miktar"
                 className={`${smallField} w-16 shrink-0 text-right`}
               />
-              <input
+              <select
                 value={row.unit}
                 onChange={(e) => setRow(row.key, { unit: e.target.value })}
-                maxLength={LOG_LIMITS.unit}
-                placeholder="cl"
                 aria-label="Birim"
-                className={`${smallField} w-20 shrink-0`}
-              />
+                className={`${smallField} w-28 shrink-0`}
+              >
+                {unitChoices(row.unit).map((unit) => (
+                  <option key={unit} value={unit}>
+                    {unit}
+                  </option>
+                ))}
+              </select>
               <button
                 type="button"
                 title="Malzemeyi çıkar"
@@ -180,15 +188,50 @@ export default function LogForm({ initial, id, today }: { initial: LogFormValues
         )}
       </fieldset>
 
-      <label className="block">
-        <span className={labelClass}>Hazırlanışı — her satır bir adım</span>
-        <textarea
-          value={steps}
-          onChange={(e) => setSteps(e.target.value)}
-          rows={4}
-          className={`${fieldClass} resize-y`}
-        />
-      </label>
+      <div>
+        <div className="flex items-center justify-between">
+          <span className={labelClass}>Hazırlanışı</span>
+          <button
+            type="button"
+            onClick={() => {
+              if (editingSteps) setSteps(originalSteps);
+              setEditingSteps(!editingSteps);
+            }}
+            className="flex items-center gap-1 font-mono text-[11px] text-text-muted underline underline-offset-2 hover:text-text-primary"
+          >
+            {!editingSteps && <Pencil className="h-3 w-3" />}
+            {editingSteps ? "Orijinaline dön" : "Değiştir"}
+          </button>
+        </div>
+        {editingSteps ? (
+          <>
+            <textarea
+              value={steps}
+              onChange={(e) => setSteps(e.target.value)}
+              rows={4}
+              autoFocus
+              aria-label="Hazırlanışı, her satır bir adım"
+              className={`${fieldClass} resize-y`}
+            />
+            <p className="mt-1.5 font-mono text-[11px] text-text-muted">Her satır bir adım. Farklı yaptıysan burada yaz.</p>
+          </>
+        ) : (
+          <div className="relative rounded border border-dashed border-border bg-bg-elevated/30 py-2.5 pl-3 pr-8">
+            <Lock className="absolute right-3 top-3 h-3 w-3 text-text-muted" aria-hidden />
+            {stepLines.length ? (
+              <ol className="space-y-1 text-sm text-text-muted">
+                {stepLines.map((line, i) => (
+                  <li key={i}>
+                    {i + 1}. {line.trim()}
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p className="font-mono text-[11px] text-text-muted">Adım yok.</p>
+            )}
+          </div>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <label className="block">
@@ -204,7 +247,7 @@ export default function LogForm({ initial, id, today }: { initial: LogFormValues
       <div>
         <span className={labelClass}>O akşamın puanı (isteğe bağlı)</span>
         <div className="flex items-center gap-3">
-          <Stars value={rating ?? 0} size={22} onChange={setRating} />
+          <Stars value={rating ?? 0} size={26} onChange={setRating} />
           {rating !== null && (
             <button
               type="button"

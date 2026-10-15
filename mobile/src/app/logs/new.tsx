@@ -7,7 +7,7 @@ import LogForm from "@/components/LogForm";
 import MemberGate from "@/components/MemberGate";
 import { Body, Heading, Mono } from "@/components/Type";
 import { useArchive } from "@/lib/archive";
-import { recipeOf } from "@/lib/drink-logs";
+import { leave, recipeOf } from "@/lib/drink-logs";
 import { colors, fonts, readable } from "@/lib/theme";
 
 /**
@@ -96,7 +96,7 @@ export default function NewLogScreen() {
                   }}
                   // From a recipe: the list replaces the form, so going back lands on the recipe.
                   // From the list: back to it (it reloads when it comes back).
-                  onDone={() => (fromRecipe ? router.replace("/logs") : router.back())}
+                  onDone={() => (fromRecipe ? router.replace("/logs") : leave())}
                 />
               </View>
             </View>
