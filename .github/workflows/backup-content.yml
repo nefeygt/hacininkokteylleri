@@ -1,0 +1,37 @@
+# Weekly content backup (plan.md §7, ADR-027): exports the published house recipes and the glossary
+# with the public key in .env and commits only when something changed. vercel.json's ignoreCommand
+# skips the production build for a commit that touches nothing but the backup.
+name: Back up content
+
+on:
+  schedule:
+    - cron: "0 3 * * 1" # Mondays 03:00 UTC (06:00 in Turkey)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: backup-content
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/backup-content.mjs
+      - name: Commit changes
+        run: |
+          git add backup supabase/storage/cocktail-images
+          if git diff --cached --quiet; then
+            echo "Nothing changed."
+            exit 0
+          fi
+          git -c user.name="github-actions[bot]" \
+              -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -m "Back up content $(date -u +%F)"
+          git push

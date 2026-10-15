@@ -1,0 +1,2115 @@
+[
+  {
+    "id": "e756ab8d-7b70-4dc6-a838-8bb4056431ea",
+    "slug": "kuzu-kulagi-devrimi",
+    "name": "Kuzu Kulağı Devrimi",
+    "subtitle": "Doğadan gelen anarşik asidite",
+    "base_alcohol": "Votka",
+    "flavor": "Ekşi",
+    "tags": [
+      "Votka",
+      "Kuzu Kulağı",
+      "Elma",
+      "Ferah"
+    ],
+    "color": "#4ade80",
+    "image_path": "kuzu-kulagi-devrimi.webp",
+    "instructions": [
+      "Kuzu kulağı ve elmayı shaker'da iyice ez (muddle).",
+      "Votka, limon ve şeker şurubunu ekle.",
+      "Buzla sertçe çalkala ve çift süzgeçle süz."
+    ],
+    "garnish": "Taze kuzu kulağı yaprağı",
+    "glass": "Rocks",
+    "vegan": true,
+    "note": "Alışılmışın dışına çıkmaya zorlayan, sorgulatan bir tat.",
+    "sort_order": 10,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Vodka",
+        "unit": "cl",
+        "amount": 6,
+        "position": 1
+      },
+      {
+        "icon": "shot",
+        "name": "Limon Suyu",
+        "unit": "cl",
+        "amount": 6,
+        "position": 2
+      },
+      {
+        "icon": "spoon",
+        "name": "Şeker Şurubu",
+        "unit": "cl",
+        "amount": 3,
+        "position": 3
+      },
+      {
+        "icon": "slice",
+        "name": "Elma",
+        "unit": "adet",
+        "amount": 1,
+        "position": 4
+      },
+      {
+        "icon": "slice",
+        "name": "Kuzu Kulağı",
+        "unit": "demet",
+        "amount": 0.5,
+        "position": 5
+      }
+    ]
+  },
+  {
+    "id": "4df34d8f-0246-4310-b06b-f96d70b286ce",
+    "slug": "ferah-manifesto",
+    "name": "Ferah Manifesto",
+    "subtitle": "Sade, net ve canlandırıcı",
+    "base_alcohol": "Cin",
+    "flavor": "Ferah",
+    "tags": [
+      "Cin",
+      "Salatalık",
+      "Tonik",
+      "Ferah"
+    ],
+    "color": "#dcfce7",
+    "image_path": "ferah-manifesto.webp",
+    "instructions": [
+      "Salatalığı ez.",
+      "Cin, limon ve şekeri ekleyip çalkala.",
+      "Buzlu bardağa süz, az tonik ile Top up yap."
+    ],
+    "garnish": "Salatalık şeridi",
+    "glass": "Highball",
+    "vegan": true,
+    "note": null,
+    "sort_order": 20,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Cin",
+        "unit": "cl",
+        "amount": 6,
+        "position": 1
+      },
+      {
+        "icon": "shot",
+        "name": "Limon Suyu",
+        "unit": "cl",
+        "amount": 6,
+        "position": 2
+      },
+      {
+        "icon": "spoon",
+        "name": "Şeker Şurubu",
+        "unit": "cl",
+        "amount": 3,
+        "position": 3
+      },
+      {
+        "icon": "slice",
+        "name": "Salatalık",
+        "unit": "adet",
+        "amount": 1,
+        "position": 4
+      },
+      {
+        "icon": "topup",
+        "name": "Tonik",
+        "unit": "cl",
+        "amount": 5,
+        "position": 5
+      }
+    ]
+  },
+  {
+    "id": "19af99b2-8a54-4339-b799-43f6cf0d8725",
+    "slug": "sovyet-elmasi",
+    "name": "Sovyet Elması",
+    "subtitle": "Halkın günlük ferahlığı",
+    "base_alcohol": "Votka",
+    "flavor": "Tatlı-Ekşi",
+    "tags": [
+      "Votka",
+      "Elma",
+      "Kolay"
+    ],
+    "color": "#fef08a",
+    "image_path": "sovyet-elmasi.webp",
+    "instructions": [
+      "Buz dolu bardağa votka ve elma suyunu ekle.",
+      "Sprite ile hafifçe tamamla, karıştır."
+    ],
+    "garnish": "Elma dilimi",
+    "glass": "Highball",
+    "vegan": true,
+    "note": null,
+    "sort_order": 30,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Vodka",
+        "unit": "cl",
+        "amount": 6,
+        "position": 1
+      },
+      {
+        "icon": "topup",
+        "name": "Elma Suyu",
+        "unit": "cl",
+        "amount": 10,
+        "position": 2
+      },
+      {
+        "icon": "topup",
+        "name": "Sprite",
+        "unit": "cl",
+        "amount": 4,
+        "position": 3
+      }
+    ]
+  },
+  {
+    "id": "6f5c0d02-a9ac-47cb-93bb-45b44e94876f",
+    "slug": "mavi-isci",
+    "name": "Mavi İşçi",
+    "subtitle": "Mavi yakalıların distopik molası",
+    "base_alcohol": "Votka",
+    "flavor": "Tatlı-Ekşi",
+    "tags": [
+      "Votka",
+      "Mavi",
+      "Narenciye"
+    ],
+    "color": "#3b82f6",
+    "image_path": "mavi-isci.webp",
+    "instructions": [
+      "Tüm malzemeleri buzla çalkala ve süz."
+    ],
+    "garnish": "Limon kabuğu",
+    "glass": "Martini / Coupe",
+    "vegan": true,
+    "note": null,
+    "sort_order": 40,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Vodka",
+        "unit": "cl",
+        "amount": 6,
+        "position": 1
+      },
+      {
+        "icon": "shot",
+        "name": "Limon Suyu",
+        "unit": "cl",
+        "amount": 4,
+        "position": 2
+      },
+      {
+        "icon": "spoon",
+        "name": "Şeker Şurubu",
+        "unit": "cl",
+        "amount": 2,
+        "position": 3
+      },
+      {
+        "icon": "dash",
+        "name": "Blue Curaçao",
+        "unit": "cl",
+        "amount": 2,
+        "position": 4
+      }
+    ]
+  },
+  {
+    "id": "f7771e2e-f993-485e-bd7e-f45943bcfe4f",
+    "slug": "aperol-spritz",
+    "name": "Aperol Spritz",
+    "subtitle": "İtalyan burjuvazisine inat",
+    "base_alcohol": "Aperitif",
+    "flavor": "Acı-Tatlı",
+    "tags": [
+      "Aperol",
+      "Şampanya",
+      "Ferah",
+      "Klasik"
+    ],
+    "color": "#f97316",
+    "image_path": "aperol-spritz.webp",
+    "instructions": [
+      "Bardağı buzla doldur.",
+      "Aperol, şampanya ve sodayı sırasıyla ekle. Hafifçe karıştır."
+    ],
+    "garnish": "Portakal dilimi",
+    "glass": "Şarap Kadehi",
+    "vegan": true,
+    "note": null,
+    "sort_order": 50,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Aperol",
+        "unit": "cl",
+        "amount": 5,
+        "position": 1
+      },
+      {
+        "icon": "topup",
+        "name": "Şampanya (Prosecco)",
+        "unit": "cl",
+        "amount": 8,
+        "position": 2
+      },
+      {
+        "icon": "dash",
+        "name": "Soda",
+        "unit": "cl",
+        "amount": 2,
+        "position": 3
+      }
+    ]
+  },
+  {
+    "id": "d4bd0d25-f3b1-40aa-ac8b-a0b5b28a6757",
+    "slug": "hemingway-daiquiri",
+    "name": "Daiquiri",
+    "subtitle": "Sade bir başyapıt",
+    "base_alcohol": "Rom",
+    "flavor": "Ekşi",
+    "tags": [
+      "Rom",
+      "Klasik",
+      "Lime"
+    ],
+    "color": "#ecfccb",
+    "image_path": "hemingway-daiquiri.webp",
+    "instructions": [
+      "Tüm malzemeleri shaker'da soğuyana kadar çalkala.",
+      "Soğutulmuş kadehe süz."
+    ],
+    "garnish": "Lime tekerleği",
+    "glass": "Coupe",
+    "vegan": true,
+    "note": null,
+    "sort_order": 60,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Beyaz Rom",
+        "unit": "cl",
+        "amount": 5,
+        "position": 1
+      },
+      {
+        "icon": "shot",
+        "name": "Lime Suyu",
+        "unit": "cl",
+        "amount": 3,
+        "position": 2
+      },
+      {
+        "icon": "spoon",
+        "name": "Şeker Şurubu",
+        "unit": "cl",
+        "amount": 2,
+        "position": 3
+      }
+    ]
+  },
+  {
+    "id": "97fca4c7-125a-4663-aaff-99aa5025ec5c",
+    "slug": "zombie-brain",
+    "name": "Zombie Brain",
+    "subtitle": "Sinematik bir katliam sahnesi",
+    "base_alcohol": "Likör",
+    "flavor": "Tatlı",
+    "tags": [
+      "Shot",
+      "Tatlı",
+      "Görsel"
+    ],
+    "color": "#ef4444",
+    "image_path": "zombie-brain.webp",
+    "instructions": [
+      "Shot bardağına önce şeftali likörünü koy.",
+      "Baileys ve Jägermeister'i katman (layer) olacak şekilde yavaşça ekle.",
+      "En üstten birkaç damla Grenadine damlat (kan efekti için)."
+    ],
+    "garnish": "Yok",
+    "glass": "Shot",
+    "vegan": false,
+    "note": "Baileys içerdiği için vegan değildir. Kötü B filmlerindeki zombi efektleri kadar tatmin edici.",
+    "sort_order": 70,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Şeftali Likörü",
+        "unit": "cl",
+        "amount": 2,
+        "position": 1
+      },
+      {
+        "icon": "dash",
+        "name": "Baileys",
+        "unit": "cl",
+        "amount": 1.5,
+        "position": 2
+      },
+      {
+        "icon": "dash",
+        "name": "Jägermeister",
+        "unit": "cl",
+        "amount": 1,
+        "position": 3
+      },
+      {
+        "icon": "drop",
+        "name": "Grenadine",
+        "unit": "cl",
+        "amount": 0.5,
+        "position": 4
+      }
+    ]
+  },
+  {
+    "id": "867ce1a7-a4dd-4012-a587-446093233562",
+    "slug": "kuba-mojito",
+    "name": "Mojito",
+    "subtitle": "Havana sokaklarından kopup gelen",
+    "base_alcohol": "Rom",
+    "flavor": "Ferah",
+    "tags": [
+      "Rom",
+      "Nane",
+      "Klasik",
+      "Ferah"
+    ],
+    "color": "#bbf7d0",
+    "image_path": "kuba-mojito.webp",
+    "instructions": [
+      "Nane ve şekeri bardakta nazikçe ez.",
+      "Rom ve lime suyunu ekle, kırık buzla doldur.",
+      "Soda ile Top up yapıp dipten karıştır."
+    ],
+    "garnish": "Nane dalı ve lime",
+    "glass": "Highball",
+    "vegan": true,
+    "note": null,
+    "sort_order": 80,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Beyaz Rom",
+        "unit": "cl",
+        "amount": 6,
+        "position": 1
+      },
+      {
+        "icon": "shot",
+        "name": "Lime Suyu",
+        "unit": "cl",
+        "amount": 3,
+        "position": 2
+      },
+      {
+        "icon": "spoon",
+        "name": "Şeker Şurubu",
+        "unit": "cl",
+        "amount": 2,
+        "position": 3
+      },
+      {
+        "icon": "slice",
+        "name": "Taze Nane",
+        "unit": "yaprak",
+        "amount": 8,
+        "position": 4
+      },
+      {
+        "icon": "topup",
+        "name": "Soda",
+        "unit": "cl",
+        "amount": 5,
+        "position": 5
+      }
+    ]
+  },
+  {
+    "id": "0cd3e8bd-abdc-4795-9ee7-29c96cfb4b30",
+    "slug": "rabbit-b",
+    "name": "Rabbit B",
+    "subtitle": "Tavşan deliğinden aşağı",
+    "base_alcohol": "Cin",
+    "flavor": "Ekşi",
+    "tags": [
+      "Cin",
+      "Salatalık",
+      "Kompleks"
+    ],
+    "color": "#86efac",
+    "image_path": "rabbit-b.webp",
+    "instructions": [
+      "Tüm malzemeleri shaker'da buzla çalkala.",
+      "İnce süzgeçten geçirerek servis et."
+    ],
+    "garnish": "Salatalık rulosu",
+    "glass": "Coupe",
+    "vegan": true,
+    "note": null,
+    "sort_order": 90,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Cin",
+        "unit": "cl",
+        "amount": 6,
+        "position": 1
+      },
+      {
+        "icon": "shot",
+        "name": "Sweet & Sour",
+        "unit": "cl",
+        "amount": 6,
+        "position": 2
+      },
+      {
+        "icon": "dash",
+        "name": "Limon Suyu",
+        "unit": "cl",
+        "amount": 0.5,
+        "position": 3
+      },
+      {
+        "icon": "dash",
+        "name": "Şeker Şurubu",
+        "unit": "cl",
+        "amount": 0.5,
+        "position": 4
+      },
+      {
+        "icon": "dash",
+        "name": "Salatalık Suyu",
+        "unit": "cl",
+        "amount": 0.5,
+        "position": 5
+      }
+    ]
+  },
+  {
+    "id": "56080d2d-5613-4729-9029-580926467745",
+    "slug": "b-52",
+    "name": "B-52",
+    "subtitle": "Stratejik bombardıman",
+    "base_alcohol": "Likör",
+    "flavor": "Tatlı",
+    "tags": [
+      "Shot",
+      "Kahve",
+      "Tatlı"
+    ],
+    "color": "#78350f",
+    "image_path": "b52.webp",
+    "instructions": [
+      "Shot bardağına sırasıyla Kahlua, Baileys ve Portakal likörünü katman katman dök."
+    ],
+    "garnish": "Ateş (İsteğe bağlı yakılır)",
+    "glass": "Shot",
+    "vegan": false,
+    "note": null,
+    "sort_order": 100,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-14T08:14:38.40801+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Kahlua",
+        "unit": "cl",
+        "amount": 2,
+        "position": 1
+      },
+      {
+        "icon": "shot",
+        "name": "Baileys",
+        "unit": "cl",
+        "amount": 2,
+        "position": 2
+      },
+      {
+        "icon": "shot",
+        "name": "Portakal Likörü",
+        "unit": "cl",
+        "amount": 2,
+        "position": 3
+      }
+    ]
+  },
+  {
+    "id": "84ea44df-112d-4991-a95f-8e2e31fc79a4",
+    "slug": "caipiroska",
+    "name": "Caipiroska",
+    "subtitle": "Rus ruleti, Brezilya stili",
+    "base_alcohol": "Votka",
+    "flavor": "Ekşi-Tatlı",
+    "tags": [
+      "Votka",
+      "Lime",
+      "Klasik"
+    ],
+    "color": "#e2e8f0",
+    "image_path": "caipiroska.webp",
+    "instructions": [
+      "Bardakta lime ve şekeri iyice ez.",
+      "Kırık buz ekle, votkayı dök ve karıştır."
+    ],
+    "garnish": "Lime",
+    "glass": "Rocks",
+    "vegan": true,
+    "note": null,
+    "sort_order": 110,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Vodka",
+        "unit": "cl",
+        "amount": 5,
+        "position": 1
+      },
+      {
+        "icon": "slice",
+        "name": "Lime (Dilimlenmiş)",
+        "unit": "adet",
+        "amount": 1,
+        "position": 2
+      },
+      {
+        "icon": "spoon",
+        "name": "Esmer Şeker",
+        "unit": "kaşık",
+        "amount": 2,
+        "position": 3
+      }
+    ]
+  },
+  {
+    "id": "503714b9-3f30-4c28-a3a2-3da0bda28a4d",
+    "slug": "cosmopolitan",
+    "name": "Cosmopolitan",
+    "subtitle": "Popüler kültüre ufak bir taviz",
+    "base_alcohol": "Votka",
+    "flavor": "Meyveli",
+    "tags": [
+      "Votka",
+      "Cranberry",
+      "Klasik"
+    ],
+    "color": "#f43f5e",
+    "image_path": "cosmopolitan.webp",
+    "instructions": [
+      "Tüm malzemeleri buzla çalkala, kadehe süz."
+    ],
+    "garnish": "Alevlendirilmiş portakal kabuğu",
+    "glass": "Martini",
+    "vegan": true,
+    "note": null,
+    "sort_order": 120,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Vodka",
+        "unit": "cl",
+        "amount": 5,
+        "position": 1
+      },
+      {
+        "icon": "dash",
+        "name": "Portakal Likörü",
+        "unit": "cl",
+        "amount": 1.5,
+        "position": 2
+      },
+      {
+        "icon": "dash",
+        "name": "Lime Suyu",
+        "unit": "cl",
+        "amount": 1.5,
+        "position": 3
+      },
+      {
+        "icon": "shot",
+        "name": "Cranberry Suyu",
+        "unit": "cl",
+        "amount": 3.5,
+        "position": 4
+      }
+    ]
+  },
+  {
+    "id": "0f275d7f-1bb0-4766-9108-e8f7e94c4bd8",
+    "slug": "cuba-libre",
+    "name": "Cuba Libre",
+    "subtitle": "Viva la Revolución!",
+    "base_alcohol": "Rom",
+    "flavor": "Tatlı",
+    "tags": [
+      "Rom",
+      "Kola",
+      "Klasik"
+    ],
+    "color": "#451a03",
+    "image_path": "cuba-libre.webp",
+    "instructions": [
+      "Buzlu bardağa rom ve lime ekle.",
+      "Kola ile Top up yap."
+    ],
+    "garnish": "Lime dilimi",
+    "glass": "Highball",
+    "vegan": true,
+    "note": null,
+    "sort_order": 130,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Rom",
+        "unit": "cl",
+        "amount": 5,
+        "position": 1
+      },
+      {
+        "icon": "topup",
+        "name": "Kola",
+        "unit": "cl",
+        "amount": 12,
+        "position": 2
+      },
+      {
+        "icon": "dash",
+        "name": "Lime Suyu",
+        "unit": "cl",
+        "amount": 1.5,
+        "position": 3
+      }
+    ]
+  },
+  {
+    "id": "f3fbd740-e310-488e-9478-036a345b87dc",
+    "slug": "moscow-mule",
+    "name": "Moscow Mule",
+    "subtitle": "Sovyet rüzgârı bir bakır kupada",
+    "base_alcohol": "Votka",
+    "flavor": "Baharatlı",
+    "tags": [
+      "Votka",
+      "Zencefil",
+      "Lime",
+      "Klasik"
+    ],
+    "color": "#c87533",
+    "image_path": "moscow-mule.webp",
+    "instructions": [
+      "Bakır kupaya buz ekle, malzemeleri dök.",
+      "Zencefil gazozu ile Top up yap, hafifçe karıştır."
+    ],
+    "garnish": "Taze nane ve lime",
+    "glass": "Bakır Kupa",
+    "vegan": true,
+    "note": null,
+    "sort_order": 140,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Votka",
+        "unit": "cl",
+        "amount": 6,
+        "position": 1
+      },
+      {
+        "icon": "shot",
+        "name": "Lime Suyu",
+        "unit": "cl",
+        "amount": 3,
+        "position": 2
+      },
+      {
+        "icon": "topup",
+        "name": "Zencefilli Gazoz",
+        "unit": "cl",
+        "amount": 12,
+        "position": 3
+      },
+      {
+        "icon": "slice",
+        "name": "Nane",
+        "unit": "yaprak",
+        "amount": 3,
+        "position": 4
+      }
+    ]
+  },
+  {
+    "id": "a52840c7-3af7-4f85-9ae7-b2f151bc750c",
+    "slug": "blue-hawaii",
+    "name": "Blue Hawaii",
+    "subtitle": "Kapitalizmin neon rüyası",
+    "base_alcohol": "Votka",
+    "flavor": "Tropikal",
+    "tags": [
+      "Votka",
+      "Rom",
+      "Ananas",
+      "Mavi"
+    ],
+    "color": "#06b6d4",
+    "image_path": "blue-hawaii.webp",
+    "instructions": [
+      "Buzla çalkala ve uzun bardağa süz."
+    ],
+    "garnish": "Ananas dilimi ve kiraz",
+    "glass": "Hurricane / Highball",
+    "vegan": true,
+    "note": null,
+    "sort_order": 150,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Vodka",
+        "unit": "cl",
+        "amount": 5,
+        "position": 1
+      },
+      {
+        "icon": "shot",
+        "name": "Beyaz Rom",
+        "unit": "cl",
+        "amount": 3,
+        "position": 2
+      },
+      {
+        "icon": "dash",
+        "name": "Blue Curaçao Şurubu",
+        "unit": "cl",
+        "amount": 1,
+        "position": 3
+      },
+      {
+        "icon": "shot",
+        "name": "Ananas Suyu",
+        "unit": "cl",
+        "amount": 6,
+        "position": 4
+      }
+    ]
+  },
+  {
+    "id": "306dcb15-fd7d-4dde-8f5b-3d2f1ab1f0e9",
+    "slug": "cin-cilegi",
+    "name": "Cin Çileği",
+    "subtitle": "Tarladan bardağa",
+    "base_alcohol": "Cin",
+    "flavor": "Meyveli",
+    "tags": [
+      "Cin",
+      "Çilek",
+      "Ferah"
+    ],
+    "color": "#f43f5e",
+    "image_path": "cin-cilegi.webp",
+    "instructions": [
+      "Çilekleri shaker'da ez.",
+      "Cin, limon ve şekeri ekleyip çalkala.",
+      "Buzlu bardağa süz, soda ile Top up yap."
+    ],
+    "garnish": "Çilek dilimi",
+    "glass": "Highball",
+    "vegan": true,
+    "note": null,
+    "sort_order": 160,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Cin",
+        "unit": "cl",
+        "amount": 5,
+        "position": 1
+      },
+      {
+        "icon": "slice",
+        "name": "Çilek",
+        "unit": "adet",
+        "amount": 5,
+        "position": 2
+      },
+      {
+        "icon": "dash",
+        "name": "Limon Suyu",
+        "unit": "cl",
+        "amount": 2.5,
+        "position": 3
+      },
+      {
+        "icon": "spoon",
+        "name": "Şeker Şurubu",
+        "unit": "cl",
+        "amount": 1.5,
+        "position": 4
+      },
+      {
+        "icon": "topup",
+        "name": "Soda",
+        "unit": "cl",
+        "amount": 4,
+        "position": 5
+      }
+    ]
+  },
+  {
+    "id": "bab1aec9-561b-485f-a1db-223aed962de9",
+    "slug": "sea-breeze",
+    "name": "Sea Breeze",
+    "subtitle": "Okyanus esintisi",
+    "base_alcohol": "Votka",
+    "flavor": "Ekşi-Tatlı",
+    "tags": [
+      "Votka",
+      "Greyfurt",
+      "Meyveli"
+    ],
+    "color": "#fca5a5",
+    "image_path": "sea-breeze.webp",
+    "instructions": [
+      "Buz dolu bardağa malzemeleri sırasıyla ekle ve karıştır."
+    ],
+    "garnish": "Greyfurt dilimi",
+    "glass": "Highball",
+    "vegan": true,
+    "note": null,
+    "sort_order": 170,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Vodka",
+        "unit": "cl",
+        "amount": 6,
+        "position": 1
+      },
+      {
+        "icon": "topup",
+        "name": "Cranberry Suyu",
+        "unit": "cl",
+        "amount": 9,
+        "position": 2
+      },
+      {
+        "icon": "topup",
+        "name": "Greyfurt Suyu",
+        "unit": "cl",
+        "amount": 6,
+        "position": 3
+      }
+    ]
+  },
+  {
+    "id": "7a66640a-2151-4ed2-bbce-643c3372cfb8",
+    "slug": "espresso-martini",
+    "name": "Espresso Martini",
+    "subtitle": "Tıp fakültesi vizelerinin tek ilacı",
+    "base_alcohol": "Votka",
+    "flavor": "Kahve",
+    "tags": [
+      "Votka",
+      "Kahve",
+      "Enerji"
+    ],
+    "color": "#27272a",
+    "image_path": "espresso-martini.webp",
+    "instructions": [
+      "Tüm malzemeleri shaker'da bol buzla çok sert çalkala (köpürmesi için).",
+      "Soğutulmuş kadehe süz."
+    ],
+    "garnish": "3 adet kahve çekirdeği",
+    "glass": "Martini / Coupe",
+    "vegan": true,
+    "note": "Spor öncesi veya vizelere sabahlarken ideal kafein-alkol dengesi.",
+    "sort_order": 180,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Vodka",
+        "unit": "cl",
+        "amount": 3,
+        "position": 1
+      },
+      {
+        "icon": "shot",
+        "name": "Kahve Likörü (Kahlua)",
+        "unit": "cl",
+        "amount": 3,
+        "position": 2
+      },
+      {
+        "icon": "shot",
+        "name": "Espresso",
+        "unit": "cl",
+        "amount": 3,
+        "position": 3
+      }
+    ]
+  },
+  {
+    "id": "6c7d810c-f2f6-4e15-9943-3940aae23197",
+    "slug": "bees-knees",
+    "name": "Bee's Knees",
+    "subtitle": "Arıların işçi sınıfı emeği",
+    "base_alcohol": "Cin",
+    "flavor": "Tatlı-Ekşi",
+    "tags": [
+      "Cin",
+      "Tatlı",
+      "Klasik"
+    ],
+    "color": "#fde047",
+    "image_path": "bees-knees.webp",
+    "instructions": [
+      "Buzla shaker'da çalkala, kadehe süz."
+    ],
+    "garnish": "Limon kabuğu",
+    "glass": "Coupe",
+    "vegan": true,
+    "note": null,
+    "sort_order": 190,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Cin",
+        "unit": "cl",
+        "amount": 6,
+        "position": 1
+      },
+      {
+        "icon": "shot",
+        "name": "Limon Suyu",
+        "unit": "cl",
+        "amount": 3,
+        "position": 2
+      },
+      {
+        "icon": "spoon",
+        "name": "Şeker Şurubu",
+        "unit": "cl",
+        "amount": 1.5,
+        "position": 3
+      }
+    ]
+  },
+  {
+    "id": "97e3a792-6433-4af3-aa5c-c20bbe1c6319",
+    "slug": "black-russian",
+    "name": "Black (White) Russian",
+    "subtitle": "Beyaz perdeye karanlık bir yansıma",
+    "base_alcohol": "Votka",
+    "flavor": "Tatlı",
+    "tags": [
+      "Votka",
+      "Kahve",
+      "Süt"
+    ],
+    "color": "#d6d3d1",
+    "image_path": "black-white-russian.webp",
+    "instructions": [
+      "Buzlu bardağa votka ve likörü ekle.",
+      "Üzerine yavaşça sütü ilave et."
+    ],
+    "garnish": "Yok",
+    "glass": "Rocks",
+    "vegan": false,
+    "note": "Süt içerdiği için vegan değildir. Big Lebowski izlerken yudumlanmalı.",
+    "sort_order": 200,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Vodka",
+        "unit": "cl",
+        "amount": 4,
+        "position": 1
+      },
+      {
+        "icon": "shot",
+        "name": "Kahve Likörü",
+        "unit": "cl",
+        "amount": 2,
+        "position": 2
+      },
+      {
+        "icon": "topup",
+        "name": "Süt",
+        "unit": "cl",
+        "amount": 6,
+        "position": 3
+      }
+    ]
+  },
+  {
+    "id": "83b0cb6b-0369-497b-9790-2b49e7856e97",
+    "slug": "klasik-viski-sour",
+    "name": "Klasik Viski Sour",
+    "subtitle": "Geleneksel ve uzlaşmasız",
+    "base_alcohol": "Viski",
+    "flavor": "Ekşi",
+    "tags": [
+      "Viski",
+      "Klasik",
+      "Yumurta"
+    ],
+    "color": "#fcd34d",
+    "image_path": "klasik-viski-sour.webp",
+    "instructions": [
+      "Tüm malzemeleri shaker'a buzsuz koy ve dry shake yap.",
+      "Buz ekleyip tekrar çalkala.",
+      "Bardağa süz."
+    ],
+    "garnish": "Angostura damlaları",
+    "glass": "Rocks",
+    "vegan": false,
+    "note": "Orijinal tarif. Bazen klasikleri olduğu gibi bırakmak gerekir.",
+    "sort_order": 210,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Viski",
+        "unit": "cl",
+        "amount": 6,
+        "position": 1
+      },
+      {
+        "icon": "shot",
+        "name": "Limon Suyu",
+        "unit": "cl",
+        "amount": 4,
+        "position": 2
+      },
+      {
+        "icon": "spoon",
+        "name": "Şeker Şurubu",
+        "unit": "cl",
+        "amount": 2,
+        "position": 3
+      },
+      {
+        "icon": "drop",
+        "name": "Yumurta Akı",
+        "unit": "adet",
+        "amount": 1,
+        "position": 4
+      }
+    ]
+  },
+  {
+    "id": "ce2ddca3-4e2b-4c90-b046-7cc06a458b1c",
+    "slug": "irish-coffee",
+    "name": "Irish Coffee",
+    "subtitle": "Sıcak, sert ve edebi",
+    "base_alcohol": "Viski",
+    "flavor": "Kahve",
+    "tags": [
+      "Viski",
+      "Kahve",
+      "Sıcak",
+      "Tatlı"
+    ],
+    "color": "#451a03",
+    "image_path": "irish-coffee.webp",
+    "instructions": [
+      "Sıcak bardağa kahve, şeker ve viskiyi ekle.",
+      "Üstüne krema veya süt ile Top up yap."
+    ],
+    "garnish": "Kahve çekirdeği",
+    "glass": "Toddy / Kupa",
+    "vegan": false,
+    "note": null,
+    "sort_order": 220,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "İrlanda Viskisi",
+        "unit": "cl",
+        "amount": 3,
+        "position": 1
+      },
+      {
+        "icon": "spoon",
+        "name": "Şeker Şurubu",
+        "unit": "cl",
+        "amount": 1.5,
+        "position": 2
+      },
+      {
+        "icon": "topup",
+        "name": "Sıcak Kahve",
+        "unit": "cl",
+        "amount": 9,
+        "position": 3
+      },
+      {
+        "icon": "topup",
+        "name": "Krema/Süt",
+        "unit": "cl",
+        "amount": 3,
+        "position": 4
+      }
+    ]
+  },
+  {
+    "id": "5e2d40b2-dc10-4f08-824e-f2f90758695f",
+    "slug": "irish-whistea",
+    "name": "Irish Whistea (Batch)",
+    "subtitle": "Aydınlanma toplantıları için",
+    "base_alcohol": "Viski",
+    "flavor": "Kompleks",
+    "tags": [
+      "Viski",
+      "Çay",
+      "Parti Boyu"
+    ],
+    "color": "#b45309",
+    "image_path": "irish-whistea.webp",
+    "instructions": [
+      "Balı sıcak suyla erit, çayları demle.",
+      "Büyük bir kaba buz koy, tüm malzemeleri ve doğranmış meyveleri ekle.",
+      "İyice karıştırarak servis et."
+    ],
+    "garnish": "Nane ve salatalık",
+    "glass": "Karaf / Pitcher",
+    "vegan": false,
+    "note": "Bu bir parti (pitcher) boyudur. Toplumu aydınlatmak için toplanıldığında yapılır. Bal içerir.",
+    "sort_order": 230,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "topup",
+        "name": "İrlanda Viskisi",
+        "unit": "ml",
+        "amount": 350,
+        "position": 1
+      },
+      {
+        "icon": "topup",
+        "name": "Elma Suyu",
+        "unit": "ml",
+        "amount": 1000,
+        "position": 2
+      },
+      {
+        "icon": "slice",
+        "name": "Limon",
+        "unit": "adet",
+        "amount": 2,
+        "position": 3
+      },
+      {
+        "icon": "drop",
+        "name": "Poşet Çay",
+        "unit": "adet",
+        "amount": 4,
+        "position": 4
+      },
+      {
+        "icon": "shot",
+        "name": "Bal",
+        "unit": "ml",
+        "amount": 250,
+        "position": 5
+      },
+      {
+        "icon": "topup",
+        "name": "Sıcak Su",
+        "unit": "ml",
+        "amount": 250,
+        "position": 6
+      },
+      {
+        "icon": "slice",
+        "name": "Salatalık",
+        "unit": "adet",
+        "amount": 1,
+        "position": 7
+      }
+    ]
+  },
+  {
+    "id": "55f49e1d-e1be-4838-9633-52ab6193d603",
+    "slug": "hecho-en-mexico",
+    "name": "Hecho En Mexico",
+    "subtitle": "Sınır ötesi serinlik",
+    "base_alcohol": "Tekila",
+    "flavor": "Ekşi-Baharatlı",
+    "tags": [
+      "Tekila",
+      "Nane",
+      "Tonik"
+    ],
+    "color": "#fef08a",
+    "image_path": "hecho-en-mexico.webp",
+    "instructions": [
+      "Nane ile çalkala, bardağa süzüp tonik ile Top up yap."
+    ],
+    "garnish": "Nane dalı",
+    "glass": "Highball",
+    "vegan": true,
+    "note": null,
+    "sort_order": 240,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Tekila",
+        "unit": "cl",
+        "amount": 6,
+        "position": 1
+      },
+      {
+        "icon": "shot",
+        "name": "Limon Suyu",
+        "unit": "cl",
+        "amount": 4,
+        "position": 2
+      },
+      {
+        "icon": "spoon",
+        "name": "Şeker Şurubu",
+        "unit": "cl",
+        "amount": 2,
+        "position": 3
+      },
+      {
+        "icon": "slice",
+        "name": "Nane",
+        "unit": "yaprak",
+        "amount": 5,
+        "position": 4
+      },
+      {
+        "icon": "topup",
+        "name": "Tonik",
+        "unit": "cl",
+        "amount": 5,
+        "position": 5
+      }
+    ]
+  },
+  {
+    "id": "56361e92-b3cb-4b0f-b372-a436877d95d2",
+    "slug": "nox",
+    "name": "Nox",
+    "subtitle": "Gecenin laciverti",
+    "base_alcohol": "Votka",
+    "flavor": "Ekşi",
+    "tags": [
+      "Votka",
+      "Mavi",
+      "Köpüklü",
+      "Vegan"
+    ],
+    "color": "#1d4ed8",
+    "image_path": "nox.webp",
+    "instructions": [
+      "Tüm malzemeleri buzsuz (dry shake) ve buzlu çalkala.",
+      "Kadehe süz."
+    ],
+    "garnish": "Limon kabuğu",
+    "glass": "Coupe",
+    "vegan": true,
+    "note": null,
+    "sort_order": 250,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Vodka",
+        "unit": "cl",
+        "amount": 4,
+        "position": 1
+      },
+      {
+        "icon": "shot",
+        "name": "Portakal Likörü",
+        "unit": "cl",
+        "amount": 4,
+        "position": 2
+      },
+      {
+        "icon": "shot",
+        "name": "Sweet & Sour",
+        "unit": "cl",
+        "amount": 4,
+        "position": 3
+      },
+      {
+        "icon": "shot",
+        "name": "Blue Curaçao",
+        "unit": "cl",
+        "amount": 3,
+        "position": 4
+      },
+      {
+        "icon": "dash",
+        "name": "Aquafaba",
+        "unit": "cl",
+        "amount": 2,
+        "position": 5
+      }
+    ]
+  },
+  {
+    "id": "e6aa7faa-3873-43e3-9648-0f28fc25fe32",
+    "slug": "smokey-sage",
+    "name": "Smokey Sage",
+    "subtitle": "Tütsülenmiş zihinler",
+    "base_alcohol": "Cin",
+    "flavor": "Bitkisel",
+    "tags": [
+      "Cin",
+      "Adaçayı",
+      "Kompleks"
+    ],
+    "color": "#a3e635",
+    "image_path": "smokey-sage.webp",
+    "instructions": [
+      "Adaçayını hafifçe ezip diğer malzemelerle çalkala."
+    ],
+    "garnish": "Tütsülenmiş adaçayı yaprağı",
+    "glass": "Rocks",
+    "vegan": true,
+    "note": null,
+    "sort_order": 260,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Cin",
+        "unit": "cl",
+        "amount": 6,
+        "position": 1
+      },
+      {
+        "icon": "shot",
+        "name": "Sweet & Sour",
+        "unit": "cl",
+        "amount": 6,
+        "position": 2
+      },
+      {
+        "icon": "slice",
+        "name": "Taze Adaçayı",
+        "unit": "yaprak",
+        "amount": 5,
+        "position": 3
+      }
+    ]
+  },
+  {
+    "id": "271d984e-a3f0-43a6-9648-8d44bb7a3c80",
+    "slug": "ramos-gin-fizz",
+    "name": "Ramos Gin Fizz",
+    "subtitle": "Sabır ve kol kası testi",
+    "base_alcohol": "Cin",
+    "flavor": "Tatlı-Ekşi",
+    "tags": [
+      "Cin",
+      "Krema",
+      "Yumurta",
+      "Kompleks"
+    ],
+    "color": "#f8fafc",
+    "image_path": "ramos-gin-fizz.webp",
+    "instructions": [
+      "Tüm malzemeleri (soda hariç) tam 1-2 dakika dry shake yap (köpürtmek için antrenman niyetine).",
+      "Buz ekle, tekrar uzun süre çalkala.",
+      "Uzun bardağa süz, soda ile Top up yapıp köpüğü yükselt."
+    ],
+    "garnish": "Yok",
+    "glass": "Highball / Collins",
+    "vegan": false,
+    "note": "Spora gitmeyen bunu hakkıyla çalkalayamaz. Süt ürünü ve yumurta içerir.",
+    "sort_order": 270,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Cin",
+        "unit": "cl",
+        "amount": 6,
+        "position": 1
+      },
+      {
+        "icon": "shot",
+        "name": "Limon Suyu",
+        "unit": "cl",
+        "amount": 3,
+        "position": 2
+      },
+      {
+        "icon": "spoon",
+        "name": "Şeker Şurubu",
+        "unit": "cl",
+        "amount": 1.5,
+        "position": 3
+      },
+      {
+        "icon": "dash",
+        "name": "Krema",
+        "unit": "cl",
+        "amount": 3,
+        "position": 4
+      },
+      {
+        "icon": "drop",
+        "name": "Yumurta Akı",
+        "unit": "adet",
+        "amount": 1,
+        "position": 5
+      },
+      {
+        "icon": "topup",
+        "name": "Soda",
+        "unit": "cl",
+        "amount": 5,
+        "position": 6
+      }
+    ]
+  },
+  {
+    "id": "de97e87a-d9b4-40e4-86f7-1655a804c418",
+    "slug": "white-lady",
+    "name": "White Lady",
+    "subtitle": "Noir filmlerden fırlamış bir zarafet",
+    "base_alcohol": "Cin",
+    "flavor": "Ekşi",
+    "tags": [
+      "Cin",
+      "Klasik",
+      "Yumurta"
+    ],
+    "color": "#fefce8",
+    "image_path": "white-lady.webp",
+    "instructions": [
+      "Dry shake ve buzlu shake yöntemlerini sırasıyla uygula, süz."
+    ],
+    "garnish": "Limon kabuğu",
+    "glass": "Coupe",
+    "vegan": false,
+    "note": null,
+    "sort_order": 280,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Cin",
+        "unit": "cl",
+        "amount": 4,
+        "position": 1
+      },
+      {
+        "icon": "shot",
+        "name": "Portakal Likörü",
+        "unit": "cl",
+        "amount": 2,
+        "position": 2
+      },
+      {
+        "icon": "shot",
+        "name": "Limon Suyu",
+        "unit": "cl",
+        "amount": 3.4,
+        "position": 3
+      },
+      {
+        "icon": "spoon",
+        "name": "Şeker Şurubu",
+        "unit": "cl",
+        "amount": 1.7,
+        "position": 4
+      },
+      {
+        "icon": "drop",
+        "name": "Yumurta Akı",
+        "unit": "adet",
+        "amount": 1,
+        "position": 5
+      }
+    ]
+  },
+  {
+    "id": "96dee1a1-7db6-4832-9866-772e0c58075f",
+    "slug": "malibu-bay-breeze",
+    "name": "Malibu Bay Breeze",
+    "subtitle": "Kapitalist tatillerin plastik ferahlığı",
+    "base_alcohol": "Rom",
+    "flavor": "Tatlı",
+    "tags": [
+      "Malibu",
+      "Ananas",
+      "Tropikal"
+    ],
+    "color": "#fca5a5",
+    "image_path": "malibu-bay-breeze.webp",
+    "instructions": [
+      "Buzlu bardağa sırasıyla dök ve hafifçe karıştır."
+    ],
+    "garnish": "Ananas dilimi",
+    "glass": "Highball",
+    "vegan": true,
+    "note": null,
+    "sort_order": 290,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Malibu",
+        "unit": "cl",
+        "amount": 5,
+        "position": 1
+      },
+      {
+        "icon": "topup",
+        "name": "Cranberry Suyu",
+        "unit": "cl",
+        "amount": 6,
+        "position": 2
+      },
+      {
+        "icon": "topup",
+        "name": "Ananas Suyu",
+        "unit": "cl",
+        "amount": 6,
+        "position": 3
+      }
+    ]
+  },
+  {
+    "id": "1fbbf5a1-9181-447b-bc1c-9d60c389ac15",
+    "slug": "sex-on-the-beach",
+    "name": "Sex On The Beach",
+    "subtitle": "Popüler kültürün tatlı esareti",
+    "base_alcohol": "Votka",
+    "flavor": "Tatlı-Meyveli",
+    "tags": [
+      "Votka",
+      "Tekila",
+      "Şeftali",
+      "Klasik"
+    ],
+    "color": "#fb923c",
+    "image_path": "sex-on-the-beach.webp",
+    "instructions": [
+      "Buzla çalkala ve uzun bardağa süz."
+    ],
+    "garnish": "Portakal dilimi",
+    "glass": "Highball",
+    "vegan": true,
+    "note": null,
+    "sort_order": 300,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Tekila",
+        "unit": "cl",
+        "amount": 2,
+        "position": 1
+      },
+      {
+        "icon": "shot",
+        "name": "Vodka",
+        "unit": "cl",
+        "amount": 2,
+        "position": 2
+      },
+      {
+        "icon": "shot",
+        "name": "Şeftali Likörü",
+        "unit": "cl",
+        "amount": 2,
+        "position": 3
+      },
+      {
+        "icon": "topup",
+        "name": "Portakal Suyu",
+        "unit": "cl",
+        "amount": 4,
+        "position": 4
+      },
+      {
+        "icon": "topup",
+        "name": "Cranberry Suyu",
+        "unit": "cl",
+        "amount": 4,
+        "position": 5
+      }
+    ]
+  },
+  {
+    "id": "cd09b7ee-06fc-4bfc-bf29-880f23590068",
+    "slug": "kuzu-kulagi-sour",
+    "name": "Kuzu Kulağı Sour",
+    "subtitle": "Doğanın yeşil manifestosu, ikinci perde",
+    "base_alcohol": "Votka",
+    "flavor": "Ekşi",
+    "tags": [
+      "Votka",
+      "Kuzu Kulağı",
+      "Kompleks"
+    ],
+    "color": "#4ade80",
+    "image_path": "kuzu-kulagi-sour.webp",
+    "instructions": [
+      "Kuzu kulağı yapraklarını ez.",
+      "Tüm malzemeleri buzla çalkala ve ince süzgeçten geçir."
+    ],
+    "garnish": "Kuzu kulağı yaprağı",
+    "glass": "Rocks",
+    "vegan": true,
+    "note": null,
+    "sort_order": 310,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Vodka",
+        "unit": "cl",
+        "amount": 4,
+        "position": 1
+      },
+      {
+        "icon": "shot",
+        "name": "Portakal Likörü",
+        "unit": "cl",
+        "amount": 2,
+        "position": 2
+      },
+      {
+        "icon": "shot",
+        "name": "Sweet & Sour",
+        "unit": "cl",
+        "amount": 6,
+        "position": 3
+      },
+      {
+        "icon": "dash",
+        "name": "Limon Suyu",
+        "unit": "cl",
+        "amount": 1,
+        "position": 4
+      },
+      {
+        "icon": "spoon",
+        "name": "Şeker Şurubu",
+        "unit": "cl",
+        "amount": 2,
+        "position": 5
+      },
+      {
+        "icon": "slice",
+        "name": "Kuzu Kulağı",
+        "unit": "yaprak",
+        "amount": 5,
+        "position": 6
+      }
+    ]
+  },
+  {
+    "id": "f9fe52e8-281f-47e8-9174-f481adf631f6",
+    "slug": "tekila-sunrise",
+    "name": "Tekila Sunrise",
+    "subtitle": "Meksika'da yeni bir isyan",
+    "base_alcohol": "Tekila",
+    "flavor": "Tatlı",
+    "tags": [
+      "Tekila",
+      "Portakal",
+      "Görsel"
+    ],
+    "color": "#f59e0b",
+    "image_path": "tekila-sunrise.webp",
+    "instructions": [
+      "Tekila ve portakal suyunu buzlu bardağa dök.",
+      "Grenadine'i en son üstten yavaşça damlatarak güneşin doğuşu efektini yarat."
+    ],
+    "garnish": "Portakal dilimi ve kiraz",
+    "glass": "Highball",
+    "vegan": true,
+    "note": null,
+    "sort_order": 320,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Tekila",
+        "unit": "cl",
+        "amount": 6,
+        "position": 1
+      },
+      {
+        "icon": "topup",
+        "name": "Portakal Suyu",
+        "unit": "cl",
+        "amount": 9,
+        "position": 2
+      },
+      {
+        "icon": "dash",
+        "name": "Grenadine",
+        "unit": "cl",
+        "amount": 2,
+        "position": 3
+      }
+    ]
+  },
+  {
+    "id": "bf3b3f82-3b9f-4fdc-a0ae-c7da431cfe3f",
+    "slug": "feslegen-frozen",
+    "name": "Fesleğen Frozen",
+    "subtitle": "Botanik bir beyin donması",
+    "base_alcohol": "Tekila",
+    "flavor": "Ekşi-Ferah",
+    "tags": [
+      "Tekila",
+      "Fesleğen",
+      "Frozen"
+    ],
+    "color": "#16a34a",
+    "image_path": "feslegen-frozen.webp",
+    "instructions": [
+      "Tüm malzemeleri bol kırık buzla beraber blender'a at.",
+      "Kar gibi (frozen) olana kadar çek."
+    ],
+    "garnish": "Fesleğen yaprağı",
+    "glass": "Margarita / Kadeh",
+    "vegan": true,
+    "note": "Tıp öğrencilerinin favorisi, ani soğuk frontal lobu uyarır.",
+    "sort_order": 330,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Tekila",
+        "unit": "cl",
+        "amount": 7,
+        "position": 1
+      },
+      {
+        "icon": "shot",
+        "name": "Limon Suyu",
+        "unit": "cl",
+        "amount": 5,
+        "position": 2
+      },
+      {
+        "icon": "shot",
+        "name": "Şeker Şurubu",
+        "unit": "cl",
+        "amount": 5,
+        "position": 3
+      },
+      {
+        "icon": "slice",
+        "name": "Fesleğen",
+        "unit": "yaprak",
+        "amount": 8,
+        "position": 4
+      }
+    ]
+  },
+  {
+    "id": "89f9bcb6-8de6-4913-8a2e-55df1d8765ca",
+    "slug": "ruzzle-dazzle",
+    "name": "Ruzzle Dazzle",
+    "subtitle": "Karmaşanın içindeki meyveli diyalektik",
+    "base_alcohol": "Votka",
+    "flavor": "Meyveli",
+    "tags": [
+      "Votka",
+      "Böğürtlen",
+      "Cranberry"
+    ],
+    "color": "#be185d",
+    "image_path": "ruzzle-dazzle.webp",
+    "instructions": [
+      "Böğürtlen ve naneyi shaker'da nazikçe ez.",
+      "Kalan sıvıları ekleyip buzla çalkala, süz."
+    ],
+    "garnish": "Böğürtlen ve nane",
+    "glass": "Highball",
+    "vegan": true,
+    "note": null,
+    "sort_order": 340,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Vodka",
+        "unit": "cl",
+        "amount": 6,
+        "position": 1
+      },
+      {
+        "icon": "shot",
+        "name": "Lime Suyu",
+        "unit": "cl",
+        "amount": 2,
+        "position": 2
+      },
+      {
+        "icon": "topup",
+        "name": "Cranberry Suyu",
+        "unit": "cl",
+        "amount": 4.5,
+        "position": 3
+      },
+      {
+        "icon": "drop",
+        "name": "Böğürtlen",
+        "unit": "adet",
+        "amount": 8,
+        "position": 4
+      },
+      {
+        "icon": "slice",
+        "name": "Nane",
+        "unit": "yaprak",
+        "amount": 7,
+        "position": 5
+      }
+    ]
+  },
+  {
+    "id": "24b24858-14c9-42d6-ae22-57fe14791a4c",
+    "slug": "kiki-42",
+    "name": "Kiki 42",
+    "subtitle": "Hibiskusun kırmızı devrimi",
+    "base_alcohol": "Cin",
+    "flavor": "Çiçeksi-Ekşi",
+    "tags": [
+      "Cin",
+      "Hibiskus",
+      "Çilek"
+    ],
+    "color": "#e11d48",
+    "image_path": "kiki-42.webp",
+    "instructions": [
+      "Tüm malzemeleri buzla çalkala.",
+      "İnce süzgeçle bardağa süz."
+    ],
+    "garnish": "Kurutulmuş hibiskus yaprağı",
+    "glass": "Highball",
+    "vegan": true,
+    "note": null,
+    "sort_order": 350,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Cin",
+        "unit": "cl",
+        "amount": 6,
+        "position": 1
+      },
+      {
+        "icon": "topup",
+        "name": "Hibiskus Çayı",
+        "unit": "cl",
+        "amount": 9,
+        "position": 2
+      },
+      {
+        "icon": "spoon",
+        "name": "Çilek Püresi",
+        "unit": "kaşık",
+        "amount": 1,
+        "position": 3
+      },
+      {
+        "icon": "shot",
+        "name": "Lime Suyu",
+        "unit": "cl",
+        "amount": 1.5,
+        "position": 4
+      }
+    ]
+  },
+  {
+    "id": "34ea7b4d-f664-421b-aac1-99d8eb30f6fa",
+    "slug": "raspberry-dream",
+    "name": "Raspberry Dream",
+    "subtitle": "Tatlı rüyalar ve kremsi illüzyonlar",
+    "base_alcohol": "Cin",
+    "flavor": "Tatlı-Ekşi",
+    "tags": [
+      "Cin",
+      "Frambuaz",
+      "Krema"
+    ],
+    "color": "#f472b6",
+    "image_path": "raspberry-dream.webp",
+    "instructions": [
+      "Tüm malzemeleri önce buzsuz (dry shake), sonra buzlu olarak sertçe çalkala."
+    ],
+    "garnish": "Taze frambuaz",
+    "glass": "Coupe",
+    "vegan": false,
+    "note": "Hayvansal süt ürünü (krema) içerdiği için vegan değildir.",
+    "sort_order": 360,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Cin",
+        "unit": "cl",
+        "amount": 6,
+        "position": 1
+      },
+      {
+        "icon": "shot",
+        "name": "Limon Suyu",
+        "unit": "cl",
+        "amount": 4.5,
+        "position": 2
+      },
+      {
+        "icon": "shot",
+        "name": "Frambuaz Şurubu",
+        "unit": "cl",
+        "amount": 3,
+        "position": 3
+      },
+      {
+        "icon": "spoon",
+        "name": "Krema",
+        "unit": "kaşık",
+        "amount": 3,
+        "position": 4
+      }
+    ]
+  },
+  {
+    "id": "fbb5d6ee-c4b4-4033-aba1-75baf38ed9c2",
+    "slug": "southside",
+    "name": "Southside",
+    "subtitle": "Mobster filmlerinin vazgeçilmezi",
+    "base_alcohol": "Cin",
+    "flavor": "Ferah",
+    "tags": [
+      "Cin",
+      "Nane",
+      "Klasik"
+    ],
+    "color": "#86efac",
+    "image_path": "southside.webp",
+    "instructions": [
+      "Nane ile malzemeleri çalkala.",
+      "Kadehe süz, az miktarda soda ile Top up yap."
+    ],
+    "garnish": "Nane yaprağı",
+    "glass": "Coupe / Martini",
+    "vegan": true,
+    "note": null,
+    "sort_order": 370,
+    "created_at": "2026-10-13T13:17:08.457248+00:00",
+    "updated_at": "2026-10-13T13:17:08.457248+00:00",
+    "ingredients": [
+      {
+        "icon": "shot",
+        "name": "Cin",
+        "unit": "cl",
+        "amount": 6,
+        "position": 1
+      },
+      {
+        "icon": "shot",
+        "name": "Limon Suyu",
+        "unit": "cl",
+        "amount": 3,
+        "position": 2
+      },
+      {
+        "icon": "spoon",
+        "name": "Şeker Şurubu",
+        "unit": "cl",
+        "amount": 1.5,
+        "position": 3
+      },
+      {
+        "icon": "slice",
+        "name": "Nane",
+        "unit": "yaprak",
+        "amount": 5,
+        "position": 4
+      },
+      {
+        "icon": "topup",
+        "name": "Soda",
+        "unit": "cl",
+        "amount": 4,
+        "position": 5
+      }
+    ]
+  }
+]

@@ -33,6 +33,10 @@
 | 021 | E-mail links carry a `token_hash` verified by the site; a password change on a 2FA account asks for the code | ✅ Accepted | 2026-10-15 |
 | 022 | After signing in, the app returns to the screen that asked and finishes the action; fields stay above the keyboard | ✅ Accepted | 2026-10-15 |
 | 023 | Half-star ratings; units from a list; a logged recipe's steps stay locked unless changed | ✅ Accepted | 2026-10-15 |
+| 024 | The store release waits; web work continues, and the app catches up with the site right before release | ✅ Accepted | 2026-10-15 |
+| 025 | Every house recipe has its own page at `/cocktails/{slug}` | ✅ Accepted | 2026-10-15 |
+| 026 | M9 quick wins: filters read the data, a flavour is a set of notes, recipes scale and describe themselves | ✅ Accepted | 2026-10-15 |
+| 027 | A weekly backup of house content through a GitHub Action; recipes switch between cl and oz at 1 oz = 3 cl | ✅ Accepted | 2026-10-15 |
 
 ---
 
@@ -1025,3 +1029,38 @@ for guests and no way onwards.
 
 **Rejected.** *A flavour vocabulary table:* more panel work for 37 recipes; splitting the existing text is enough.
 *Scaling with unit conversion (cl → bottle):* not needed for up to eight glasses.
+
+---
+
+## ADR-027 — A weekly backup of house content through a GitHub Action; recipes switch between cl and oz at 1 oz = 3 cl
+
+**Context.** The free Supabase plan has no backups (plan.md §7), so a bad edit or delete in the panel was permanent.
+For a global audience the recipes also needed ounces. The user chose both answers on 2026-10-15.
+
+**Decision.**
+- **Backup:** `.github/workflows/backup-content.yml` runs every Monday 03:00 UTC (and by hand) `scripts/backup-content.mjs`,
+  which reads with the **publishable key from `.env`** — no secret anywhere (ADR-007, ADR-008) — and writes
+  `backup/cocktails.json` (published house recipes with their ingredients, ids kept for a restore) and
+  `backup/glossary.json`, and downloads any house photo missing from `supabase/storage/cocktail-images/` (now the bucket's
+  mirror; photos are never overwritten, ADR-006). It commits to `main` only when something changed. An empty answer
+  aborts the run instead of wiping the files.
+- **Only what visitors can read:** drafts and hidden rows are not in the backup, and **members' content never is** — the
+  repository is public, and members must be able to delete their data (KVKK).
+- **No deploy for a backup commit:** `vercel.json`'s `ignoreCommand` skips the build when a commit touches only `backup/`
+  and `supabase/storage/`.
+- **cl ↔ oz:** a "cl | oz" switch next to "Kaç kişilik?" in `RecipeDetails`, shown when a recipe has a cl or ml amount.
+  **1 oz = 3 cl** (the bar convention, `CL_PER_OZ`), rounded to quarter ounces (never below ¼) and written as fractions
+  ("1½ oz"); other units ("adet", "yaprak", …) stay. Servings scale first, then convert. The choice is remembered in the
+  browser (`localStorage` `haci.volume-unit`). Helpers in `src/lib/recipe.ts` (`convertAmount`, `formatOunces`,
+  `isConvertibleUnit`) for the app's parity pass. The JSON-LD keeps the amounts as written.
+
+**Consequences.**
+- (+) A deleted recipe or glossary term can be restored from git history with its id.
+- (+) Readers who think in ounces get pourable numbers.
+- (−) A draft lost before it is published is not covered; neither are reviews, logs or members' recipes.
+- (−) GitHub disables scheduled workflows in a public repository after 60 days without repository activity — if the
+  site goes quiet, re-enable the workflow in the Actions tab.
+- (−) 3 cl is 1,4 % more than an exact ounce; quarter-ounce rounding moves small amounts more (0,5 cl → ¼ oz).
+
+**Rejected.** *A Vercel cron:* nowhere durable to write without a secret key. *The service key in a GitHub secret to
+include drafts:* a secret key outside Supabase for little gain. *The exact 2,957 cl:* awkward numbers nobody pours.

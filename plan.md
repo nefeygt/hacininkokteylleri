@@ -9,7 +9,7 @@
 > **Language rule (ADR-002):** everything we write — docs, code, comments, commits, SQL — is
 > **English**. Everything visitors and admins read — UI strings, recipes — is **Turkish**.
 
-**Last updated:** 2026-10-15 (M9 quick wins) · **Active milestone:** **M9 — Web improvements** (recipe pages, data filters, wordmark, rich results, share, servings, similar — ADR-025, ADR-026) · **M8 — Mobile app** steps 1–6 done, **step 7 (store release) paused** until the Apple account or the user's two other Play apps (ADR-024) · M6 and M7 done · **Brand:** `haci` (ADR-015)
+**Last updated:** 2026-10-15 (M9 backup + cl ↔ oz) · **Active milestone:** **M9 — Web improvements** (recipe pages, data filters, wordmark, rich results, share, servings, similar, weekly backup, cl ↔ oz — ADR-025, ADR-026, ADR-027; the theme and font left) · **M8 — Mobile app** steps 1–6 done, **step 7 (store release) paused** until the Apple account or the user's two other Play apps (ADR-024) · M6 and M7 done · **Brand:** `haci` (ADR-015)
 
 ---
 
@@ -142,6 +142,8 @@ In the user's words, collected while M0 was being built. Milestones in §6.
 | 018 | Members' recipes on `/recipes/{slug}`; `/feed` (popular + new recipes, followed people's logs); public follows; flat comments on public logs | Letterboxd-style community; the home page and archive stay Hacı's |
 | 019 | Showcase: admin picks a week or a month per period; apply + vote in `/feed`; recipe + photo + pitch required; derived winner as a card on the home page | The user's answers; every rule in the database, no scheduled job |
 | 025 | House recipes get `/cocktails/{slug}` pages; the archive card links there, a magnifier opens the quick card | Shareable links, search engines; the quick look stays |
+| 026 | Chips from the data; servings, share, JSON-LD, similar recipes | A new value gets its chip; recipes describe themselves |
+| 027 | Weekly backup of house content by a GitHub Action with the public key; cl ↔ oz at 1 oz = 3 cl | Free plan has no backups; pourable ounces |
 | 020 | Expo app in `mobile/` (this repo), full parity, both stores, native Google + e-mail (+ Apple on iOS); site pages refreshed through `/api/revalidate` | The user's answers; shared types and validation, one handoff |
 | 024 | Store release waits (Apple account / a shared Play closed test); web first, one parity pass before release | Cheaper testers for three apps; no store round for an app that will change |
 
@@ -277,7 +279,9 @@ src/
     supabase/                   config, public/server/browser/proxy clients, database.types.ts (generated)
 supabase/
   migrations/                   {version}_{name}.sql — mirrors of what is applied (ADR-009)
-  storage/cocktail-images/      the 37 imported WebPs (the bucket's starting content)
+  storage/cocktail-images/      mirror of the house photos (the 37 imported WebPs + any new one the weekly backup finds)
+backup/                         cocktails.json, glossary.json — published house content, written weekly (ADR-027)
+scripts/backup-content.mjs      the backup (public key from .env); .github/workflows/backup-content.yml runs it Mondays
   templates/                    Supabase Auth e-mail templates (Turkish), mirrored by hand; links carry a token_hash (ADR-021)
 public/brand/                   logo sources (SVG) and exported PNGs; scripts/export-brand.mjs renders them (and the app's icons)
 mobile/                         the Expo app (M8, ADR-020) — its own package.json; see mobile/README.md
@@ -632,11 +636,17 @@ While the store release waits (ADR-024), the site gets better first; every user-
 - [x] "Benzer kokteyller" under house recipes (up to four; base spirit, flavour notes, tags)
 - Checked 2026-10-15: site build, the app's typecheck, Claude in Chrome (chips, "Tatlı" → 15, scaling 6 → 18 cl,
   JSON-LD, four similar cards) and the built-in browser at 375 px and desktop (no horizontal scroll signed in or out)
-- [ ] Not yet: Google's Rich Results Test on the live page; a member's recipe page with JSON-LD (none published)
-- **Next:**
-  - [ ] A weekly content backup (the free plan has no backups, §7): the house recipes and glossary exported to the repo
-  - [ ] cl ↔ oz switch for a global audience
-- [ ] Colour theme review and a more readable font (site and app together) — needs the user's direction; last
+- [x] Live check (2026-10-15, Claude in Chrome): "Paylaş", "Kaç kişilik?", "Benzer kokteyller" and the JSON-LD on
+  `/cocktails/sovyet-elmasi`; **Google's Rich Results Test: 1 valid Recipe**, only non-critical warnings
+- [ ] Not yet: a member's recipe page with JSON-LD (none published)
+- [x] **A weekly content backup** (ADR-027): GitHub Action, Mondays, published house recipes + glossary as JSON in `backup/`,
+  new house photos into `supabase/storage/cocktail-images/`; commits only on change; Vercel skips the build. Run locally
+  (37 recipes, 4 terms, 0 new photos). **The first run on GitHub is not seen yet**
+- [x] **cl ↔ oz** (ADR-027): "cl | oz" next to "Kaç kişilik?", 1 oz = 3 cl, quarter ounces as fractions, remembered in the
+  browser. Checked: build, the app's typecheck, Claude in Chrome (6 cl → 2 oz, 10 cl → 3¼ oz; two glasses 20 cl → 6¾ oz;
+  kept on another page) and the built-in browser at 375 px (no horizontal scroll)
+- [ ] Colour theme review and a more readable font (site and app together) — **three directions shown to the user
+  (2026-10-15, an artifact: A "Rx, readable", B "Night bar", C "Prescription paper")**; build what they pick
 
 ---
 
@@ -644,7 +654,7 @@ While the store release waits (ADR-024), the site gets better first; every user-
 
 | Risk | Likelihood | Mitigation |
 |---|---|---|
-| **No backups on the free plan** — a bad edit or delete is permanent | Medium | Before M3: a scheduled export of content to the repo, or the Pro plan once there are users |
+| **No backups on the free plan** — a bad edit or delete is permanent | Medium | **Weekly export of published house content to the repo (ADR-027, since 2026-10-15)**; drafts and members' content are not covered — the Pro plan once there are real users |
 | Free project **pauses after 7 idle days**, taking photos down | Low now | Daily keep-alive cron (ADR-005). If it ever pauses: Supabase dashboard → Restore |
 | Free-plan limits (500 MB DB, 1 GB storage, 5 GB egress) | Low–medium from M6 | Members' photos: 1 MB a file, resized to 1600 px WebP in the browser, 10 recipes a day; watch storage in the dashboard |
 | **.tech renewal** costs $29.99/yr from 2027-09-11 (auto-renew on) | Certain | The user decides before then; turn off auto-renew if moving the brand |
@@ -712,6 +722,7 @@ While the store release waits (ADR-024), the site gets better first; every user-
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-10-15 | M9 backup + cl ↔ oz | The user chose the GitHub Action backup (public key, published house content only, photos too) and 1 oz = 3 cl. Built both (ADR-027); the backup ran locally, Vercel skips backup-only commits. Live check: last session's features on the domain and Google's Rich Results Test (1 valid Recipe). Claude in Chrome's screenshots timed out again; DOM checks there, visuals in the built-in browser. Three theme/font directions published as an artifact for the user to pick |
 | 2026-10-15 | M9 quick wins | The user picked the order: quick wins first, theme and font last. Built (ADR-026): chips from the data with flavour notes (site and app), the wordmark in the navbar, recipe JSON-LD, "Paylaş", "Kaç kişilik?", "Benzer kokteyller". Fixed on the way: the wordmark shrank to 0 px on phones and the bar overflowed 375 px. Checked: build, the app's typecheck (`npm ci` in `mobile/` first — `node_modules` was missing), Claude in Chrome (its screenshots timed out after a resize) and the built-in browser |
 | 2026-10-15 | M9 start: recipe pages | The user asked for house recipe pages: the card opens `/cocktails/{slug}`, a magnifier opens the modal (ADR-025); video → Icebox. Built, checked in the built-in browser (Claude in Chrome not connected) and with curl; build passes; deployed `149e6fa`, live page 200 from the user's home network. M9 opened with Claude's suggestions — the user liked them all; order next session |
 | 2026-10-15 | Store release paused | Pulled `dc4340d`. The user does not want to publish yet: wait for the Apple account, or for two more Play apps to share one paid closed test; web improvements first, then one parity pass before the store (ADR-024) |

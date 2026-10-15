@@ -1,9 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Minus, Plus, Wine } from "lucide-react";
-import type { Cocktail } from "@/lib/content";
-import { SERVINGS_MAX, scaleAmount } from "@/lib/recipe";
+import type { Cocktail, Ingredient } from "@/lib/content";
+import {
+  SERVINGS_MAX,
+  VOLUME_UNITS,
+  convertAmount,
+  formatOunces,
+  isConvertibleUnit,
+  scaleAmount,
+  type VolumeUnit,
+} from "@/lib/recipe";
 import VisualQuantity from "./VisualQuantity";
 import { InstructionText } from "./Tooltip";
 
@@ -11,10 +19,13 @@ import { InstructionText } from "./Tooltip";
  * The prescription itself: ingredients, steps, garnish and note. Shared by the
  * archive's card (house recipes) and a member's recipe page (M6), so one
  * recipe shape has one renderer (ADR-014). "Kaç kişilik?" scales the amounts
- * for up to SERVINGS_MAX glasses; the steps stay as written.
+ * for up to SERVINGS_MAX glasses; the steps stay as written. "cl | oz" shows
+ * volumes in ounces (1 oz = 3 cl) and is remembered in this browser.
  */
 export default function RecipeDetails({ cocktail }: { cocktail: Cocktail }) {
   const [servings, setServings] = useState(1);
+  const [volumeUnit, setVolumeUnit] = useVolumeUnit();
+  const hasVolumes = cocktail.ingredients.some((ing) => isConvertibleUnit(ing.unit));
 
   return (
     <>
@@ -30,29 +41,50 @@ export default function RecipeDetails({ cocktail }: { cocktail: Cocktail }) {
           <h3 className="font-mono text-xs uppercase tracking-[0.15em] text-text-muted">
             Malzemeler
           </h3>
-          <div className="flex items-center gap-2 font-mono text-[11px] text-text-muted">
-            <span id={`servings-${cocktail.id}`}>Kaç kişilik?</span>
-            <ServingsButton
-              label="Bir kişi azalt"
-              disabled={servings <= 1}
-              onClick={() => setServings(servings - 1)}
-            >
-              <Minus className="h-3 w-3" />
-            </ServingsButton>
-            <output
-              aria-labelledby={`servings-${cocktail.id}`}
-              aria-live="polite"
-              className="w-4 text-center text-sm text-text-primary"
-            >
-              {servings}
-            </output>
-            <ServingsButton
-              label="Bir kişi artır"
-              disabled={servings >= SERVINGS_MAX}
-              onClick={() => setServings(servings + 1)}
-            >
-              <Plus className="h-3 w-3" />
-            </ServingsButton>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[11px] text-text-muted">
+            {hasVolumes && (
+              <div role="group" aria-label="Ölçü birimi" className="flex rounded-full bg-bg-elevated p-0.5">
+                {VOLUME_UNITS.map((unit) => (
+                  <button
+                    key={unit}
+                    type="button"
+                    aria-pressed={volumeUnit === unit}
+                    onClick={() => setVolumeUnit(unit)}
+                    className={`rounded-full px-2.5 py-0.5 transition-colors ${
+                      volumeUnit === unit
+                        ? "bg-crimson/20 text-crimson-glow"
+                        : "text-text-secondary hover:text-crimson-glow"
+                    }`}
+                  >
+                    {unit}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="flex items-center gap-2">
+              <span id={`servings-${cocktail.id}`}>Kaç kişilik?</span>
+              <ServingsButton
+                label="Bir kişi azalt"
+                disabled={servings <= 1}
+                onClick={() => setServings(servings - 1)}
+              >
+                <Minus className="h-3 w-3" />
+              </ServingsButton>
+              <output
+                aria-labelledby={`servings-${cocktail.id}`}
+                aria-live="polite"
+                className="w-4 text-center text-sm text-text-primary"
+              >
+                {servings}
+              </output>
+              <ServingsButton
+                label="Bir kişi artır"
+                disabled={servings >= SERVINGS_MAX}
+                onClick={() => setServings(servings + 1)}
+              >
+                <Plus className="h-3 w-3" />
+              </ServingsButton>
+            </div>
           </div>
         </div>
         <div className="space-y-3 overflow-visible">
@@ -69,7 +101,7 @@ export default function RecipeDetails({ cocktail }: { cocktail: Cocktail }) {
                   <InstructionText text={ing.name} />
                 </span>
               </div>
-              <VisualQuantity ingredient={{ ...ing, amount: scaleAmount(ing.amount, servings) }} />
+              <Quantity ingredient={ing} servings={servings} volumeUnit={volumeUnit} />
             </div>
           ))}
         </div>
@@ -120,6 +152,43 @@ export default function RecipeDetails({ cocktail }: { cocktail: Cocktail }) {
       )}
     </>
   );
+}
+
+function Quantity({
+  ingredient,
+  servings,
+  volumeUnit,
+}: {
+  ingredient: Ingredient;
+  servings: number;
+  volumeUnit: VolumeUnit;
+}) {
+  const shown = convertAmount(scaleAmount(ingredient.amount, servings), ingredient.unit, volumeUnit);
+  return (
+    <VisualQuantity
+      ingredient={{ ...ingredient, ...shown }}
+      label={shown.unit !== ingredient.unit ? `${formatOunces(shown.amount)} oz` : undefined}
+    />
+  );
+}
+
+const VOLUME_UNIT_KEY = "haci.volume-unit";
+
+/** The visitor's cl/oz choice, kept in localStorage; "cl" until it is read (and when storage is off). */
+function useVolumeUnit(): [VolumeUnit, (unit: VolumeUnit) => void] {
+  const [unit, setUnit] = useState<VolumeUnit>("cl");
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(VOLUME_UNIT_KEY) === "oz") setUnit("oz");
+    } catch {}
+  }, []);
+  const choose = (next: VolumeUnit) => {
+    setUnit(next);
+    try {
+      localStorage.setItem(VOLUME_UNIT_KEY, next);
+    } catch {}
+  };
+  return [unit, choose];
 }
 
 function ServingsButton({

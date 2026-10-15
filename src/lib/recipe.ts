@@ -143,3 +143,39 @@ export const SERVINGS_MAX = 8;
 export function scaleAmount(amount: number, servings: number): number {
   return Math.round(amount * servings * 100) / 100;
 }
+
+/** How a recipe shows its volumes: as written (cl, ml) or in ounces. */
+export type VolumeUnit = "cl" | "oz";
+export const VOLUME_UNITS: readonly VolumeUnit[] = ["cl", "oz"];
+
+/** The bar convention, not the exact 2,957 cl: 6 cl pours as 2 oz with a jigger. */
+export const CL_PER_OZ = 3;
+const CL_PER_UNIT: Record<string, number> = { cl: 1, ml: 0.1 };
+
+/** Whether an amount in this unit is a volume the cl ↔ oz switch converts. */
+export function isConvertibleUnit(unit: string): boolean {
+  return unit in CL_PER_UNIT;
+}
+
+/**
+ * An amount in the chosen volume unit. cl and ml become ounces rounded to a quarter
+ * (never below ¼ oz); every other unit ("adet", "yaprak", …) and the "cl" choice pass through.
+ */
+export function convertAmount(
+  amount: number,
+  unit: string,
+  to: VolumeUnit,
+): { amount: number; unit: string } {
+  if (to === "cl" || !isConvertibleUnit(unit)) return { amount, unit };
+  const ounces = (amount * CL_PER_UNIT[unit]) / CL_PER_OZ;
+  return { amount: Math.max(0.25, Math.round(ounces * 4) / 4), unit: "oz" };
+}
+
+const QUARTERS = ["", "¼", "½", "¾"];
+
+/** An ounce amount as a bartender writes it: 1,5 → "1½", 0,25 → "¼". */
+export function formatOunces(amount: number): string {
+  const whole = Math.floor(amount);
+  const quarter = QUARTERS[Math.round((amount - whole) * 4)] ?? "";
+  return whole === 0 && quarter ? quarter : `${whole}${quarter}`;
+}

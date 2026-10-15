@@ -4,11 +4,11 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-15 (M9 quick wins) · **Handing off:** M8 steps 1–6 are done; **the store release is
-paused (ADR-024)**. **M9 (web improvements):** the user set the order — quick wins first, the colour theme and font last.
-Done and deployed this session (ADR-026): filter chips from the data with flavour notes, the `haci` wordmark in the navbar,
-recipe JSON-LD, "Paylaş", "Kaç kişilik?", "Benzer kokteyller". **Next: the weekly content backup, then cl ↔ oz, then the
-theme and font** (plan.md §6 M9). Before the store, one app ↔ site parity pass.
+**Prepared by session:** 2026-10-15 (M9 backup + cl ↔ oz) · **Handing off:** M8 steps 1–6 are done; **the store release
+is paused (ADR-024)**. **M9 (web improvements):** done and deployed this session (ADR-027): the weekly content backup
+(GitHub Action) and the cl ↔ oz switch; last session's features passed the live check and Google's Rich Results Test.
+**Next: the colour theme and font** — three directions are waiting for the user's pick. Before the store, one app ↔ site
+parity pass.
 ---
 
 ## 📋 Prompt to Copy
@@ -52,25 +52,22 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — M9, the next web improvements
+## 🎯 This Session's Task — M9, the colour theme and a more readable font
 
-The user's order (2026-10-15): quick wins first, theme and font last. Left, in order:
-
-1. **First, a quick live check** of last session's work on `hacininkokteylleri.tech` (from a network that does not
-   block the domain — the user's home network does): a recipe page's "Paylaş", "Kaç kişilik?", "Benzer kokteyller",
-   the wordmark on a phone; then **Google's Rich Results Test** (`https://search.google.com/test/rich-results`) on
-   `/cocktails/sovyet-elmasi` — it should find one valid Recipe. Missing optional fields (`prepTime`, `totalTime`,
-   `nutrition`, `video`) are warnings, not errors; leave them unless the user wants them.
-2. **A weekly content backup** (the free plan has no backups, plan.md §7): the house recipes, their ingredients and
-   the glossary exported to the repo as JSON. **Open design question for the user before building:** a scheduled
-   GitHub Action (needs a read path without a secret key — the public anon client reads published content, which is
-   exactly what to back up; unpublished drafts would be missed) vs. a Vercel cron writing nowhere durable. Propose the
-   Action with the anon key, published content only, and ask.
-3. **cl ↔ oz switch** for a global audience: a toggle on recipes (1 oz = 3 cl is the bar convention; ask whether
-   29.57 ml exactness matters — likely not), only `cl`/`ml` amounts convert. Fits next to "Kaç kişilik?" in
-   `RecipeDetails`; a shared helper in `src/lib/recipe.ts` beside `scaleAmount`.
-4. **The colour theme and a more readable font** (site and app together; question 3 below): show the user 2–3
-   palettes and fonts first (an artifact or a local preview), then build what they pick.
+1. **Check the backup's first run** (ADR-027): the Action "Back up content" ran on Monday 03:00 UTC, or start it by hand
+   (`gh workflow run backup-content.yml`, then `gh run list --workflow backup-content.yml`). Nothing changed → no commit;
+   a change → a commit by `github-actions[bot]` and **no new Vercel deployment** for it
+   (`gh api repos/nefeygt/hacininkokteylleri/commits/<sha>/status`: Vercel should report the build skipped/ignored).
+   If Vercel built it anyway, check `ignoreCommand` in `vercel.json` and the project's "Ignored Build Step" setting.
+2. **The theme and font** (question 3). Three directions were shown on 2026-10-15 as an artifact
+   (`https://claude.ai/artifact/JmEZE1ynUC4oWKYN2RVWk7`, the user's, private): **A "Rx, readable"** (today's colours, IBM
+   Plex Sans for text, mono only for amounts/labels), **B "Night bar"** (warm brown-black, the logo's cherry red,
+   Bricolage Grotesque + Source Sans 3), **C "Prescription paper"** (light pale green-grey, Instrument Serif + Atkinson
+   Hyperlegible Next, IBM Plex Mono). The common fix in all three: running text off the monospace font. Ask which (or a
+   mix), then build it: the site's tokens in `src/app/globals.css` (`@theme`) and fonts in `src/app/layout.tsx`
+   (`next/font/google`); `.prescription-text` is the mono body text to change. The app copies the palette from
+   `mobile/src/lib/theme.ts` and loads fonts with `@expo-google-fonts/*` — **the app side waits for the parity pass**
+   (ADR-024); list it below. C (light) also needs a light logo/wordmark and OG images — check `public/brand/`.
 
 **While doing web work:**
 - Add every user-visible web change to **"Web changes since 2026-10-15 (for the parity pass)"** below — it is the
@@ -91,6 +88,8 @@ The user's order (2026-10-15): quick wins first, theme and font last. Left, in o
   (`/cocktails/{slug}` or `/recipes/{slug}`).
 - **"Benzer kokteyller"** under house recipes: `similarCocktails(target, archive, 4)` from `@shared/archive-filter`.
 - The wordmark and the recipe JSON-LD are web-only (the app has its own header; no SEO).
+- **"cl | oz"** on recipes (ADR-027): a toggle beside "Kaç kişilik?" with `convertAmount`, `formatOunces`,
+  `isConvertibleUnit` from `@shared/recipe`; remember the choice (AsyncStorage or the app's existing storage).
 
 ---
 
@@ -157,7 +156,7 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
 
 | # | Question | Why it matters | Until it is answered |
 |---|---|---|---|
-| 3 | **Colour theme:** keep the dark crimson "Rx" look, or explore a lighter/warmer palette? | The user said the theme can change (ADR-015) | Today's palette stays (the app copies it from one theme file) |
+| 3 | **Colour theme and font:** A "Rx, readable", B "Night bar" or C "Prescription paper" (artifact above), or a mix? | The user said the theme can change (ADR-015) and the type reads poorly | Today's palette and fonts stay |
 | 5 | **Hacı's first admin sign-in** — when (his phone, a network that does not block the domain)? | His 2FA factor is not enrolled yet | He cannot use the panel |
 | 6 | **The first real showcase period** — when, a week or a month? | Nothing promotes it until a period exists (the feed hides the section) | No period; the feature is invisible |
 | 11 | **Who enrols the Apple Developer account, and when?** The user expects it to be in **another person's name** | That person is the App Store publisher (seller name) and must give EAS access (their Apple ID with 2FA, or an App Store Connect API key); Sign in with Apple and every iOS build wait for it | Android only |
@@ -326,7 +325,16 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
 - **The office network blocks the new domain** (a Fortinet FortiGate). Check DNS with
   `https://dns.google/resolve?name=…` and HTTP with check-host.net (plan.md §5.4).
 
-**This session's lessons (M9 quick wins)**
+**This session's lessons (M9 backup + cl ↔ oz)**
+- **Claude in Chrome's screenshots timed out again** (even without a resize) — `javascript_tool`/`get_page_text` worked.
+  For visuals use the built-in browser (`preset: "mobile"`); its screenshots can lag a frame — confirm in the DOM.
+- In `javascript_tool`, two `.click()`s in a row on a React counter apply once (the handler reads stale state) — wait
+  between clicks.
+- Google's Rich Results Test takes ~1 minute; `get_page_text` reads its verdict ("1 geçerli öğe algılandı").
+- `scripts/backup-content.mjs` runs locally too (`node scripts/backup-content.mjs`); a diff in `backup/` afterwards means
+  the panel changed content since the last run.
+
+**Lessons (M9 quick wins)**
 - **`mobile/node_modules` can be missing** (a fresh checkout or OneDrive): `npm run typecheck` then fails with
   "File 'expo/tsconfig.base' not found" and dozens of unrelated errors. Run `npm ci` in `mobile/` first.
 - **A flex child image shrinks to 0 px** — the navbar's wordmark vanished on phones until the link got `shrink-0`.
@@ -564,4 +572,5 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
 
 - **M8** step 7 (plan.md §6): store release (EAS production builds, Turkish listings, 18+ rating,
   privacy forms, Play's closed test, App Store review).
-- Icebox highlights: localization (English first), colour theme review, a `haci` domain.
+- Icebox highlights: localization (English first), a `haci` domain.
+- M9 after the theme: the user decides what else the site needs before the parity pass and the store.

@@ -12,8 +12,11 @@ const iconMap = {
 
 export default function VisualQuantity({
   ingredient,
+  label,
 }: {
   ingredient: Ingredient;
+  /** The amount as text; the cl ↔ oz switch passes ounces as fractions ("1½ oz"). */
+  label?: string;
 }) {
   const Icon = iconMap[ingredient.iconType];
   const fullCount = Math.floor(ingredient.amount);
@@ -25,7 +28,7 @@ export default function VisualQuantity({
       <div className="flex items-center gap-2">
         <Icon className="h-4 w-4 text-crimson-glow" />
         <span className="font-mono text-xs text-text-secondary">
-          {ingredient.amount} {ingredient.unit}
+          {label ?? `${ingredient.amount} ${ingredient.unit}`}
         </span>
       </div>
     );
@@ -42,7 +45,7 @@ export default function VisualQuantity({
         )}
       </div>
       <span className="font-mono text-[10px] text-text-muted">
-        {ingredient.amount}{ingredient.unit}
+        {label ?? `${ingredient.amount}${ingredient.unit}`}
       </span>
     </div>
   );
