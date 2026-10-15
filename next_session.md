@@ -61,16 +61,19 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 on `qwvnhdghwycqlvsnlvlt` → still 11, the latest `20261014134219_showcase`; step 2 needed no schema
 change) and Claude in Chrome (`tabs_context_mcp`). `npx eas-cli@latest whoami` → `nefeygt` (the CLI on
 this machine is signed in; on another machine the user runs `npx eas-cli@latest login` — browser
-login, never type their password). SQL: the only profile is `ahmet_kafa`. **A leftover test user:**
-`nefeygt@outlook.com` (unconfirmed, no profile, made by the user on 2026-10-15) — ask the user before
-deleting it. `cd mobile && npm ci` on a fresh machine.
+login, never type their password). SQL: the only profile is `ahmet_kafa`. `auth.users` holds only the two admins and `ahmet_kafa`'s Google account (the leftover test user
+`nefeygt@outlook.com` was deleted with the user's OK, 2026-10-15). `cd mobile && npm ci` on a fresh machine.
 
 ### Step 1 — the step-2 phone check (with the user)
 
-1. The user installs the development build on their Android phone:
+1. The user installs the development build on their Android phone (open the link in the phone's
+   browser, download, allow "install unknown apps" for the browser, install; Play Protect may warn
+   about an unknown developer — "install anyway"):
    `https://expo.dev/artifacts/eas/dESd3FeeKhx4nzos6VN-twKn2US8Iop34v1k2AmpZIU.apk` (build
-   `82f94a67`, also on the project's Builds page). Then `cd mobile && npx expo start` on the same
-   network and open the project from the development build (not Expo Go).
+   `82f94a67`, also on the project's Builds page). Then `cd mobile && npx expo start` on the computer
+   (no build step: the development build holds the native code and loads the JavaScript from this
+   server) and, on the same Wi-Fi, open the haci app → it lists the server, or scan the QR code. If the
+   network blocks phone-to-computer traffic, `npx expo start --tunnel`.
 2. Checks: **Google sign-in** (Android client with the EAS key's SHA-1; Google says new clients can take
    minutes to hours) → onboarding → avatar from the gallery → sign out → e-mail sign-in → delete. Check
    in SQL that rows and `avatars/{id}/…` are gone.
@@ -116,8 +119,7 @@ Use the session from `useSession()`; a signed-out tap sends the member to the He
 | 3 | **Colour theme:** keep the dark crimson "Rx" look, or explore a lighter/warmer palette? | The user said the theme can change (ADR-015) | Today's palette stays (the app copies it from one theme file) |
 | 5 | **Hacı's first admin sign-in** — when (his phone, a network that does not block the domain)? | His 2FA factor is not enrolled yet | He cannot use the panel |
 | 6 | **The first real showcase period** — when, a week or a month? | Nothing promotes it until a period exists (the feed hides the section) | No period; the feature is invisible |
-| 10 | **Delete the leftover test user `nefeygt@outlook.com`?** (unconfirmed, no profile) | Keep `auth.users` clean | It stays |
-| 11 | **When does the Apple Developer enrolment happen?** | Sign in with Apple and every iOS build wait for it | Android only |
+| 11 | **Who enrols the Apple Developer account, and when?** The user expects it to be in **another person's name** | That person is the App Store publisher (seller name) and must give EAS access (their Apple ID with 2FA, or an App Store Connect API key); Sign in with Apple and every iOS build wait for it | Android only |
 
 ---
 
@@ -386,6 +388,7 @@ Use the session from `useSession()`; a signed-out tap sends the member to the He
 | Developer accounts? | **Expo: the user's existing account** (username next session). **Google Play: personal, exists.** **Apple: personal**, opened later from an iPhone through the Apple Developer app (~650 TL/yr) — Android goes first (2026-10-14) |
 | Expo username? | **`nefeygt`** — EAS project `@nefeygt/haci` (2026-10-15) |
 | When was the Play account created? | **After 2023-11-13** → a closed test (12 testers, 14 days) before production; **the user sources the testers** (paid tester services; alternatives offered, their call) (2026-10-15) |
+| Play Console developer name? | **"KZN"** — haci is published from the user's personal Play account (2026-10-15) |
 | Mobile app: where, scope, platforms, sign-in? | **`mobile/` in this repo; full parity with the site before the first store release; iOS + Android from day one on the user's accounts; native Google + e-mail (+ Sign in with Apple on iOS)** (ADR-020, 2026-10-14) |
 | Admins, 2FA, canonical domain, WHOIS, reviews/logs, mobile stack | See ADR-007, 011, 010, plan.md M2, ADR-012, ADR-013 |
 
