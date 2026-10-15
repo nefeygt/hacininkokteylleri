@@ -65,10 +65,8 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
    theme on a recipe, the archive, `/feed`, `/account` and `/login`. Pages not checked yet in the light themes: the
    account forms, logs, members' recipes, the feed's showcase, `/privacy`, `/u/{username}` — look for text that vanishes
    (a fixed colour instead of a token) and fix it with tokens (ADR-028).
-3. **"Elimde ne var?" (ADR-029), deployed 2026-10-15:** live check on the domain (pick Votka + Limon + Şeker Şurubu →
-   0 ready, 2 one short: Mavi İşçi without Blue Curaçao, Bee's Knees without Cin), and **the panel signed in** (needs
-   the owner's 2FA — the user, or the user's code): open a house recipe, see every row's catalogue select filled, save
-   unchanged; add and delete a test item on "Malzemeler".
+3. **"Elimde ne var?" (ADR-029)** is deployed and passed its live check on 2026-10-15 (panel signed in, the page on
+   the domain). Nothing left there; the user may want to look at it on the phone.
 4. **Ask the user what M9 still needs** before the parity pass (Icebox candidates: localization, rating breakdown,
    members' recipes in "Elimde ne var?"). Don't start one without their pick.
 
@@ -293,6 +291,11 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
 - **After renaming route folders, delete `.next`** — stale generated types break the build
   ("Cannot find module …/kokteyller/page.js").
 - `next.config.mjs` redirects run before the proxy, so one list covers both hosts.
+
+**Browser**
+- Claude in Chrome's window had **no haci session** on 2026-10-15 even though the user saw themselves signed in
+  elsewhere; the user signed in to the panel (2FA) in the agent's tab when asked. Ask them to do that for panel checks;
+  never type a password or code yourself. Its screenshots still time out — use DOM checks.
 
 **Supabase**
 - A new house ingredient must exist in `ingredients` first; `save_cocktail` refuses an unlinked line on a house

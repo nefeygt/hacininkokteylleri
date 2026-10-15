@@ -661,7 +661,9 @@ While the store release waits (ADR-024), the site gets better first; every user-
   linked), the panel's per-line catalogue select and "Malzemeler" page, the page `/what-can-i-make` (chips by group,
   "Yapabileceklerin" + "Bir malzeme eksik", kept in the browser, a results bar on phones). Checked: build, both typechecks,
   SQL (the save rule, RLS), Claude in Chrome DOM checks (Votka + Limon + Şeker Şurubu → the 2 recipes SQL predicted;
-  375 px no horizontal scroll; the choice kept after a reload). **Not yet checked: the panel signed in** (needs 2FA)
+  375 px no horizontal scroll; the choice kept after a reload). **Live check passed (2026-10-15, Claude in Chrome, the
+  user signed in with 2FA):** a house recipe shows every line's catalogue item and saves unchanged ("Kaydedildi");
+  "Malzemeler" adds and deletes a test item, in-use items cannot be deleted; the live page gives the predicted 2 results
 
 ---
 
@@ -734,7 +736,7 @@ While the store release waits (ADR-024), the site gets better first; every user-
 
 | Date | Session | Outcome |
 |---|---|---|
-| 2026-10-15 | M9 "Elimde ne var?" | The user picked "what can I make", then the database catalogue (not groups in code), its own page, ready + one missing, house recipes only → ADR-029. Migrations `ingredient_catalogue` (+ `_drafts` for an unpublished draft's lower-case lines), panel select + "Malzemeler" page, `/what-can-i-make`. Bug found in the browser and fixed: quick taps lost a choice (stale state). A build failed once on a next/font fetch (network); the retry passed. Panel not yet seen signed in |
+| 2026-10-15 | M9 "Elimde ne var?" | The user picked "what can I make", then the database catalogue (not groups in code), its own page, ready + one missing, house recipes only → ADR-029. Migrations `ingredient_catalogue` (+ `_drafts` for an unpublished draft's lower-case lines), panel select + "Malzemeler" page, `/what-can-i-make`. Bug found in the browser and fixed: quick taps lost a choice (stale state). A build failed once on a next/font fetch (network); the retry passed. Then the live check: the user signed in to the panel (Claude in Chrome had no haci session until then); recipe save, catalogue add/delete and the live page passed |
 | 2026-10-15 | M9 navbar | The user asked to remove the Letterboxd icon from the navbar → removed. The first build failed on a transient Supabase 500 while loading cocktails (project healthy; the retry passed). Checked in Claude in Chrome at 320/375 px through an iframe (the window cannot be resized while maximized). The weekly backup's first scheduled run is Monday 2026-10-19; the theme look on the phone and the M9 question are still open |
 | 2026-10-15 | M9 themes | The user picked A ("Rx, readable") as the main look and asked for the other directions and more combinations as themes → six themes with a "Görünüm" picker, reading text off the mono font (ADR-028). The extra navbar button overflowed 375 px → the account link is icon-only on phones. Checked in the built-in browser; build passes |
 | 2026-10-15 | M9 backup + cl ↔ oz | The user chose the GitHub Action backup (public key, published house content only, photos too) and 1 oz = 3 cl. Built both (ADR-027); the backup ran locally, Vercel skips backup-only commits. Live check: last session's features on the domain and Google's Rich Results Test (1 valid Recipe). Claude in Chrome's screenshots timed out again; DOM checks there, visuals in the built-in browser. Three theme/font directions published as an artifact for the user to pick |
