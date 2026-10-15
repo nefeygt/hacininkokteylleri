@@ -54,7 +54,7 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ## 🎯 This Session's Task — M9, the colour theme and a more readable font
 
-1. **Check the backup's first run** (ADR-027): the Action "Back up content" ran on Monday 03:00 UTC, or start it by hand
+1. **Check the backup** (ADR-027; a manual run on 2026-10-15 passed with "Nothing changed"): the Action "Back up content" ran on Monday 03:00 UTC, or start it by hand
    (`gh workflow run backup-content.yml`, then `gh run list --workflow backup-content.yml`). Nothing changed → no commit;
    a change → a commit by `github-actions[bot]` and **no new Vercel deployment** for it
    (`gh api repos/nefeygt/hacininkokteylleri/commits/<sha>/status`: Vercel should report the build skipped/ignored).

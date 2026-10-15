@@ -641,7 +641,8 @@ While the store release waits (ADR-024), the site gets better first; every user-
 - [ ] Not yet: a member's recipe page with JSON-LD (none published)
 - [x] **A weekly content backup** (ADR-027): GitHub Action, Mondays, published house recipes + glossary as JSON in `backup/`,
   new house photos into `supabase/storage/cocktail-images/`; commits only on change; Vercel skips the build. Run locally
-  (37 recipes, 4 terms, 0 new photos). **The first run on GitHub is not seen yet**
+  (37 recipes, 4 terms, 0 new photos) and once on GitHub by hand (success, "Nothing changed", no commit). Not yet seen:
+  a run that commits, and Vercel skipping that commit
 - [x] **cl ↔ oz** (ADR-027): "cl | oz" next to "Kaç kişilik?", 1 oz = 3 cl, quarter ounces as fractions, remembered in the
   browser. Checked: build, the app's typecheck, Claude in Chrome (6 cl → 2 oz, 10 cl → 3¼ oz; two glasses 20 cl → 6¾ oz;
   kept on another page) and the built-in browser at 375 px (no horizontal scroll)
