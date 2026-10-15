@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Film } from "lucide-react";
 import { BRAND } from "@/lib/brand";
 import AccountLink from "./AccountLink";
 import ThemePicker from "./ThemePicker";
@@ -32,15 +31,6 @@ export default function Navbar() {
             Akış
           </NavLink>
           <AccountLink active={pathname === "/account" || pathname === "/login"} />
-          <a
-            href="https://letterboxd.com/krasic/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="ml-1 flex h-8 w-8 shrink-0 items-center justify-center rounded text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-secondary"
-            title="Letterboxd"
-          >
-            <Film className="h-4 w-4" />
-          </a>
           <ThemePicker />
         </div>
       </div>

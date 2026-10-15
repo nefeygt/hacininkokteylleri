@@ -8,7 +8,8 @@
 is paused (ADR-024)**. **M9 (web improvements):** done and deployed this session (ADR-027): the weekly content backup
 (GitHub Action) and the cl ↔ oz switch; last session's features passed the live check and Google's Rich Results Test.
 **Then the themes (ADR-028):** "Rx" (readable: a sans for text, mono only for labels) is the main look, with five more
-themes in a "Görünüm" picker. **Next: ask the user what M9 still needs**; before the store, one app ↔ site parity pass.
+themes in a "Görünüm" picker. **A later session (2026-10-15) removed the Letterboxd icon from the navbar.**
+**Next: ask the user what M9 still needs**; before the store, one app ↔ site parity pass.
 ---
 
 ## 📋 Prompt to Copy
@@ -54,7 +55,7 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ## 🎯 This Session's Task — M9, the colour theme and a more readable font
 
-1. **Check the backup** (ADR-027; a manual run on 2026-10-15 passed with "Nothing changed"): the Action "Back up content" ran on Monday 03:00 UTC, or start it by hand
+1. **Check the backup** (ADR-027; a manual run on 2026-10-15 passed with "Nothing changed"; on Thursday 2026-10-15 no scheduled run had happened yet — the first is **Monday 2026-10-19**): the Action "Back up content" ran on Monday 03:00 UTC, or start it by hand
    (`gh workflow run backup-content.yml`, then `gh run list --workflow backup-content.yml`). Nothing changed → no commit;
    a change → a commit by `github-actions[bot]` and **no new Vercel deployment** for it
    (`gh api repos/nefeygt/hacininkokteylleri/commits/<sha>/status`: Vercel should report the build skipped/ignored).
@@ -85,6 +86,7 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
   (`/cocktails/{slug}` or `/recipes/{slug}`).
 - **"Benzer kokteyller"** under house recipes: `similarCocktails(target, archive, 4)` from `@shared/archive-filter`.
 - The wordmark and the recipe JSON-LD are web-only (the app has its own header; no SEO).
+- **The Letterboxd icon is gone from the navbar** (the user, 2026-10-15). The app never had it — nothing to port.
 - **Themes and readable type** (ADR-028): the app's `mobile/src/lib/theme.ts` copies Rx's new colours (brighter
   crimson glow `#d0453a`, greys `#b4b1ae` / `#7d7a78`); reading text in IBM Plex Sans, mono only for labels
   (`@expo-google-fonts/ibm-plex-sans`); a theme choice from `@shared/themes` (`THEMES`) on the account screen, kept in
@@ -285,6 +287,8 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
 - `next.config.mjs` redirects run before the proxy, so one list covers both hosts.
 
 **Supabase**
+- A build can fail on a transient Supabase 500 ("Could not load cocktails: Internal server error" in
+  `generateStaticParams`) — check `get_project` is healthy and run the build again before digging.
 - New tables are fully granted to `anon` by default: `revoke all`, grant only what is needed
   (column grants where users must not touch a column), enable RLS, one permissive policy per
   role and action (ADR-014).

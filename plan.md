@@ -653,6 +653,8 @@ While the store release waits (ADR-024), the site gets better first; every user-
   the mono font (153 places, site and panel). Checked: build, the built-in browser at 375 px (every theme 375 wide, the
   open menu too; the account link is icon-only on phones), paper on home/archive/recipe (dark wordmark), a chosen theme
   kept after a reload. The app's theme and fonts wait for the parity pass
+- [x] **The Letterboxd link left the navbar** (the user, 2026-10-15: not needed; the bar is tighter on phones). Checked: build,
+  Claude in Chrome at 320 and 375 px (no horizontal scroll, the theme button ends at 359 px)
 
 ---
 
@@ -726,6 +728,7 @@ While the store release waits (ADR-024), the site gets better first; every user-
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-10-15 | M9 navbar | The user asked to remove the Letterboxd icon from the navbar → removed. The first build failed on a transient Supabase 500 while loading cocktails (project healthy; the retry passed). Checked in Claude in Chrome at 320/375 px through an iframe (the window cannot be resized while maximized). The weekly backup's first scheduled run is Monday 2026-10-19; the theme look on the phone and the M9 question are still open |
 | 2026-10-15 | M9 themes | The user picked A ("Rx, readable") as the main look and asked for the other directions and more combinations as themes → six themes with a "Görünüm" picker, reading text off the mono font (ADR-028). The extra navbar button overflowed 375 px → the account link is icon-only on phones. Checked in the built-in browser; build passes |
 | 2026-10-15 | M9 backup + cl ↔ oz | The user chose the GitHub Action backup (public key, published house content only, photos too) and 1 oz = 3 cl. Built both (ADR-027); the backup ran locally, Vercel skips backup-only commits. Live check: last session's features on the domain and Google's Rich Results Test (1 valid Recipe). Claude in Chrome's screenshots timed out again; DOM checks there, visuals in the built-in browser. Three theme/font directions published as an artifact for the user to pick |
 | 2026-10-15 | M9 quick wins | The user picked the order: quick wins first, theme and font last. Built (ADR-026): chips from the data with flavour notes (site and app), the wordmark in the navbar, recipe JSON-LD, "Paylaş", "Kaç kişilik?", "Benzer kokteyller". Fixed on the way: the wordmark shrank to 0 px on phones and the bar overflowed 375 px. Checked: build, the app's typecheck (`npm ci` in `mobile/` first — `node_modules` was missing), Claude in Chrome (its screenshots timed out after a resize) and the built-in browser |
