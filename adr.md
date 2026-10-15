@@ -30,6 +30,7 @@
 | 018 | Community recipes, the feed, follows and log comments | ✅ Accepted | 2026-10-14 |
 | 019 | The showcase: periods chosen per time, applying and voting on the feed, the winner on the home page | ✅ Accepted | 2026-10-14 |
 | 020 | The Expo app: `mobile/` in this repository, full parity with the site, both stores, native sign-in | ✅ Accepted | 2026-10-14 |
+| 021 | E-mail links carry a `token_hash` verified by the site; a password change on a 2FA account asks for the code | ✅ Accepted | 2026-10-15 |
 
 ---
 
@@ -812,3 +813,44 @@ and the handoff would split. *npm workspaces:* hoisting React Native's dependenc
 Next.js's risks the site's build for little gain at two packages. *Google sign-in through a web
 browser (Supabase's OAuth page):* no native client to set up, but a clumsier flow and the
 `supabase.co` host on Google's chooser. *An app-only API server:* the policies already are the API.
+
+---
+
+## ADR-021 — E-mail links carry a `token_hash` verified by the site; a password change on a 2FA account asks for the code
+
+**Context.** On 2026-10-15 the user asked for a password reset from the app, opened the e-mail on
+their phone and got "link invalid"; a second try from the site reached the form but every new
+password was refused with "at least 8 characters". The auth logs showed two separate faults:
+- The e-mail templates linked to `{{ .ConfirmationURL }}`. Supabase then finishes the link with
+  the flow of the client that asked for it. The app's client uses the **implicit** flow, so the
+  tokens arrived in a `#hash` that `/auth/callback` (a server route) never sees → "link invalid".
+  The site uses **PKCE**, whose verifier lives in the browser that asked, so a reset requested on
+  a laptop and opened on a phone fails too.
+- The account was the owner admin, which has TOTP (ADR-011). Supabase refuses a password change
+  from an `aal1` session on such an account (`insufficient_aal`), and `NewPasswordForm` showed every
+  error as "at least 8 characters" (so did `authErrorMessage()`, for any message containing
+  "password").
+
+**Decision.**
+- **The templates link to the site's callback with a `token_hash`** (Supabase's recommended form
+  for server-side apps): reset → `{{ .SiteURL }}/auth/callback?via=email&type=recovery&token_hash=…`,
+  sign-up → `{{ .RedirectTo }}&type=email&token_hash=…` (keeps the site's `next`), e-mail change →
+  `{{ .SiteURL }}/auth/callback?via=email&type=email_change&next=/account&token_hash=…`. The
+  callback calls `verifyOtp({ token_hash, type })` and sets the session cookie; Google's `code`
+  path is unchanged. A link now works in any browser, whoever asked for it (site or app). The
+  sources in `supabase/templates/` are the truth; the dashboard copies were updated on 2026-10-15.
+- **The reset form asks for the 6-digit code** when the session is `aal1` and the account has a
+  verified TOTP factor (`challengeAndVerify`, then `updateUser`), and maps Supabase's errors one by
+  one.
+
+**Consequences.**
+- (+) Reset and confirmation links from the app work; links are no longer tied to one browser.
+- (+) Admins can reset their own password without a support step.
+- (−) Template changes are pasted into the dashboard by hand (as before); a template that still
+  uses `ConfirmationURL` would bring the old fault back for app-requested links.
+- (−) As before, a mail scanner that opens links can use up a one-time link; asking again sends a
+  new one.
+
+**Rejected.** *PKCE in the app:* its verifier stays on the phone, so the site still could not
+finish the link. *A client-side page reading the `#hash`:* fixes only the app's links, keeps tokens
+in URLs and leaves the cross-browser PKCE failure.

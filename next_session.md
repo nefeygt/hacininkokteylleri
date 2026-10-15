@@ -4,11 +4,11 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-15 (M8 step 2) · **Handing off:** **M8 step 2 built** — accounts in
-the app (e-mail, onboarding, account, delete; Google and Apple code), `POST /api/revalidate` on the
-site, Google iOS/Android OAuth clients, EAS project `@nefeygt/haci` and the first Android development
-build. Checked in Chrome (Expo web). The user's Android phone check **passed** (Google sign-in, avatar).
-**Next: M8 step 3 — reviews, favourites, reports, public profiles in the app.**
+**Prepared by session:** 2026-10-15 (M8 step 3) · **Handing off:** **M8 step 3 built** — reviews,
+the heart, "Favorilerim", reports and public profiles in the app (`0ccafb3`, checked signed out in Chrome).
+**Password reset fixed** mid-session (ADR-021): e-mail links carry a `token_hash` the site verifies, and the
+reset form asks for the 2FA code on accounts that have one. **Left: the user's reset retry and the signed-in
+step-3 check; then M8 step 4 — the drink log in the app.**
 
 ---
 
@@ -53,48 +53,39 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — finish M8 step 2 on a phone, then M8 step 3
+## 🎯 This Session's Task — close M8 step 3 with the user, then M8 step 4
 
 ### Step 0 — state check
 
 `git status` — clean, `main` in step with `origin/main`. **Tools:** the Supabase MCP (`list_migrations`
-on `qwvnhdghwycqlvsnlvlt` → still 11, the latest `20261014134219_showcase`; step 2 needed no schema
-change) and Claude in Chrome (`tabs_context_mcp`). `npx eas-cli@latest whoami` → `nefeygt` (the CLI on
-this machine is signed in; on another machine the user runs `npx eas-cli@latest login` — browser
-login, never type their password). SQL: the only profile is `ahmet_kafa`. `auth.users` holds only the two admins and `ahmet_kafa`'s Google account (the leftover test user
-`nefeygt@outlook.com` was deleted with the user's OK, 2026-10-15). `cd mobile && npm ci` on a fresh machine.
+on `qwvnhdghwycqlvsnlvlt` → still 11, the latest `20261014134219_showcase`; steps 2 and 3 needed no schema
+change) and Claude in Chrome (`tabs_context_mcp`). `npx eas-cli@latest whoami` → `nefeygt`. SQL: the only
+profile is `ahmet_kafa`; `reviews`, `favorites`, `reports` should be empty. `cd mobile && npm ci` on a fresh machine.
 
-### Step 1 — the step-2 phone check (passed 2026-10-15, nothing left)
+### Step 1 — the user's checks (ask first; Claude cannot type passwords)
 
-The user ran the flow on their Android phone: Google sign-in reached `ahmet_kafa`, the avatar upload
-worked, and Google's account chooser now appears on every sign-in (the app calls
-`GoogleSignin.signOut()` first). For reference, how the phone is set up for the next checks:
+1. **Password reset (ADR-021).** The user asks for a reset (site or app), opens the newest e-mail on any
+   device → `/auth/callback?…type=recovery&token_hash=…` → `/reset-password`. The account they used,
+   `n.efeyigit@outlook.com`, is the **owner admin with 2FA**, so the form shows "Doğrulama kodu": the
+   6-digit code from their authenticator. Old e-mails (sent before 2026-10-15 ~09:30 UTC) still have the old
+   link — use only a new one. If it fails: Supabase auth logs (`query_logs`, source `auth_logs`, `/verify`,
+   `/user`) say why.
+2. **Step 3 signed in** (the development build on the phone with `npx expo start`, or Expo web
+   `npx expo start --web --port 8081` in Chrome where the user signs in themselves): write a review →
+   edit → two-step delete; the heart on a recipe and "Filtrele → Listem → Favorilerim"; a profile from a
+   review's avatar; "Bildir" on someone else's review (needs a second member — otherwise check in SQL as in
+   M4). Check rows in SQL, then delete the test rows (reviews, favourites, reports) with the user's OK.
+   **Ask which account:** `n.efeyigit@outlook.com` is the owner admin and has no profile — signing in to the
+   app sends it to onboarding and would make the admin a member too. `ahmet_kafa` (Google) is the member account.
 
+### Step 2 — M8 step 4 (plan.md §6): the drink log in the app
 
-1. The user installs the development build on their Android phone (open the link in the phone's
-   browser, download, allow "install unknown apps" for the browser, install; Play Protect may warn
-   about an unknown developer — "install anyway"):
-   `https://expo.dev/artifacts/eas/dESd3FeeKhx4nzos6VN-twKn2US8Iop34v1k2AmpZIU.apk` (build
-   `82f94a67`, also on the project's Builds page). Then `cd mobile && npx expo start` on the computer
-   (no build step: the development build holds the native code and loads the JavaScript from this
-   server) and, on the same Wi-Fi, open the haci app → it lists the server, or scan the QR code. If the
-   network blocks phone-to-computer traffic, `npx expo start --tunnel`.
-2. Checks: **Google sign-in** (Android client with the EAS key's SHA-1; Google says new clients can take
-   minutes to hours) → onboarding → avatar from the gallery → sign out → e-mail sign-in → delete. Check
-   in SQL that rows and `avatars/{id}/…` are gone.
-3. If Google fails with `DEVELOPER_ERROR`: the SHA-1 or package in the Android client is wrong — compare
-   with expo.dev → Credentials (copy button) and Google Cloud → Clients.
-4. Changing a **native** dependency or `app.json` plugins needs a new development build (`eas build
-   --profile development --platform android`); JavaScript changes do not.
-
-### Step 2 — M8 step 3 (plan.md §6): reviews, favourites, reports, public profiles
-
-Mirror the site (ADR-012, ADR-016): on the recipe screen the average, the heart, the reviews list
-(write / edit / two-step delete / report), "Favorilerim" in the archive filters, public profiles
-(`/u/{username}` as a screen: avatar, bio, favourites, reviews, "Profili bildir"), and reports.
-Reuse `src/lib/community.ts`. After each write call `revalidateSite()` with the paths the site's
-`revalidateCommunityPages()` uses (`/cocktails`, `/recipes/[slug]`, `/feed`, `/u/{username}`).
-Use the session from `useSession()`; a signed-out tap sends the member to the Hesap tab.
+Mirror the site (ADR-017): "Günlüğe ekle" on the recipe screen next to the heart, the log form (date,
+note, rating?, the recipe snapshot from `src/lib/drink-log.ts` — `cleanRecipe` and limits are shared),
+the list of my logs, edit/delete (two-step), public/private with the default from `account_settings`,
+public logs on the profile screen (and "Bildir" on them). Writes go straight to Supabase, then
+`revalidateSite()` with the paths the site's `account/logs/actions.ts` revalidates (`/u/{username}`,
+`/logs/{id}`, `/feed`). Read the site's `LogForm`, `DrinkLogEntry` and `account/logs/actions.ts` first.
 
 ### Also open (not blocking)
 
@@ -130,6 +121,14 @@ Use the session from `useSession()`; a signed-out tap sends the member to the He
 
 ## 📍 Current State
 
+- **The app's community (M8 step 3, 2026-10-15):** `mobile/src/lib/community.ts` (`fetchReviews`, `saveReview`,
+  `deleteReview`, `setFavorite`, `reportContent`, each revalidating the site), `favorites.tsx`
+  (`FavoritesProvider` / `useFavorites()`), components `Stars`, `ReportButton` (hidden for signed-out visitors
+  and owners), `CocktailReviews`; the recipe screen's heart, the archive's "Favorilerim", the screen
+  `u/[username]`. Members' recipes on a profile still open on the site (step 5).
+- **E-mail links (2026-10-15, ADR-021):** `/auth/callback` verifies `token_hash` + `type` (`verifyOtp`) besides
+  Google's `code`; `NewPasswordForm` asks for the TOTP code on 2FA accounts; `authErrorMessage()` only says
+  "8 characters" for real length errors.
 - **The app's accounts (M8 step 2, 2026-10-15):** `mobile/src/lib/session.tsx` (`SessionProvider`,
   `useSession()`: loading / signed-out / onboarding / ok with profile and settings), `native-auth.ts`
   (Google through `@react-native-google-signin/google-signin`, loaded with `require` so Expo Go does
@@ -248,6 +247,21 @@ Use the session from `useSession()`; a signed-out tap sends the member to the He
   not select it). Host name empty = apex.
 - **The office network blocks the new domain** (a Fortinet FortiGate). Check DNS with
   `https://dns.google/resolve?name=…` and HTTP with check-host.net (plan.md §5.4).
+
+**This session's lessons (M8 step 3)**
+- **E-mail links must carry `token_hash` (ADR-021).** `{{ .ConfirmationURL }}` finishes with the requesting
+  client's flow: the app's implicit flow puts tokens in a `#hash` the server never sees, and the site's PKCE
+  verifier lives in one browser. The templates in the dashboard now match `supabase/templates/`.
+- **The owner admin is also the user's e-mail sign-in.** 2FA accounts need `aal2` for `updateUser({ password })`
+  (`insufficient_aal`); the reset form now asks for the code. Error messages must come from the real error —
+  the old form said "8 characters" for everything.
+- **Supabase's template editor is Monaco:** in a background tab, `monaco.editor.getEditors()` →
+  `executeEdits` on the model `file:///code-id`, then click "Save changes" via the DOM ("Successfully updated
+  email template"). `history.pushState` does not switch templates — navigate for each one.
+- **Expo web deep links before the archive loads:** the recipe screen showed "Bu kokteyl bulunamadı" while the
+  archive was still loading — it now shows a spinner until the archive is there.
+- **Vercel's deploy state without the dashboard:** `gh api repos/nefeygt/hacininkokteylleri/commits/<sha>/status`
+  (`Vercel=success`). The domain is blocked on the office network (curl gets nothing; Chrome shows an error page).
 
 **This session's lessons (M8 step 2)**
 - **Supabase answers "sent" for a sign-up with an address that already has an account, and sends
@@ -401,7 +415,7 @@ Use the session from `useSession()`; a signed-out tap sends the member to the He
 
 ## 🧭 Look-ahead
 
-- **M8** steps 3–7 (plan.md §6): reviews/favourites/profiles → drink log → members' recipes, feed,
+- **M8** steps 4–7 (plan.md §6): drink log → members' recipes, feed,
   follows, comments → showcase → store release (EAS production builds, Turkish listings, 18+ rating,
   privacy forms, Play's closed test, App Store review).
 - Icebox highlights: localization (English first), colour theme review, a `haci` domain.

@@ -9,7 +9,7 @@
 > **Language rule (ADR-002):** everything we write — docs, code, comments, commits, SQL — is
 > **English**. Everything visitors and admins read — UI strings, recipes — is **Turkish**.
 
-**Last updated:** 2026-10-15 · **Active milestone:** **M8 — Mobile app** (step 1 of 7 done; step 2, accounts, built — device checks left) · M6 and M7 done · **Brand:** `haci` (ADR-015)
+**Last updated:** 2026-10-15 · **Active milestone:** **M8 — Mobile app** (step 1 done; step 2 done except Apple; step 3 built — the signed-in check left) · M6 and M7 done · **Brand:** `haci` (ADR-015)
 
 ---
 
@@ -17,7 +17,7 @@
 
 | Field | State |
 |---|---|
-| Active milestone | **M8 — Mobile app** (Expo SDK 57, ADR-013, ADR-020) — `mobile/` in this repo, **full parity with the site** before the first store release, iOS + Android, native Google + e-mail sign-in (+ Sign in with Apple on iOS). Step 1 done (2026-10-14): shell, theme, icons, the archive with search/filters and the recipe screen. **Step 2 built (2026-10-15):** e-mail sign-in/up/reset, onboarding, account (profile, avatar, logs default, sign out, delete), native Google (Android + iOS clients) and Apple code, `POST /api/revalidate` on the site; EAS project `@nefeygt/haci`, first Android development build. Checked in Chrome (Expo web) with a test account and **on the user's Android phone** (Google sign-in, avatar) |
+| Active milestone | **M8 — Mobile app** (Expo SDK 57, ADR-013, ADR-020) — `mobile/` in this repo, **full parity with the site** before the first store release, iOS + Android, native Google + e-mail sign-in (+ Sign in with Apple on iOS). Step 1 done (2026-10-14): shell, theme, icons, the archive with search/filters and the recipe screen. **Step 2 built (2026-10-15):** e-mail sign-in/up/reset, onboarding, account (profile, avatar, logs default, sign out, delete), native Google (Android + iOS clients) and Apple code, `POST /api/revalidate` on the site; EAS project `@nefeygt/haci`, first Android development build. Checked in Chrome (Expo web) with a test account and **on the user's Android phone** (Google sign-in, avatar). **Step 3 built (2026-10-15):** reviews (write/edit/two-step delete/report), the heart, "Favorilerim", public profiles as a screen; signed-out paths checked in Chrome, the signed-in check is the user's. **Password reset fixed** the same day (e-mail links with `token_hash`, the 2FA code on the reset form, ADR-021) — the user's retry is left |
 | Previous milestone | **M7 — The showcase** (2026-10-14, ADR-019) and **M6 — Community recipes and feeds** (2026-10-14, ADR-018): built, tested on `localhost`, deployed; **live checks passed on the user's phone** (2026-10-14). **Both done**. M5 — Drink log done 2026-10-14 |
 | Last completed | **M2 — Domain** (Search Console moved from vercel.app to the domain) and the **brand change to `haci`** with English URLs and the cherry logo (ADR-015). M1 is done except Hacı's own first sign-in |
 | Blockers | None in the code. **The user's accounts for M8:** Expo `nefeygt` (EAS project `@nefeygt/haci`, linked 2026-10-15); Google Play — personal, **created after 2023-11-13**, developer name **"KZN"** (renamed by the user 2026-10-15; haci is published from it), so a 12-tester, 14-day closed test comes before production (the user sources the testers); Apple Developer — **not opened yet, and likely in another person's name** (the user, 2026-10-15), so Android is built and tested first. The office network (FortiGate) blocks the domain — check from outside (§5.4) |
@@ -276,14 +276,16 @@ src/
 supabase/
   migrations/                   {version}_{name}.sql — mirrors of what is applied (ADR-009)
   storage/cocktail-images/      the 37 imported WebPs (the bucket's starting content)
-  templates/                    Supabase Auth e-mail templates (Turkish), mirrored by hand
+  templates/                    Supabase Auth e-mail templates (Turkish), mirrored by hand; links carry a token_hash (ADR-021)
 public/brand/                   logo sources (SVG) and exported PNGs; scripts/export-brand.mjs renders them (and the app's icons)
 mobile/                         the Expo app (M8, ADR-020) — its own package.json; see mobile/README.md
   src/app/                      Expo Router screens: (tabs)/index (archive), feed, account; cocktail/[slug]; welcome
   src/components/               the site's components rebuilt for React Native (CocktailCard, RecipeDetails, …);
-                                M8 step 2: SignIn, AccountView, Form (fields, buttons), Avatar
+                                M8 step 2: SignIn, AccountView, Form (fields, buttons), Avatar;
+                                M8 step 3: Stars, ReportButton, CocktailReviews; screen u/[username]
   src/lib/                      supabase client, theme, content fetchers, archive context; session.tsx (SessionProvider),
-                                native-auth.ts (Google, Apple), revalidate.ts (revalidateSite)
+                                native-auth.ts (Google, Apple), revalidate.ts (revalidateSite);
+                                M8 step 3: community.ts (reviews, favourites, reports), favorites.tsx (FavoritesProvider)
   eas.json                      EAS build profiles: development (dev client APK), preview, production
   .env                          public settings (EXPO_PUBLIC_*: Supabase, site, Google client IDs), committed (ADR-008)
 ```
@@ -515,7 +517,19 @@ The admin panel stays web-only.
   - [ ] Sign in with Apple: Apple Developer account → Supabase Apple provider (bundle ID) → test on an
     iPhone; `/privacy` names Apple (draft, **the user approves**). Also whether iOS Google needs
     "Skip nonce checks" in Supabase
-- [ ] Step 3 — reviews, favourites ("Favorilerim"), reports, public profiles
+- [ ] Step 3 — reviews, favourites ("Favorilerim"), reports, public profiles (built 2026-10-15; the signed-in check left):
+  - [x] `mobile/src/lib/community.ts` — the site's `cocktails/actions.ts` as direct writes (same errors,
+    edit-then-insert for reviews) + `revalidateSite()` with the site's paths; `favorites.tsx` (`FavoritesProvider`,
+    optimistic heart, signed-out → the Hesap tab)
+  - [x] Recipe screen: the heart next to the name, `CocktailReviews` (average, own review: write / edit /
+    two-step delete, hidden notice; others with avatar → profile, "Bildir" inline form)
+  - [x] Archive: hearts on cards, "Listem → Favorilerim (n)" for members, pull to refresh reloads favourites
+  - [x] Profile screen `u/[username]` (avatar, bio, follow counts, joined, "Profili bildir", favourites,
+    reviews; members' recipes open on the site until step 5); the account's "Herkese açık profilin" opens it
+  - [x] Checked: typecheck, all three bundles, site build; Expo web in Chrome signed out (prompt, heart →
+    Hesap, `ahmet_kafa`'s profile)
+  - [ ] Signed in (the user — Claude cannot type passwords): write → edit → delete a review, heart and
+    "Favorilerim", report another member's review; SQL shows the rows, then clean up
 - [ ] Step 4 — drink log (new / list / edit, public or private, the default setting)
 - [ ] Step 5 — members' recipes (form, photo upload), recipe pages, the feed, follows, log comments
 - [ ] Step 6 — the showcase (period, entries, votes, apply/withdraw, the winner)
@@ -593,6 +607,7 @@ The admin panel stays web-only.
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-10-15 | M8 step 3 + reset fix | Step 3 in the app: reviews, heart, "Favorilerim", reports, the profile screen; checked signed out in Chrome. Mid-session the user's password reset failed twice: app-requested links landed with a `#hash` the callback could not read, and the owner admin's 2FA blocked the change behind a wrong "8 characters" message. Fixed (callback verifies `token_hash`, templates updated in the dashboard with the user's OK, the reset form asks for the 2FA code) → ADR-021. Deployed `0ccafb3`. Left: the user's reset retry and the signed-in step-3 check |
 | 2026-10-15 | M8 step 2 phone check | The user installed the development build: Google sign-in and the avatar passed. Google picked the last account without asking → the app forgets it before each sign-in. Leftover test user deleted (the user's OK); Play developer name "KZN"; the Apple account will likely be in another person's name |
 | 2026-10-15 | M8 step 2 build | The user: Expo `nefeygt`, Play account created after 2023-11-13 (they will buy tester services for the closed test; alternatives noted in next_session). `POST /api/revalidate`; the app's session, e-mail sign-in/up/reset, onboarding, account (profile, avatar, logs default, sign out, delete), native Google and Apple code; shared `profile.ts`. Google Cloud: iOS and Android OAuth clients, IDs in Supabase. EAS project linked, first Android development build (APK). Checked in Chrome with the user's test account (deleted afterwards). The user found the e-mail texts unclear and mails in spam → step-by-step notices, spam hint on the site too |
 | 2026-10-14 | M8 start | State clean. The user answered the M8 questions (this repo, full parity, both stores, native Google + e-mail) → ADR-020. Expo SDK 57 app in `mobile/`: theme, icons, shared `src/lib` modules (`archive-filter.ts` new, shared with the site), the archive and the recipe screen; Turkish uppercase fixed in labels. Checked: typecheck, expo-doctor, all three bundles, Expo web in Chrome, the site's build and filters |
