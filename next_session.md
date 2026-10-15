@@ -7,8 +7,10 @@
 **Prepared by session:** 2026-10-15 (store release paused) · **Handing off:** M8 steps 1–6 are done — the app does
 everything the site does (Sign in with Apple aside). **The user paused the store release (ADR-024):** it waits for the
 Apple Developer account, or for the user's two other Play apps (one paid closed test for three apps). **M9 (web
-improvements) is open:** house recipe pages are done (ADR-025). **Next: the user picks from M9's list** (plan.md §6) —
-theme/font, filters from the data, the wordmark, or Claude's suggestions. Before the store, one app ↔ site parity pass.
+improvements) is open:** house recipe pages are done (ADR-025). Live on the domain (`149e6fa`, Vercel success, `/cocktails/{slug}` 200 —
+checked 2026-10-15 from the user's home network, which does not block the domain). The user called Claude's M9
+suggestions "süper"; **next: agree the order with the user and build** (plan.md §6 M9) — theme/font, filters from the
+data, the wordmark, and the suggestions. Before the store, one app ↔ site parity pass.
 ---
 
 ## 📋 Prompt to Copy
@@ -56,7 +58,8 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 The mobile store release is paused (ADR-024). M9 in plan.md §6 lists the open items: the user's (theme and font,
 filters from the data, the wordmark) and Claude's suggestions (share button, recipe rich results, "Kaç kişilik?",
-similar cocktails, a content backup, cl ↔ oz). **Ask which come first; build only what the user picks.** Ideas
+similar cocktails, a content backup, cl ↔ oz). The user liked all of them (2026-10-15); **ask which come first, then build** — one at a time, each checked in the
+browser. Claude in Chrome was reconnected by the user at the end of 2026-10-15 (try `tabs_context_mcp` first). Ideas
 outside it go to the Icebox.
 
 **While doing web work:**
