@@ -9,7 +9,7 @@
 > **Language rule (ADR-002):** everything we write — docs, code, comments, commits, SQL — is
 > **English**. Everything visitors and admins read — UI strings, recipes — is **Turkish**.
 
-**Last updated:** 2026-10-15 (M9 start) · **Active milestone:** **M9 — Web improvements** (house recipe pages done, ADR-025) · **M8 — Mobile app** steps 1–6 done, **step 7 (store release) paused** until the Apple account or the user's two other Play apps (ADR-024) · M6 and M7 done · **Brand:** `haci` (ADR-015)
+**Last updated:** 2026-10-15 (M9 quick wins) · **Active milestone:** **M9 — Web improvements** (recipe pages, data filters, wordmark, rich results, share, servings, similar — ADR-025, ADR-026) · **M8 — Mobile app** steps 1–6 done, **step 7 (store release) paused** until the Apple account or the user's two other Play apps (ADR-024) · M6 and M7 done · **Brand:** `haci` (ADR-015)
 
 ---
 
@@ -622,16 +622,21 @@ While the store release waits (ADR-024), the site gets better first; every user-
 - [x] **Own pages for house recipes** (ADR-025): `/cocktails/{slug}` (static, OG image, sitemap); the archive's
   card opens the page, a magnifier on the photo opens the quick card, the card links to the page. Checked in
   the built-in browser (desktop and phone width) and with curl (200/404, canonical, og:image, 37 sitemap URLs)
-- [ ] Colour theme review and a more readable font (site and app together) — needs the user's direction
-- [ ] Base-spirit and flavour filters built from the data (and "Tatlı" matching "Tatlı-Ekşi", §8)
-- [ ] The `haci` wordmark in the navbar
-- **Claude's suggestions (2026-10-15), waiting for the user's pick:**
-  - [ ] "Paylaş" on recipe pages (the phone's share sheet, else copy the link)
-  - [ ] Google recipe rich results (schema.org `Recipe` JSON-LD: photo, rating, ingredients in search results)
-  - [ ] "Kaç kişilik?" — scale a recipe's amounts for 1–8 glasses (batching for guests)
-  - [ ] "Benzer kokteyller" at the bottom of a recipe page (same base spirit or flavour)
+- **Order (the user, 2026-10-15): quick wins first; the colour theme and font last, in their own session.**
+- [x] Base-spirit and flavour filters built from the data; a flavour is a set of notes, so "Tatlı" finds "Tatlı-Ekşi"
+  (ADR-026; the app's archive too, through the shared module)
+- [x] The `haci` wordmark in the navbar; on phones "Ana Sayfa" is hidden so the bar fits 375 px
+- [x] "Paylaş" on recipe pages (the browser's share sheet, else copy the link)
+- [x] Google recipe rich results (schema.org `Recipe` JSON-LD on `/cocktails/{slug}` and `/recipes/{slug}`)
+- [x] "Kaç kişilik?" — every recipe's amounts scale for 1–8 glasses
+- [x] "Benzer kokteyller" under house recipes (up to four; base spirit, flavour notes, tags)
+- Checked 2026-10-15: site build, the app's typecheck, Claude in Chrome (chips, "Tatlı" → 15, scaling 6 → 18 cl,
+  JSON-LD, four similar cards) and the built-in browser at 375 px and desktop (no horizontal scroll signed in or out)
+- [ ] Not yet: Google's Rich Results Test on the live page; a member's recipe page with JSON-LD (none published)
+- **Next:**
   - [ ] A weekly content backup (the free plan has no backups, §7): the house recipes and glossary exported to the repo
   - [ ] cl ↔ oz switch for a global audience
+- [ ] Colour theme review and a more readable font (site and app together) — needs the user's direction; last
 
 ---
 
@@ -654,9 +659,7 @@ While the store release waits (ADR-024), the site gets better first; every user-
 
 ## 8. Known issues (not yet scheduled)
 
-- The flavour filter matches exactly: "Tatlı" does not find "Tatlı-Ekşi" or "Acı-Tatlı".
-  The base-spirit and flavour chips are a hard-coded list in `CocktailBrowser.tsx`, so a
-  new value added in the panel ("Likör", "Aperitif") has no chip.
+- The chips are read from the data (ADR-026), so a misspelling in the panel becomes its own chip.
 - Ingredient names are free text ("Vodka" and "Votka" both exist), which the future
   drink log and "what can I make" features will want normalised.
 - A photo uploaded in the panel and then abandoned (form not saved) stays in the bucket; the same
@@ -675,7 +678,6 @@ While the store release waits (ADR-024), the site gets better first; every user-
 
 ## 9. Icebox (deferred ideas)
 
-- Filters built from the data instead of hard-coded lists
 - A normalised ingredient catalogue; "what can I make with what I have"
 - Who changed what (`updated_by`) and a change history in the panel
 - Drag-and-drop ordering in the panel
@@ -700,7 +702,6 @@ While the store release waits (ADR-024), the site gets better first; every user-
 - Tune "popular" (weights, logs, a week vs a month) once there is real traffic
 - House recipes on `/recipes/{slug}` too (the path is ready: slugs are unique across both)
 - Showcase: an archive of past winners; telling applicants when they are approved (M7 shows the status on the feed only)
-- The `haci` wordmark (`public/brand/haci-wordmark-light.svg`) in the navbar instead of text
 - **Our own auth domain** (e.g. `auth.hacininkokteylleri.tech`, Supabase custom domain, a paid
   add-on) plus Google brand verification, so Google's account chooser says `haci` instead of
   `qwvnhdghwycqlvsnlvlt.supabase.co` (seen live 2026-10-14). The user: "we'll buy it if it grows"
@@ -711,6 +712,7 @@ While the store release waits (ADR-024), the site gets better first; every user-
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-10-15 | M9 quick wins | The user picked the order: quick wins first, theme and font last. Built (ADR-026): chips from the data with flavour notes (site and app), the wordmark in the navbar, recipe JSON-LD, "Paylaş", "Kaç kişilik?", "Benzer kokteyller". Fixed on the way: the wordmark shrank to 0 px on phones and the bar overflowed 375 px. Checked: build, the app's typecheck (`npm ci` in `mobile/` first — `node_modules` was missing), Claude in Chrome (its screenshots timed out after a resize) and the built-in browser |
 | 2026-10-15 | M9 start: recipe pages | The user asked for house recipe pages: the card opens `/cocktails/{slug}`, a magnifier opens the modal (ADR-025); video → Icebox. Built, checked in the built-in browser (Claude in Chrome not connected) and with curl; build passes; deployed `149e6fa`, live page 200 from the user's home network. M9 opened with Claude's suggestions — the user liked them all; order next session |
 | 2026-10-15 | Store release paused | Pulled `dc4340d`. The user does not want to publish yet: wait for the Apple account, or for two more Play apps to share one paid closed test; web improvements first, then one parity pass before the store (ADR-024) |
 | 2026-10-15 | M8 step 6 | Claude in Chrome still disconnected → the built-in browser. The showcase in the app: `showcase.ts`, `fetchShowcase`/`fetchShowcaseWinner`, the Vitrin section on the Akış tab (apply, status, withdraw, votes, report, winner). Checked signed in at phone width with a temporary member and a test period (the user's OK); every test row deleted (community tables empty; profiles `ahmet_kafa`, `mustafa_hayat`). **The app has the site's features**; next is the store release. Then Claude in Chrome came back: the signed-out showcase, followed people's logs and reports on another member's entry and comment checked with a seeded member (deleted) |

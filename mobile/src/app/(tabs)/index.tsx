@@ -1,7 +1,7 @@
 import {
-  BASE_ALCOHOLS,
-  FLAVORS,
   INGREDIENT_FILTERS,
+  baseChoices,
+  flavorChoices,
   NO_FILTERS,
   filterCocktails,
   hasActiveFilters,
@@ -34,6 +34,8 @@ export default function ArchiveScreen() {
     [filters, isMember, onlyFavorites, favorites]
   );
   const filtered = useMemo(() => filterCocktails(cocktails, applied), [cocktails, applied]);
+  const baseAlcohols = useMemo(() => baseChoices(cocktails), [cocktails]);
+  const flavors = useMemo(() => flavorChoices(cocktails), [cocktails]);
   const active = hasActiveFilters(applied);
   const set = (patch: Partial<ArchiveFilters>) => setFilters((f) => ({ ...f, ...patch }));
   const clearFilters = () => {
@@ -104,12 +106,12 @@ export default function ArchiveScreen() {
       {showFilters && (
         <View style={styles.filters}>
           <FilterRow label="Baz Alkol">
-            {BASE_ALCOHOLS.map((b) => (
+            {baseAlcohols.map((b) => (
               <Chip key={b} label={b} active={filters.base === b} onPress={() => set({ base: b })} />
             ))}
           </FilterRow>
           <FilterRow label="Baskın Tat">
-            {FLAVORS.map((f) => (
+            {flavors.map((f) => (
               <Chip key={f} label={f} active={filters.flavor === f} onPress={() => set({ flavor: f })} />
             ))}
           </FilterRow>

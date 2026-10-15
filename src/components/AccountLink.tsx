@@ -26,7 +26,7 @@ export default function AccountLink({ active }: { active: boolean }) {
   return (
     <Link
       href={signedIn ? "/account" : "/login"}
-      className={`ml-1 flex items-center gap-1.5 rounded px-3 py-1.5 font-mono text-xs tracking-wide transition-colors ${
+      className={`ml-1 flex items-center gap-1.5 whitespace-nowrap rounded px-2 py-1.5 sm:px-3 font-mono text-xs tracking-wide transition-colors ${
         active
           ? "bg-crimson/15 text-crimson-glow"
           : "text-text-secondary hover:bg-bg-elevated hover:text-text-primary"

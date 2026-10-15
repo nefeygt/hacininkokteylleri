@@ -1,14 +1,21 @@
-import { Wine } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import { Minus, Plus, Wine } from "lucide-react";
 import type { Cocktail } from "@/lib/content";
+import { SERVINGS_MAX, scaleAmount } from "@/lib/recipe";
 import VisualQuantity from "./VisualQuantity";
 import { InstructionText } from "./Tooltip";
 
 /**
  * The prescription itself: ingredients, steps, garnish and note. Shared by the
  * archive's card (house recipes) and a member's recipe page (M6), so one
- * recipe shape has one renderer (ADR-014).
+ * recipe shape has one renderer (ADR-014). "Kaç kişilik?" scales the amounts
+ * for up to SERVINGS_MAX glasses; the steps stay as written.
  */
 export default function RecipeDetails({ cocktail }: { cocktail: Cocktail }) {
+  const [servings, setServings] = useState(1);
+
   return (
     <>
       {/* Prescription-style divider */}
@@ -19,9 +26,35 @@ export default function RecipeDetails({ cocktail }: { cocktail: Cocktail }) {
 
       {/* Ingredients */}
       <div className="mb-8">
-        <h3 className="mb-4 font-mono text-xs uppercase tracking-[0.15em] text-text-muted">
-          Malzemeler
-        </h3>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h3 className="font-mono text-xs uppercase tracking-[0.15em] text-text-muted">
+            Malzemeler
+          </h3>
+          <div className="flex items-center gap-2 font-mono text-[11px] text-text-muted">
+            <span id={`servings-${cocktail.id}`}>Kaç kişilik?</span>
+            <ServingsButton
+              label="Bir kişi azalt"
+              disabled={servings <= 1}
+              onClick={() => setServings(servings - 1)}
+            >
+              <Minus className="h-3 w-3" />
+            </ServingsButton>
+            <output
+              aria-labelledby={`servings-${cocktail.id}`}
+              aria-live="polite"
+              className="w-4 text-center text-sm text-text-primary"
+            >
+              {servings}
+            </output>
+            <ServingsButton
+              label="Bir kişi artır"
+              disabled={servings >= SERVINGS_MAX}
+              onClick={() => setServings(servings + 1)}
+            >
+              <Plus className="h-3 w-3" />
+            </ServingsButton>
+          </div>
+        </div>
         <div className="space-y-3 overflow-visible">
           {cocktail.ingredients.map((ing, i) => (
             <div
@@ -36,7 +69,7 @@ export default function RecipeDetails({ cocktail }: { cocktail: Cocktail }) {
                   <InstructionText text={ing.name} />
                 </span>
               </div>
-              <VisualQuantity ingredient={ing} />
+              <VisualQuantity ingredient={{ ...ing, amount: scaleAmount(ing.amount, servings) }} />
             </div>
           ))}
         </div>
@@ -86,5 +119,30 @@ export default function RecipeDetails({ cocktail }: { cocktail: Cocktail }) {
         </div>
       )}
     </>
+  );
+}
+
+function ServingsButton({
+  label,
+  disabled,
+  onClick,
+  children,
+}: {
+  label: string;
+  disabled: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      title={label}
+      className="flex h-6 w-6 items-center justify-center rounded-full bg-bg-elevated text-text-secondary transition-colors hover:text-crimson-glow disabled:opacity-30 disabled:hover:text-text-secondary"
+    >
+      {children}
+    </button>
   );
 }

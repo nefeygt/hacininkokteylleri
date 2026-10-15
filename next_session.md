@@ -4,13 +4,11 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-15 (store release paused) · **Handing off:** M8 steps 1–6 are done — the app does
-everything the site does (Sign in with Apple aside). **The user paused the store release (ADR-024):** it waits for the
-Apple Developer account, or for the user's two other Play apps (one paid closed test for three apps). **M9 (web
-improvements) is open:** house recipe pages are done (ADR-025). Live on the domain (`149e6fa`, Vercel success, `/cocktails/{slug}` 200 —
-checked 2026-10-15 from the user's home network, which does not block the domain). The user called Claude's M9
-suggestions "süper"; **next: agree the order with the user and build** (plan.md §6 M9) — theme/font, filters from the
-data, the wordmark, and the suggestions. Before the store, one app ↔ site parity pass.
+**Prepared by session:** 2026-10-15 (M9 quick wins) · **Handing off:** M8 steps 1–6 are done; **the store release is
+paused (ADR-024)**. **M9 (web improvements):** the user set the order — quick wins first, the colour theme and font last.
+Done and deployed this session (ADR-026): filter chips from the data with flavour notes, the `haci` wordmark in the navbar,
+recipe JSON-LD, "Paylaş", "Kaç kişilik?", "Benzer kokteyller". **Next: the weekly content backup, then cl ↔ oz, then the
+theme and font** (plan.md §6 M9). Before the store, one app ↔ site parity pass.
 ---
 
 ## 📋 Prompt to Copy
@@ -54,13 +52,25 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — M9, web improvements (the user picks)
+## 🎯 This Session's Task — M9, the next web improvements
 
-The mobile store release is paused (ADR-024). M9 in plan.md §6 lists the open items: the user's (theme and font,
-filters from the data, the wordmark) and Claude's suggestions (share button, recipe rich results, "Kaç kişilik?",
-similar cocktails, a content backup, cl ↔ oz). The user liked all of them (2026-10-15); **ask which come first, then build** — one at a time, each checked in the
-browser. Claude in Chrome was reconnected by the user at the end of 2026-10-15 (try `tabs_context_mcp` first). Ideas
-outside it go to the Icebox.
+The user's order (2026-10-15): quick wins first, theme and font last. Left, in order:
+
+1. **First, a quick live check** of last session's work on `hacininkokteylleri.tech` (from a network that does not
+   block the domain — the user's home network does): a recipe page's "Paylaş", "Kaç kişilik?", "Benzer kokteyller",
+   the wordmark on a phone; then **Google's Rich Results Test** (`https://search.google.com/test/rich-results`) on
+   `/cocktails/sovyet-elmasi` — it should find one valid Recipe. Missing optional fields (`prepTime`, `totalTime`,
+   `nutrition`, `video`) are warnings, not errors; leave them unless the user wants them.
+2. **A weekly content backup** (the free plan has no backups, plan.md §7): the house recipes, their ingredients and
+   the glossary exported to the repo as JSON. **Open design question for the user before building:** a scheduled
+   GitHub Action (needs a read path without a secret key — the public anon client reads published content, which is
+   exactly what to back up; unpublished drafts would be missed) vs. a Vercel cron writing nowhere durable. Propose the
+   Action with the anon key, published content only, and ask.
+3. **cl ↔ oz switch** for a global audience: a toggle on recipes (1 oz = 3 cl is the bar convention; ask whether
+   29.57 ml exactness matters — likely not), only `cl`/`ml` amounts convert. Fits next to "Kaç kişilik?" in
+   `RecipeDetails`; a shared helper in `src/lib/recipe.ts` beside `scaleAmount`.
+4. **The colour theme and a more readable font** (site and app together; question 3 below): show the user 2–3
+   palettes and fonts first (an artifact or a local preview), then build what they pick.
 
 **While doing web work:**
 - Add every user-visible web change to **"Web changes since 2026-10-15 (for the parity pass)"** below — it is the
@@ -73,6 +83,14 @@ outside it go to the Icebox.
 - **House recipe pages `/cocktails/{slug}`** (ADR-025). The app already has a recipe screen (`cocktail/[slug]`); for
   parity: a "share" link should use the site's URL, and links the app opens to house recipes should point here,
   not to `/cocktails?cocktail=`. The magnifier/quick card is a web-only pattern.
+- **Filter chips from the data** (ADR-026) — **already in the app**: `(tabs)/index.tsx` uses `baseChoices` /
+  `flavorChoices`, and the shared `filterCocktails` matches flavour notes. Typecheck passed; not yet seen in Expo web.
+- **"Kaç kişilik?"** (1–8 glasses) on the recipe: port to the app's recipe screens with `SERVINGS_MAX` and
+  `scaleAmount` from `@shared/recipe`.
+- **"Paylaş"** on recipes: React Native's `Share.share({ message, url })` with the site's URL
+  (`/cocktails/{slug}` or `/recipes/{slug}`).
+- **"Benzer kokteyller"** under house recipes: `similarCocktails(target, archive, 4)` from `@shared/archive-filter`.
+- The wordmark and the recipe JSON-LD are web-only (the app has its own header; no SEO).
 
 ---
 
@@ -127,7 +145,7 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
 - 5 Expo packages have newer patch releases (`npx expo install --check`); update together with the
   next development build, not alone.
 - Auth e-mails land in Outlook's spam (plan.md §8).
-- The wordmark in the navbar; Hacı's own first admin sign-in (question 5).
+- Hacı's own first admin sign-in (question 5).
 - Not yet seen in the app: a showcase entry card with a real recipe photo (everything else of steps 5–6 was checked with
   a seeded second member on 2026-10-15).
 - Icebox (plan.md §9): follower lists, notifications, comment editing, tuning "popular", a showcase
@@ -308,7 +326,19 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
 - **The office network blocks the new domain** (a Fortinet FortiGate). Check DNS with
   `https://dns.google/resolve?name=…` and HTTP with check-host.net (plan.md §5.4).
 
-**This session's lessons (M8 step 6)**
+**This session's lessons (M9 quick wins)**
+- **`mobile/node_modules` can be missing** (a fresh checkout or OneDrive): `npm run typecheck` then fails with
+  "File 'expo/tsconfig.base' not found" and dozens of unrelated errors. Run `npm ci` in `mobile/` first.
+- **A flex child image shrinks to 0 px** — the navbar's wordmark vanished on phones until the link got `shrink-0`.
+  Check `getBoundingClientRect().width` and `document.documentElement.scrollWidth` at 375 px, not just a screenshot.
+- **Claude in Chrome's screenshots timed out after `resize_window`** for the rest of the session (the DOM tools still
+  worked). The built-in browser's `resize_window` preset `mobile` is the reliable way to see phone width.
+- **PowerShell 5.1's `Set-Content -Encoding utf8` writes a BOM** — remove it (`sed -i '1s/^\xEF\xBB\xBF//'`) or edit
+  with the Edit tool / Python instead.
+- `next start` in a background task "fails" with exit code 255 when stopped by PID — expected.
+- Don't click "Paylaş" in automation on desktop Chrome: Windows has `navigator.share`, which opens a native dialog.
+
+**Lessons (M8 step 6)**
 - **A showcase test needs no panel:** insert a period in SQL, apply in the app, approve with
   `update showcase_entries set status='approved'` (postgres passes the admin policy), move `starts_at`/`ends_at` to see the
   winner (past) or the upcoming state (future). A recipe's `image_path` only has to be non-null for the rule.

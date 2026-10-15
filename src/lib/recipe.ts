@@ -135,3 +135,11 @@ export function cleanRecipeInput(input: RecipeInput): RecipeInput | { error: str
     isPublished: Boolean(input.isPublished),
   };
 }
+
+/** "Kaç kişilik?": a recipe is for one glass; the page scales it up to this many. */
+export const SERVINGS_MAX = 8;
+
+/** An amount for `servings` glasses, rounded to two decimals (1,5 cl × 3 = 4,5 cl). */
+export function scaleAmount(amount: number, servings: number): number {
+  return Math.round(amount * servings * 100) / 100;
+}

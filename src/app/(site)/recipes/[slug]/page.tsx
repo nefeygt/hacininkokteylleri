@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import GlossaryProvider from "@/components/GlossaryProvider";
+import RecipeJsonLd from "@/components/RecipeJsonLd";
 import RecipeView from "@/components/RecipeView";
 import { getGlossary, getRecipe } from "@/lib/content";
 
@@ -34,6 +35,7 @@ export default async function RecipePage({ params }: { params: Promise<{ slug: s
 
   return (
     <GlossaryProvider glossary={glossary}>
+      <RecipeJsonLd cocktail={recipe} path={`/recipes/${recipe.slug}`} />
       <RecipeView cocktail={recipe} />
     </GlossaryProvider>
   );

@@ -10,6 +10,7 @@ import CocktailReviews from "./CocktailReviews";
 import RecipeActions from "./RecipeActions";
 import RecipeDetails from "./RecipeDetails";
 import ReportButton from "./ReportButton";
+import ShareButton from "./ShareButton";
 import { useMember } from "./useMember";
 
 /**
@@ -17,7 +18,7 @@ import { useMember } from "./useMember";
  * (ADR-025). The page is static; who is looking — the author, another member,
  * a guest — is read in the browser (ADR-016), like the archive's card.
  */
-export default function RecipeView({ cocktail }: { cocktail: Cocktail }) {
+export default function RecipeView({ cocktail, similar }: { cocktail: Cocktail; similar?: React.ReactNode }) {
   const { member, favorites, markFavorite } = useMember();
   const author = cocktail.author;
   const isAuthor = member.state === "ok" && author?.id === member.id;
@@ -62,6 +63,7 @@ export default function RecipeView({ cocktail }: { cocktail: Cocktail }) {
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-3xl font-bold tracking-tight">{cocktail.name}</h1>
           <RecipeActions cocktail={cocktail} member={member} favorite={favorite} onToggleFavorite={toggleFavorite} />
+          <ShareButton title={cocktail.name} text={cocktail.subtitle || undefined} />
         </div>
         {cocktail.subtitle && <p className="mt-1 font-mono text-sm text-text-secondary">{cocktail.subtitle}</p>}
 
@@ -97,6 +99,8 @@ export default function RecipeView({ cocktail }: { cocktail: Cocktail }) {
       <div className="mt-10">
         <CocktailReviews cocktail={cocktail} member={member} />
       </div>
+
+      {similar}
     </article>
   );
 }

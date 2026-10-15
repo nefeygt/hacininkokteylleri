@@ -8,9 +8,9 @@ import CocktailModal from "@/components/CocktailModal";
 import { useMember } from "@/components/useMember";
 import {
   ALL,
-  BASE_ALCOHOLS as baseAlcohols,
-  FLAVORS as flavors,
   INGREDIENT_FILTERS as ingredientFilters,
+  baseChoices,
+  flavorChoices,
   filterCocktails,
   hasActiveFilters as anyActive,
 } from "@/lib/archive-filter";
@@ -30,6 +30,8 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
   const [showFilters, setShowFilters] = useState(true);
   const [onlyFavorites, setOnlyFavorites] = useState(false);
   const { member, favorites, markFavorite } = useMember();
+  const baseAlcohols = useMemo(() => baseChoices(cocktails), [cocktails]);
+  const flavors = useMemo(() => flavorChoices(cocktails), [cocktails]);
 
   // Looked up by id so a revalidated page (a new average) updates the open card.
   const selectedCocktail = cocktails.find((c) => c.id === selectedId) ?? null;

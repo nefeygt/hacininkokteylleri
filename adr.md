@@ -990,3 +990,38 @@ opens the quick card while browsing.
 **Rejected.** *House recipes under `/recipes/{slug}`:* the path is free, but `/cocktails` is the archive's
 home and keeps the two collections apart. *A Next.js intercepting route for the modal:* the archive's filters
 and modal live in one client component; a parallel route would split it for no visible gain.
+
+---
+
+## ADR-026 — M9 quick wins: filters read the data, a flavour is a set of notes, recipes scale and describe themselves
+
+**Context.** The user chose the order of M9 (2026-10-15): quick wins first, the colour theme and font last in
+their own session. The archive's base-spirit and flavour chips were hard-coded, so "Likör" and "Aperitif" had no
+chip and "Tatlı" missed "Tatlı-Ekşi" (plan.md §8). Recipe pages had no share, no structured data, no way to batch
+for guests and no way onwards.
+
+**Decision.**
+- **Chips come from the archive** (`baseChoices`, `flavorChoices` in `src/lib/archive-filter.ts`, site and app):
+  every value present, most common first, ties alphabetical, "Tümü" first. **A flavour like "Tatlı-Ekşi" is a set of
+  notes split on "-"** (`flavorNotes`); a note chip matches any flavour containing it. Ingredient chips stay
+  hand-picked (ingredient names are free text, §8).
+- **"Kaç kişilik?"** on every recipe (`RecipeDetails`): 1–8 glasses (`SERVINGS_MAX`), every amount multiplied
+  (`scaleAmount`, two decimals) — top-ups included; the steps stay as written. Not remembered between pages.
+- **schema.org `Recipe` JSON-LD** on `/cocktails/{slug}` and `/recipes/{slug}` (`RecipeJsonLd`): the photo, the
+  ingredients as written, the steps, the rating when there are reviews, the author (a member, or `haci` as the
+  organisation for house recipes), yield "1 kadeh".
+- **"Paylaş"** on both recipe pages for everyone: the browser's share sheet, else the link to the clipboard; the
+  link is the page without its query.
+- **"Benzer kokteyller"** under house recipes: up to four house recipes scored by the same base spirit (3), each
+  shared flavour note (2) and each shared tag (1); none in common → not shown.
+- **The `haci` wordmark** replaces the icon and text in the site's navbar. On phones "Ana Sayfa" is hidden — the
+  wordmark is the link home — so the bar fits 375 px.
+
+**Consequences.**
+- (+) A new base spirit or flavour from the panel gets its chip with no code change.
+- (+) Recipes are eligible for Google's recipe results; links share with a preview.
+- (−) A misspelt value in the panel ("Votka " vs "Votka" is trimmed, but "Vodka" is not) becomes its own chip.
+- (−) Similar recipes are refreshed with the page (hourly or on a review), not when another recipe changes.
+
+**Rejected.** *A flavour vocabulary table:* more panel work for 37 recipes; splitting the existing text is enough.
+*Scaling with unit conversion (cl → bottle):* not needed for up to eight glasses.
