@@ -4,11 +4,10 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-15 (M8 step 5) · **Handing off:** **M8 step 5 is done:** members' recipes in the
-app (form with photo upload, units from the list, drafts, delete), their screen `recipes/[slug]`, the Akış tab (popular, new,
-followed people's logs), "Takip et" on profiles, public log pages with comments (`log/[id]`). Checked signed in, in the
-built-in browser, with a temporary member that was deleted afterwards. **Next: M8 step 6 — the showcase.**
-
+**Prepared by session:** 2026-10-15 (M8 step 6) · **Handing off:** **M8 step 6 is done:** the showcase ("Vitrin") on
+the app's Akış tab — the period, apply (own photo recipe + pitch), status and withdraw, approved entries with upvotes and
+"Bildir", the last winner. Checked signed in, in the built-in browser with a temporary member and a test period (all deleted).
+**The app now has every feature of the site** (Sign in with Apple aside). **Next: M8 step 7 — the store release (Android first).**
 ---
 
 ## 📋 Prompt to Copy
@@ -52,31 +51,37 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — M8 step 6: the showcase (Vitrin) in the app
+## 🎯 This Session's Task — M8 step 7: the store release, Android first
 
 ### Step 0 — state check
 
 `git status` — clean, `main` in step with `origin/main`. **Tools:** the Supabase MCP (`list_migrations` on
 `qwvnhdghwycqlvsnlvlt` → 12, the latest `20261015120719_half_star_ratings`) and a browser: **Claude in Chrome was
 disconnected all of 2026-10-15** — try `tabs_context_mcp`; if it still fails, use the built-in browser
-(`mcp__Claude_Browser__*`; it reaches `localhost:8081`; read the DOM, screenshots lag). The user's phone is gone: test Expo
-web at phone width (`resize_window` preset mobile). The built-in browser holds the **owner admin's login**
-(`n.efeyigit@outlook.com`), now **without a profile** (it opens onboarding); the user allowed a temporary test member on it
-twice — ask again before making one, and delete it afterwards. SQL: profiles `ahmet_kafa` (the user) and **`mustafa_hayat`
-— the user's friend, never touch their rows**. Every community table was empty at the end of 2026-10-15. **Port 8081 is
-usually held by an old Expo server** — `Get-NetTCPConnection -LocalPort 8081` → stop it by PID, then
-`npx expo start --web --port 8081` (else the typed routes stay stale and `tsc` rejects new routes).
+(`mcp__Claude_Browser__*`; it reaches `localhost:8081`; read the DOM, screenshots lag). Store consoles (Play Console,
+expo.dev) need the user's signed-in Chrome — ask them to reconnect Claude in Chrome for those. The built-in browser holds the
+**owner admin's login** (`n.efeyigit@outlook.com`) **without a profile** (it opens onboarding); ask before making a temporary
+member, delete it afterwards. SQL: profiles `ahmet_kafa` (the user) and **`mustafa_hayat` — the user's friend, never touch
+their rows**. Every community table was empty at the end of 2026-10-15. **Port 8081:** `Get-NetTCPConnection -LocalPort 8081`
+→ stop an old Expo server by PID, then `npx expo start --web --port 8081`.
 
-### Step 1 — M8 step 6 (plan.md §6)
+### Step 1 — M8 step 7 (plan.md §6), what can start without Apple
 
-Mirror the site's "Vitrin" (ADR-019) on the Akış tab, above "Bu ay popüler": the open (or next) period, approved entries by
-votes with an upvote/undo and "Bildir", the member's own application and status with withdraw, the apply form (own published
-recipe **with a photo** + a pitch), and the last winner; hidden until a period exists. Read the site's `feed/page.tsx`
-(`ShowcaseSection`), `feed/actions.ts`, `ShowcaseEntries`, `ShowcaseApply`, `src/lib/showcase.ts` (shared, browser-safe) and
-`getShowcase`/`getShowcaseWinner` in `src/lib/content.ts`. Revalidate `/feed` and `/` like the site's actions. **Testing
-needs a showcase period**, which only an admin opens (the panel needs 2FA) — insert a test period in SQL and delete it
-afterwards (M7's lesson: move it into the past to see the winner). Also left from step 5: "Takip ettiklerinden" with real
-logs and "Bildir" on another member's comment — both need a second member.
+1. **The user's go and a phone pass first:** the app has every feature now; the user should run the development build (or a
+   preview APK) on their phone through the new screens (members' recipes, the feed, the showcase) before anything reaches a
+   store. Their feedback may come first.
+2. **Packages:** `npx expo install --check` (5 patch releases waited for a new build) → `npm run typecheck`,
+   `npx expo-doctor`.
+3. **A production Android build** (`eas build -p android --profile production`, an AAB; the Android keystore is on EAS).
+   Check `app.json` (version, `versionCode`, permissions — photos only) before it.
+4. **Play Console** (the user's "KZN" account; the user does anything that needs their password or a payment): create the app
+   `haci`, the Turkish store listing (draft the texts — **the user approves**), screenshots from Expo web at phone width or the
+   phone, content rating (alcohol → the questionnaire's answers; 18+), the Data safety form (drafted from `/privacy`: e-mail,
+   name/username, photos, user content; Supabase, Vercel, Google, Resend), the privacy policy URL `/privacy`, account deletion
+   URL (in-app deletion exists; Play also wants a web route — `/account` works for signed-in members; check the requirement).
+   Then the closed test track — the user sources the 12 testers.
+5. **Play's app-signing SHA-1** → a further Android OAuth client in Google Cloud `haci-511515` and its client ID in Supabase's
+   Google provider, otherwise Google sign-in fails in Play-installed builds.
 
 ### Also open (not blocking)
 
@@ -94,6 +99,8 @@ logs and "Bildir" on another member's comment — both need a second member.
   next development build, not alone.
 - Auth e-mails land in Outlook's spam (plan.md §8).
 - The wordmark in the navbar; Hacı's own first admin sign-in (question 5).
+- Not yet seen in the app with real data: "Takip ettiklerinden" with logs, "Bildir" on another member's comment, the
+  showcase's signed-out view and an entry card with a real photo — all need a second member or a real period.
 - Icebox (plan.md §9): follower lists, notifications, comment editing, tuning "popular", a showcase
   archive of past winners.
 
@@ -112,6 +119,11 @@ logs and "Bildir" on another member's comment — both need a second member.
 
 ## 📍 Current State
 
+- **The app's showcase (M8 step 6, 2026-10-15):** `mobile/src/lib/showcase.ts` (`fetchMyApplication`, `fetchMyVotes`,
+  `applyToShowcase`, `withdrawShowcaseEntry`, `setShowcaseVote`; revalidates `/feed` and `/` like the site's actions),
+  `content.ts` (`fetchShowcase`, `fetchShowcaseWinner` — filtered to approved, visible entries of published recipes, since
+  the applicant's own session reads more), `components/Showcase.tsx` above "Bu ay popüler" on the Akış tab (now a
+  `KeyboardScrollView`). Shares `src/lib/showcase.ts` (period state and formatting, `PITCH_MAX_LENGTH`, `STATUS_LABELS`).
 - **The app's community (M8 step 5, 2026-10-15):** `mobile/src/lib/recipes.ts` (`fetchMyRecipes`, `fetchMyRecipe`,
   `saveRecipe`, `deleteRecipe`, `pickRecipePhoto`, `discardRecipePhoto`, `NEW_RECIPE`, `leaveRecipeForm`), `social.ts`
   (`isFollowing`, `setFollow`, `fetchPublicLog`, `countComments`, `fetchFollowingLogs`, `fetchComments`, `addComment`,
@@ -267,7 +279,16 @@ logs and "Bildir" on another member's comment — both need a second member.
 - **The office network blocks the new domain** (a Fortinet FortiGate). Check DNS with
   `https://dns.google/resolve?name=…` and HTTP with check-host.net (plan.md §5.4).
 
-**This session's lessons (M8 step 5)**
+**This session's lessons (M8 step 6)**
+- **A showcase test needs no panel:** insert a period in SQL, apply in the app, approve with
+  `update showcase_entries set status='approved'` (postgres passes the admin policy), move `starts_at`/`ends_at` to see the
+  winner (past) or the upcoming state (future). A recipe's `image_path` only has to be non-null for the rule.
+- **A temporary member on the built-in browser's admin login can be made in SQL** (`account_settings` then `profiles` for the
+  admin's `auth.users` id) — the app picks it up on reload; delete both rows afterwards (the login stays).
+- The Bash tool's `cd mobile && npx expo export` once ran in the repo root ("platforms array: [web]") — run app commands with
+  PowerShell `Set-Location …\mobile`.
+
+**Lessons (M8 step 5)**
 - **`ImageManipulator` on the web needs both sides in `resize()`** — `{ width, height: null }` works natively but gives
   "source height is zero" in the browser. Pass the computed height.
 - **Expo web's image picker opens its file input with `dispatchEvent(new MouseEvent("click"))`**, not `.click()`: to feed it
@@ -478,6 +499,6 @@ logs and "Bildir" on another member's comment — both need a second member.
 
 ## 🧭 Look-ahead
 
-- **M8** steps 6–7 (plan.md §6): showcase → store release (EAS production builds, Turkish listings, 18+ rating,
+- **M8** step 7 (plan.md §6): store release (EAS production builds, Turkish listings, 18+ rating,
   privacy forms, Play's closed test, App Store review).
 - Icebox highlights: localization (English first), colour theme review, a `haci` domain.

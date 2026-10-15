@@ -1,20 +1,30 @@
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, View } from "react-native";
 import CocktailCard from "@/components/CocktailCard";
 import DrinkLogEntry from "@/components/DrinkLogEntry";
 import { Button } from "@/components/Form";
+import KeyboardScrollView from "@/components/KeyboardScrollView";
+import ShowcaseSection from "@/components/Showcase";
 import { Heading, Label, Mono } from "@/components/Type";
 import { askToSignIn } from "@/lib/after-sign-in";
-import { fetchNewRecipes, fetchPopularRecipes, type Cocktail } from "@/lib/content";
+import {
+  fetchNewRecipes,
+  fetchPopularRecipes,
+  fetchShowcase,
+  fetchShowcaseWinner,
+  type Cocktail,
+  type Showcase,
+  type ShowcaseEntry,
+} from "@/lib/content";
 import { useFavorites } from "@/lib/favorites";
 import { useSession } from "@/lib/session";
 import { fetchFollowingLogs, type AuthoredLog } from "@/lib/social";
 import { alpha, colors, readable } from "@/lib/theme";
 
-// The community feed — the site's /feed (ADR-018): members' popular and new
-// recipes and the latest public logs of the people you follow. The showcase
-// ("Vitrin") arrives with M8 step 6.
+// The community feed — the site's /feed (ADR-018): the showcase ("Vitrin",
+// ADR-019), members' popular and new recipes and the latest public logs of the
+// people you follow.
 
 const SHOWN = 12;
 
@@ -29,6 +39,7 @@ export default function FeedScreen() {
   const [recipes, setRecipes] = useState<Recipes | null>(null);
   const [failed, setFailed] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [showcase, setShowcase] = useState<{ showcase: Showcase; winner: ShowcaseEntry | null } | null>(null);
   const [following, setFollowing] = useState<{ followsNobody: boolean; logs: AuthoredLog[]; counts: Map<string, number> } | null>(null);
 
   const loadRecipes = useCallback(async () => {
@@ -38,6 +49,16 @@ export default function FeedScreen() {
       setFailed(false);
     } catch {
       setFailed(true);
+    }
+  }, []);
+
+  // A failure only hides the section, as when no period exists.
+  const loadShowcase = useCallback(async () => {
+    try {
+      const [current, winner] = await Promise.all([fetchShowcase(), fetchShowcaseWinner()]);
+      setShowcase({ showcase: current, winner });
+    } catch {
+      setShowcase(null);
     }
   }, []);
 
@@ -55,7 +76,8 @@ export default function FeedScreen() {
 
   useEffect(() => {
     loadRecipes();
-  }, [loadRecipes]);
+    loadShowcase();
+  }, [loadRecipes, loadShowcase]);
 
   // The followed people's logs again whenever the tab comes back: a follow may have changed.
   useFocusEffect(
@@ -70,7 +92,7 @@ export default function FeedScreen() {
   };
 
   return (
-    <ScrollView
+    <KeyboardScrollView
       style={styles.screen}
       contentContainerStyle={styles.content}
       refreshControl={
@@ -78,7 +100,7 @@ export default function FeedScreen() {
           refreshing={refreshing}
           onRefresh={async () => {
             setRefreshing(true);
-            await Promise.all([loadRecipes(), loadFollowing()]);
+            await Promise.all([loadRecipes(), loadShowcase(), loadFollowing()]);
             setRefreshing(false);
           }}
           tintColor={colors.crimsonGlow}
@@ -94,6 +116,8 @@ export default function FeedScreen() {
           </View>
           <Button title="+ Tarif yaz" onPress={write} />
         </View>
+
+        {showcase && <ShowcaseSection showcase={showcase.showcase} winner={showcase.winner} onChanged={loadShowcase} />}
 
         {failed ? (
           <Pressable onPress={loadRecipes} style={styles.section}>
@@ -144,7 +168,7 @@ export default function FeedScreen() {
           )}
         </View>
       </View>
-    </ScrollView>
+    </KeyboardScrollView>
   );
 }
 

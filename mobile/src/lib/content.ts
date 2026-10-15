@@ -1,6 +1,7 @@
 // The shapes the app's screens draw, mapped from database rows in one place —
 // the app's twin of the site's src/lib/content.ts (which is server-side).
 
+import type { ShowcasePeriod } from "@shared/showcase";
 import type { Database } from "@shared/supabase/database.types";
 import { cocktailImageUrl, recipeImageUrl, supabase } from "./supabase";
 
@@ -195,4 +196,86 @@ export async function fetchArchive(): Promise<Archive> {
     cocktails: (cocktails.data as CocktailRow[]).map((row) => ({ ...toCocktail(row), rating: byCocktail.get(row.id) })),
     glossary: Object.fromEntries(glossary.data.map((t) => [t.term, t.definition])),
   };
+}
+
+// ---------------------------------------------------------------- the showcase (M7, ADR-019)
+
+export interface ShowcaseEntry {
+  id: string;
+  pitch: string;
+  voteCount: number;
+  recipe: Cocktail;
+}
+
+export interface Showcase {
+  /** The open period, or else the next one; null when none is planned. */
+  period: ShowcasePeriod | null;
+  /** Approved entries of that period, most votes first. */
+  entries: ShowcaseEntry[];
+}
+
+type EntryRow = { id: string; pitch: string; vote_count: number; cocktails: CocktailRow };
+
+// !inner leaves out entries whose recipe or author is no longer visible.
+const ENTRY_COLUMNS = `id, pitch, vote_count, cocktails!inner(${RECIPE_COLUMNS})`;
+
+/**
+ * Approved, visible entries of a period (the site's getEntries). The filters
+ * matter: an applicant's session also reads their own pending, rejected or
+ * hidden application, and an author's their own unpublished recipe (RLS).
+ */
+async function fetchEntries(periodId: string, limit?: number): Promise<ShowcaseEntry[]> {
+  let query = supabase
+    .from("showcase_entries")
+    .select(ENTRY_COLUMNS)
+    .eq("period_id", periodId)
+    .eq("status", "approved")
+    .is("hidden_at", null)
+    .eq("cocktails.is_published", true)
+    .is("cocktails.hidden_at", null)
+    .order("vote_count", { ascending: false })
+    .order("created_at");
+  if (limit) query = query.limit(limit);
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+  const rows = data as unknown as EntryRow[];
+  const recipes = await withRatings(rows.map((r) => r.cocktails));
+  return rows.map((row, i) => ({ id: row.id, pitch: row.pitch, voteCount: row.vote_count, recipe: recipes[i] }));
+}
+
+function toPeriod(row: { id: string; starts_at: string; ends_at: string }): ShowcasePeriod {
+  return { id: row.id, startsAt: row.starts_at, endsAt: row.ends_at };
+}
+
+/** The feed's showcase: the open period (or the next one) and its approved entries (the site's getShowcase). */
+export async function fetchShowcase(): Promise<Showcase> {
+  const { data, error } = await supabase
+    .from("showcase_periods")
+    .select("id, starts_at, ends_at")
+    .gt("ends_at", new Date().toISOString())
+    .order("starts_at")
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) return { period: null, entries: [] };
+  return { period: toPeriod(data), entries: await fetchEntries(data.id) };
+}
+
+/**
+ * The derived winner (ADR-014, the site's getShowcaseWinner): the approved
+ * entry with the most votes in the latest period that has ended, the earlier
+ * application on a tie.
+ */
+export async function fetchShowcaseWinner(): Promise<ShowcaseEntry | null> {
+  const { data, error } = await supabase
+    .from("showcase_periods")
+    .select("id, starts_at, ends_at")
+    .lte("ends_at", new Date().toISOString())
+    .order("ends_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) return null;
+  const [winner] = await fetchEntries(data.id, 1);
+  return winner ?? null;
 }

@@ -9,7 +9,7 @@
 > **Language rule (ADR-002):** everything we write — docs, code, comments, commits, SQL — is
 > **English**. Everything visitors and admins read — UI strings, recipes — is **Turkish**.
 
-**Last updated:** 2026-10-15 · **Active milestone:** **M8 — Mobile app** (step 1 done; step 2 done except Apple; steps 3–5 done — step 5 (members' recipes, the feed, follows, log comments) checked signed in, in the browser) · M6 and M7 done · **Brand:** `haci` (ADR-015)
+**Last updated:** 2026-10-15 (M8 step 6) · **Active milestone:** **M8 — Mobile app** (step 1 done; step 2 done except Apple; steps 3–6 done — step 6 (the showcase) checked signed in, in the browser; next: step 7, the store release) · M6 and M7 done · **Brand:** `haci` (ADR-015)
 
 ---
 
@@ -17,7 +17,7 @@
 
 | Field | State |
 |---|---|
-| Active milestone | **M8 — Mobile app** (Expo SDK 57, ADR-013, ADR-020) — `mobile/` in this repo, **full parity with the site** before the first store release, iOS + Android, native Google + e-mail sign-in (+ Sign in with Apple on iOS). Step 1 done (2026-10-14): shell, theme, icons, the archive with search/filters and the recipe screen. **Step 2 built (2026-10-15):** e-mail sign-in/up/reset, onboarding, account (profile, avatar, logs default, sign out, delete), native Google (Android + iOS clients) and Apple code, `POST /api/revalidate` on the site; EAS project `@nefeygt/haci`, first Android development build. Checked in Chrome (Expo web) with a test account and **on the user's Android phone** (Google sign-in, avatar). **Step 3 built (2026-10-15):** reviews (write/edit/two-step delete/report), the heart, "Favorilerim", public profiles as a screen; signed-out paths checked in Chrome, the signed-in check is the user's. **Password reset fixed** the same day (e-mail links with `token_hash`, the 2FA code on the reset form, ADR-021) — the user's retry is left. **Phone pass (2026-10-15, new development build):** Google sign-in; after a sign-in the app returns to the recipe that asked and saves the heart tapped before it (ADR-022); review edit layout and the keyboard fixed. **Step 4 done (2026-10-15):** the drink log in the app (add from a recipe or a picker, list, edit, two-step delete, public logs on profiles); the user's pass on the phone asked for a calendar, half stars (reviews and logs, migration `half_star_ratings`), a unit list and locked steps (ADR-023) — built and checked signed in, in the built-in browser. **Step 5 done (2026-10-15):** members' recipes (form with photo upload, units from the list), their screen, the Akış tab (popular, new, followed people's logs), follows on profiles, log pages with comments — checked signed in, in the built-in browser |
+| Active milestone | **M8 — Mobile app** (Expo SDK 57, ADR-013, ADR-020) — `mobile/` in this repo, **full parity with the site** before the first store release, iOS + Android, native Google + e-mail sign-in (+ Sign in with Apple on iOS). Step 1 done (2026-10-14): shell, theme, icons, the archive with search/filters and the recipe screen. **Step 2 built (2026-10-15):** e-mail sign-in/up/reset, onboarding, account (profile, avatar, logs default, sign out, delete), native Google (Android + iOS clients) and Apple code, `POST /api/revalidate` on the site; EAS project `@nefeygt/haci`, first Android development build. Checked in Chrome (Expo web) with a test account and **on the user's Android phone** (Google sign-in, avatar). **Step 3 built (2026-10-15):** reviews (write/edit/two-step delete/report), the heart, "Favorilerim", public profiles as a screen; signed-out paths checked in Chrome, the signed-in check is the user's. **Password reset fixed** the same day (e-mail links with `token_hash`, the 2FA code on the reset form, ADR-021) — the user's retry is left. **Phone pass (2026-10-15, new development build):** Google sign-in; after a sign-in the app returns to the recipe that asked and saves the heart tapped before it (ADR-022); review edit layout and the keyboard fixed. **Step 4 done (2026-10-15):** the drink log in the app (add from a recipe or a picker, list, edit, two-step delete, public logs on profiles); the user's pass on the phone asked for a calendar, half stars (reviews and logs, migration `half_star_ratings`), a unit list and locked steps (ADR-023) — built and checked signed in, in the built-in browser. **Step 5 done (2026-10-15):** members' recipes (form with photo upload, units from the list), their screen, the Akış tab (popular, new, followed people's logs), follows on profiles, log pages with comments — checked signed in, in the built-in browser. **Step 6 done (2026-10-15):** the showcase ("Vitrin") on the Akış tab — period, apply/withdraw, approved entries with upvotes and "Bildir", the last winner — checked signed in, in the built-in browser with a test period. **The app now does everything the site does** (Apple sign-in aside); step 7 is the store release |
 | Previous milestone | **M7 — The showcase** (2026-10-14, ADR-019) and **M6 — Community recipes and feeds** (2026-10-14, ADR-018): built, tested on `localhost`, deployed; **live checks passed on the user's phone** (2026-10-14). **Both done**. M5 — Drink log done 2026-10-14 |
 | Last completed | **M2 — Domain** (Search Console moved from vercel.app to the domain) and the **brand change to `haci`** with English URLs and the cherry logo (ADR-015). M1 is done except Hacı's own first sign-in |
 | Blockers | None in the code. **The user's accounts for M8:** Expo `nefeygt` (EAS project `@nefeygt/haci`, linked 2026-10-15); Google Play — personal, **created after 2023-11-13**, developer name **"KZN"** (renamed by the user 2026-10-15; haci is published from it), so a 12-tester, 14-day closed test comes before production (the user sources the testers); Apple Developer — **not opened yet, and likely in another person's name** (the user, 2026-10-15), so Android is built and tested first. The office network (FortiGate) blocks the domain — check from outside (§5.4) |
@@ -287,12 +287,15 @@ mobile/                         the Expo app (M8, ADR-020) — its own package.j
                                 M8 step 5: RecipeForm, RecipeActions, OptionSheet, FollowButton, LogComments; screens recipes/[slug]
                                 (a member's recipe), my-recipes/index|new|[id] (the site's /account/recipes), log/[id] (a public
                                 log + comments, the site's /logs/{id}); the Akış tab is the feed
+                                M8 step 6: Showcase (the Vitrin section: apply, entries with votes, the winner) on the Akış tab
   src/lib/                      supabase client, theme, content fetchers, archive context; session.tsx (SessionProvider),
                                 native-auth.ts (Google, Apple), revalidate.ts (revalidateSite);
                                 M8 step 3: community.ts (reviews, favourites, reports), favorites.tsx (FavoritesProvider)
                                 M8 step 4: drink-logs.ts (fetch, save, delete, public logs, recipeOf, shiftDate)
                                 M8 step 5: recipes.ts (own recipes, save, delete, photo pick/upload), social.ts (follows, public
                                 log, comments, followed people's logs); content.ts gained fetchRecipe/fetchNewRecipes/fetchPopularRecipes
+                                M8 step 6: showcase.ts (own application, eligible recipes, votes, apply, withdraw, vote);
+                                content.ts gained fetchShowcase/fetchShowcaseWinner
   eas.json                      EAS build profiles: development (dev client APK), preview, production
   .env                          public settings (EXPO_PUBLIC_*: Supabase, site, Google client IDs), committed (ADR-008)
 ```
@@ -586,7 +589,22 @@ The admin panel stays web-only.
     gone, the log kept its copy). Fixed on the way: the photo resize gave height 0 on the web. All test rows deleted
   - [ ] Not seen with real data: "Takip ettiklerinden" with logs in it, and "Bildir" on another member's comment or recipe
     (the components are the ones already checked elsewhere) — needs a second member
-- [ ] Step 6 — the showcase (period, entries, votes, apply/withdraw, the winner)
+- [x] Step 6 — the showcase (2026-10-15):
+  - [x] `mobile/src/lib/showcase.ts` — the site's `feed/actions.ts` as direct writes (same errors) + `revalidateSite` (`/feed`
+    and `/` on withdraw, `/feed` on a vote, nothing on apply — a pending application is on no page); own application,
+    eligible recipes (own, published, visible, with a photo), own votes. `content.ts`: `fetchShowcase`, `fetchShowcaseWinner`
+    — filtered to approved, visible entries of published, visible recipes, since the applicant's and author's own session
+    reads more (RLS)
+  - [x] `components/Showcase.tsx` above "Bu ay popüler" on the Akış tab: the period and its state, "Vitrine başvur" (recipe
+    from a sheet, pitch with a counter), the application's status with a two-step withdraw, approved entries ranked by votes
+    (optimistic upvote/undo, "Bildir"), "Son kazanan"; hidden until a period exists. The tab is a `KeyboardScrollView` now
+    (the pitch field stays above the keyboard)
+  - [x] Checked: typecheck, all three bundles, site build; signed in, in the built-in browser at phone width (a temporary
+    member on the owner admin's login, the user's OK; a test period and recipe in SQL): apply → "İnceleniyor", not listed →
+    approved in SQL → listed, vote 0 → 1 → 0 → 1 (matches `vote_count` and `showcase_votes`, survives a reload) → period in the
+    past: "Son kazanan … 1 oy" → period in the future: "Başvurular açık", votes read-only → withdraw → recipe without a photo:
+    "yayında ve fotoğraflı bir tarifin olmalı". All test rows deleted
+  - [ ] Not seen: the signed-out view (buttons send to the Hesap tab, as elsewhere), a real recipe photo on an entry card
 - [ ] Step 7 — store release: EAS production builds, store listings (Turkish), age rating 18+/17+,
   privacy forms (App Privacy, Data safety), Play's closed test, App Store review
 
@@ -668,6 +686,7 @@ The admin panel stays web-only.
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-10-15 | M8 step 6 | Claude in Chrome still disconnected → the built-in browser. The showcase in the app: `showcase.ts`, `fetchShowcase`/`fetchShowcaseWinner`, the Vitrin section on the Akış tab (apply, status, withdraw, votes, report, winner). Checked signed in at phone width with a temporary member and a test period (the user's OK); every test row deleted (community tables empty; profiles `ahmet_kafa`, `mustafa_hayat`). **The app has the site's features**; next is the store release |
 | 2026-10-15 | M8 step 5 | Claude in Chrome still disconnected → the built-in browser (Expo web, phone width). Members' recipes in the app (form, photo upload, units from the list, drafts, delete), their screen, the Akış tab, follows on profiles, public log pages with comments; links that opened the site now stay in the app; the site's recipe form uses the unit list. Checked signed in with a temporary member on the owner admin's login (the user's OK), then every test row deleted (community tables empty again; profiles `ahmet_kafa`, `mustafa_hayat`). Bug found and fixed: the web image manipulator needs both sides to resize. A stale Expo server held 8081 again — stopped |
 | 2026-10-15 | M8 step 4 feedback | The user's phone pass: 2 logs as `ahmet_kafa`, then requests → ADR-023: calendar, half stars in reviews and logs (the user chose both; migration `half_star_ratings`, constraint checked in SQL, advisors unchanged), bigger stars, a unit list, locked steps; glass picker and a more readable font → Icebox. The phone left, so the signed-in check ran in the built-in browser (Claude in Chrome still disconnected) as `sudiii` — the owner admin's member profile, deleted afterwards with the user's OK (admin login kept). Fixed on the way: a log form opened by URL did not leave after saving. Then all test rows deleted (the user's OK): community tables empty |
 | 2026-10-15 | M8 step 4 build | Step 1 (the user's signed-in phone checks) needs the user, so step 4 came first: the drink log in the app (`drink-logs.ts`, `LogForm`, `DrinkLogEntry`, `MemberGate`, screens `logs/*`, "Günlüğe ekle" on the recipe, public logs on profiles). The date is a day stepper (no native picker without a new build). Checked: typecheck, all three bundles, site build. Claude in Chrome was not connected, so the Expo web check is left with the phone check. A leftover Expo web server from an earlier session held port 8081 — stopped |
