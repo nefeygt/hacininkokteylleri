@@ -1,11 +1,10 @@
 import { formatAmount, formatLogDate, readRecipe } from "@shared/drink-log";
 import { router } from "expo-router";
-import * as WebBrowser from "expo-web-browser";
 import { Globe, Lock, MessageCircle } from "lucide-react-native";
 import { Pressable, StyleSheet, View } from "react-native";
 import type { DrinkLog } from "@/lib/drink-logs";
-import { SITE_URL } from "@/lib/supabase";
 import { colors, fonts } from "@/lib/theme";
+import Avatar from "./Avatar";
 import ReportButton from "./ReportButton";
 import Stars from "./Stars";
 import { Body, Mono } from "./Type";
@@ -13,34 +12,58 @@ import { Body, Mono } from "./Type";
 /**
  * One drink log (the site's DrinkLogEntry): the cocktail as made, the date,
  * that evening's rating and the note. "own" adds the privacy badge and an edit
- * link; "public" adds "Bildir" for other members. Comments open on the site
- * until M8 step 5 brings them to the app.
+ * link; "public" adds "Bildir" for other members and a link to the log's
+ * comments. The author is shown when the row carries one (the feed).
  */
-export default function DrinkLogEntry({ log, mode }: { log: DrinkLog; mode: "own" | "public" }) {
+export default function DrinkLogEntry({
+  log,
+  mode,
+  commentCount,
+  showCommentsLink = true,
+}: {
+  log: DrinkLog & { profiles?: { username: string; display_name: string; avatar_path: string | null } };
+  mode: "own" | "public";
+  commentCount?: number;
+  showCommentsLink?: boolean;
+}) {
   const recipe = readRecipe(log.recipe);
   const cocktail = log.cocktails?.is_published ? log.cocktails : null;
+  const author = log.profiles;
 
   function openCocktail() {
     if (!cocktail) return;
-    if (cocktail.author_id) WebBrowser.openBrowserAsync(`${SITE_URL}/recipes/${cocktail.slug}`);
+    if (cocktail.author_id) router.push({ pathname: "/recipes/[slug]", params: { slug: cocktail.slug } });
     else router.push({ pathname: "/cocktail/[slug]", params: { slug: cocktail.slug } });
   }
 
+  const commentsLabel = commentCount ? `${commentCount} yorum` : "Yorumlar";
   const comments = (
     <Pressable
-      onPress={() => WebBrowser.openBrowserAsync(`${SITE_URL}/logs/${log.id}`)}
+      onPress={() => router.push({ pathname: "/log/[id]", params: { id: log.id } })}
       hitSlop={6}
       style={styles.comments}
       accessibilityRole="link"
-      accessibilityLabel="Yorumlar"
+      accessibilityLabel={commentsLabel}
     >
       <MessageCircle size={11} color={colors.textMuted} />
-      <Mono style={styles.small}>Yorumlar</Mono>
+      <Mono style={styles.small}>{commentsLabel}</Mono>
     </Pressable>
   );
 
   return (
     <View style={[styles.card, log.hidden_at ? styles.hidden : null]}>
+      {author && (
+        <Pressable
+          onPress={() => router.push({ pathname: "/u/[username]", params: { username: author.username } })}
+          style={styles.author}
+          accessibilityRole="link"
+          accessibilityLabel={`${author.display_name} profili`}
+        >
+          <Avatar path={author.avatar_path} name={author.display_name} size={22} />
+          <Body style={styles.authorName}>{author.display_name}</Body>
+          <Mono style={styles.small}>@{author.username}</Mono>
+        </Pressable>
+      )}
       <View style={styles.head}>
         <Pressable onPress={openCocktail} disabled={!cocktail} accessibilityRole={cocktail ? "link" : undefined}>
           <Body style={styles.name}>{recipe.name}</Body>
@@ -76,7 +99,7 @@ export default function DrinkLogEntry({ log, mode }: { log: DrinkLog; mode: "own
       {mode === "own" && log.is_public && !log.hidden_at && <View style={styles.footer}>{comments}</View>}
       {mode === "public" && (
         <View style={styles.footer}>
-          {comments}
+          {showCommentsLink && comments}
           <ReportButton targetType="drink_log" targetId={log.id} ownerId={log.user_id} />
         </View>
       )}
@@ -94,6 +117,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   hidden: { opacity: 0.7 },
+  author: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8, alignSelf: "flex-start" },
+  authorName: { fontFamily: fonts.sansBold, fontSize: 12 },
   head: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 10, rowGap: 4 },
   name: { fontFamily: fonts.sansBold, fontSize: 15 },
   date: { fontSize: 10, color: colors.textMuted },

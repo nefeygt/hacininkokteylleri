@@ -28,7 +28,7 @@ export interface DrinkLog {
   cocktails: { slug: string; is_published: boolean; author_id: string | null } | null;
 }
 
-const LOG_COLUMNS =
+export const LOG_COLUMNS =
   "id, user_id, cocktail_id, drunk_on, recipe, rating, note, is_public, hidden_at, cocktails(slug, is_published, author_id)";
 
 export interface LogInput {

@@ -7,6 +7,7 @@ import { ArrowDown, ArrowUp, Check, Loader2, Plus, Trash2 } from "lucide-react";
 import { fieldClass, labelClass } from "@/components/AccountCard";
 import ImageField from "@/components/ImageField";
 import type { IngredientIcon } from "@/lib/content";
+import { unitChoices } from "@/lib/drink-log";
 import { INGREDIENT_ICONS, RECIPE_LIMITS, type RecipeIngredient, type RecipeInput } from "@/lib/recipe";
 import type { Suggestions } from "@/app/admin/types";
 import { deleteRecipe, saveRecipe } from "./actions";
@@ -215,16 +216,19 @@ export default function RecipeForm({
                 onChange={(e) => setIngredient(i, { amount: e.target.valueAsNumber })}
                 className={fieldClass}
               />
-              <input
+              <select
                 required
-                maxLength={L.unit}
-                list="units"
-                placeholder="Birim"
-                aria-label="Birim"
                 value={ing.unit}
+                aria-label="Birim"
                 onChange={(e) => setIngredient(i, { unit: e.target.value })}
                 className={fieldClass}
-              />
+              >
+                {unitChoices(ing.unit).map((unit) => (
+                  <option key={unit} value={unit}>
+                    {unit}
+                  </option>
+                ))}
+              </select>
               <select
                 value={ing.icon}
                 aria-label="Simge"
@@ -385,7 +389,6 @@ export default function RecipeForm({
       <datalist id="base-alcohols">{suggestions.baseAlcohols.map((v) => <option key={v} value={v} />)}</datalist>
       <datalist id="flavors">{suggestions.flavors.map((v) => <option key={v} value={v} />)}</datalist>
       <datalist id="glasses">{suggestions.glasses.map((v) => <option key={v} value={v} />)}</datalist>
-      <datalist id="units">{suggestions.units.map((v) => <option key={v} value={v} />)}</datalist>
     </form>
   );
 }

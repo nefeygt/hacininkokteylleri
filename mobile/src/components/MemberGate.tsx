@@ -11,12 +11,15 @@ import { Body } from "./Type";
 /**
  * A screen only members use (the site's requireMember): a visitor without a
  * profile is offered the Hesap tab and comes back to `from` afterwards (ADR-022).
+ * `feature` names what needs the account ("İçki günlüğü", "Tarif yazmak").
  */
 export default function MemberGate({
   from,
+  feature = "İçki günlüğü",
   children,
 }: {
   from: Href;
+  feature?: string;
   children: (writer: Writer, settings: Settings) => ReactNode;
 }) {
   const session = useSession();
@@ -34,7 +37,7 @@ export default function MemberGate({
     return (
       <View style={styles.center}>
         <Body style={styles.text}>
-          {onboarding ? "İçki günlüğü için önce profilini tamamla." : "İçki günlüğünü kullanmak için giriş yap."}
+          {onboarding ? `${feature} için önce profilini tamamla.` : `${feature} için giriş yap.`}
         </Body>
         <Button title={onboarding ? "Profilini tamamla" : "Giriş yap"} onPress={() => askToSignIn(from)} />
       </View>

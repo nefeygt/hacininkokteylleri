@@ -1,13 +1,14 @@
 import { LOG_LIMITS, LOG_NOTE_MAX_LENGTH, unitChoices, type LogRecipe } from "@shared/drink-log";
 import { ChevronDown, Lock, Pencil, Plus, X } from "lucide-react-native";
 import { useState } from "react";
-import { Keyboard, Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Keyboard, Pressable, StyleSheet, TextInput, View } from "react-native";
 import type { Writer } from "@/lib/community";
 import type { IngredientIcon } from "@/lib/content";
 import { deleteDrinkLog, leave, saveDrinkLog } from "@/lib/drink-logs";
 import { alpha, colors, fonts } from "@/lib/theme";
 import DateField from "./DateField";
 import { Button, Checkbox, Field, Message } from "./Form";
+import OptionSheet from "./OptionSheet";
 import Stars from "./Stars";
 import { Body, Label, Mono } from "./Type";
 
@@ -17,6 +18,11 @@ interface IngredientRow {
   amount: string; // as typed; "1,5" works too
   unit: string;
   icon: IngredientIcon;
+}
+
+/** The shared unit list (ADR-023); an older or house unit outside it is offered first. */
+export function unitOptions(current: string) {
+  return unitChoices(current).map((unit) => ({ value: unit, label: unit }));
 }
 
 export interface LogFormValues {
@@ -269,7 +275,9 @@ export default function LogForm({
         <Mono style={styles.checkText}>Herkese açık — profilinde görünsün. İşaretlemezsen yalnızca sen görürsün.</Mono>
       </Checkbox>
 
-      <UnitPicker
+      <OptionSheet
+        title="Birim"
+        options={unitOptions(rows.find((r) => r.key === unitFor)?.unit ?? "")}
         current={rows.find((r) => r.key === unitFor)?.unit ?? null}
         onPick={(unit) => {
           if (unitFor !== null) setRow(unitFor, { unit });
@@ -300,33 +308,6 @@ export default function LogForm({
         )}
       </View>
     </View>
-  );
-}
-
-/** The shared unit list as a sheet; an older or house unit outside the list is offered first. */
-function UnitPicker({ current, onPick, onClose }: { current: string | null; onPick: (unit: string) => void; onClose: () => void }) {
-  return (
-    <Modal visible={current !== null} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Kapat">
-        <Pressable style={styles.sheet} onPress={() => {}}>
-          <Label style={[styles.label, styles.sheetTitle]}>Birim</Label>
-          <ScrollView style={styles.sheetList}>
-            {unitChoices(current ?? "").map((unit) => (
-              <Pressable
-                key={unit}
-                onPress={() => onPick(unit)}
-                style={({ pressed }) => [styles.option, unit === current && styles.optionOn, pressed && styles.optionPressed]}
-                accessibilityRole="button"
-                accessibilityLabel={unit}
-                accessibilityState={{ selected: unit === current }}
-              >
-                <Mono style={[styles.optionText, unit === current && styles.optionTextOn]}>{unit}</Mono>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </Pressable>
-      </Pressable>
-    </Modal>
   );
 }
 
@@ -390,22 +371,4 @@ const styles = StyleSheet.create({
   underline: { textDecorationLine: "underline" },
   danger: { fontSize: 12, color: colors.crimsonGlow },
   off: { opacity: 0.3 },
-  backdrop: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24, backgroundColor: "rgba(0, 0, 0, 0.6)" },
-  sheet: {
-    width: "100%",
-    maxWidth: 320,
-    maxHeight: "70%",
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bgSecondary,
-    borderRadius: 8,
-    paddingVertical: 12,
-  },
-  sheetTitle: { paddingHorizontal: 16, marginBottom: 6 },
-  sheetList: { flexGrow: 0 },
-  option: { paddingHorizontal: 16, paddingVertical: 11 },
-  optionOn: { backgroundColor: alpha(colors.crimson, 0.25) },
-  optionPressed: { backgroundColor: colors.bgElevated },
-  optionText: { fontSize: 14, color: colors.textSecondary },
-  optionTextOn: { color: colors.textPrimary },
 });

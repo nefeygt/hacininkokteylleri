@@ -95,6 +95,83 @@ function toCocktail(row: CocktailRow): Cocktail {
   };
 }
 
+// Members' recipes carry their author; !inner leaves out recipes whose author
+// is hidden (the profiles policies hide them from everyone else).
+const RECIPE_COLUMNS = `${COCKTAIL_COLUMNS}, profiles!cocktails_author_id_fkey!inner(id, username, display_name, avatar_path)`;
+
+async function withRatings(rows: CocktailRow[]): Promise<Cocktail[]> {
+  if (rows.length === 0) return [];
+  const { data, error } = await supabase
+    .from("cocktail_ratings")
+    .select("cocktail_id, review_count, average_rating")
+    .in("cocktail_id", rows.map((r) => r.id));
+  if (error) throw new Error(error.message);
+  const byCocktail = new Map(
+    data.map((r) => [r.cocktail_id, { average: Number(r.average_rating), count: r.review_count ?? 0 }])
+  );
+  return rows.map((row) => ({ ...toCocktail(row), rating: byCocktail.get(row.id) }));
+}
+
+/**
+ * One published member's recipe by its slug, or null (the site's getRecipe).
+ * Filtered to published and visible: the author's own session reads drafts
+ * and hidden rows too (RLS).
+ */
+export async function fetchRecipe(slug: string): Promise<Cocktail | null> {
+  const { data, error } = await supabase
+    .from("cocktails")
+    .select(RECIPE_COLUMNS)
+    .eq("slug", slug)
+    .not("author_id", "is", null)
+    .eq("is_published", true)
+    .is("hidden_at", null)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) return null;
+  const [recipe] = await withRatings([data as CocktailRow]);
+  return recipe;
+}
+
+/** The newest published members' recipes, optionally by one author (the feed, a profile). */
+export async function fetchNewRecipes(limit: number, authorId?: string): Promise<Cocktail[]> {
+  let query = supabase
+    .from("cocktails")
+    .select(RECIPE_COLUMNS)
+    .not("author_id", "is", null)
+    .eq("is_published", true)
+    .is("hidden_at", null)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (authorId) query = query.eq("author_id", authorId);
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+  return withRatings(data as CocktailRow[]);
+}
+
+/** Members' recipes with the most reviews and favourites in 30 days (the site's getPopularRecipes). */
+export async function fetchPopularRecipes(limit: number): Promise<Cocktail[]> {
+  const { data: ranked, error } = await supabase
+    .from("recipe_popularity")
+    .select("cocktail_id, score")
+    .gt("score", 0)
+    .order("score", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  const ids = ranked.map((r) => r.cocktail_id).filter((id): id is string => Boolean(id));
+  if (ids.length === 0) return [];
+
+  const { data, error: recipesError } = await supabase
+    .from("cocktails")
+    .select(RECIPE_COLUMNS)
+    .in("id", ids)
+    .eq("is_published", true)
+    .is("hidden_at", null);
+  if (recipesError) throw new Error(recipesError.message);
+  const order = new Map(ids.map((id, i) => [id, i]));
+  const rows = (data as CocktailRow[]).sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+  return withRatings(rows);
+}
+
 export interface Archive {
   cocktails: Cocktail[];
   glossary: Glossary;

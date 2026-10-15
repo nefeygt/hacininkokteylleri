@@ -1,20 +1,24 @@
 import { Stack, router, useLocalSearchParams } from "expo-router";
-import * as WebBrowser from "expo-web-browser";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import Avatar from "@/components/Avatar";
+import CocktailCard from "@/components/CocktailCard";
 import DrinkLogEntry from "@/components/DrinkLogEntry";
+import FollowButton from "@/components/FollowButton";
 import ReportButton from "@/components/ReportButton";
 import Stars from "@/components/Stars";
 import { Body, Heading, Label, Mono } from "@/components/Type";
 import { formatDay } from "@/lib/community";
+import { fetchNewRecipes, type Cocktail } from "@/lib/content";
 import { fetchPublicLogs, type DrinkLog } from "@/lib/drink-logs";
-import { SITE_URL, supabase } from "@/lib/supabase";
+import { useFavorites } from "@/lib/favorites";
+import { countComments } from "@/lib/social";
+import { supabase } from "@/lib/supabase";
 import { colors, fonts, readable } from "@/lib/theme";
 
 // A member's public profile — the site's /u/{username}: avatar, bio, follow
-// counts, favourites, public drink logs and reviews. Recipes and the follow
-// button arrive with M8 step 5.
+// counts and "Takip et", the member's recipes, favourites, public drink logs
+// (with comment counts) and reviews.
 
 type CocktailLink = { id: string; slug: string; name: string; subtitle: string; color: string; author_id: string | null };
 
@@ -23,6 +27,8 @@ interface ProfileData {
   favorites: CocktailLink[];
   reviews: { id: string; rating: number; body: string | null; updated_at: string; cocktails: CocktailLink }[];
   logs: DrinkLog[];
+  commentCounts: Map<string, number>;
+  recipes: Cocktail[];
   followers: number;
   following: number;
 }
@@ -39,7 +45,7 @@ async function fetchProfile(username: string): Promise<ProfileData | null> {
   if (error) throw new Error(error.message);
   if (!profile) return null;
 
-  const [reviews, favorites, logs, followers, following] = await Promise.all([
+  const [reviews, favorites, logs, recipes, followers, following] = await Promise.all([
     supabase
       .from("reviews")
       .select(`id, rating, body, updated_at, cocktails!inner(${LINK_COLUMNS})`)
@@ -54,6 +60,7 @@ async function fetchProfile(username: string): Promise<ProfileData | null> {
       .order("created_at", { ascending: false })
       .limit(200),
     fetchPublicLogs(profile.id),
+    fetchNewRecipes(60, profile.id),
     supabase.from("follows").select("follower_id", { count: "exact", head: true }).eq("followee_id", profile.id),
     supabase.from("follows").select("followee_id", { count: "exact", head: true }).eq("follower_id", profile.id),
   ]);
@@ -65,14 +72,16 @@ async function fetchProfile(username: string): Promise<ProfileData | null> {
     reviews: reviews.data as ProfileData["reviews"],
     favorites: (favorites.data ?? []).map((f) => f.cocktails as CocktailLink),
     logs,
+    commentCounts: await countComments(logs.map((l) => l.id)),
+    recipes,
     followers: followers.count ?? 0,
     following: following.count ?? 0,
   };
 }
 
-/** House recipes open in the app; members' recipes on the site until step 5 brings their screen. */
+/** House recipes open as the archive's recipe, members' recipes on their own screen. */
 function openCocktail(c: CocktailLink) {
-  if (c.author_id) WebBrowser.openBrowserAsync(`${SITE_URL}/recipes/${c.slug}`);
+  if (c.author_id) router.push({ pathname: "/recipes/[slug]", params: { slug: c.slug } });
   else router.push({ pathname: "/cocktail/[slug]", params: { slug: c.slug } });
 }
 
@@ -81,6 +90,7 @@ export default function ProfileScreen() {
   const [data, setData] = useState<ProfileData | null | undefined>(undefined);
   const [failed, setFailed] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const { favorites: saved } = useFavorites();
 
   const load = useCallback(async () => {
     try {
@@ -119,7 +129,7 @@ export default function ProfileScreen() {
     );
   }
 
-  const { profile, favorites, logs, reviews, followers, following } = data;
+  const { profile, favorites, logs, commentCounts, recipes, reviews, followers, following } = data;
   const joined = new Date(profile.created_at).toLocaleDateString("tr-TR", { month: "long", year: "numeric" });
 
   return (
@@ -149,13 +159,34 @@ export default function ProfileScreen() {
           </View>
         </View>
         {profile.bio && <Body style={styles.bio}>{profile.bio}</Body>}
-        <Mono style={styles.counts}>
-          <Mono style={styles.strong}>{followers}</Mono> takipçi · <Mono style={styles.strong}>{following}</Mono> takip
-        </Mono>
+        <View style={styles.followRow}>
+          <Mono style={styles.counts}>
+            <Mono style={styles.strong}>{followers}</Mono> takipçi · <Mono style={styles.strong}>{following}</Mono> takip
+          </Mono>
+          <FollowButton profile={profile} onChanged={load} />
+        </View>
         <View style={styles.metaRow}>
           <Mono style={styles.joined}>{joined} tarihinden beri üye</Mono>
           <ReportButton targetType="profile" targetId={profile.id} ownerId={profile.id} label="Profili bildir" />
         </View>
+
+        {recipes.length > 0 && (
+          <View style={styles.section}>
+            <Label style={styles.sectionTitle}>
+              Tarifler <Label style={styles.sectionCount}>({recipes.length})</Label>
+            </Label>
+            <View style={styles.recipes}>
+              {recipes.map((recipe) => (
+                <CocktailCard
+                  key={recipe.id}
+                  cocktail={recipe}
+                  favorite={saved.has(recipe.id)}
+                  onPress={() => router.push({ pathname: "/recipes/[slug]", params: { slug: recipe.slug } })}
+                />
+              ))}
+            </View>
+          </View>
+        )}
 
         <View style={styles.section}>
           <Label style={styles.sectionTitle}>
@@ -195,7 +226,7 @@ export default function ProfileScreen() {
             </Label>
             <View style={styles.logs}>
               {logs.map((log) => (
-                <DrinkLogEntry key={log.id} log={log} mode="public" />
+                <DrinkLogEntry key={log.id} log={log} mode="public" commentCount={commentCounts.get(log.id)} />
               ))}
             </View>
           </View>
@@ -239,7 +270,8 @@ const styles = StyleSheet.create({
   displayName: { fontSize: 26 },
   username: { marginTop: 2, color: colors.textMuted },
   bio: { marginTop: 18, lineHeight: 23, color: colors.textSecondary },
-  counts: { marginTop: 18, fontSize: 12 },
+  followRow: { marginTop: 18, flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 },
+  counts: { fontSize: 12 },
   strong: { fontSize: 12, color: colors.textPrimary },
   metaRow: { marginTop: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 },
   joined: { fontSize: 11, color: colors.textMuted },
@@ -249,6 +281,7 @@ const styles = StyleSheet.create({
   empty: { fontSize: 12, color: colors.textMuted },
   favorites: { gap: 8 },
   logs: { gap: 12 },
+  recipes: { gap: 16 },
   favorite: {
     flexDirection: "row",
     alignItems: "center",

@@ -44,5 +44,7 @@ export function leaveAfterSignIn() {
   // The archive tab first, so going back from the recipe lands there; the
   // recipe is pushed again, as it was popped on the way to the Hesap tab.
   router.navigate("/");
-  if (from) router.push(from);
+  // A tab (the feed) is switched to, never pushed: a pushed tab path opens a second tab navigator.
+  if (from === "/feed") router.navigate(from);
+  else if (from) router.push(from);
 }

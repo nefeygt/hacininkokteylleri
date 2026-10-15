@@ -63,6 +63,14 @@ export default function AccountView({
         <LogsDefaultToggle userId={profile.id} initial={settings.logs_public_default} reload={reload} />
       </View>
 
+      <View style={[styles.section, styles.ruled]}>
+        <View style={styles.sectionHead}>
+          <Label style={styles.sectionTitle}>Tarifler</Label>
+          <Button kind="link" title="Tariflerim →" onPress={() => router.push("/my-recipes")} />
+        </View>
+        <Mono style={styles.muted}>Kendi tariflerini yaz; yayınladıkların profilinde ve akışta görünür.</Mono>
+      </View>
+
       <View style={[styles.section, styles.ruled, styles.row]}>
         <Mono style={styles.muted}>Bu cihazdan çık</Mono>
         <SignOutButton />

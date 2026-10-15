@@ -1,0 +1,592 @@
+import { INGREDIENT_ICONS, RECIPE_LIMITS, type RecipeInput } from "@shared/recipe";
+import { Image } from "expo-image";
+import { router } from "expo-router";
+import { ArrowDown, ArrowUp, ChevronDown, ImagePlus, Plus, X } from "lucide-react-native";
+import { useMemo, useRef, useState } from "react";
+import { ActivityIndicator, Keyboard, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { useArchive } from "@/lib/archive";
+import type { Writer } from "@/lib/community";
+import type { IngredientIcon } from "@/lib/content";
+import { deleteRecipe, discardRecipePhoto, leaveRecipeForm, pickRecipePhoto, saveRecipe } from "@/lib/recipes";
+import { recipeImageUrl } from "@/lib/supabase";
+import { alpha, colors, fonts } from "@/lib/theme";
+import { Button, Checkbox, Field, Message } from "./Form";
+import { unitOptions } from "./LogForm";
+import OptionSheet from "./OptionSheet";
+import { Label, Mono } from "./Type";
+
+interface IngredientRow {
+  key: number;
+  name: string;
+  amount: string; // as typed; "1,5" works too
+  unit: string;
+  icon: IngredientIcon;
+}
+
+interface StepRow {
+  key: number;
+  text: string;
+}
+
+let nextKey = 0;
+
+/** Accent colours to tap instead of typing a hex code (the site has a colour input). */
+const SWATCHES = ["#8b1a1a", "#c0392b", "#e67e22", "#d4a017", "#27ae60", "#16a085", "#2e86c1", "#8e44ad", "#c2185b", "#5d4037"];
+
+const ICON_OPTIONS = INGREDIENT_ICONS.map((i) => ({ value: i.value, label: i.label }));
+
+function move<T>(list: T[], from: number, to: number): T[] {
+  if (to < 0 || to >= list.length) return list;
+  const next = [...list];
+  const [item] = next.splice(from, 1);
+  next.splice(to, 0, item);
+  return next;
+}
+
+/** Values Hacı's recipes already use, so the form suggests them (the site's datalists). */
+function useSuggestions() {
+  const { archive } = useArchive();
+  return useMemo(() => {
+    const distinct = (values: string[]) =>
+      [...new Set(values.map((v) => v.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "tr"));
+    const cocktails = archive?.cocktails ?? [];
+    return {
+      baseAlcohols: distinct(cocktails.map((c) => c.baseAlcohol)),
+      flavors: distinct(cocktails.map((c) => c.flavor)),
+      glasses: distinct(cocktails.map((c) => c.glass)),
+    };
+  }, [archive]);
+}
+
+/**
+ * A member writes or edits their own recipe (the site's RecipeForm, M6): the
+ * same shape as a house recipe, units from the shared list (ADR-023), a photo
+ * in the member's own folder. `id` and `slug` set = editing.
+ */
+export default function RecipeForm({
+  writer,
+  initial,
+  id,
+  slug,
+}: {
+  writer: Writer;
+  initial: RecipeInput;
+  id?: string;
+  slug?: string;
+}) {
+  const suggestions = useSuggestions();
+  const [form, setForm] = useState(initial);
+  const [tagsText, setTagsText] = useState(initial.tags.join(", "));
+  const [rows, setRows] = useState<IngredientRow[]>(() =>
+    initial.ingredients.map((i) => ({ key: nextKey++, name: i.name, amount: String(i.amount).replace(".", ","), unit: i.unit, icon: i.icon }))
+  );
+  const [steps, setSteps] = useState<StepRow[]>(() => initial.instructions.map((text) => ({ key: nextKey++, text })));
+  const [sheet, setSheet] = useState<{ key: number; kind: "unit" | "icon" } | null>(null);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [pending, setPending] = useState(false);
+  // A photo uploaded here but not saved with the recipe yet: replaced or abandoned, it is deleted.
+  const unsavedPhoto = useRef<string | null>(null);
+  const L = RECIPE_LIMITS;
+
+  function set<K extends keyof RecipeInput>(key: K, value: RecipeInput[K]) {
+    setForm((f) => ({ ...f, [key]: value }));
+    setSaved(false);
+  }
+
+  function setRow(key: number, patch: Partial<IngredientRow>) {
+    setRows((prev) => prev.map((r) => (r.key === key ? { ...r, ...patch } : r)));
+    setSaved(false);
+  }
+
+  function setStep(key: number, text: string) {
+    setSteps((prev) => prev.map((s) => (s.key === key ? { ...s, text } : s)));
+    setSaved(false);
+  }
+
+  async function setPhoto(next: string | null) {
+    const dropped = unsavedPhoto.current;
+    unsavedPhoto.current = next;
+    set("imagePath", next);
+    if (dropped && dropped !== next) await discardRecipePhoto(dropped);
+  }
+
+  async function pickPhoto() {
+    setError(null);
+    setPhotoBusy(true);
+    try {
+      const path = await pickRecipePhoto(writer, slug);
+      if (path) await setPhoto(path);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Yükleme başarısız.");
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
+
+  async function save() {
+    Keyboard.dismiss();
+    setError(null);
+    const input: RecipeInput = {
+      ...form,
+      tags: tagsText.split(",").map((t) => t.trim()).filter(Boolean),
+      ingredients: rows.map((r) => ({
+        name: r.name,
+        amount: r.amount.trim() ? Number(r.amount.replace(",", ".")) : NaN,
+        unit: r.unit,
+        icon: r.icon,
+      })),
+      instructions: steps.map((s) => s.text),
+    };
+    setPending(true);
+    const result = await saveRecipe(writer, input, id);
+    setPending(false);
+    if (result.error || !result.id || !result.slug) {
+      setError(result.error ?? "Kaydedilemedi.");
+      return;
+    }
+    unsavedPhoto.current = null;
+
+    const page = { pathname: "/recipes/[slug]", params: { slug: result.slug } } as const;
+    if (!id) {
+      // A new recipe: its page when published, otherwise the draft's own form.
+      router.replace(input.isPublished ? page : { pathname: "/my-recipes/[id]", params: { id: result.id } });
+    } else if (input.isPublished) {
+      if (router.canGoBack()) router.back();
+      else router.replace(page);
+    } else {
+      setSaved(true);
+    }
+  }
+
+  async function cancel() {
+    if (unsavedPhoto.current) await discardRecipePhoto(unsavedPhoto.current);
+    unsavedPhoto.current = null;
+    leaveRecipeForm();
+  }
+
+  async function remove() {
+    if (!id) return;
+    Keyboard.dismiss();
+    if (!confirmingDelete) {
+      setConfirmingDelete(true);
+      return;
+    }
+    setError(null);
+    setPending(true);
+    const result = await deleteRecipe(writer, id);
+    setPending(false);
+    if (result.error) {
+      setError(result.error);
+      setConfirmingDelete(false);
+      return;
+    }
+    if (unsavedPhoto.current) await discardRecipePhoto(unsavedPhoto.current);
+    unsavedPhoto.current = null;
+    router.dismissTo("/my-recipes");
+  }
+
+  const photoUrl = recipeImageUrl(form.imagePath);
+  const sheetRow = sheet ? rows.find((r) => r.key === sheet.key) : undefined;
+
+  return (
+    <View style={styles.form}>
+      <Section title="Tarif">
+        <Field label="Ad" value={form.name} onChangeText={(v) => set("name", v)} maxLength={L.name} />
+        <Field
+          label="Kısa açıklama (isteğe bağlı)"
+          value={form.subtitle}
+          onChangeText={(v) => set("subtitle", v)}
+          maxLength={L.subtitle}
+          placeholder="Taze fesleğenli, hafif ekşi bir cin kokteyli"
+        />
+        <View style={styles.group}>
+          <Field label="Baz alkol" value={form.baseAlcohol} onChangeText={(v) => set("baseAlcohol", v)} maxLength={L.baseAlcohol} />
+          <Chips values={suggestions.baseAlcohols} current={form.baseAlcohol} onPick={(v) => set("baseAlcohol", v)} />
+        </View>
+        <View style={styles.group}>
+          <Field label="Baskın tat" value={form.flavor} onChangeText={(v) => set("flavor", v)} maxLength={L.flavor} />
+          <Chips values={suggestions.flavors} current={form.flavor} onPick={(v) => set("flavor", v)} />
+        </View>
+        <View style={styles.group}>
+          <Field label="Bardak (isteğe bağlı)" value={form.glass} onChangeText={(v) => set("glass", v)} maxLength={L.glass} />
+          <Chips values={suggestions.glasses} current={form.glass} onPick={(v) => set("glass", v)} />
+        </View>
+        <View style={styles.group}>
+          <Label style={styles.label}>Vurgu rengi</Label>
+          <View style={styles.swatches}>
+            {SWATCHES.map((c) => (
+              <Pressable
+                key={c}
+                onPress={() => set("color", c)}
+                hitSlop={4}
+                style={[styles.swatch, { backgroundColor: c }, form.color.toLowerCase() === c && styles.swatchOn]}
+                accessibilityRole="button"
+                accessibilityLabel={`Renk ${c}`}
+                accessibilityState={{ selected: form.color.toLowerCase() === c }}
+              />
+            ))}
+          </View>
+          <View style={styles.hexRow}>
+            <View style={[styles.preview, { backgroundColor: /^#[0-9a-fA-F]{6}$/.test(form.color) ? form.color : colors.bgElevated }]} />
+            <TextInput
+              value={form.color}
+              onChangeText={(v) => set("color", v)}
+              autoCapitalize="none"
+              autoCorrect={false}
+              maxLength={7}
+              accessibilityLabel="Renk kodu"
+              style={[styles.small, styles.hex]}
+            />
+          </View>
+        </View>
+        <Field
+          label="Etiketler (virgülle ayır)"
+          value={tagsText}
+          onChangeText={(v) => {
+            setTagsText(v);
+            setSaved(false);
+          }}
+          maxLength={L.tagsText}
+          placeholder="Ferah, Yaz, Bitkisel"
+        />
+      </Section>
+
+      <Section title="Fotoğraf (isteğe bağlı)">
+        <View style={styles.photo}>
+          {photoUrl ? (
+            <Image source={photoUrl} style={StyleSheet.absoluteFill} contentFit="cover" />
+          ) : (
+            <Mono style={styles.hint}>Fotoğraf yok</Mono>
+          )}
+          {photoBusy && (
+            <View style={styles.photoBusy}>
+              <ActivityIndicator color={colors.textPrimary} />
+            </View>
+          )}
+        </View>
+        <View style={styles.inlineRow}>
+          <Button
+            kind="secondary"
+            title={photoUrl ? "Fotoğrafı değiştir" : "Fotoğraf yükle"}
+            onPress={pickPhoto}
+            disabled={photoBusy || pending}
+            icon={<ImagePlus size={14} color={colors.textPrimary} />}
+          />
+          {photoUrl && <Button kind="link" title="Kaldır" onPress={() => setPhoto(null)} disabled={photoBusy || pending} />}
+        </View>
+      </Section>
+
+      <Section title="Malzemeler">
+        {rows.map((row, i) => (
+          <View key={row.key} style={styles.ingredient}>
+            <View style={styles.row}>
+              <TextInput
+                value={row.name}
+                onChangeText={(name) => setRow(row.key, { name })}
+                maxLength={L.ingredientName}
+                placeholder="Malzeme"
+                placeholderTextColor={colors.textMuted}
+                accessibilityLabel={`${i + 1}. malzeme`}
+                style={[styles.small, styles.grow]}
+              />
+              <TextInput
+                value={row.amount}
+                onChangeText={(amount) => setRow(row.key, { amount })}
+                keyboardType="decimal-pad"
+                placeholder="4"
+                placeholderTextColor={colors.textMuted}
+                accessibilityLabel="Miktar"
+                style={[styles.small, styles.amount]}
+              />
+              <Pressable
+                onPress={() => {
+                  Keyboard.dismiss();
+                  setSheet({ key: row.key, kind: "unit" });
+                }}
+                style={[styles.small, styles.select, styles.unit]}
+                accessibilityRole="button"
+                accessibilityLabel={`Birim: ${row.unit || "seçilmedi"}`}
+              >
+                <Mono numberOfLines={1} style={[styles.selectText, !row.unit && styles.placeholder]}>
+                  {row.unit || "birim"}
+                </Mono>
+                <ChevronDown size={12} color={colors.textMuted} />
+              </Pressable>
+            </View>
+            <View style={styles.row}>
+              <Pressable
+                onPress={() => {
+                  Keyboard.dismiss();
+                  setSheet({ key: row.key, kind: "icon" });
+                }}
+                style={[styles.small, styles.select, styles.grow]}
+                accessibilityRole="button"
+                accessibilityLabel={`Simge: ${INGREDIENT_ICONS.find((o) => o.value === row.icon)?.label ?? row.icon}`}
+              >
+                <Mono numberOfLines={1} style={styles.selectText}>
+                  {INGREDIENT_ICONS.find((o) => o.value === row.icon)?.label ?? row.icon}
+                </Mono>
+                <ChevronDown size={12} color={colors.textMuted} />
+              </Pressable>
+              <IconButton label="Yukarı" disabled={i === 0} onPress={() => setRows((prev) => move(prev, i, i - 1))}>
+                <ArrowUp size={16} color={colors.textMuted} />
+              </IconButton>
+              <IconButton label="Aşağı" disabled={i === rows.length - 1} onPress={() => setRows((prev) => move(prev, i, i + 1))}>
+                <ArrowDown size={16} color={colors.textMuted} />
+              </IconButton>
+              <IconButton label="Malzemeyi çıkar" disabled={rows.length === 1} onPress={() => setRows((prev) => prev.filter((r) => r.key !== row.key))}>
+                <X size={16} color={colors.textMuted} />
+              </IconButton>
+            </View>
+          </View>
+        ))}
+        {rows.length < L.ingredients && (
+          <AddButton
+            label="Malzeme ekle"
+            onPress={() => setRows((prev) => [...prev, { key: nextKey++, name: "", amount: "1", unit: "cl", icon: "shot" }])}
+          />
+        )}
+      </Section>
+
+      <Section title="Hazırlanışı">
+        {steps.map((step, i) => (
+          <View key={step.key} style={styles.stepRow}>
+            <View style={styles.stepNumber}>
+              <Mono style={styles.stepNumberText}>{i + 1}</Mono>
+            </View>
+            <TextInput
+              value={step.text}
+              onChangeText={(text) => setStep(step.key, text)}
+              multiline
+              maxLength={L.step}
+              accessibilityLabel={`${i + 1}. adım`}
+              style={[styles.stepInput, styles.grow]}
+            />
+            <View>
+              <IconButton label="Yukarı" disabled={i === 0} onPress={() => setSteps((prev) => move(prev, i, i - 1))}>
+                <ArrowUp size={16} color={colors.textMuted} />
+              </IconButton>
+              <IconButton label="Adımı sil" disabled={steps.length === 1} onPress={() => setSteps((prev) => prev.filter((s) => s.key !== step.key))}>
+                <X size={16} color={colors.textMuted} />
+              </IconButton>
+            </View>
+          </View>
+        ))}
+        {steps.length < L.instructions && (
+          <AddButton label="Adım ekle" onPress={() => setSteps((prev) => [...prev, { key: nextKey++, text: "" }])} />
+        )}
+      </Section>
+
+      <Section title="Ayrıntılar">
+        <Field label="Süsleme (isteğe bağlı)" value={form.garnish} onChangeText={(v) => set("garnish", v)} maxLength={L.garnish} />
+        <Field
+          label="Not (isteğe bağlı)"
+          value={form.note}
+          onChangeText={(v) => set("note", v)}
+          maxLength={L.note}
+          multiline
+          style={styles.textarea}
+        />
+        <Checkbox checked={form.vegan} onChange={(v) => set("vegan", v)} label="Vegan">
+          <Mono style={styles.checkText}>Vegan</Mono>
+        </Checkbox>
+        <Checkbox checked={form.isPublished} onChange={(v) => set("isPublished", v)} label="Yayında">
+          <Mono style={styles.checkText}>Yayında</Mono>
+          <Mono style={styles.hint}>
+            Yayındaki tarifler profilinde ve akışta herkese görünür. İşaretli değilse taslak olarak yalnızca sende kalır.
+          </Mono>
+        </Checkbox>
+      </Section>
+
+      {error && <Message error>{error}</Message>}
+      {saved && <Message>Kaydedildi.</Message>}
+
+      <Button
+        title={id ? "Kaydet" : form.isPublished ? "Yayınla" : "Taslak olarak kaydet"}
+        onPress={save}
+        pending={pending}
+        disabled={photoBusy}
+      />
+      <View style={styles.footer}>
+        <Pressable onPress={cancel} disabled={pending} hitSlop={8} accessibilityRole="button" accessibilityLabel="Vazgeç">
+          <Mono style={styles.muted}>Vazgeç</Mono>
+        </Pressable>
+        {id && (
+          <Pressable
+            onPress={remove}
+            disabled={pending}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={confirmingDelete ? "Emin misin? Evet, sil" : "Tarifi sil"}
+          >
+            <Mono style={[styles.underline, confirmingDelete ? styles.danger : styles.muted]}>
+              {confirmingDelete ? "Emin misin? Evet, sil" : "Tarifi sil"}
+            </Mono>
+          </Pressable>
+        )}
+      </View>
+      {id && confirmingDelete && (
+        <Mono style={styles.hint}>Tarif, fotoğrafı ve ona yazılan değerlendirmeler kalıcı olarak silinir. Günlük kayıtları kendi kopyalarını korur.</Mono>
+      )}
+
+      <OptionSheet
+        title={sheet?.kind === "icon" ? "Simge" : "Birim"}
+        options={sheet?.kind === "icon" ? ICON_OPTIONS : unitOptions(sheetRow?.unit ?? "")}
+        current={sheetRow ? (sheet?.kind === "icon" ? sheetRow.icon : sheetRow.unit) : null}
+        onPick={(value) => {
+          if (sheet) setRow(sheet.key, sheet.kind === "icon" ? { icon: value as IngredientIcon } : { unit: value });
+          setSheet(null);
+        }}
+        onClose={() => setSheet(null)}
+      />
+    </View>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <View style={styles.section}>
+      <Label style={styles.sectionTitle}>{title}</Label>
+      <View style={styles.sectionBody}>{children}</View>
+    </View>
+  );
+}
+
+/** Values in use, tapped to fill the field above. */
+function Chips({ values, current, onPick }: { values: string[]; current: string; onPick: (value: string) => void }) {
+  if (values.length === 0) return null;
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.chips}>
+      {values.map((v) => {
+        const on = v === current.trim();
+        return (
+          <Pressable
+            key={v}
+            onPress={() => onPick(v)}
+            style={[styles.chip, on && styles.chipOn]}
+            accessibilityRole="button"
+            accessibilityLabel={v}
+            accessibilityState={{ selected: on }}
+          >
+            <Mono style={[styles.chipText, on && styles.chipTextOn]}>{v}</Mono>
+          </Pressable>
+        );
+      })}
+    </ScrollView>
+  );
+}
+
+function IconButton({ label, disabled, onPress, children }: { label: string; disabled: boolean; onPress: () => void; children: React.ReactNode }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      hitSlop={4}
+      style={[styles.iconButton, disabled && styles.off]}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+    >
+      {children}
+    </Pressable>
+  );
+}
+
+function AddButton({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} hitSlop={6} style={styles.add} accessibilityRole="button" accessibilityLabel={label}>
+      <Plus size={14} color={colors.textMuted} />
+      <Mono style={styles.addText}>{label}</Mono>
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  form: { gap: 20 },
+  section: { borderWidth: 1, borderColor: colors.border, backgroundColor: colors.bgCard, borderRadius: 4, padding: 16 },
+  sectionTitle: { color: colors.textSecondary, fontSize: 11, letterSpacing: 1.5, marginBottom: 14 },
+  sectionBody: { gap: 16 },
+  group: { gap: 8 },
+  label: { color: colors.textSecondary, fontSize: 11, letterSpacing: 1.5 },
+  hint: { fontSize: 11, lineHeight: 16, color: colors.textMuted },
+  chips: { gap: 6, paddingRight: 8 },
+  chip: { borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
+  chipOn: { borderColor: colors.crimson, backgroundColor: alpha(colors.crimson, 0.2) },
+  chipText: { fontSize: 11, color: colors.textMuted },
+  chipTextOn: { color: colors.textPrimary },
+  swatches: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  swatch: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: "transparent" },
+  swatchOn: { borderColor: colors.textPrimary },
+  hexRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  preview: { width: 36, height: 36, borderRadius: 4, borderWidth: 1, borderColor: colors.border },
+  hex: { width: 110 },
+  photo: {
+    aspectRatio: 16 / 9,
+    width: "100%",
+    overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.bgElevated,
+    borderRadius: 2,
+  },
+  photoBusy: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0, 0, 0, 0.6)" },
+  inlineRow: { flexDirection: "row", alignItems: "center", gap: 16 },
+  ingredient: { gap: 6, paddingBottom: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+  row: { flexDirection: "row", alignItems: "center", gap: 6 },
+  small: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.bgPrimary,
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    color: colors.textPrimary,
+    fontFamily: fonts.mono,
+    fontSize: 13,
+  },
+  grow: { flex: 1, minWidth: 0 },
+  amount: { width: 56, textAlign: "right" },
+  select: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 4 },
+  unit: { width: 112 },
+  selectText: { flexShrink: 1, fontSize: 13, color: colors.textPrimary },
+  placeholder: { color: colors.textMuted },
+  iconButton: { width: 30, height: 32, alignItems: "center", justifyContent: "center" },
+  off: { opacity: 0.3 },
+  add: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start" },
+  addText: { fontSize: 12, color: colors.textMuted },
+  stepRow: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
+  stepNumber: {
+    marginTop: 10,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: alpha(colors.crimson, 0.15),
+  },
+  stepNumberText: { fontSize: 10, color: colors.crimsonGlow },
+  stepInput: {
+    minHeight: 64,
+    textAlignVertical: "top",
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.bgPrimary,
+    borderRadius: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    color: colors.textPrimary,
+    fontFamily: fonts.sans,
+    fontSize: 14,
+  },
+  textarea: { minHeight: 96, textAlignVertical: "top" },
+  checkText: { fontSize: 13, color: colors.textSecondary },
+  footer: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  muted: { fontSize: 12, color: colors.textMuted },
+  underline: { textDecorationLine: "underline" },
+  danger: { fontSize: 12, color: colors.crimsonGlow },
+});

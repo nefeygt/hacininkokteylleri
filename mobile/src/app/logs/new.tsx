@@ -1,19 +1,22 @@
 import { todayInTurkey } from "@shared/drink-log";
 import { Stack, router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import KeyboardScrollView from "@/components/KeyboardScrollView";
 import LogForm from "@/components/LogForm";
 import MemberGate from "@/components/MemberGate";
 import { Body, Heading, Mono } from "@/components/Type";
 import { useArchive } from "@/lib/archive";
+import type { Writer } from "@/lib/community";
+import { fetchRecipe, type Cocktail } from "@/lib/content";
 import { leave, recipeOf } from "@/lib/drink-logs";
+import type { Settings } from "@/lib/session";
 import { colors, fonts, readable } from "@/lib/theme";
 
 /**
  * A new drink log (the site's /account/logs/new). Opened from a recipe with
- * `?cocktail={slug}`; from the log list without one, the member picks a house
- * recipe first.
+ * `?cocktail={slug}` (a house recipe or a member's); from the log list without
+ * one, the member picks a house recipe first.
  */
 export default function NewLogScreen() {
   const { cocktail: fromRecipe } = useLocalSearchParams<{ cocktail?: string }>();
@@ -63,47 +66,98 @@ export default function NewLogScreen() {
           );
         }
 
-        const cocktail = archive.cocktails.find((c) => c.slug === slug);
-        if (!cocktail) {
-          return (
-            <View style={styles.center}>
-              <Body style={styles.muted}>Bu kokteyl bulunamadı.</Body>
-              <Pressable onPress={() => (fromRecipe ? router.back() : setPicked(null))}>
-                <Mono style={styles.link}>Başka bir kokteyl seç</Mono>
-              </Pressable>
-            </View>
-          );
-        }
-
-        const today = todayInTurkey();
         return (
-          <KeyboardScrollView style={styles.screen} contentContainerStyle={styles.content}>
-            <Stack.Screen options={{ title: cocktail.name }} />
-            <View style={readable}>
-              <Heading style={styles.title}>{cocktail.name}</Heading>
-              <Mono style={styles.subtitle}>Günlüğe ekle — tarifi yaptığın gibi düzenle.</Mono>
-              <View style={styles.form}>
-                <LogForm
-                  writer={writer}
-                  today={today}
-                  initial={{
-                    cocktailId: cocktail.id,
-                    drunkOn: today,
-                    recipe: recipeOf(cocktail),
-                    rating: null,
-                    note: "",
-                    isPublic: settings.logs_public_default,
-                  }}
-                  // From a recipe: the list replaces the form, so going back lands on the recipe.
-                  // From the list: back to it (it reloads when it comes back).
-                  onDone={() => (fromRecipe ? router.replace("/logs") : leave())}
-                />
-              </View>
-            </View>
-          </KeyboardScrollView>
+          <NewLog
+            writer={writer}
+            settings={settings}
+            house={archive.cocktails.find((c) => c.slug === slug)}
+            slug={slug}
+            fromRecipe={Boolean(fromRecipe)}
+            onPickAnother={() => (fromRecipe ? router.back() : setPicked(null))}
+          />
         );
       }}
     </MemberGate>
+  );
+}
+
+/**
+ * The form for one cocktail: a house recipe from the archive, or a member's
+ * recipe read by its slug (logs can start from either, as on the site).
+ */
+function NewLog({
+  writer,
+  settings,
+  house,
+  slug,
+  fromRecipe,
+  onPickAnother,
+}: {
+  writer: Writer;
+  settings: Settings;
+  house: Cocktail | undefined;
+  slug: string;
+  fromRecipe: boolean;
+  onPickAnother: () => void;
+}) {
+  const [member, setMember] = useState<Cocktail | null | undefined>(house ? null : undefined);
+
+  useEffect(() => {
+    if (house) return;
+    let cancelled = false;
+    fetchRecipe(slug)
+      .then((recipe) => !cancelled && setMember(recipe))
+      .catch(() => !cancelled && setMember(null));
+    return () => {
+      cancelled = true;
+    };
+  }, [house, slug]);
+
+  const cocktail = house ?? member;
+  if (cocktail === undefined) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator color={colors.crimsonGlow} />
+      </View>
+    );
+  }
+  if (cocktail === null) {
+    return (
+      <View style={styles.center}>
+        <Body style={styles.muted}>Bu kokteyl bulunamadı.</Body>
+        <Pressable onPress={onPickAnother}>
+          <Mono style={styles.link}>Başka bir kokteyl seç</Mono>
+        </Pressable>
+      </View>
+    );
+  }
+
+  const today = todayInTurkey();
+  return (
+    <KeyboardScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      <Stack.Screen options={{ title: cocktail.name }} />
+      <View style={readable}>
+        <Heading style={styles.title}>{cocktail.name}</Heading>
+        <Mono style={styles.subtitle}>Günlüğe ekle — tarifi yaptığın gibi düzenle.</Mono>
+        <View style={styles.form}>
+          <LogForm
+            writer={writer}
+            today={today}
+            initial={{
+              cocktailId: cocktail.id,
+              drunkOn: today,
+              recipe: recipeOf(cocktail),
+              rating: null,
+              note: "",
+              isPublic: settings.logs_public_default,
+            }}
+            // From a recipe: the list replaces the form, so going back lands on the recipe.
+            // From the list: back to it (it reloads when it comes back).
+            onDone={() => (fromRecipe ? router.replace("/logs") : leave())}
+          />
+        </View>
+      </View>
+    </KeyboardScrollView>
   );
 }
 

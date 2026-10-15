@@ -4,11 +4,10 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-15 (M8 step 4 + the user's feedback) · **Handing off:** **M8 steps 3 and 4
-are done.** The user's phone pass on the drink log brought ADR-023: half stars (0,5–5) in reviews and logs
-(migration `half_star_ratings`, 12 migrations now), bigger stars, a month calendar behind the log's date, units
-from a shared list, the recipe's steps locked until "Değiştir" — in the app and on the site. Checked signed in, in
-the built-in browser. **Next: M8 step 5** (members' recipes, the feed, follows, log comments).
+**Prepared by session:** 2026-10-15 (M8 step 5) · **Handing off:** **M8 step 5 is done:** members' recipes in the
+app (form with photo upload, units from the list, drafts, delete), their screen `recipes/[slug]`, the Akış tab (popular, new,
+followed people's logs), "Takip et" on profiles, public log pages with comments (`log/[id]`). Checked signed in, in the
+built-in browser, with a temporary member that was deleted afterwards. **Next: M8 step 6 — the showcase.**
 
 ---
 
@@ -53,28 +52,31 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — M8 step 5: members' recipes, recipe pages, the feed, follows, log comments
+## 🎯 This Session's Task — M8 step 6: the showcase (Vitrin) in the app
 
 ### Step 0 — state check
 
 `git status` — clean, `main` in step with `origin/main`. **Tools:** the Supabase MCP (`list_migrations` on
 `qwvnhdghwycqlvsnlvlt` → 12, the latest `20261015120719_half_star_ratings`) and a browser: **Claude in Chrome was
-disconnected all of 2026-10-15** — try `tabs_context_mcp`; if it still fails, the user allowed the built-in browser
-(`mcp__Claude_Browser__*`, it reaches `localhost:8081` and `:3000`; its screenshots lag — read the DOM). The
-user's phone is not available any more ("telefon gitti"): test the app in Expo web at phone width
-(`resize_window` preset mobile). SQL: profiles `ahmet_kafa` (the user) and **`mustafa_hayat` — the user's friend,
-never touch their rows**. Every community table was empty at the end of 2026-10-15 (test rows deleted with the
-user's OK). `cd mobile && npm ci` on a fresh machine; port 8081 may be held by an old Expo server.
+disconnected all of 2026-10-15** — try `tabs_context_mcp`; if it still fails, use the built-in browser
+(`mcp__Claude_Browser__*`; it reaches `localhost:8081`; read the DOM, screenshots lag). The user's phone is gone: test Expo
+web at phone width (`resize_window` preset mobile). The built-in browser holds the **owner admin's login**
+(`n.efeyigit@outlook.com`), now **without a profile** (it opens onboarding); the user allowed a temporary test member on it
+twice — ask again before making one, and delete it afterwards. SQL: profiles `ahmet_kafa` (the user) and **`mustafa_hayat`
+— the user's friend, never touch their rows**. Every community table was empty at the end of 2026-10-15. **Port 8081 is
+usually held by an old Expo server** — `Get-NetTCPConnection -LocalPort 8081` → stop it by PID, then
+`npx expo start --web --port 8081` (else the typed routes stay stale and `tsc` rejects new routes).
 
-### Step 1 — M8 step 5 (plan.md §6)
+### Step 1 — M8 step 6 (plan.md §6)
 
-Mirror the site (ADR-018): the recipe form with a photo upload (`src/lib/recipe.ts` is shared; photos as the
-site's `ImageField`, WebP, never overwritten — ADR-006; **units from `UNITS`, ADR-023**), `/recipes/{slug}` as a
-screen (the profile's and `DrinkLogEntry`'s links to members' recipes still open the site — switch them), the Akış
-tab (popular + new recipes, followed people's logs), the follow button on profiles, comments on public logs
-(`DrinkLogEntry`'s "Yorumlar" opens the site today). Read the site's `account/recipes/`, `feed/`, `logs/[id]`,
-`FollowButton`, `LogComments` first. Signed-in checks need the user to sign in (by e-mail on Expo web — Google
-sign-in is native only); if a second member is needed, the user said a test account can be made and deleted.
+Mirror the site's "Vitrin" (ADR-019) on the Akış tab, above "Bu ay popüler": the open (or next) period, approved entries by
+votes with an upvote/undo and "Bildir", the member's own application and status with withdraw, the apply form (own published
+recipe **with a photo** + a pitch), and the last winner; hidden until a period exists. Read the site's `feed/page.tsx`
+(`ShowcaseSection`), `feed/actions.ts`, `ShowcaseEntries`, `ShowcaseApply`, `src/lib/showcase.ts` (shared, browser-safe) and
+`getShowcase`/`getShowcaseWinner` in `src/lib/content.ts`. Revalidate `/feed` and `/` like the site's actions. **Testing
+needs a showcase period**, which only an admin opens (the panel needs 2FA) — insert a test period in SQL and delete it
+afterwards (M7's lesson: move it into the past to see the winner). Also left from step 5: "Takip ettiklerinden" with real
+logs and "Bildir" on another member's comment — both need a second member.
 
 ### Also open (not blocking)
 
@@ -110,6 +112,15 @@ sign-in is native only); if a second member is needed, the user said a test acco
 
 ## 📍 Current State
 
+- **The app's community (M8 step 5, 2026-10-15):** `mobile/src/lib/recipes.ts` (`fetchMyRecipes`, `fetchMyRecipe`,
+  `saveRecipe`, `deleteRecipe`, `pickRecipePhoto`, `discardRecipePhoto`, `NEW_RECIPE`, `leaveRecipeForm`), `social.ts`
+  (`isFollowing`, `setFollow`, `fetchPublicLog`, `countComments`, `fetchFollowingLogs`, `fetchComments`, `addComment`,
+  `deleteComment`), `content.ts` (`fetchRecipe`, `fetchNewRecipes`, `fetchPopularRecipes` — filtered to published and
+  visible, since an author's session reads drafts and hidden rows). Components `RecipeForm`, `RecipeActions`
+  (`FavoriteButton`, `LogButton`, shared by both recipe screens), `OptionSheet` (units, icons), `FollowButton`,
+  `LogComments`; `MemberGate` takes `feature`. Screens `recipes/[slug]`, `my-recipes/index|new|[id]`, `log/[id]`, the Akış
+  tab. `logs/new?cocktail=` accepts members' recipes. `leaveAfterSignIn` switches to the feed tab instead of pushing it.
+  Nothing in the app opens the website any more except e-mail links and `/privacy`.
 - **Half stars, units, locked steps (2026-10-15, ADR-023):** `reviews.rating` and `drink_logs.rating` are
   `numeric(2,1)` 0.5–5 in half steps (PostgREST sends them as numbers). Helpers in `src/lib/community.ts`:
   `isValidRating`, `RATING_ERROR`, `formatRating`, `ratingStars`; `UNITS` / `unitChoices()` in `src/lib/drink-log.ts`.
@@ -256,7 +267,16 @@ sign-in is native only); if a second member is needed, the user said a test acco
 - **The office network blocks the new domain** (a Fortinet FortiGate). Check DNS with
   `https://dns.google/resolve?name=…` and HTTP with check-host.net (plan.md §5.4).
 
-**This session's lessons (M8 step 4 feedback)**
+**This session's lessons (M8 step 5)**
+- **`ImageManipulator` on the web needs both sides in `resize()`** — `{ width, height: null }` works natively but gives
+  "source height is zero" in the browser. Pass the computed height.
+- **Expo web's image picker opens its file input with `dispatchEvent(new MouseEvent("click"))`**, not `.click()`: to feed it
+  a file in the browser, patch `EventTarget.prototype.dispatchEvent` for file inputs (set `input.files` from a
+  `DataTransfer`, then dispatch `change`). A canvas-made PNG blob works as the photo.
+- **Screens under the top of the stack stay in the DOM** — `querySelector('[aria-label="Yorum"]')` found the recipe screen's
+  review field under the log screen. Pick the last match, or match on a placeholder.
+
+**Lessons (M8 step 4 feedback)**
 - **The built-in browser works for Expo web** (`localhost:8081`) when Claude in Chrome is down; the user signs
   in there themselves. Its screenshots often show the previous frame — confirm state in the DOM first. A
   coordinate click needs a screenshot taken first in that turn.
@@ -458,7 +478,6 @@ sign-in is native only); if a second member is needed, the user said a test acco
 
 ## 🧭 Look-ahead
 
-- **M8** steps 5–7 (plan.md §6): members' recipes, feed,
-  follows, comments → showcase → store release (EAS production builds, Turkish listings, 18+ rating,
+- **M8** steps 6–7 (plan.md §6): showcase → store release (EAS production builds, Turkish listings, 18+ rating,
   privacy forms, Play's closed test, App Store review).
 - Icebox highlights: localization (English first), colour theme review, a `haci` domain.
