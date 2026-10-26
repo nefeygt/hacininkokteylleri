@@ -1,3 +1,4 @@
+import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n/locales";
 import type { Database } from "@/lib/supabase/database.types";
 import { cocktailImageUrl, recipeImageUrl } from "@/lib/supabase/config";
 import { createPublicClient } from "@/lib/supabase/public";
@@ -131,7 +132,7 @@ export function recipeHref(slug: string, isCommunity: boolean): string {
  * ratings reach the static page at its revalidation; a review write
  * revalidates it at once (ADR-005, ADR-014).
  */
-export async function getPublishedCocktails(): Promise<Cocktail[]> {
+export async function getPublishedCocktails(locale: Locale = DEFAULT_LOCALE): Promise<Cocktail[]> {
   const supabase = createPublicClient();
   const [{ data, error }, ratings] = await Promise.all([
     supabase.from("cocktails").select(COCKTAIL_COLUMNS).eq("is_published", true).is("author_id", null).order("sort_order"),
@@ -144,17 +145,61 @@ export async function getPublishedCocktails(): Promise<Cocktail[]> {
   const byCocktail = new Map(
     ratings.data.map((r) => [r.cocktail_id, toRating(r)])
   );
-  return (data as CocktailRow[]).map((row) => ({ ...toCocktail(row), rating: byCocktail.get(row.id) }));
+  return translateCocktails(
+    (data as CocktailRow[]).map((row) => ({ ...toCocktail(row), rating: byCocktail.get(row.id) })),
+    locale,
+  );
 }
 
-/** The ingredient catalogue (ADR-029), for "what can I make". */
-export async function getIngredientCatalogue(): Promise<CatalogueIngredient[]> {
-  const { data, error } = await createPublicClient()
-    .from("ingredients")
-    .select("id, name, category, always_at_hand")
-    .order("name");
+/** The ingredient catalogue (ADR-029), for "what can I make"; names in the language where translated. */
+export async function getIngredientCatalogue(locale: Locale = DEFAULT_LOCALE): Promise<CatalogueIngredient[]> {
+  const supabase = createPublicClient();
+  const [{ data, error }, translations] = await Promise.all([
+    supabase.from("ingredients").select("id, name, category, always_at_hand").order("name"),
+    locale === DEFAULT_LOCALE
+      ? Promise.resolve({ data: [], error: null })
+      : supabase.from("ingredient_translations").select("ingredient_id, name").eq("locale", locale),
+  ]);
   if (error) throw new Error(`Could not load ingredients: ${error.message}`);
-  return data.map((i) => ({ id: i.id, name: i.name, category: i.category, alwaysAtHand: i.always_at_hand }));
+  if (translations.error) throw new Error(`Could not load ingredient translations: ${translations.error.message}`);
+  const names = new Map(translations.data.map((t) => [t.ingredient_id, t.name]));
+  return data
+    .map((i) => ({ id: i.id, name: names.get(i.id) ?? i.name, category: i.category, alwaysAtHand: i.always_at_hand }))
+    .sort((a, b) => a.name.localeCompare(b.name, locale));
+}
+
+/**
+ * House recipes in another language (ADR-032): the translation row's fields replace the Turkish ones where
+ * they are filled in; a missing row, an empty field or a missing position keeps the Turkish text. Members'
+ * recipes stay as written. The cocktail's name changes only when the row has one.
+ */
+async function translateCocktails(cocktails: Cocktail[], locale: Locale): Promise<Cocktail[]> {
+  const ids = cocktails.filter((c) => !c.author).map((c) => c.id);
+  if (locale === DEFAULT_LOCALE || ids.length === 0) return cocktails;
+  const { data, error } = await createPublicClient()
+    .from("cocktail_translations")
+    .select("cocktail_id, name, subtitle, base_alcohol, flavor, tags, garnish, glass, note, instructions, ingredient_names")
+    .eq("locale", locale)
+    .in("cocktail_id", ids);
+  if (error) throw new Error(`Could not load translations: ${error.message}`);
+  const byId = new Map(data.map((row) => [row.cocktail_id, row]));
+  return cocktails.map((c) => {
+    const tx = byId.get(c.id);
+    if (!tx) return c;
+    return {
+      ...c,
+      name: tx.name || c.name,
+      subtitle: tx.subtitle || c.subtitle,
+      baseAlcohol: tx.base_alcohol || c.baseAlcohol,
+      flavor: tx.flavor || c.flavor,
+      tags: tx.tags.length > 0 ? tx.tags : c.tags,
+      garnish: tx.garnish || c.garnish,
+      glass: tx.glass || c.glass,
+      note: tx.note || c.note,
+      instructions: tx.instructions.length > 0 ? tx.instructions : c.instructions,
+      ingredients: c.ingredients.map((ingredient, i) => ({ ...ingredient, name: tx.ingredient_names[i] || ingredient.name })),
+    };
+  });
 }
 
 async function withRatings(rows: CocktailRow[]): Promise<Cocktail[]> {
@@ -171,7 +216,7 @@ async function withRatings(rows: CocktailRow[]): Promise<Cocktail[]> {
 }
 
 /** One published house recipe (Hacı's) by its slug, or null (ADR-025). */
-export async function getCocktail(slug: string): Promise<Cocktail | null> {
+export async function getCocktail(slug: string, locale: Locale = DEFAULT_LOCALE): Promise<Cocktail | null> {
   const { data, error } = await createPublicClient()
     .from("cocktails")
     .select(COCKTAIL_COLUMNS)
@@ -181,7 +226,7 @@ export async function getCocktail(slug: string): Promise<Cocktail | null> {
     .maybeSingle();
   if (error) throw new Error(`Could not load the cocktail: ${error.message}`);
   if (!data) return null;
-  const [cocktail] = await withRatings([data as CocktailRow]);
+  const [cocktail] = await translateCocktails(await withRatings([data as CocktailRow]), locale);
   return cocktail;
 }
 
@@ -331,10 +376,18 @@ export async function getShowcaseWinner(): Promise<(ShowcaseEntry & { period: Sh
   return winner ? { ...winner, period: toPeriod(data) } : null;
 }
 
-export async function getGlossary(): Promise<Glossary> {
-  const { data, error } = await createPublicClient()
-    .from("glossary_terms")
-    .select("term, definition");
+/** The glossary in a language: for English the translated terms (the words that appear in English text). */
+export async function getGlossary(locale: Locale = DEFAULT_LOCALE): Promise<Glossary> {
+  const supabase = createPublicClient();
+  if (locale !== DEFAULT_LOCALE) {
+    const { data, error } = await supabase
+      .from("glossary_term_translations")
+      .select("translated_term, definition")
+      .eq("locale", locale);
+    if (error) throw new Error(`Could not load the glossary: ${error.message}`);
+    return Object.fromEntries(data.map((t) => [t.translated_term, t.definition]));
+  }
+  const { data, error } = await supabase.from("glossary_terms").select("term, definition");
 
   if (error) throw new Error(`Could not load the glossary: ${error.message}`);
   return Object.fromEntries(data.map((t) => [t.term, t.definition]));

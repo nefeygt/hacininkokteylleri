@@ -3,6 +3,9 @@
 // Browser-safe, so the app could reuse it.
 
 import { baseChoices, ALL, flavorChoices, flavorNotes, type Filterable } from "./archive-filter";
+import { getDictionary } from "./i18n/dictionaries";
+import { format } from "./i18n/format";
+import { DEFAULT_LOCALE, INTL_LOCALES, type Locale } from "./i18n/locales";
 
 export type CollectionKind = "spirit" | "flavor";
 
@@ -59,38 +62,21 @@ export function collectionHref(c: Pick<Collection, "kind" | "slug">): string {
   return `/cocktails/${c.kind}/${c.slug}`;
 }
 
-/** The page's title: "Votka kokteylleri", "Tatlı kokteyller". */
-export function collectionTitle(c: Pick<Collection, "kind" | "label">): string {
-  return c.kind === "spirit" ? `${c.label} kokteylleri` : `${c.label} kokteyller`;
+/** The page's title: "Votka kokteylleri", "Tatlı kokteyller", "Vodka cocktails". */
+export function collectionTitle(c: Pick<Collection, "kind" | "label">, locale: Locale = DEFAULT_LOCALE): string {
+  const t = getDictionary(locale).collections;
+  return format(c.kind === "spirit" ? t.titleSpirit : t.titleFlavor, { label: c.label });
 }
 
-// A line of introduction per known value; a new value gets the generic one.
-const INTROS: Record<CollectionKind, Record<string, string>> = {
-  spirit: {
-    Votka: "Votka kokteyle gövde verir ama kendini öne atmaz; meyveye, ekşiye ve otlara yer açar. Hacı'nın en kalabalık rafı.",
-    Cin: "Ardıç, kabuk ve baharat: cin, tonikten sour'a kadar her reçeteye kendi bitki notalarını taşır.",
-    Rom: "Şekerkamışından gelen yumuşak tatlılık; tropik meyveyle, nane ve limeyle en iyi hâlini bulur.",
-    Viski: "Meşe, duman ve karamel. Viski kokteylleri ağır başlıdır; yavaş içilir.",
-    Tekila: "Agavın topraksı keskinliği; lime ve tuzla ya da beklenmedik bir meyveyle buluşur.",
-    Likör: "Tatlı, yoğun ve aromalı: likörler reçetenin yıldızı olduğunda kokteyl tatlıya yaklaşır.",
-  },
-  flavor: {
-    Ekşi: "Limon ya da lime öne çıkar, şeker dengeler: ağzı toparlayan, iştah açan reçeteler.",
-    Tatlı: "Şurup, likör ya da meyveyle yuvarlanmış, yumuşak içimli kokteyller.",
-    Meyveli: "Taze meyve ya da meyve suyu taşıyan, renkli ve sulu reçeteler.",
-    Ferah: "Buz gibi, hafif ve serinletici: sıcak bir akşamın kokteylleri.",
-    Baharatlı: "Zencefil, tarçın ya da biber: dili hafifçe ısıtan reçeteler.",
-    Kahve: "Espresso ya da kahve likörüyle: akşam yemeğinden sonrası için.",
-  },
-};
-
-export function collectionIntro(c: Pick<Collection, "kind" | "label" | "count">): string {
-  return (
-    INTROS[c.kind][c.label] ??
-    (c.kind === "spirit"
-      ? `${c.label} bazlı ${c.count} reçete, Hacı'nın arşivinden.`
-      : `Tadı ${c.label.toLocaleLowerCase("tr-TR")} olan ${c.count} reçete, Hacı'nın arşivinden.`)
-  );
+/** A line of introduction per known value (found by its label in the language); a new value gets the generic one. */
+export function collectionIntro(c: Pick<Collection, "kind" | "label" | "count">, locale: Locale = DEFAULT_LOCALE): string {
+  const t = getDictionary(locale).collections as Record<string, string>;
+  const labelKey = Object.keys(t).find((key) => key.startsWith("label") && t[key] === c.label);
+  const known = labelKey ? t[`intro${labelKey.slice("label".length)}`] : undefined;
+  if (known) return known;
+  return c.kind === "spirit"
+    ? format(t.introSpiritGeneric, { label: c.label, n: c.count })
+    : format(t.introFlavorGeneric, { label: c.label.toLocaleLowerCase(INTL_LOCALES[locale]), n: c.count });
 }
 
 /**

@@ -1,5 +1,9 @@
 // Account settings that both server and browser code read (no server imports here).
 
+import { tr } from "./i18n/dictionaries/tr";
+import type { Dictionary } from "./i18n/dictionaries/types";
+import { format } from "./i18n/format";
+
 /**
  * Community accounts open to the public when M3 ships. Until then the sign-in
  * link stays out of the navbar and public sign-up stays off in Supabase Auth;
@@ -14,13 +18,13 @@ export const PRIVACY_NOTICE_VERSION = "2026-10-26";
 export const MIN_PASSWORD_LENGTH = 8;
 
 /** Supabase Auth's messages, in words a visitor understands (the site's /login and the app). */
-export function authErrorMessage(message: string): string {
-  if (/invalid login credentials/i.test(message)) return "E-posta ya da şifre yanlış.";
-  if (/email not confirmed/i.test(message)) return "Önce e-postana gelen bağlantıyla adresini onayla.";
-  if (/signups? not allowed/i.test(message)) return "Üyelik henüz açılmadı. Çok yakında!";
-  if (/password should|at least \d+ characters|weak password/i.test(message)) return `Şifre en az ${MIN_PASSWORD_LENGTH} karakter olmalı.`;
-  if (/rate limit|too many/i.test(message)) return "Çok fazla deneme yapıldı. Biraz bekleyip tekrar dene.";
-  return "Bir şeyler ters gitti. Tekrar dene.";
+export function authErrorMessage(message: string, a: Dictionary["auth"] = tr.auth): string {
+  if (/invalid login credentials/i.test(message)) return a.invalidCredentials;
+  if (/email not confirmed/i.test(message)) return a.emailNotConfirmed;
+  if (/signups? not allowed/i.test(message)) return a.signupsClosed;
+  if (/password should|at least \d+ characters|weak password/i.test(message)) return format(a.passwordShort, { min: MIN_PASSWORD_LENGTH });
+  if (/rate limit|too many/i.test(message)) return a.rateLimit;
+  return a.generic;
 }
 
 /** Only same-site paths are followed after sign-in, never another origin. */

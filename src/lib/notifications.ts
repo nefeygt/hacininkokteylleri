@@ -1,6 +1,9 @@
 // Notifications (M9 package B, ADR-030): one query and one wording for the site and the app
 // (the app imports this through @shared/notifications). Browser- and React Native-safe.
 
+import { tr } from "./i18n/dictionaries/tr";
+import type { Dictionary } from "./i18n/dictionaries/types";
+import { format } from "./i18n/format";
 import type { Database } from "./supabase/database.types";
 
 export type NotificationType = Database["public"]["Enums"]["notification_type"];
@@ -39,49 +42,50 @@ export interface NotificationView {
   href: string;
 }
 
-function logName(row: NotificationRow): string {
+function logName(row: NotificationRow, unnamed: string): string {
   const recipe = row.log?.recipe;
   const name = recipe && typeof recipe === "object" && "name" in recipe ? (recipe as { name: unknown }).name : null;
-  return typeof name === "string" ? name : "bir";
+  return typeof name === "string" ? name : unnamed;
 }
 
 function recipePath(c: { slug: string; author_id: string | null }): string {
   return c.author_id ? `/recipes/${c.slug}` : `/cocktails/${c.slug}`;
 }
 
-/** The words and the link of one notification, in Turkish (ADR-002). */
-export function describeNotification(row: NotificationRow): NotificationView {
-  const recipeName = row.cocktail?.name ?? "bir";
+/** The words and the link of one notification, in the language of `t` (Turkish by default). */
+export function describeNotification(row: NotificationRow, t: Dictionary = tr): NotificationView {
+  const n = t.notificationTexts;
+  const recipeName = row.cocktail?.name ?? n.unnamed;
   switch (row.type) {
     case "follow":
-      return { text: "seni takip etmeye başladı.", href: row.actor ? `/u/${row.actor.username}` : "/account" };
+      return { text: n.follow, href: row.actor ? `/u/${row.actor.username}` : "/account" };
     case "log_comment":
-      return { text: `${logName(row)} kaydına yorum yaptı.`, href: `/logs/${row.log_id}` };
+      return { text: format(n.logComment, { name: logName(row, n.unnamed) }), href: `/logs/${row.log_id}` };
     case "comment_thread":
-      return { text: `yorum yaptığın ${logName(row)} kaydına yorum yaptı.`, href: `/logs/${row.log_id}` };
+      return { text: format(n.commentThread, { name: logName(row, n.unnamed) }), href: `/logs/${row.log_id}` };
     case "recipe_review":
       return {
-        text: `${recipeName} tarifini puanladı.`,
+        text: format(n.recipeReview, { name: recipeName }),
         href: row.cocktail ? recipePath(row.cocktail) : "/account/recipes",
       };
     case "showcase_approved":
-      return { text: `${recipeName} vitrin başvurun onaylandı. Oylar seni bekliyor!`, href: "/feed#showcase" };
+      return { text: format(n.showcaseApproved, { name: recipeName }), href: "/feed#showcase" };
     case "showcase_rejected":
-      return { text: `${recipeName} vitrin başvurun bu dönem onaylanmadı.`, href: "/feed#showcase" };
+      return { text: format(n.showcaseRejected, { name: recipeName }), href: "/feed#showcase" };
     case "content_hidden":
-      if (row.comment_id) return { text: "Bir yorumun yöneticiler tarafından gizlendi.", href: `/logs/${row.log_id}` };
+      if (row.comment_id) return { text: n.commentHidden, href: `/logs/${row.log_id}` };
       if (row.review_id) {
         const c = row.review?.cocktail;
         return {
-          text: `${c?.name ?? "Bir"} tarifine yaptığın değerlendirme yöneticiler tarafından gizlendi.`,
+          text: format(n.reviewHidden, { name: c?.name ?? n.unnamedCap }),
           href: c ? recipePath(c) : "/account",
         };
       }
       if (row.log_id) {
-        return { text: `${logName(row)} günlük kaydın yöneticiler tarafından gizlendi.`, href: `/account/logs/${row.log_id}` };
+        return { text: format(n.logHidden, { name: logName(row, n.unnamed) }), href: `/account/logs/${row.log_id}` };
       }
       return {
-        text: `${recipeName} tarifin yöneticiler tarafından gizlendi.`,
+        text: format(n.recipeHidden, { name: recipeName }),
         href: row.cocktail_id ? `/account/recipes/${row.cocktail_id}` : "/account/recipes",
       };
   }

@@ -3,6 +3,10 @@
 // private.is_valid_log_recipe() is the rule; these limits mirror it so the
 // form can warn early.
 
+import { tr } from "./i18n/dictionaries/tr";
+import type { Dictionary } from "./i18n/dictionaries/types";
+import { format } from "./i18n/format";
+import { DEFAULT_LOCALE, INTL_LOCALES, type Locale } from "./i18n/locales";
 import type { Database } from "./supabase/database.types";
 
 type IngredientIcon = Database["public"]["Enums"]["ingredient_icon"];
@@ -60,6 +64,17 @@ export const UNITS = [
   "kaşık",
 ] as const;
 
+/**
+ * A unit as the page's language writes it: "adet" → "piece(s)". The stored value stays the canonical one
+ * (units are a controlled list); a unit the list does not know, or a Turkish page, shows as written.
+ */
+export function unitLabel(unit: string, amount: number, t: Dictionary = tr): string {
+  const label = (t.units as Record<string, string>)[unit.trim()];
+  if (!label) return unit;
+  const [one, many] = label.split("|");
+  return amount === 1 || many === undefined ? one : many;
+}
+
 /** The list, with `current` in front when it is not one of them (an older or house unit). */
 export function unitChoices(current: string): string[] {
   const unit = current.trim();
@@ -70,16 +85,16 @@ const ICONS: readonly IngredientIcon[] = ["shot", "dash", "drop", "slice", "spoo
 
 /**
  * Cleans a recipe the browser sent and checks it against the limits. Returns
- * the cleaned recipe, or a Turkish error for the member.
+ * the cleaned recipe, or an error for the member in the language of `v` (Turkish by default).
  */
-export function cleanRecipe(input: unknown): LogRecipe | { error: string } {
-  if (!input || typeof input !== "object") return { error: "Tarif okunamadı." };
+export function cleanRecipe(input: unknown, v: Dictionary["validation"] = tr.validation): LogRecipe | { error: string } {
+  if (!input || typeof input !== "object") return { error: v.recipeUnreadable };
   const r = input as Record<string, unknown>;
 
   const name = typeof r.name === "string" ? r.name.trim() : "";
-  if (!name || name.length > LOG_LIMITS.name) return { error: "Tarifin adı okunamadı." };
+  if (!name || name.length > LOG_LIMITS.name) return { error: v.recipeNameUnreadable };
 
-  if (!Array.isArray(r.ingredients)) return { error: "Malzemeler okunamadı." };
+  if (!Array.isArray(r.ingredients)) return { error: v.ingredientsUnreadable };
   const ingredients: LogIngredient[] = [];
   for (const raw of r.ingredients) {
     const i = (raw ?? {}) as Record<string, unknown>;
@@ -88,27 +103,27 @@ export function cleanRecipe(input: unknown): LogRecipe | { error: string } {
     const amount = typeof i.amount === "number" ? Math.round(i.amount * 100) / 100 : NaN;
     if (!ingredientName && !unit && Number.isNaN(amount)) continue; // an empty row the member left
     if (!ingredientName || ingredientName.length > LOG_LIMITS.ingredientName) {
-      return { error: `Her malzemenin bir adı olmalı (en fazla ${LOG_LIMITS.ingredientName} karakter).` };
+      return { error: format(v.ingredientName, { max: LOG_LIMITS.ingredientName }) };
     }
-    if (!(amount > 0) || amount > LOG_LIMITS.amount) return { error: `"${ingredientName}" için geçerli bir miktar yaz.` };
-    if (!unit || unit.length > LOG_LIMITS.unit) return { error: `"${ingredientName}" için bir birim yaz (cl, dash, dilim…).` };
+    if (!(amount > 0) || amount > LOG_LIMITS.amount) return { error: format(v.amountInvalid, { name: ingredientName }) };
+    if (!unit || unit.length > LOG_LIMITS.unit) return { error: format(v.unitMissing, { name: ingredientName }) };
     const icon = ICONS.includes(i.icon as IngredientIcon) ? (i.icon as IngredientIcon) : "shot";
     ingredients.push({ name: ingredientName, amount, unit, icon });
   }
-  if (ingredients.length === 0) return { error: "En az bir malzeme olmalı." };
-  if (ingredients.length > LOG_LIMITS.ingredients) return { error: `En fazla ${LOG_LIMITS.ingredients} malzeme olabilir.` };
+  if (ingredients.length === 0) return { error: v.ingredientsMin };
+  if (ingredients.length > LOG_LIMITS.ingredients) return { error: format(v.ingredientsMax, { max: LOG_LIMITS.ingredients }) };
 
   const steps = Array.isArray(r.instructions) ? r.instructions : [];
   const instructions = steps
     .map((s) => (typeof s === "string" ? s.trim() : ""))
     .filter(Boolean);
-  if (instructions.length > LOG_LIMITS.instructions) return { error: `En fazla ${LOG_LIMITS.instructions} adım olabilir.` };
-  if (instructions.some((s) => s.length > LOG_LIMITS.step)) return { error: `Bir adım en fazla ${LOG_LIMITS.step} karakter olabilir.` };
+  if (instructions.length > LOG_LIMITS.instructions) return { error: format(v.stepsMax, { max: LOG_LIMITS.instructions }) };
+  if (instructions.some((s) => s.length > LOG_LIMITS.step)) return { error: format(v.stepLength, { max: LOG_LIMITS.step }) };
 
   const garnish = typeof r.garnish === "string" ? r.garnish.trim() : "";
-  if (garnish.length > LOG_LIMITS.garnish) return { error: `Süsleme en fazla ${LOG_LIMITS.garnish} karakter olabilir.` };
+  if (garnish.length > LOG_LIMITS.garnish) return { error: format(v.garnishMax, { max: LOG_LIMITS.garnish }) };
   const glass = typeof r.glass === "string" ? r.glass.trim() : "";
-  if (glass.length > LOG_LIMITS.glass) return { error: `Bardak en fazla ${LOG_LIMITS.glass} karakter olabilir.` };
+  if (glass.length > LOG_LIMITS.glass) return { error: format(v.glassMax, { max: LOG_LIMITS.glass }) };
 
   return { name, ingredients, instructions, garnish: garnish || null, glass: glass || null };
 }
@@ -125,15 +140,16 @@ export function readRecipe(value: unknown): LogRecipe {
   };
 }
 
-/** "4 cl", "1,5 dilim" — Turkish decimals. */
-export function formatAmount(ingredient: Pick<LogIngredient, "amount" | "unit">): string {
-  return `${ingredient.amount.toLocaleString("tr-TR", { maximumFractionDigits: 2 })} ${ingredient.unit}`;
+/** "4 cl", "1,5 dilim" / "1.5 slices" — the language's decimals and unit words. */
+export function formatAmount(ingredient: Pick<LogIngredient, "amount" | "unit">, locale: Locale = DEFAULT_LOCALE, t?: Dictionary): string {
+  const unit = t ? unitLabel(ingredient.unit, ingredient.amount, t) : ingredient.unit;
+  return `${ingredient.amount.toLocaleString(INTL_LOCALES[locale], { maximumFractionDigits: 2 })} ${unit}`;
 }
 
 /** "14 Ekim 2026" for a date column ("2026-10-14"), without a time-zone shift. */
-export function formatLogDate(date: string): string {
+export function formatLogDate(date: string, locale: Locale = DEFAULT_LOCALE): string {
   const [y, m, d] = date.split("-").map(Number);
-  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("tr-TR", {
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString(INTL_LOCALES[locale], {
     day: "numeric",
     month: "long",
     year: "numeric",

@@ -7,6 +7,8 @@ export const PITCH_MAX_LENGTH = 500;
 const TURKEY_OFFSET = "+03:00";
 const TIME_ZONE = "Europe/Istanbul";
 
+import { DEFAULT_LOCALE, INTL_LOCALES, type Locale } from "./i18n/locales";
+
 export type PeriodLength = "week" | "month";
 
 export interface ShowcasePeriod {
@@ -46,22 +48,31 @@ export function periodBounds(startDate: string, length: PeriodLength): { startsA
   return { startsAt: iso(start), endsAt: iso(end) };
 }
 
-const dayFormat = new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long", timeZone: TIME_ZONE });
+const dayFormats = new Map<Locale, Intl.DateTimeFormat>();
+
+function dayFormat(locale: Locale): Intl.DateTimeFormat {
+  let formatter = dayFormats.get(locale);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat(INTL_LOCALES[locale], { day: "numeric", month: "long", timeZone: TIME_ZONE });
+    dayFormats.set(locale, formatter);
+  }
+  return formatter;
+}
 
 /** "14 Ekim – 20 Ekim": the first and the last day (the end is exclusive). */
-export function formatPeriod(period: Pick<ShowcasePeriod, "startsAt" | "endsAt">): string {
+export function formatPeriod(period: Pick<ShowcasePeriod, "startsAt" | "endsAt">, locale: Locale = DEFAULT_LOCALE): string {
   const lastDay = new Date(Date.parse(period.endsAt) - 1);
-  return `${dayFormat.format(new Date(period.startsAt))} – ${dayFormat.format(lastDay)}`;
+  return `${dayFormat(locale).format(new Date(period.startsAt))} – ${dayFormat(locale).format(lastDay)}`;
 }
 
 /** The last day of a period, "20 Ekim". */
-export function formatLastDay(period: Pick<ShowcasePeriod, "endsAt">): string {
-  return dayFormat.format(new Date(Date.parse(period.endsAt) - 1));
+export function formatLastDay(period: Pick<ShowcasePeriod, "endsAt">, locale: Locale = DEFAULT_LOCALE): string {
+  return dayFormat(locale).format(new Date(Date.parse(period.endsAt) - 1));
 }
 
 /** The first day of a period, "14 Ekim". */
-export function formatFirstDay(period: Pick<ShowcasePeriod, "startsAt">): string {
-  return dayFormat.format(new Date(period.startsAt));
+export function formatFirstDay(period: Pick<ShowcasePeriod, "startsAt">, locale: Locale = DEFAULT_LOCALE): string {
+  return dayFormat(locale).format(new Date(period.startsAt));
 }
 
 export const STATUS_LABELS = {

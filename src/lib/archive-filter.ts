@@ -1,8 +1,18 @@
 // The archive's search and filters, shared by the site's CocktailBrowser and
 // the Expo app (ADR-020). Browser-safe: no Next.js imports.
 
+import { tr } from "./i18n/dictionaries/tr";
+import type { Dictionary } from "./i18n/dictionaries/types";
+
+/** The "all" chip's value: a sentinel, never shown (the page shows `archive.all` of its dictionary). */
 export const ALL = "Tümü";
 export const INGREDIENT_FILTERS = ["Nane", "Salatalık", "Tonik", "Lime", "Limon", "Zencefil", "Aquafaba", "Campari"];
+
+/** The ingredient chips in a language (the English archive's data has English ingredient names). */
+export function ingredientFilters(t: Dictionary = tr): string[] {
+  const a = t.archive;
+  return [a.filterMint, a.filterCucumber, a.filterTonic, a.filterLime, a.filterLemon, a.filterGinger, a.filterAquafaba, a.filterCampari];
+}
 
 const alcoholAliases: Record<string, string[]> = {
   votka: ["vodka"],

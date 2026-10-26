@@ -127,6 +127,72 @@ export type Database = {
           },
         ]
       }
+      cocktail_translations: {
+        Row: {
+          base_alcohol: string
+          cocktail_id: string
+          created_at: string
+          flavor: string
+          garnish: string
+          glass: string
+          ingredient_names: string[]
+          instructions: string[]
+          locale: string
+          name: string | null
+          note: string | null
+          subtitle: string
+          tags: string[]
+          updated_at: string
+        }
+        Insert: {
+          base_alcohol?: string
+          cocktail_id: string
+          created_at?: string
+          flavor?: string
+          garnish?: string
+          glass?: string
+          ingredient_names?: string[]
+          instructions?: string[]
+          locale: string
+          name?: string | null
+          note?: string | null
+          subtitle?: string
+          tags?: string[]
+          updated_at?: string
+        }
+        Update: {
+          base_alcohol?: string
+          cocktail_id?: string
+          created_at?: string
+          flavor?: string
+          garnish?: string
+          glass?: string
+          ingredient_names?: string[]
+          instructions?: string[]
+          locale?: string
+          name?: string | null
+          note?: string | null
+          subtitle?: string
+          tags?: string[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cocktail_translations_cocktail_id_fkey"
+            columns: ["cocktail_id"]
+            isOneToOne: false
+            referencedRelation: "cocktails"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cocktail_translations_cocktail_id_fkey"
+            columns: ["cocktail_id"]
+            isOneToOne: false
+            referencedRelation: "recipe_popularity"
+            referencedColumns: ["cocktail_id"]
+          },
+        ]
+      }
       cocktails: {
         Row: {
           author_id: string | null
@@ -347,6 +413,35 @@ export type Database = {
           },
         ]
       }
+      glossary_term_translations: {
+        Row: {
+          definition: string
+          locale: string
+          term: string
+          translated_term: string
+        }
+        Insert: {
+          definition: string
+          locale: string
+          term: string
+          translated_term: string
+        }
+        Update: {
+          definition?: string
+          locale?: string
+          term?: string
+          translated_term?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "glossary_term_translations_term_fkey"
+            columns: ["term"]
+            isOneToOne: false
+            referencedRelation: "glossary_terms"
+            referencedColumns: ["term"]
+          },
+        ]
+      }
       glossary_terms: {
         Row: {
           created_at: string
@@ -367,6 +462,32 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      ingredient_translations: {
+        Row: {
+          ingredient_id: string
+          locale: string
+          name: string
+        }
+        Insert: {
+          ingredient_id: string
+          locale: string
+          name: string
+        }
+        Update: {
+          ingredient_id?: string
+          locale?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingredient_translations_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ingredients: {
         Row: {

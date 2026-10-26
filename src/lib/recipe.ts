@@ -3,6 +3,9 @@
 // (cocktails_community_limits, the ingredient lengths, save_recipe) are the
 // rule; these limits mirror them so the form can warn early.
 
+import { tr } from "./i18n/dictionaries/tr";
+import type { Dictionary } from "./i18n/dictionaries/types";
+import { format } from "./i18n/format";
 import type { Database } from "./supabase/database.types";
 
 type IngredientIcon = Database["public"]["Enums"]["ingredient_icon"];
@@ -79,26 +82,29 @@ function text(value: unknown): string {
 
 /**
  * Cleans a recipe the browser sent and checks it against the limits. Returns
- * the cleaned recipe, or a Turkish error for the member.
+ * the cleaned recipe, or an error for the member in the language of `v` (Turkish by default).
  */
-export function cleanRecipeInput(input: RecipeInput): RecipeInput | { error: string } {
+export function cleanRecipeInput(
+  input: RecipeInput,
+  v: Dictionary["validation"] = tr.validation,
+): RecipeInput | { error: string } {
   const L = RECIPE_LIMITS;
   const name = text(input.name);
-  if (!name || name.length > L.name) return { error: `Tarifin bir adı olmalı (en fazla ${L.name} karakter).` };
+  if (!name || name.length > L.name) return { error: format(v.nameRequired, { max: L.name }) };
   const subtitle = text(input.subtitle);
-  if (subtitle.length > L.subtitle) return { error: `Alt başlık en fazla ${L.subtitle} karakter olabilir.` };
+  if (subtitle.length > L.subtitle) return { error: format(v.subtitleMax, { max: L.subtitle }) };
   const baseAlcohol = text(input.baseAlcohol);
-  if (!baseAlcohol || baseAlcohol.length > L.baseAlcohol) return { error: "Baz alkolü yaz (ör. Cin)." };
+  if (!baseAlcohol || baseAlcohol.length > L.baseAlcohol) return { error: v.baseRequired };
   const flavor = text(input.flavor);
-  if (!flavor || flavor.length > L.flavor) return { error: "Baskın tadı yaz (ör. Ekşi)." };
+  if (!flavor || flavor.length > L.flavor) return { error: v.flavorRequired };
 
   const tags = [...new Set((Array.isArray(input.tags) ? input.tags : []).map(text).filter(Boolean))];
   if (tags.length > L.tags || tags.join(",").length > L.tagsText) {
-    return { error: `En fazla ${L.tags} etiket ekleyebilirsin.` };
+    return { error: format(v.tagsMax, { max: L.tags }) };
   }
 
   const color = text(input.color);
-  if (!/^#[0-9a-fA-F]{6}$/.test(color)) return { error: "Renk #RRGGBB biçiminde olmalı." };
+  if (!/^#[0-9a-fA-F]{6}$/.test(color)) return { error: v.colorFormat };
 
   const ingredients: RecipeIngredient[] = [];
   for (const raw of Array.isArray(input.ingredients) ? input.ingredients : []) {
@@ -107,28 +113,28 @@ export function cleanRecipeInput(input: RecipeInput): RecipeInput | { error: str
     const amount = typeof raw?.amount === "number" ? Math.round(raw.amount * 100) / 100 : NaN;
     if (!ingredientName && !unit && Number.isNaN(amount)) continue; // an empty row
     if (!ingredientName || ingredientName.length > L.ingredientName) {
-      return { error: `Her malzemenin bir adı olmalı (en fazla ${L.ingredientName} karakter).` };
+      return { error: format(v.ingredientName, { max: L.ingredientName }) };
     }
-    if (!(amount > 0) || amount > L.amount) return { error: `"${ingredientName}" için geçerli bir miktar yaz.` };
-    if (!unit || unit.length > L.unit) return { error: `"${ingredientName}" için bir birim yaz (cl, dash, dilim…).` };
+    if (!(amount > 0) || amount > L.amount) return { error: format(v.amountInvalid, { name: ingredientName }) };
+    if (!unit || unit.length > L.unit) return { error: format(v.unitMissing, { name: ingredientName }) };
     const icon = ICONS.includes(raw.icon) ? raw.icon : "shot";
     const ingredientId = typeof raw.ingredientId === "string" && UUID.test(raw.ingredientId) ? raw.ingredientId : undefined;
     ingredients.push({ name: ingredientName, amount, unit, icon, ingredientId });
   }
-  if (ingredients.length === 0) return { error: "En az bir malzeme ekle." };
-  if (ingredients.length > L.ingredients) return { error: `En fazla ${L.ingredients} malzeme olabilir.` };
+  if (ingredients.length === 0) return { error: v.ingredientsAddOne };
+  if (ingredients.length > L.ingredients) return { error: format(v.ingredientsMax, { max: L.ingredients }) };
 
   const instructions = (Array.isArray(input.instructions) ? input.instructions : []).map(text).filter(Boolean);
-  if (instructions.length === 0) return { error: "En az bir hazırlanış adımı yaz." };
-  if (instructions.length > L.instructions) return { error: `En fazla ${L.instructions} adım olabilir.` };
-  if (instructions.some((s) => s.length > L.step)) return { error: `Bir adım en fazla ${L.step} karakter olabilir.` };
+  if (instructions.length === 0) return { error: v.stepsMin };
+  if (instructions.length > L.instructions) return { error: format(v.stepsMax, { max: L.instructions }) };
+  if (instructions.some((s) => s.length > L.step)) return { error: format(v.stepLength, { max: L.step }) };
 
   const garnish = text(input.garnish);
-  if (garnish.length > L.garnish) return { error: `Süsleme en fazla ${L.garnish} karakter olabilir.` };
+  if (garnish.length > L.garnish) return { error: format(v.garnishMax, { max: L.garnish }) };
   const glass = text(input.glass);
-  if (glass.length > L.glass) return { error: `Bardak en fazla ${L.glass} karakter olabilir.` };
+  if (glass.length > L.glass) return { error: format(v.glassMax, { max: L.glass }) };
   const note = text(input.note);
-  if (note.length > L.note) return { error: `Not en fazla ${L.note} karakter olabilir.` };
+  if (note.length > L.note) return { error: format(v.noteMax, { max: L.note }) };
 
   return {
     name,

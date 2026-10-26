@@ -1,6 +1,9 @@
 // The ingredient catalogue (M9, ADR-029) and "what can I make": shared by the
 // site, the panel and, later, the Expo app. Browser-safe: no Next.js imports.
 
+import { tr } from "./i18n/dictionaries/tr";
+import type { Dictionary } from "./i18n/dictionaries/types";
+import { DEFAULT_LOCALE, type Locale } from "./i18n/locales";
 import type { Database } from "./supabase/database.types";
 
 export type IngredientCategory = Database["public"]["Enums"]["ingredient_category"];
@@ -28,11 +31,14 @@ export const CATALOGUE_NAME_MAX = 60;
 
 /** The catalogue in category order, each group sorted by name. */
 export function groupByCategory<T extends { category: IngredientCategory; name: string }>(
-  items: T[]
+  items: T[],
+  t: Dictionary = tr,
+  locale: Locale = DEFAULT_LOCALE,
 ): { value: IngredientCategory; label: string; items: T[] }[] {
   return INGREDIENT_CATEGORIES.map((c) => ({
     ...c,
-    items: items.filter((i) => i.category === c.value).sort((a, b) => a.name.localeCompare(b.name, "tr")),
+    label: t.ingredientCategories[c.value],
+    items: items.filter((i) => i.category === c.value).sort((a, b) => a.name.localeCompare(b.name, locale)),
   })).filter((g) => g.items.length > 0);
 }
 

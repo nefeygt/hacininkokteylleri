@@ -4,7 +4,7 @@
 
 export interface GlassKind {
   id: string;
-  /** What the picker writes into the field. */
+  /** What the picker writes into the field in Turkish; other languages use `glasses.{id}` of their dictionary. */
   name: string;
   /** Lower-case words that mean this glass in existing data ("Martini / Coupe" → martini first). */
   aliases: string[];
@@ -18,12 +18,12 @@ export const GLASSES: GlassKind[] = [
   { id: "martini", name: "Martini", aliases: ["martini"] },
   { id: "margarita", name: "Margarita", aliases: ["margarita"] },
   { id: "wine", name: "Şarap Kadehi", aliases: ["şarap", "kadeh", "wine"] },
-  { id: "flute", name: "Flüt", aliases: ["flüt", "flute", "şampanya"] },
+  { id: "flute", name: "Flüt", aliases: ["flüt", "flute", "şampanya", "champagne"] },
   { id: "hurricane", name: "Hurricane", aliases: ["hurricane"] },
   { id: "shot", name: "Shot", aliases: ["shot", "shooter"] },
   { id: "mug", name: "Kupa", aliases: ["toddy", "kupa", "mug", "fincan"] },
-  { id: "copper-mug", name: "Bakır Kupa", aliases: ["bakır"] },
-  { id: "pitcher", name: "Karaf", aliases: ["karaf", "pitcher", "sürahi"] },
+  { id: "copper-mug", name: "Bakır Kupa", aliases: ["bakır", "copper"] },
+  { id: "pitcher", name: "Karaf", aliases: ["karaf", "carafe", "pitcher", "sürahi"] },
 ];
 
 /**

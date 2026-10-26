@@ -1,6 +1,9 @@
 // Limits shared by the forms and the server actions (browser-safe). The
 // database's check constraints are the rule; these only warn early (M4).
 
+import { tr } from "./i18n/dictionaries/tr";
+import { DEFAULT_LOCALE, INTL_LOCALES, type Locale } from "./i18n/locales";
+
 export const REVIEW_MAX_LENGTH = 2000;
 export const REPORT_REASON_MAX_LENGTH = 500;
 
@@ -12,11 +15,12 @@ export function isValidRating(rating: number): boolean {
   return Number.isFinite(rating) && rating >= 0.5 && rating <= 5 && Number.isInteger(rating * 2);
 }
 
-export const RATING_ERROR = "0,5 ile 5 arasında, yarım yıldızlarla bir puan seç.";
+/** The Turkish message; other languages read `validation.ratingError` from their dictionary. */
+export const RATING_ERROR = tr.validation.ratingError;
 
-/** "3,5" or "4" — a single rating, Turkish style. */
-export function formatRating(rating: number): string {
-  return rating.toLocaleString("tr-TR", { maximumFractionDigits: 1 });
+/** "3,5" or "4" — a single rating, in the language's number style. */
+export function formatRating(rating: number, locale: Locale = DEFAULT_LOCALE): string {
+  return rating.toLocaleString(INTL_LOCALES[locale], { maximumFractionDigits: 1 });
 }
 
 /** "★★★½☆" — a rating as text, for compact lists. */
@@ -27,9 +31,9 @@ export function ratingStars(rating: number): string {
   return "★".repeat(full) + (hasHalf ? "½" : "") + "☆".repeat(5 - full - (hasHalf ? 1 : 0));
 }
 
-/** "4,3" — one decimal, Turkish style. */
-export function formatAverage(average: number): string {
-  return average.toLocaleString("tr-TR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+/** "4,3" — one decimal, in the language's number style. */
+export function formatAverage(average: number, locale: Locale = DEFAULT_LOCALE): string {
+  return average.toLocaleString(INTL_LOCALES[locale], { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 }
 
 export const LOG_COMMENT_MAX_LENGTH = 1000;
