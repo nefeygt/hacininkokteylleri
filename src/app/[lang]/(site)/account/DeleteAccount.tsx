@@ -5,9 +5,11 @@ import { Loader2 } from "lucide-react";
 import { fieldClass } from "@/components/AccountCard";
 import { createClient } from "@/lib/supabase/browser";
 import { AVATARS_BUCKET, RECIPE_IMAGES_BUCKET } from "@/lib/supabase/config";
+import { useLocale } from "@/components/LocaleProvider";
 import { deleteAccount } from "./actions";
 
 export default function DeleteAccount({ userId, username }: { userId: string; username: string }) {
+  const { t, href } = useLocale();
   const [open, setOpen] = useState(false);
   const [confirmation, setConfirmation] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -22,21 +24,21 @@ export default function DeleteAccount({ userId, username }: { userId: string; us
         const storage = createClient().storage.from(bucket);
         const { data: files, error: listError } = await storage.list(userId, { limit: 1000 });
         if (listError) {
-          setError("Dosyaların okunamadı. Tekrar dene.");
+          setError(t.account.filesReadFailed);
           return;
         }
         if (files.length > 0) {
           const { error: removeError } = await storage.remove(files.map((f) => `${userId}/${f.name}`));
           if (removeError) {
-            setError("Dosyaların silinemedi. Tekrar dene.");
+            setError(t.account.filesDeleteFailed);
             return;
           }
         }
       }
 
       const result = await deleteAccount(confirmation);
-      if (result.ok) window.location.assign("/");
-      else setError(result.error ?? "Hesap silinemedi.");
+      if (result.ok) window.location.assign(href("/"));
+      else setError(result.error ?? t.account.deleteFailed);
     });
   }
 
@@ -47,7 +49,7 @@ export default function DeleteAccount({ userId, username }: { userId: string; us
         onClick={() => setOpen(true)}
         className="rounded border border-crimson/50 px-4 py-2 text-xs text-crimson-glow transition-colors hover:bg-crimson/10"
       >
-        Hesabımı silmek istiyorum
+        {t.account.deleteStart}
       </button>
     );
   }
@@ -56,7 +58,7 @@ export default function DeleteAccount({ userId, username }: { userId: string; us
     <div className="space-y-3 rounded border border-crimson/40 bg-crimson/5 p-4">
       <label className="block">
         <span className="mb-1.5 block font-mono text-[11px] text-text-secondary">
-          Onaylamak için kullanıcı adını yaz: <strong className="text-text-primary">{username}</strong>
+          {t.account.deleteConfirm}<strong className="text-text-primary">{username}</strong>
         </span>
         <input
           value={confirmation}
@@ -77,7 +79,7 @@ export default function DeleteAccount({ userId, username }: { userId: string; us
           className="flex items-center gap-2 rounded bg-crimson px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-crimson-light disabled:opacity-50"
         >
           {pending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-          Kalıcı olarak sil
+          {t.account.deleteFinal}
         </button>
         <button
           type="button"
@@ -89,7 +91,7 @@ export default function DeleteAccount({ userId, username }: { userId: string; us
           disabled={pending}
           className="rounded border border-border px-4 py-2 text-xs text-text-secondary hover:text-text-primary"
         >
-          Vazgeç
+          {t.common.cancel}
         </button>
       </div>
     </div>

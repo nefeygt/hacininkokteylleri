@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { useLocale } from "@/components/LocaleProvider";
 import { createClient } from "@/lib/supabase/browser";
 
 export default function GoogleButton({ next }: { next: string }) {
+  const { t } = useLocale();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -19,7 +21,7 @@ export default function GoogleButton({ next }: { next: string }) {
     // On success the browser is already on its way to Google.
     if (error) {
       setPending(false);
-      setError("Google ile giriş başlatılamadı. Tekrar dene.");
+      setError(t.login.googleStartFailed);
     }
   }
 
@@ -32,7 +34,7 @@ export default function GoogleButton({ next }: { next: string }) {
         className="flex w-full items-center justify-center gap-3 rounded border border-border-light bg-bg-elevated px-4 py-2.5 text-sm font-medium text-text-primary transition-colors hover:border-crimson-glow/50 disabled:opacity-60"
       >
         {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleMark />}
-        Google ile devam et
+        {t.login.google}
       </button>
       {error && <p className="text-xs text-crimson-glow">{error}</p>}
     </div>

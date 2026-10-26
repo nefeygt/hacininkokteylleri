@@ -4,6 +4,7 @@ import Link from "@/components/LocaleLink";
 import { useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
 import { fieldClass, labelClass, primaryButtonClass } from "@/components/AccountCard";
+import { useLocale } from "@/components/LocaleProvider";
 import { completeOnboarding } from "../account/actions";
 
 export default function OnboardingForm({
@@ -15,6 +16,8 @@ export default function OnboardingForm({
   defaultDisplayName: string;
   next: string;
 }) {
+  const { t } = useLocale();
+  const tw = t.welcome;
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -30,7 +33,7 @@ export default function OnboardingForm({
   return (
     <form action={submit} className="space-y-4">
       <label className="block">
-        <span className={labelClass}>Kullanıcı adı</span>
+        <span className={labelClass}>{tw.username}</span>
         <div className="flex items-center rounded border border-border bg-bg-primary focus-within:border-crimson-glow/50">
           <span className="pl-3 text-sm text-text-muted">@</span>
           <input
@@ -47,27 +50,28 @@ export default function OnboardingForm({
           />
         </div>
         <span className="mt-1 block font-mono text-[10px] text-text-muted">
-          3–20 karakter: küçük harf, rakam, alt çizgi.
+          {tw.usernameHint}
         </span>
       </label>
 
       <label className="block">
-        <span className={labelClass}>Görünen ad</span>
+        <span className={labelClass}>{tw.displayName}</span>
         <input name="display_name" defaultValue={defaultDisplayName} required maxLength={50} className={fieldClass} />
       </label>
 
       <div className="space-y-3 rounded border border-border p-3">
         <label className="flex items-start gap-2.5 text-xs leading-relaxed text-text-secondary">
           <input name="adult" type="checkbox" required className="mt-0.5 accent-crimson" />
-          18 yaşından büyüğüm.
+          {tw.adult}
         </label>
         <label className="flex items-start gap-2.5 text-xs leading-relaxed text-text-secondary">
           <input name="privacy" type="checkbox" required className="mt-0.5 accent-crimson" />
           <span>
+            {tw.privacyPrefix}
             <Link href="/privacy" target="_blank" className="underline underline-offset-2 hover:text-text-primary">
-              Aydınlatma metnini
-            </Link>{" "}
-            okudum.
+              {tw.privacyLink}
+            </Link>
+            {tw.privacySuffix}
           </span>
         </label>
       </div>
@@ -76,7 +80,7 @@ export default function OnboardingForm({
 
       <button disabled={pending} className={primaryButtonClass}>
         {pending && <Loader2 className="h-4 w-4 animate-spin" />}
-        Hesabımı oluştur
+        {tw.submit}
       </button>
     </form>
   );

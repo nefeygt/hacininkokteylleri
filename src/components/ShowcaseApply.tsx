@@ -26,7 +26,7 @@ const field =
  */
 export default function ShowcaseApply({ period }: { period: ShowcasePeriod }) {
   const router = useRouter();
-  const { t } = useLocale();
+  const { t, href } = useLocale();
   const ts = t.showcase;
   const { member } = useMember();
   const memberId = member.state === "ok" ? member.id : null;
@@ -72,7 +72,7 @@ export default function ShowcaseApply({ period }: { period: ShowcasePeriod }) {
   if (member.state === "signed-out") {
     return (
       <Link
-        href={`/login?next=${encodeURIComponent("/feed#showcase")}`}
+        href={`/login?next=${encodeURIComponent(href("/feed#showcase"))}`}
         className="inline-flex rounded border border-border px-4 py-2 text-xs text-text-secondary hover:border-crimson-glow/50 hover:text-text-primary"
       >
         {ts.signInToApply}

@@ -21,7 +21,7 @@ import { format } from "@/lib/i18n/format";
  */
 export default function ShowcaseEntries({ period, entries }: { period: ShowcasePeriod; entries: ShowcaseEntry[] }) {
   const router = useRouter();
-  const { t } = useLocale();
+  const { t, href } = useLocale();
   const { member } = useMember();
   const memberId = member.state === "ok" ? member.id : null;
   const [voted, setVoted] = useState<Set<string>>(new Set());
@@ -111,7 +111,7 @@ export default function ShowcaseEntries({ period, entries }: { period: ShowcaseP
                     </button>
                   ) : open && member.state === "signed-out" ? (
                     <Link
-                      href={`/login?next=${encodeURIComponent("/feed#showcase")}`}
+                      href={`/login?next=${encodeURIComponent(href("/feed#showcase"))}`}
                       className="flex items-center gap-1.5 rounded border border-border px-3 py-1 text-xs text-text-secondary hover:border-crimson-glow/50 hover:text-text-primary"
                     >
                       <ArrowBigUp className="h-4 w-4" />

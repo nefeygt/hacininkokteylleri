@@ -4,17 +4,16 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { fieldClass, labelClass, primaryButtonClass } from "@/components/AccountCard";
 import { authErrorMessage as authError, MIN_PASSWORD_LENGTH } from "@/lib/account-config";
+import { useLocale } from "@/components/LocaleProvider";
+import { format } from "@/lib/i18n/format";
 import { createClient } from "@/lib/supabase/browser";
 
 type Mode = "sign-in" | "sign-up" | "forgot";
 
-const TITLES: Record<Mode, string> = {
-  "sign-in": "Giriş yap",
-  "sign-up": "Hesap oluştur",
-  forgot: "Sıfırlama bağlantısı gönder",
-};
-
 export default function EmailForm({ next }: { next: string }) {
+  const { t, href } = useLocale();
+  const tl = t.login;
+  const TITLES: Record<Mode, string> = { "sign-in": tl.signIn, "sign-up": tl.signUp, forgot: tl.forgot };
   const [mode, setMode] = useState<Mode>("sign-in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,24 +42,24 @@ export default function EmailForm({ next }: { next: string }) {
     if (mode === "sign-in") {
       const { error } = await auth.signInWithPassword({ email, password });
       if (error) {
-        setError(authError(error.message));
+        setError(authError(error.message, t.auth));
         setPending(false);
         return;
       }
       // /login sends a member on to `next`, or to onboarding if the profile is still owed.
-      window.location.assign(`/login?next=${encodeURIComponent(next)}`);
+      window.location.assign(href(`/login?next=${encodeURIComponent(next)}`));
       return;
     }
 
     if (mode === "sign-up") {
       const { error } = await auth.signUp({ email, password, options: { emailRedirectTo: callback(next) } });
-      if (error) setError(authError(error.message));
+      if (error) setError(authError(error.message, t.auth));
       // Supabase answers the same way for an address that already has an account.
-      else setSent("Onay bağlantısını e-postana gönderdik. Bağlantıya tıklayınca hesabın açılır. Gelmediyse Gereksiz/Spam klasörüne bak; bu adresle zaten bir hesap varsa e-posta gelmez, giriş yap ya da şifreni sıfırla.");
+      else setSent(tl.signUpSent);
     } else {
-      const { error } = await auth.resetPasswordForEmail(email, { redirectTo: callback("/reset-password") });
-      if (error) setError(authError(error.message));
-      else setSent("Bu adresle bir hesap varsa, şifre sıfırlama bağlantısını gönderdik. Gelmediyse Gereksiz/Spam klasörüne bak.");
+      const { error } = await auth.resetPasswordForEmail(email, { redirectTo: callback(href("/reset-password")) });
+      if (error) setError(authError(error.message, t.auth));
+      else setSent(tl.resetSent);
     }
     setPending(false);
   }
@@ -68,7 +67,7 @@ export default function EmailForm({ next }: { next: string }) {
   return (
     <form onSubmit={submit} className="space-y-4">
       <label className="block">
-        <span className={labelClass}>E-posta</span>
+        <span className={labelClass}>{tl.email}</span>
         <input
           type="email"
           value={email}
@@ -81,7 +80,7 @@ export default function EmailForm({ next }: { next: string }) {
 
       {mode !== "forgot" && (
         <label className="block">
-          <span className={labelClass}>Şifre</span>
+          <span className={labelClass}>{tl.password}</span>
           <input
             type="password"
             value={password}
@@ -93,7 +92,7 @@ export default function EmailForm({ next }: { next: string }) {
           />
           {mode === "sign-up" && (
             <span className="mt-1 block font-mono text-[10px] text-text-muted">
-              En az {MIN_PASSWORD_LENGTH} karakter.
+              {format(tl.minChars, { min: MIN_PASSWORD_LENGTH })}
             </span>
           )}
         </label>
@@ -111,15 +110,15 @@ export default function EmailForm({ next }: { next: string }) {
         {mode === "sign-in" ? (
           <>
             <button type="button" onClick={() => switchTo("sign-up")} className="underline underline-offset-2 hover:text-text-primary">
-              Hesabın yok mu? Oluştur
+              {tl.noAccount}
             </button>
             <button type="button" onClick={() => switchTo("forgot")} className="underline underline-offset-2 hover:text-text-primary">
-              Şifremi unuttum
+              {tl.forgotLink}
             </button>
           </>
         ) : (
           <button type="button" onClick={() => switchTo("sign-in")} className="underline underline-offset-2 hover:text-text-primary">
-            Giriş yapmaya dön
+            {tl.backToSignIn}
           </button>
         )}
       </div>

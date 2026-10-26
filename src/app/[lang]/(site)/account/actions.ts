@@ -2,7 +2,10 @@
 
 import { revalidateLocalized } from "@/lib/i18n/revalidate";
 import { accountSession, PRIVACY_NOTICE_VERSION } from "@/lib/account";
+import { format } from "@/lib/i18n/format";
+import { actionDictionary } from "@/lib/i18n/server";
 import { checkProfile, profileError, type ProfileFields } from "@/lib/profile";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { createClient } from "@/lib/supabase/server";
 
 // Like the panel's actions, these never call redirect(); the browser navigates
@@ -10,26 +13,28 @@ import { createClient } from "@/lib/supabase/server";
 
 export type AccountResult = { ok?: boolean; error?: string };
 
-const SESSION_LOST = "Oturumun sona ermiş. Sayfayı yenileyip tekrar giriş yap.";
-
-function readProfile(formData: FormData): ProfileFields | { error: string } {
-  return checkProfile({
-    username: String(formData.get("username") ?? ""),
-    displayName: String(formData.get("display_name") ?? ""),
-    bio: String(formData.get("bio") ?? ""),
-  });
+function readProfile(formData: FormData, v: Dictionary["validation"]): ProfileFields | { error: string } {
+  return checkProfile(
+    {
+      username: String(formData.get("username") ?? ""),
+      displayName: String(formData.get("display_name") ?? ""),
+      bio: String(formData.get("bio") ?? ""),
+    },
+    v,
+  );
 }
 
 /** Onboarding: the 18+ confirmation and privacy notice first, then the profile (ADR-014). */
 export async function completeOnboarding(formData: FormData): Promise<AccountResult> {
-  if (formData.get("adult") !== "on") return { error: "Devam etmek için 18 yaşından büyük olmalısın." };
-  if (formData.get("privacy") !== "on") return { error: "Devam etmek için aydınlatma metnini onayla." };
+  const t = await actionDictionary();
+  if (formData.get("adult") !== "on") return { error: t.actions.adultRequired };
+  if (formData.get("privacy") !== "on") return { error: t.actions.privacyRequired };
 
-  const fields = readProfile(formData);
+  const fields = readProfile(formData, t.validation);
   if ("error" in fields) return fields;
 
   const session = await accountSession();
-  if (session.state === "signed-out") return { error: SESSION_LOST };
+  if (session.state === "signed-out") return { error: t.actions.sessionLost };
   if (session.state === "ok") return { ok: true };
   const { supabase, user } = session;
 
@@ -40,7 +45,7 @@ export async function completeOnboarding(formData: FormData): Promise<AccountRes
       { user_id: user.id, privacy_notice_version: PRIVACY_NOTICE_VERSION },
       { onConflict: "user_id", ignoreDuplicates: true }
     );
-  if (settingsError) return { error: `Kaydedilemedi: ${settingsError.message}` };
+  if (settingsError) return { error: format(t.validation.saveFailed, { message: settingsError.message }) };
 
   const { error } = await supabase.from("profiles").insert({
     id: user.id,
@@ -48,24 +53,25 @@ export async function completeOnboarding(formData: FormData): Promise<AccountRes
     display_name: fields.displayName,
     bio: fields.bio,
   });
-  if (error) return { error: profileError(error.code, error.message) };
+  if (error) return { error: profileError(error.code, error.message, t.validation) };
 
   return { ok: true };
 }
 
 export async function updateProfile(formData: FormData): Promise<AccountResult> {
-  const fields = readProfile(formData);
+  const t = await actionDictionary();
+  const fields = readProfile(formData, t.validation);
   if ("error" in fields) return fields;
 
   const session = await accountSession();
-  if (session.state !== "ok") return { error: SESSION_LOST };
+  if (session.state !== "ok") return { error: t.actions.sessionLost };
   const { supabase, profile } = session;
 
   const { error } = await supabase
     .from("profiles")
     .update({ username: fields.username, display_name: fields.displayName, bio: fields.bio })
     .eq("id", profile.id);
-  if (error) return { error: profileError(error.code, error.message) };
+  if (error) return { error: profileError(error.code, error.message, t.validation) };
 
   revalidateLocalized(`/u/${profile.username}`);
   revalidateLocalized(`/u/${fields.username}`);
@@ -78,16 +84,17 @@ export async function updateProfile(formData: FormData): Promise<AccountResult> 
  * overwritten in place (ADR-006). The database also checks the folder.
  */
 export async function setAvatar(path: string | null): Promise<AccountResult & { previous?: string | null }> {
+  const t = await actionDictionary();
   const session = await accountSession();
-  if (session.state !== "ok") return { error: SESSION_LOST };
+  if (session.state !== "ok") return { error: t.actions.sessionLost };
   const { supabase, profile } = session;
 
   if (path !== null && !new RegExp(`^${profile.id}/[a-z0-9]+\\.(webp|jpg)$`).test(path)) {
-    return { error: "Geçersiz dosya." };
+    return { error: t.actions.invalidFile };
   }
 
   const { error } = await supabase.from("profiles").update({ avatar_path: path }).eq("id", profile.id);
-  if (error) return { error: `Kaydedilemedi: ${error.message}` };
+  if (error) return { error: format(t.validation.saveFailed, { message: error.message }) };
 
   revalidateLocalized(`/u/${profile.username}`);
   return { ok: true, previous: profile.avatar_path };
@@ -103,23 +110,24 @@ export async function signOut(): Promise<void> {
  * The browser removes the member's files from Storage first.
  */
 export async function deleteAccount(confirmation: string): Promise<AccountResult> {
+  const t = (await actionDictionary()).actions;
   const session = await accountSession();
-  if (session.state === "signed-out") return { error: SESSION_LOST };
+  if (session.state === "signed-out") return { error: t.sessionLost };
   const { supabase } = session;
 
   if (session.state === "ok" && confirmation.trim().toLowerCase() !== session.profile.username) {
-    return { error: "Onay için kullanıcı adını aynen yaz." };
+    return { error: t.confirmUsername };
   }
 
   const { error } = await supabase.rpc("delete_my_account");
   if (error) {
     if (error.message.includes("Admin accounts")) {
-      return { error: "Yönetici hesapları buradan silinemez." };
+      return { error: t.adminNoDelete };
     }
     if (error.message.includes("uploaded files")) {
-      return { error: "Önce yüklediğin dosyalar silinmeli. Sayfayı yenileyip tekrar dene." };
+      return { error: t.uploadsFirst };
     }
-    return { error: `Hesap silinemedi: ${error.message}` };
+    return { error: format(t.accountDeleteFailed, { message: error.message }) };
   }
 
   await supabase.auth.signOut();

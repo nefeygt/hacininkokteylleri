@@ -34,7 +34,7 @@ function when(value: string, locale: Locale) {
  * replies in the same thread and may remove comments on their own log.
  */
 export default function LogComments({ logId, ownerId }: { logId: string; ownerId: string }) {
-  const { t } = useLocale();
+  const { t, href } = useLocale();
   const tl = t.logComments;
   const { member } = useMember();
   const [comments, setComments] = useState<Comment[] | null>(null);
@@ -102,7 +102,7 @@ export default function LogComments({ logId, ownerId }: { logId: string; ownerId
           <p className="rounded bg-bg-elevated/50 px-4 py-3 text-xs text-text-secondary">
             {tl.signInPrefix}
             <Link
-              href={`/login?next=${encodeURIComponent(`/logs/${logId}`)}`}
+              href={`/login?next=${encodeURIComponent(href(`/logs/${logId}`))}`}
               className="text-crimson-glow underline underline-offset-2"
             >
               {t.common.signIn}

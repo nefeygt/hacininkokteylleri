@@ -11,6 +11,9 @@ import { unitChoices } from "@/lib/drink-log";
 import { groupByCategory } from "@/lib/ingredients";
 import { INGREDIENT_ICONS, RECIPE_LIMITS, type RecipeIngredient, type RecipeInput } from "@/lib/recipe";
 import type { Suggestions } from "@/app/admin/types";
+import { useLocale } from "@/components/LocaleProvider";
+import { format } from "@/lib/i18n/format";
+import { unitLabel } from "@/lib/drink-log";
 import { deleteRecipe, saveRecipe } from "./actions";
 import GlassPicker from "@/components/GlassPicker";
 
@@ -53,6 +56,8 @@ export default function RecipeForm({
   suggestions: Suggestions;
 }) {
   const router = useRouter();
+  const { t, locale, href } = useLocale();
+  const tf = t.recipeForm;
   const [form, setForm] = useState(initial);
   const [tagsText, setTagsText] = useState(initial.tags.join(", "));
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +65,7 @@ export default function RecipeForm({
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [pending, startTransition] = useTransition();
   const L = RECIPE_LIMITS;
-  const catalogueGroups = groupByCategory(suggestions.catalogue);
+  const catalogueGroups = groupByCategory(suggestions.catalogue, t, locale);
   const unlinked = form.ingredients.filter((ing) => !ing.ingredientId).length;
 
   function set<K extends keyof RecipeInput>(key: K, value: RecipeInput[K]) {
@@ -87,9 +92,9 @@ export default function RecipeForm({
         return;
       }
       if (input.isPublished && result.slug) {
-        router.push(`/recipes/${result.slug}`);
+        router.push(href(`/recipes/${result.slug}`));
       } else if (!id && result.id) {
-        router.replace(`/account/recipes/${result.id}`);
+        router.replace(href(`/account/recipes/${result.id}`));
       } else {
         setSaved(true);
         router.refresh();
@@ -110,31 +115,31 @@ export default function RecipeForm({
         setConfirmingDelete(false);
         return;
       }
-      router.push("/account/recipes");
+      router.push(href("/account/recipes"));
       router.refresh();
     });
   }
 
   return (
     <form onSubmit={submit} className="space-y-5 pb-24">
-      <Section title="Tarif">
+      <Section title={tf.sectionRecipe}>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block sm:col-span-2">
-            <span className={labelClass}>Ad</span>
+            <span className={labelClass}>{tf.name}</span>
             <input required maxLength={L.name} value={form.name} onChange={(e) => set("name", e.target.value)} className={fieldClass} />
           </label>
           <label className="block sm:col-span-2">
-            <span className={labelClass}>Kısa açıklama (isteğe bağlı)</span>
+            <span className={labelClass}>{tf.subtitle}</span>
             <input
               maxLength={L.subtitle}
               value={form.subtitle}
               onChange={(e) => set("subtitle", e.target.value)}
-              placeholder="Taze fesleğenli, hafif ekşi bir cin kokteyli"
+              placeholder={tf.subtitlePlaceholder}
               className={fieldClass}
             />
           </label>
           <label className="block">
-            <span className={labelClass}>Baz alkol</span>
+            <span className={labelClass}>{tf.base}</span>
             <input
               required
               maxLength={L.baseAlcohol}
@@ -145,7 +150,7 @@ export default function RecipeForm({
             />
           </label>
           <label className="block">
-            <span className={labelClass}>Baskın tat</span>
+            <span className={labelClass}>{tf.flavor}</span>
             <input
               required
               maxLength={L.flavor}
@@ -156,11 +161,11 @@ export default function RecipeForm({
             />
           </label>
           <div className="col-span-full">
-            <span className={labelClass}>Bardak</span>
+            <span className={labelClass}>{tf.glass}</span>
             <GlassPicker value={form.glass} onChange={(v) => set("glass", v)} maxLength={L.glass} inputClassName={fieldClass} list="glasses" />
           </div>
           <label className="block">
-            <span className={labelClass}>Vurgu rengi</span>
+            <span className={labelClass}>{tf.color}</span>
             <div className="flex items-center gap-2">
               <input
                 type="color"
@@ -172,36 +177,36 @@ export default function RecipeForm({
             </div>
           </label>
           <label className="block sm:col-span-2">
-            <span className={labelClass}>Etiketler (virgülle ayır)</span>
+            <span className={labelClass}>{tf.tags}</span>
             <input
               value={tagsText}
               onChange={(e) => {
                 setTagsText(e.target.value);
                 setSaved(false);
               }}
-              placeholder="Ferah, Yaz, Bitkisel"
+              placeholder={tf.tagsPlaceholder}
               className={fieldClass}
             />
           </label>
         </div>
       </Section>
 
-      <Section title="Fotoğraf (isteğe bağlı)">
+      <Section title={tf.sectionPhoto}>
         <ImageField
           value={form.imagePath}
-          slug={slug ?? "tarif"}
+          slug={slug ?? t.actions.slugFallback}
           folder={userId}
           onChange={(path) => set("imagePath", path)}
         />
       </Section>
 
-      <Section title="Malzemeler">
+      <Section title={tf.sectionIngredients}>
         <p className="mb-4 text-xs text-text-muted">
-          Her malzemenin yanında katalogdaki karşılığını seç. Bütün malzemeler eşleşirse tarifin{" "}
+          {tf.catalogueIntro1}
           <Link href="/what-can-i-make" className="text-text-secondary underline underline-offset-2 hover:text-text-primary">
-            Elimde ne var?
-          </Link>{" "}
-          sayfasında da çıkar. Katalogda olmayan bir şey için &quot;Katalogda yok&quot; kalsın.
+            {tf.linkText}
+          </Link>
+          {tf.catalogueIntro2}
         </p>
         <div className="space-y-3">
           {form.ingredients.map((ing, i) => (
@@ -209,15 +214,15 @@ export default function RecipeForm({
               <input
                 required
                 maxLength={L.ingredientName}
-                placeholder="Malzeme"
-                aria-label="Malzeme"
+                placeholder={tf.ingredient}
+                aria-label={tf.ingredient}
                 value={ing.name}
                 onChange={(e) => setIngredient(i, { name: e.target.value })}
                 className={`${fieldClass} col-span-2 sm:col-span-1`}
               />
               {/* The catalogue item lets "Elimde ne var?" match the recipe (ADR-029); the name is what the recipe shows. */}
               <select
-                aria-label="Katalogdaki karşılığı"
+                aria-label={tf.catalogueMatch}
                 value={ing.ingredientId ?? ""}
                 onChange={(e) => {
                   const picked = suggestions.catalogue.find((c) => c.id === e.target.value);
@@ -228,7 +233,7 @@ export default function RecipeForm({
                 }}
                 className={`${fieldClass} col-span-2 sm:col-span-1 ${ing.ingredientId ? "" : "text-text-muted"}`}
               >
-                <option value="">Katalogda yok</option>
+                <option value="">{tf.notInCatalogue}</option>
                 {catalogueGroups.map((g) => (
                   <optgroup key={g.value} label={g.label}>
                     {g.items.map((c) => (
@@ -245,8 +250,8 @@ export default function RecipeForm({
                 step="0.01"
                 min="0.01"
                 max={L.amount}
-                placeholder="Miktar"
-                aria-label="Miktar"
+                placeholder={tf.amount}
+                aria-label={tf.amount}
                 value={Number.isNaN(ing.amount) ? "" : ing.amount}
                 onChange={(e) => setIngredient(i, { amount: e.target.valueAsNumber })}
                 className={fieldClass}
@@ -254,36 +259,36 @@ export default function RecipeForm({
               <select
                 required
                 value={ing.unit}
-                aria-label="Birim"
+                aria-label={tf.unit}
                 onChange={(e) => setIngredient(i, { unit: e.target.value })}
                 className={fieldClass}
               >
                 {unitChoices(ing.unit).map((unit) => (
                   <option key={unit} value={unit}>
-                    {unit}
+                    {unitLabel(unit, 1, t)}
                   </option>
                 ))}
               </select>
               <select
                 value={ing.icon}
-                aria-label="Simge"
+                aria-label={tf.icon}
                 onChange={(e) => setIngredient(i, { icon: e.target.value as IngredientIcon })}
                 className={fieldClass}
               >
                 {INGREDIENT_ICONS.map((o) => (
                   <option key={o.value} value={o.value}>
-                    {o.label}
+                    {t.recipeIcons[o.value]}
                   </option>
                 ))}
               </select>
               <div className="col-span-2 flex justify-end sm:col-span-1">
-                <button type="button" title="Yukarı" disabled={i === 0} onClick={() => set("ingredients", move(form.ingredients, i, i - 1))} className={iconButton}>
+                <button type="button" title={tf.up} disabled={i === 0} onClick={() => set("ingredients", move(form.ingredients, i, i - 1))} className={iconButton}>
                   <ArrowUp className="h-4 w-4" />
                 </button>
-                <button type="button" title="Aşağı" disabled={i === form.ingredients.length - 1} onClick={() => set("ingredients", move(form.ingredients, i, i + 1))} className={iconButton}>
+                <button type="button" title={tf.down} disabled={i === form.ingredients.length - 1} onClick={() => set("ingredients", move(form.ingredients, i, i + 1))} className={iconButton}>
                   <ArrowDown className="h-4 w-4" />
                 </button>
-                <button type="button" title="Sil" disabled={form.ingredients.length === 1} onClick={() => set("ingredients", form.ingredients.filter((_, j) => j !== i))} className={`${iconButton} hover:text-crimson-glow`}>
+                <button type="button" title={t.common.delete} disabled={form.ingredients.length === 1} onClick={() => set("ingredients", form.ingredients.filter((_, j) => j !== i))} className={`${iconButton} hover:text-crimson-glow`}>
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
@@ -296,17 +301,17 @@ export default function RecipeForm({
             onClick={() => set("ingredients", [...form.ingredients, { name: "", amount: 1, unit: "cl", icon: "shot" }])}
             className="mt-3 inline-flex items-center gap-1.5 text-xs text-text-secondary hover:text-crimson-glow"
           >
-            <Plus className="h-3.5 w-3.5" /> Malzeme ekle
+            <Plus className="h-3.5 w-3.5" /> {tf.addIngredient}
           </button>
         )}
         <p className={`mt-3 text-[11px] ${unlinked === 0 ? "text-vegan" : "text-text-muted"}`}>
           {unlinked === 0
-            ? "Bütün malzemeler katalogla eşleşti: yayındayken Elimde ne var?'da görünür."
-            : `${unlinked} malzeme katalogla eşleşmedi; tarif Elimde ne var?'da görünmez.`}
+            ? tf.allMatched
+            : format(tf.someUnmatched, { n: unlinked })}
         </p>
       </Section>
 
-      <Section title="Hazırlanışı">
+      <Section title={tf.sectionSteps}>
         <div className="space-y-2">
           {form.instructions.map((step, i) => (
             <div key={i} className="flex items-start gap-2">
@@ -316,16 +321,16 @@ export default function RecipeForm({
               <textarea
                 rows={2}
                 maxLength={L.step}
-                aria-label={`${i + 1}. adım`}
+                aria-label={format(tf.stepN, { n: i + 1 })}
                 value={step}
                 onChange={(e) => setStep(i, e.target.value)}
                 className={`${fieldClass} resize-y`}
               />
               <div className="flex flex-col">
-                <button type="button" title="Yukarı" disabled={i === 0} onClick={() => set("instructions", move(form.instructions, i, i - 1))} className={iconButton}>
+                <button type="button" title={tf.up} disabled={i === 0} onClick={() => set("instructions", move(form.instructions, i, i - 1))} className={iconButton}>
                   <ArrowUp className="h-4 w-4" />
                 </button>
-                <button type="button" title="Sil" disabled={form.instructions.length === 1} onClick={() => set("instructions", form.instructions.filter((_, j) => j !== i))} className={`${iconButton} hover:text-crimson-glow`}>
+                <button type="button" title={t.common.delete} disabled={form.instructions.length === 1} onClick={() => set("instructions", form.instructions.filter((_, j) => j !== i))} className={`${iconButton} hover:text-crimson-glow`}>
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>
@@ -338,24 +343,24 @@ export default function RecipeForm({
             onClick={() => set("instructions", [...form.instructions, ""])}
             className="mt-3 inline-flex items-center gap-1.5 text-xs text-text-secondary hover:text-crimson-glow"
           >
-            <Plus className="h-3.5 w-3.5" /> Adım ekle
+            <Plus className="h-3.5 w-3.5" /> {tf.addStep}
           </button>
         )}
       </Section>
 
-      <Section title="Ayrıntılar">
+      <Section title={tf.sectionDetails}>
         <div className="grid gap-4">
           <label className="block">
-            <span className={labelClass}>Süsleme (isteğe bağlı)</span>
+            <span className={labelClass}>{tf.garnish}</span>
             <input maxLength={L.garnish} value={form.garnish} onChange={(e) => set("garnish", e.target.value)} className={fieldClass} />
           </label>
           <label className="block">
-            <span className={labelClass}>Not (isteğe bağlı)</span>
+            <span className={labelClass}>{tf.note}</span>
             <textarea rows={3} maxLength={L.note} value={form.note} onChange={(e) => set("note", e.target.value)} className={`${fieldClass} resize-y`} />
           </label>
           <label className="flex items-center gap-2 text-sm text-text-secondary">
             <input type="checkbox" checked={form.vegan} onChange={(e) => set("vegan", e.target.checked)} className="accent-crimson-glow" />
-            Vegan
+            {tf.vegan}
           </label>
           <label className="flex items-start gap-2 text-sm text-text-secondary">
             <input
@@ -365,19 +370,17 @@ export default function RecipeForm({
               className="mt-1 accent-crimson-glow"
             />
             <span>
-              Yayında
-              <span className="block text-[11px] text-text-muted">
-                Yayındaki tarifler profilinde ve akışta herkese görünür. İşaretli değilse taslak olarak yalnızca sende kalır.
-              </span>
+              {tf.published}
+              <span className="block text-[11px] text-text-muted">{tf.publishedHint}</span>
             </span>
           </label>
         </div>
       </Section>
 
       {id && (
-        <Section title="Tarifi sil">
+        <Section title={tf.sectionDelete}>
           <p className="mb-3 text-xs text-text-muted">
-            Tarif, fotoğrafı ve ona yazılan değerlendirmeler kalıcı olarak silinir. Günlük kayıtları kendi kopyalarını korur.
+            {tf.deleteWarning}
           </p>
           <div className="flex flex-wrap items-center gap-3">
             <button
@@ -388,11 +391,11 @@ export default function RecipeForm({
                 confirmingDelete ? "bg-crimson text-white hover:bg-crimson-light" : "border border-crimson/50 text-crimson-glow hover:bg-crimson/10"
               }`}
             >
-              <Trash2 className="h-3.5 w-3.5" /> {confirmingDelete ? "Emin misin? Evet, sil" : "Tarifi sil"}
+              <Trash2 className="h-3.5 w-3.5" /> {confirmingDelete ? t.common.confirmDelete : tf.sectionDelete}
             </button>
             {confirmingDelete && (
               <button type="button" onClick={() => setConfirmingDelete(false)} className="text-xs text-text-muted hover:text-text-primary">
-                Vazgeç
+                {t.common.cancel}
               </button>
             )}
           </div>
@@ -406,13 +409,13 @@ export default function RecipeForm({
               <span className="text-crimson-glow">{error}</span>
             ) : saved ? (
               <span className="inline-flex items-center gap-1.5 text-vegan">
-                <Check className="h-3.5 w-3.5" /> Kaydedildi.
+                <Check className="h-3.5 w-3.5" /> {tf.saved}
               </span>
             ) : null}
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <Link href="/account/recipes" className="rounded px-3 py-2 text-xs text-text-muted hover:text-text-primary">
-              Tariflerim
+              {tf.myRecipes}
             </Link>
             <button
               type="submit"
@@ -420,7 +423,7 @@ export default function RecipeForm({
               className="inline-flex items-center gap-2 rounded bg-crimson px-5 py-2 text-sm font-medium text-white hover:bg-crimson-light disabled:opacity-60"
             >
               {pending && <Loader2 className="h-4 w-4 animate-spin" />}
-              {id ? "Kaydet" : form.isPublished ? "Yayınla" : "Taslak olarak kaydet"}
+              {id ? tf.save : form.isPublished ? tf.publish : tf.saveDraft}
             </button>
           </div>
         </div>

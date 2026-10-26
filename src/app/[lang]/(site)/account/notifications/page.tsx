@@ -9,14 +9,16 @@ import {
   NOTIFICATIONS_SHOWN,
   type NotificationRow,
 } from "@/lib/notifications";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { asLocale, INTL_LOCALES, type Locale } from "@/lib/i18n/locales";
 
-export const metadata: Metadata = {
-  title: "Bildirimler",
-  robots: { index: false },
-};
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const t = getDictionary(asLocale((await params).lang)).notificationsPage;
+  return { title: t.metaTitle, robots: { index: false } };
+}
 
-function formatWhen(value: string) {
-  return new Date(value).toLocaleString("tr-TR", {
+function formatWhen(value: string, lang: Locale) {
+  return new Date(value).toLocaleString(INTL_LOCALES[lang], {
     day: "numeric",
     month: "long",
     hour: "2-digit",
@@ -26,8 +28,11 @@ function formatWhen(value: string) {
 }
 
 /** What happened to the member's things (ADR-030). Opening the page marks everything read. */
-export default async function NotificationsPage() {
-  const { supabase, profile } = await requireMember();
+export default async function NotificationsPage({ params }: { params: Promise<{ lang: string }> }) {
+  const lang = asLocale((await params).lang);
+  const dict = getDictionary(lang);
+  const t = dict.notificationsPage;
+  const { supabase, profile } = await requireMember(lang);
 
   const { data, error } = await supabase
     .from("notifications")
@@ -46,26 +51,26 @@ export default async function NotificationsPage() {
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">
       <NotificationsSeen />
-      <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.25em] text-crimson-glow">Rx · Bildirimler</div>
+      <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.25em] text-crimson-glow">{t.eyebrow}</div>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Bildirimler</h1>
-          <p className="mt-1 text-xs text-text-muted">Seni takip edenler, kayıtlarına gelen yorumlar, vitrin kararları. Son 90 gün.</p>
+          <h1 className="text-3xl font-bold">{t.title}</h1>
+          <p className="mt-1 text-xs text-text-muted">{t.subtitle}</p>
         </div>
         <Link href="/account" className="font-mono text-[11px] text-text-muted underline underline-offset-2 hover:text-text-primary">
-          ← Hesabım
+          {t.back}
         </Link>
       </div>
 
       <section className="mt-8">
         {rows.length === 0 ? (
           <p className="text-xs leading-relaxed text-text-muted">
-            Henüz bildirim yok. Biri seni takip ettiğinde, kayıtlarına yorum yaptığında ya da tariflerini puanladığında burada görürsün.
+            {t.empty}
           </p>
         ) : (
           <ul className="divide-y divide-border rounded border border-border bg-bg-card">
             {rows.map((row) => {
-              const { text, href } = describeNotification(row);
+              const { text, href } = describeNotification(row, dict);
               return (
                 <li key={row.id}>
                   <Link
@@ -86,10 +91,10 @@ export default async function NotificationsPage() {
                         {row.actor && <span className="font-semibold">@{row.actor.username} </span>}
                         {text}
                       </p>
-                      <p className="mt-0.5 font-mono text-[10px] text-text-muted">{formatWhen(row.created_at)}</p>
+                      <p className="mt-0.5 font-mono text-[10px] text-text-muted">{formatWhen(row.created_at, lang)}</p>
                     </div>
                     {!row.read_at && (
-                      <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-crimson-glow" aria-label="Yeni" />
+                      <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-crimson-glow" aria-label={t.new} />
                     )}
                   </Link>
                 </li>

@@ -62,6 +62,16 @@ export function collectionHref(c: Pick<Collection, "kind" | "slug">): string {
   return `/cocktails/${c.kind}/${c.slug}`;
 }
 
+/**
+ * The language-neutral key of a known spirit or flavor ("Votka" and "Vodka" are both "Vodka"), or undefined
+ * for a value the dictionary does not know. The sitemap uses it to link a collection's language versions.
+ */
+export function collectionKey(label: string, locale: Locale): string | undefined {
+  const t = getDictionary(locale).collections as Record<string, string>;
+  const key = Object.keys(t).find((k) => k.startsWith("label") && t[k] === label);
+  return key?.slice("label".length);
+}
+
 /** The page's title: "Votka kokteylleri", "Tatlı kokteyller", "Vodka cocktails". */
 export function collectionTitle(c: Pick<Collection, "kind" | "label">, locale: Locale = DEFAULT_LOCALE): string {
   const t = getDictionary(locale).collections;

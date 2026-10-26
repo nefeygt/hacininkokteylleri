@@ -14,7 +14,7 @@ const SHOWN = 30;
  * ADR-018), read in the browser so the feed page stays static (ADR-016).
  */
 export default function FollowingLogs() {
-  const { t } = useLocale();
+  const { t, href } = useLocale();
   const { member } = useMember();
   const [logs, setLogs] = useState<DrinkLogRow[] | null>(null);
   const [counts, setCounts] = useState<Map<string, number>>(new Map());
@@ -64,7 +64,8 @@ export default function FollowingLogs() {
   if (member.state === "signed-out") {
     return (
       <p className="rounded bg-bg-elevated/50 px-4 py-3 text-xs leading-relaxed text-text-secondary">
-        {t.feedLogs.signInPrefix}        <Link href={`/login?next=${encodeURIComponent("/feed")}`} className="text-crimson-glow underline underline-offset-2">
+        {t.feedLogs.signInPrefix}
+        <Link href={`/login?next=${encodeURIComponent(href("/feed"))}`} className="text-crimson-glow underline underline-offset-2">
           {t.common.signIn}
         </Link>
         .
@@ -75,7 +76,8 @@ export default function FollowingLogs() {
   if (member.state === "onboarding") {
     return (
       <p className="rounded bg-bg-elevated/50 px-4 py-3 text-xs text-text-secondary">
-        {t.feedLogs.finishPrefix}        <Link href="/welcome" className="text-crimson-glow underline underline-offset-2">
+        {t.feedLogs.finishPrefix}
+        <Link href="/welcome" className="text-crimson-glow underline underline-offset-2">
           {t.common.completeProfile}
         </Link>
         .

@@ -2,6 +2,8 @@
 
 import { revalidateLocalized } from "@/lib/i18n/revalidate";
 import { accountSession } from "@/lib/account";
+import { format } from "@/lib/i18n/format";
+import { actionDictionary } from "@/lib/i18n/server";
 import { PITCH_MAX_LENGTH } from "@/lib/showcase";
 
 // The showcase (M7, ADR-019). The database is the rule (RLS: one application per
@@ -13,9 +15,10 @@ import { PITCH_MAX_LENGTH } from "@/lib/showcase";
 export type ShowcaseResult = { ok?: boolean; error?: string };
 
 async function member() {
+  const t = (await actionDictionary()).actions;
   const session = await accountSession();
-  if (session.state === "signed-out") return { error: "Bunun için giriş yapmalısın." } as const;
-  if (session.state === "onboarding") return { error: "Önce profilini tamamla." } as const;
+  if (session.state === "signed-out") return { error: t.signInFirst } as const;
+  if (session.state === "onboarding") return { error: t.profileFirst } as const;
   return session;
 }
 
@@ -25,9 +28,11 @@ function revalidateShowcase() {
 }
 
 export async function applyToShowcase(periodId: string, cocktailId: string, pitch: string): Promise<ShowcaseResult> {
+  const dict = await actionDictionary();
+  const t = dict.actions;
   const text = pitch.trim();
-  if (!text) return { error: "Tarifini neden vitrinde görmek istediğini birkaç cümleyle anlat." };
-  if (text.length > PITCH_MAX_LENGTH) return { error: `Tanıtım en fazla ${PITCH_MAX_LENGTH} karakter olabilir.` };
+  if (!text) return { error: t.pitchRequired };
+  if (text.length > PITCH_MAX_LENGTH) return { error: format(t.pitchMax, { max: PITCH_MAX_LENGTH }) };
 
   const session = await member();
   if ("error" in session) return session;
@@ -37,29 +42,31 @@ export async function applyToShowcase(periodId: string, cocktailId: string, pitc
     .from("showcase_entries")
     .insert({ period_id: periodId, cocktail_id: cocktailId, user_id: profile.id, pitch: text });
   if (error) {
-    if (error.code === "23505") return { error: "Bu döneme zaten başvurdun." };
+    if (error.code === "23505") return { error: t.alreadyApplied };
     if (error.code === "42501") {
-      return { error: "Başvurulamadı: tarif yayında ve fotoğraflı olmalı, dönem de bitmemiş olmalı." };
+      return { error: t.cannotApply };
     }
-    return { error: `Kaydedilemedi: ${error.message}` };
+    return { error: format(dict.validation.saveFailed, { message: error.message }) };
   }
   return { ok: true };
 }
 
 /** Withdraws the member's own application; its votes go with it. */
 export async function withdrawShowcaseEntry(entryId: string): Promise<ShowcaseResult> {
+  const t = (await actionDictionary()).actions;
   const session = await member();
   if ("error" in session) return session;
   const { supabase, profile } = session;
 
   const { error } = await supabase.from("showcase_entries").delete().eq("id", entryId).eq("user_id", profile.id);
-  if (error) return { error: `Geri çekilemedi: ${error.message}` };
+  if (error) return { error: format(t.withdrawFailed, { message: error.message }) };
   revalidateShowcase();
   return { ok: true };
 }
 
 /** Upvotes an entry or takes the vote back: once per member per entry, their own included (ADR-014). */
 export async function setShowcaseVote(entryId: string, vote: boolean): Promise<ShowcaseResult> {
+  const dict = await actionDictionary();
   const session = await member();
   if ("error" in session) return session;
   const { supabase, profile } = session;
@@ -69,8 +76,8 @@ export async function setShowcaseVote(entryId: string, vote: boolean): Promise<S
     : await supabase.from("showcase_votes").delete().eq("entry_id", entryId).eq("user_id", profile.id);
   // Voting twice (two tabs) is not an error.
   if (error && error.code !== "23505") {
-    if (error.code === "42501") return { error: "Oylama şu an kapalı." };
-    return { error: `Kaydedilemedi: ${error.message}` };
+    if (error.code === "42501") return { error: dict.actions.votingClosed };
+    return { error: format(dict.validation.saveFailed, { message: error.message }) };
   }
   revalidateLocalized("/feed");
   return { ok: true };

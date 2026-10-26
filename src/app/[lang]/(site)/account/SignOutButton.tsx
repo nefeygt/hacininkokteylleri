@@ -1,9 +1,11 @@
 "use client";
 
 import { useTransition } from "react";
+import { useLocale } from "@/components/LocaleProvider";
 import { signOut } from "./actions";
 
 export default function SignOutButton() {
+  const { t, href } = useLocale();
   const [pending, startTransition] = useTransition();
 
   return (
@@ -14,11 +16,11 @@ export default function SignOutButton() {
       onClick={() =>
         startTransition(async () => {
           await signOut();
-          window.location.assign("/");
+          window.location.assign(href("/"));
         })
       }
     >
-      Çıkış yap
+      {t.account.signOut}
     </button>
   );
 }

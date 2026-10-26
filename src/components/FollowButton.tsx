@@ -15,7 +15,7 @@ import { useLocale } from "./LocaleProvider";
  */
 export default function FollowButton({ profileId, username }: { profileId: string; username: string }) {
   const router = useRouter();
-  const { t } = useLocale();
+  const { t, href } = useLocale();
   const [state, setState] = useState<"loading" | "hidden" | "signed-out" | "following" | "not-following">("loading");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -45,7 +45,7 @@ export default function FollowButton({ profileId, username }: { profileId: strin
   if (state === "signed-out") {
     return (
       <Link
-        href={`/login?next=${encodeURIComponent(`/u/${username}`)}`}
+        href={`/login?next=${encodeURIComponent(href(`/u/${username}`))}`}
         className="rounded border border-border px-4 py-1.5 text-xs text-text-secondary transition-colors hover:border-crimson-glow/50 hover:text-text-primary"
       >
         {t.follow.follow}

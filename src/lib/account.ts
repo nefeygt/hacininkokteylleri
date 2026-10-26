@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { DEFAULT_LOCALE, localePath, type Locale } from "@/lib/i18n/locales";
 import { createClient } from "@/lib/supabase/server";
 
 export { ACCOUNTS_OPEN, PRIVACY_NOTICE_VERSION, safeNext } from "./account-config";
@@ -31,10 +32,10 @@ export async function accountSession() {
 }
 
 /** Every member-only page starts here. Redirects happen during render, which is fine (ADR-007). */
-export async function requireMember() {
+export async function requireMember(lang: Locale = DEFAULT_LOCALE) {
   const session = await accountSession();
-  if (session.state === "signed-out") redirect("/login");
-  if (session.state === "onboarding") redirect("/welcome");
+  if (session.state === "signed-out") redirect(localePath(lang, "/login"));
+  if (session.state === "onboarding") redirect(localePath(lang, "/welcome"));
   return session;
 }
 

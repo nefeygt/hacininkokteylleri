@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useLocale } from "@/components/LocaleProvider";
 import { setEmailNotifications } from "./logs/actions";
 
 /** Whether unread notifications reach the member by e-mail, as one digest at most every 15 minutes (ADR-031). */
 export default function EmailNotificationsToggle({ initial }: { initial: boolean }) {
+  const { t } = useLocale();
   const [checked, setChecked] = useState(initial);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -32,7 +34,7 @@ export default function EmailNotificationsToggle({ initial }: { initial: boolean
           className="mt-0.5 h-4 w-4 accent-crimson"
         />
         <span className="text-xs leading-relaxed text-text-secondary">
-          Okumadığım bildirimleri e-postayla özetle (en fazla 15 dakikada bir, sitede okuduklarım gelmez).
+          {t.account.emailDigest}
         </span>
       </label>
       {error && <p className="mt-2 text-xs text-crimson-glow">{error}</p>}

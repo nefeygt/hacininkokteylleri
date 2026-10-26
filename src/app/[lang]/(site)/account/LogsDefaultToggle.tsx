@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useLocale } from "@/components/LocaleProvider";
 import { setLogsPublicDefault } from "./logs/actions";
 
 /** Whether new drink logs start public; private unless the member changes it (ADR-014). */
 export default function LogsDefaultToggle({ initial }: { initial: boolean }) {
+  const { t } = useLocale();
   const [checked, setChecked] = useState(initial);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -32,7 +34,7 @@ export default function LogsDefaultToggle({ initial }: { initial: boolean }) {
           className="mt-0.5 h-4 w-4 accent-crimson"
         />
         <span className="text-xs leading-relaxed text-text-secondary">
-          Yeni kayıtlarım herkese açık başlasın. Her kaydı ayrıca açıp kapatabilirsin; mevcut kayıtlar değişmez.
+          {t.account.logsDefault}
         </span>
       </label>
       {error && <p className="mt-2 text-xs text-crimson-glow">{error}</p>}

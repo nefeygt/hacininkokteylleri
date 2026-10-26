@@ -5,8 +5,9 @@ import { useState, useTransition } from "react";
 import { Loader2, Lock, Pencil, Plus, X } from "lucide-react";
 import { fieldClass, labelClass, primaryButtonClass } from "@/components/AccountCard";
 import Stars from "@/components/Stars";
-import { LOG_LIMITS, LOG_NOTE_MAX_LENGTH, unitChoices, type LogRecipe } from "@/lib/drink-log";
+import { LOG_LIMITS, LOG_NOTE_MAX_LENGTH, unitChoices, unitLabel, type LogRecipe } from "@/lib/drink-log";
 import type { IngredientIcon } from "@/lib/content";
+import { useLocale } from "@/components/LocaleProvider";
 import { deleteDrinkLog, saveDrinkLog } from "./actions";
 import GlassPicker from "@/components/GlassPicker";
 
@@ -46,6 +47,8 @@ const smallField =
  */
 export default function LogForm({ initial, id, today }: { initial: LogFormValues; id?: string; today: string }) {
   const router = useRouter();
+  const { t, href } = useLocale();
+  const tf = t.logForm;
   const [drunkOn, setDrunkOn] = useState(initial.drunkOn);
   const [rows, setRows] = useState<IngredientRow[]>(() => initial.recipe.ingredients.map(rowFrom));
   const originalSteps = initial.recipe.instructions.join("\n");
@@ -89,7 +92,7 @@ export default function LogForm({ initial, id, today }: { initial: LogFormValues
         setError(result.error);
         return;
       }
-      router.push("/account/logs");
+      router.push(href("/account/logs"));
       router.refresh();
     });
   }
@@ -108,7 +111,7 @@ export default function LogForm({ initial, id, today }: { initial: LogFormValues
         setConfirmingDelete(false);
         return;
       }
-      router.push("/account/logs");
+      router.push(href("/account/logs"));
       router.refresh();
     });
   }
@@ -116,7 +119,7 @@ export default function LogForm({ initial, id, today }: { initial: LogFormValues
   return (
     <div className="space-y-6">
       <label className="block">
-        <span className={labelClass}>Tarih</span>
+        <span className={labelClass}>{tf.date}</span>
         <input
           type="date"
           value={drunkOn}
@@ -129,9 +132,9 @@ export default function LogForm({ initial, id, today }: { initial: LogFormValues
       </label>
 
       <fieldset>
-        <legend className={labelClass}>Malzemeler — yaptığın gibi</legend>
+        <legend className={labelClass}>{tf.ingredientsLegend}</legend>
         <p className="mb-3 font-mono text-[11px] leading-relaxed text-text-muted">
-          Tarifi değiştirdiysen burada değiştir: votka yerine cin, daha az şurup…
+          {tf.ingredientsHint}
         </p>
         <div className="space-y-2">
           {rows.map((row) => (
@@ -140,8 +143,8 @@ export default function LogForm({ initial, id, today }: { initial: LogFormValues
                 value={row.name}
                 onChange={(e) => setRow(row.key, { name: e.target.value })}
                 maxLength={LOG_LIMITS.ingredientName}
-                placeholder="Malzeme"
-                aria-label="Malzeme"
+                placeholder={tf.ingredient}
+                aria-label={tf.ingredient}
                 className={`${smallField} min-w-0 flex-1`}
               />
               <input
@@ -149,25 +152,25 @@ export default function LogForm({ initial, id, today }: { initial: LogFormValues
                 onChange={(e) => setRow(row.key, { amount: e.target.value })}
                 inputMode="decimal"
                 placeholder="4"
-                aria-label="Miktar"
+                aria-label={tf.amount}
                 className={`${smallField} w-16 shrink-0 text-right`}
               />
               <select
                 value={row.unit}
                 onChange={(e) => setRow(row.key, { unit: e.target.value })}
-                aria-label="Birim"
+                aria-label={tf.unit}
                 className={`${smallField} w-28 shrink-0`}
               >
                 {unitChoices(row.unit).map((unit) => (
                   <option key={unit} value={unit}>
-                    {unit}
+                    {unitLabel(unit, 1, t)}
                   </option>
                 ))}
               </select>
               <button
                 type="button"
-                title="Malzemeyi çıkar"
-                aria-label="Malzemeyi çıkar"
+                title={tf.removeIngredient}
+                aria-label={tf.removeIngredient}
                 disabled={rows.length === 1}
                 onClick={() => setRows((prev) => prev.filter((r) => r.key !== row.key))}
                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded text-text-muted hover:text-crimson-glow disabled:opacity-30"
@@ -184,14 +187,14 @@ export default function LogForm({ initial, id, today }: { initial: LogFormValues
             className="mt-3 flex items-center gap-1.5 text-xs text-text-muted hover:text-text-primary"
           >
             <Plus className="h-3.5 w-3.5" />
-            Malzeme ekle
+            {tf.addIngredient}
           </button>
         )}
       </fieldset>
 
       <div>
         <div className="flex items-center justify-between">
-          <span className={labelClass}>Hazırlanışı</span>
+          <span className={labelClass}>{tf.preparation}</span>
           <button
             type="button"
             onClick={() => {
@@ -201,7 +204,7 @@ export default function LogForm({ initial, id, today }: { initial: LogFormValues
             className="flex items-center gap-1 font-mono text-[11px] text-text-muted underline underline-offset-2 hover:text-text-primary"
           >
             {!editingSteps && <Pencil className="h-3 w-3" />}
-            {editingSteps ? "Orijinaline dön" : "Değiştir"}
+            {editingSteps ? tf.backToOriginal : tf.change}
           </button>
         </div>
         {editingSteps ? (
@@ -211,10 +214,10 @@ export default function LogForm({ initial, id, today }: { initial: LogFormValues
               onChange={(e) => setSteps(e.target.value)}
               rows={4}
               autoFocus
-              aria-label="Hazırlanışı, her satır bir adım"
+              aria-label={tf.stepsLabel}
               className={`${fieldClass} resize-y`}
             />
-            <p className="mt-1.5 font-mono text-[11px] text-text-muted">Her satır bir adım. Farklı yaptıysan burada yaz.</p>
+            <p className="mt-1.5 font-mono text-[11px] text-text-muted">{tf.stepsHint}</p>
           </>
         ) : (
           <div className="relative rounded border border-dashed border-border bg-bg-elevated/30 py-2.5 pl-3 pr-8">
@@ -228,7 +231,7 @@ export default function LogForm({ initial, id, today }: { initial: LogFormValues
                 ))}
               </ol>
             ) : (
-              <p className="font-mono text-[11px] text-text-muted">Adım yok.</p>
+              <p className="font-mono text-[11px] text-text-muted">{tf.noSteps}</p>
             )}
           </div>
         )}
@@ -236,18 +239,18 @@ export default function LogForm({ initial, id, today }: { initial: LogFormValues
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <label className="block">
-          <span className={labelClass}>Süsleme</span>
+          <span className={labelClass}>{tf.garnish}</span>
           <input value={garnish} onChange={(e) => setGarnish(e.target.value)} maxLength={LOG_LIMITS.garnish} className={fieldClass} />
         </label>
       </div>
 
       <div>
-        <span className={labelClass}>Bardak</span>
+        <span className={labelClass}>{tf.glass}</span>
         <GlassPicker value={glass} onChange={setGlass} maxLength={LOG_LIMITS.glass} inputClassName={fieldClass} />
       </div>
 
       <div>
-        <span className={labelClass}>O akşamın puanı (isteğe bağlı)</span>
+        <span className={labelClass}>{tf.eveningRating}</span>
         <div className="flex items-center gap-3">
           <Stars value={rating ?? 0} size={26} onChange={setRating} />
           {rating !== null && (
@@ -256,23 +259,23 @@ export default function LogForm({ initial, id, today }: { initial: LogFormValues
               onClick={() => setRating(null)}
               className="font-mono text-[11px] text-text-muted underline underline-offset-2 hover:text-text-primary"
             >
-              Puanı kaldır
+              {tf.removeRating}
             </button>
           )}
         </div>
         <p className="mt-1.5 font-mono text-[11px] text-text-muted">
-          Bu puan yalnızca bu kayda ait; kokteylin ortalamasına sayılmaz.
+          {tf.ratingHint}
         </p>
       </div>
 
       <label className="block">
-        <span className={labelClass}>Not (isteğe bağlı)</span>
+        <span className={labelClass}>{tf.note}</span>
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
           maxLength={LOG_NOTE_MAX_LENGTH}
           rows={3}
-          placeholder="Nerede, kiminle, nasıldı?"
+          placeholder={tf.notePlaceholder}
           className={`${fieldClass} resize-y`}
         />
       </label>
@@ -285,7 +288,7 @@ export default function LogForm({ initial, id, today }: { initial: LogFormValues
           className="mt-0.5 h-4 w-4 accent-crimson"
         />
         <span className="text-xs leading-relaxed text-text-secondary">
-          Herkese açık — profilinde görünsün. İşaretlemezsen yalnızca sen görürsün.
+          {tf.publicCheck}
         </span>
       </label>
 
@@ -294,7 +297,7 @@ export default function LogForm({ initial, id, today }: { initial: LogFormValues
       <div className="space-y-3">
         <button type="button" onClick={save} disabled={pending} className={primaryButtonClass}>
           {pending && <Loader2 className="h-4 w-4 animate-spin" />}
-          {id ? "Kaydı güncelle" : "Günlüğe ekle"}
+          {id ? tf.update : tf.add}
         </button>
         <div className="flex items-center justify-between">
           <button
@@ -303,7 +306,7 @@ export default function LogForm({ initial, id, today }: { initial: LogFormValues
             disabled={pending}
             className="text-xs text-text-muted hover:text-text-primary"
           >
-            Vazgeç
+            {t.common.cancel}
           </button>
           {id && (
             <button
@@ -314,7 +317,7 @@ export default function LogForm({ initial, id, today }: { initial: LogFormValues
                 confirmingDelete ? "text-crimson-glow" : "text-text-muted"
               }`}
             >
-              {confirmingDelete ? "Emin misin? Evet, sil" : "Kaydı sil"}
+              {confirmingDelete ? t.common.confirmDelete : tf.deleteEntry}
             </button>
           )}
         </div>

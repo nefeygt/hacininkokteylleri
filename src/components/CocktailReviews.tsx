@@ -108,6 +108,7 @@ function OwnReview({
 }) {
   const { t } = useLocale();
   const [editing, setEditing] = useState(false);
+  const { href } = useLocale();
   const [rating, setRating] = useState(0);
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -125,7 +126,8 @@ function OwnReview({
     const next = recipeHref(cocktail.slug, Boolean(cocktail.author));
     return (
       <p className="rounded bg-bg-elevated/50 px-4 py-3 text-xs text-text-secondary">
-        {t.reviews.signInPrefix}        <Link href={`/login?next=${encodeURIComponent(next)}`} className="text-crimson-glow underline underline-offset-2">
+        {t.reviews.signInPrefix}
+        <Link href={`/login?next=${encodeURIComponent(href(next))}`} className="text-crimson-glow underline underline-offset-2">
           {t.common.signIn}
         </Link>
         .
@@ -136,7 +138,8 @@ function OwnReview({
   if (member.state === "onboarding") {
     return (
       <p className="rounded bg-bg-elevated/50 px-4 py-3 text-xs text-text-secondary">
-        {t.reviews.finishPrefix}        <Link href="/welcome" className="text-crimson-glow underline underline-offset-2">
+        {t.reviews.finishPrefix}
+        <Link href="/welcome" className="text-crimson-glow underline underline-offset-2">
           {t.common.completeProfile}
         </Link>
         .

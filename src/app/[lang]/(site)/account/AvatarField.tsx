@@ -6,6 +6,7 @@ import { ImagePlus, Loader2, X } from "lucide-react";
 import Avatar from "@/components/Avatar";
 import { createClient } from "@/lib/supabase/browser";
 import { AVATARS_BUCKET } from "@/lib/supabase/config";
+import { useLocale } from "@/components/LocaleProvider";
 import { setAvatar } from "./actions";
 
 const SIZE = 256;
@@ -15,7 +16,7 @@ function encode(canvas: HTMLCanvasElement, type: string, quality: number) {
 }
 
 /** Crop the centre square, scale to 256 px and encode as WebP (JPEG where WebP cannot be encoded). */
-async function prepare(file: File): Promise<{ blob: Blob; ext: string }> {
+async function prepare(file: File, convertFailed: string): Promise<{ blob: Blob; ext: string }> {
   const bitmap = await createImageBitmap(file);
   const side = Math.min(bitmap.width, bitmap.height);
   const canvas = document.createElement("canvas");
@@ -29,7 +30,7 @@ async function prepare(file: File): Promise<{ blob: Blob; ext: string }> {
   const webp = await encode(canvas, "image/webp", 0.85);
   if (webp?.type === "image/webp") return { blob: webp, ext: "webp" };
   const jpeg = await encode(canvas, "image/jpeg", 0.85);
-  if (!jpeg) throw new Error("Görsel dönüştürülemedi.");
+  if (!jpeg) throw new Error(convertFailed);
   return { blob: jpeg, ext: "jpg" };
 }
 
@@ -43,6 +44,7 @@ export default function AvatarField({
   name: string;
 }) {
   const router = useRouter();
+  const { t } = useLocale();
   const input = useRef<HTMLInputElement>(null);
   const [current, setCurrent] = useState(path);
   const [busy, setBusy] = useState(false);
@@ -54,7 +56,7 @@ export default function AvatarField({
     if (!result.ok) {
       // The profile still points at the old picture; drop the unused upload.
       if (next) await storage.remove([next]);
-      throw new Error(result.error ?? "Kaydedilemedi.");
+      throw new Error(result.error ?? t.account.saveFallback);
     }
     setCurrent(next);
     // Objects are never overwritten in place, so the old one is deleted (ADR-006).
@@ -66,7 +68,7 @@ export default function AvatarField({
     setBusy(true);
     setError(null);
     try {
-      const { blob, ext } = await prepare(file);
+      const { blob, ext } = await prepare(file, t.imageField.convertFailed);
       const name = `${userId}/${Date.now().toString(36)}.${ext}`;
       const { error } = await createClient()
         .storage.from(AVATARS_BUCKET)
@@ -74,7 +76,7 @@ export default function AvatarField({
       if (error) throw error;
       await save(name);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Yükleme başarısız.");
+      setError(e instanceof Error ? e.message : t.imageField.uploadFailed);
     } finally {
       setBusy(false);
       if (input.current) input.current.value = "";
@@ -87,7 +89,7 @@ export default function AvatarField({
     try {
       await save(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Kaldırılamadı.");
+      setError(e instanceof Error ? e.message : t.account.removeFailed);
     } finally {
       setBusy(false);
     }
@@ -112,7 +114,7 @@ export default function AvatarField({
             onClick={() => input.current?.click()}
             className="inline-flex items-center gap-2 rounded border border-border px-3 py-2 text-xs text-text-secondary hover:border-border-light hover:text-text-primary disabled:opacity-60"
           >
-            <ImagePlus className="h-3.5 w-3.5" /> {current ? "Fotoğrafı değiştir" : "Fotoğraf yükle"}
+            <ImagePlus className="h-3.5 w-3.5" /> {current ? t.imageField.change : t.imageField.upload}
           </button>
           {current && (
             <button
@@ -121,7 +123,7 @@ export default function AvatarField({
               onClick={remove}
               className="inline-flex items-center gap-1.5 rounded px-3 py-2 text-xs text-text-muted hover:text-crimson-glow disabled:opacity-60"
             >
-              <X className="h-3.5 w-3.5" /> Kaldır
+              <X className="h-3.5 w-3.5" /> {t.imageField.remove}
             </button>
           )}
         </div>

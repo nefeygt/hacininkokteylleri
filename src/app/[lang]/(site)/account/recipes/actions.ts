@@ -2,6 +2,9 @@
 
 import { revalidateLocalized } from "@/lib/i18n/revalidate";
 import { accountSession } from "@/lib/account";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
+import { format } from "@/lib/i18n/format";
+import { actionDictionary } from "@/lib/i18n/server";
 import { cleanRecipeInput, toSavedIngredients, type RecipeInput } from "@/lib/recipe";
 import { slugify } from "@/lib/slug";
 import { RECIPE_IMAGES_BUCKET } from "@/lib/supabase/config";
@@ -13,14 +16,12 @@ import { RECIPE_IMAGES_BUCKET } from "@/lib/supabase/config";
 
 export type RecipeResult = { ok?: boolean; error?: string; id?: string; slug?: string };
 
-const SESSION_LOST = "Oturumun sona ermiş. Sayfayı yenileyip tekrar giriş yap.";
-
-function writeError(code: string | undefined, message: string): string {
-  if (message.includes("Daily recipe limit")) return "Bugün yeterince tarif ekledin. Yarın tekrar dene.";
-  if (code === "23514") return "Tarif geçersiz: alanları kontrol et.";
-  if (code === "P0002") return "Tarif bulunamadı.";
-  if (code === "23503") return "Katalogdaki bir malzeme bulunamadı. Sayfayı yenileyip malzemeyi yeniden seç.";
-  return `Kaydedilemedi: ${message}`;
+function writeError(code: string | undefined, message: string, t: Dictionary): string {
+  if (message.includes("Daily recipe limit")) return t.actions.dailyRecipe;
+  if (code === "23514") return t.actions.recipeInvalid;
+  if (code === "P0002") return t.actions.recipeNotFound;
+  if (code === "23503") return t.actions.ingredientMissing;
+  return format(t.validation.saveFailed, { message });
 }
 
 function revalidateRecipe(slug: string, username: string) {
@@ -35,14 +36,15 @@ function revalidateRecipe(slug: string, username: string) {
 
 /** Creates a recipe (no id) or edits the member's own. The slug is set once, at creation. */
 export async function saveRecipe(input: RecipeInput, id?: string): Promise<RecipeResult> {
-  const recipe = cleanRecipeInput(input);
+  const t = await actionDictionary();
+  const recipe = cleanRecipeInput(input, t.validation);
   if ("error" in recipe) return recipe;
 
   const session = await accountSession();
-  if (session.state !== "ok") return { error: SESSION_LOST };
+  if (session.state !== "ok") return { error: t.actions.sessionLost };
   const { supabase, profile } = session;
 
-  if (recipe.imagePath && !recipe.imagePath.startsWith(`${profile.id}/`)) return { error: "Fotoğraf okunamadı." };
+  if (recipe.imagePath && !recipe.imagePath.startsWith(`${profile.id}/`)) return { error: t.actions.photoUnreadable };
 
   let previous: { slug: string; image_path: string | null } | null = null;
   if (id) {
@@ -52,7 +54,7 @@ export async function saveRecipe(input: RecipeInput, id?: string): Promise<Recip
       .eq("id", id)
       .eq("author_id", profile.id)
       .maybeSingle();
-    if (!data) return { error: "Tarif bulunamadı." };
+    if (!data) return { error: t.actions.recipeNotFound };
     previous = data;
   }
 
@@ -75,7 +77,7 @@ export async function saveRecipe(input: RecipeInput, id?: string): Promise<Recip
 
   // Slugs are unique across house and members' recipes; on a clash, add a
   // short suffix and try again ("negroni" → "negroni-k3f").
-  const base = slugify(recipe.name).slice(0, 60).replace(/-+$/, "") || "tarif";
+  const base = slugify(recipe.name).slice(0, 60).replace(/-+$/, "") || t.actions.slugFallback;
   let slug = previous?.slug ?? base;
   let savedId: string | null = null;
   for (let attempt = 0; attempt < 4; attempt++) {
@@ -91,9 +93,9 @@ export async function saveRecipe(input: RecipeInput, id?: string): Promise<Recip
       slug = `${base}-${Math.random().toString(36).slice(2, 5)}`;
       continue;
     }
-    return { error: writeError(error.code, error.message) };
+    return { error: writeError(error.code, error.message, t) };
   }
-  if (!savedId) return { error: "Kaydedilemedi: kısa ad bulunamadı, adı biraz değiştirip tekrar dene." };
+  if (!savedId) return { error: t.actions.slugFailed };
 
   // The old photo is no longer referenced; photos are never overwritten in place (ADR-006).
   if (previous?.image_path && previous.image_path !== recipe.imagePath) {
@@ -105,8 +107,9 @@ export async function saveRecipe(input: RecipeInput, id?: string): Promise<Recip
 }
 
 export async function deleteRecipe(id: string): Promise<RecipeResult> {
+  const t = await actionDictionary();
   const session = await accountSession();
-  if (session.state !== "ok") return { error: SESSION_LOST };
+  if (session.state !== "ok") return { error: t.actions.sessionLost };
   const { supabase, profile } = session;
 
   const { data } = await supabase
@@ -115,10 +118,10 @@ export async function deleteRecipe(id: string): Promise<RecipeResult> {
     .eq("id", id)
     .eq("author_id", profile.id)
     .maybeSingle();
-  if (!data) return { error: "Tarif bulunamadı." };
+  if (!data) return { error: t.actions.recipeNotFound };
 
   const { error } = await supabase.from("cocktails").delete().eq("id", id).eq("author_id", profile.id);
-  if (error) return { error: `Silinemedi: ${error.message}` };
+  if (error) return { error: format(t.actions.deleteFailed, { message: error.message }) };
 
   if (data.image_path) await supabase.storage.from(RECIPE_IMAGES_BUCKET).remove([data.image_path]);
 

@@ -2,15 +2,20 @@ import type { Metadata } from "next";
 import Link from "@/components/LocaleLink";
 import { Globe, Lock } from "lucide-react";
 import { requireMember } from "@/lib/account";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { asLocale } from "@/lib/i18n/locales";
 
-export const metadata: Metadata = {
-  title: "Tariflerim",
-  robots: { index: false },
-};
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const t = getDictionary(asLocale((await params).lang)).recipesPage;
+  return { title: t.metaTitle, robots: { index: false } };
+}
 
 /** The member's own recipes, drafts and published, newest first (M6). */
-export default async function RecipesPage() {
-  const { supabase, profile } = await requireMember();
+export default async function RecipesPage({ params }: { params: Promise<{ lang: string }> }) {
+  const lang = asLocale((await params).lang);
+  const dict = getDictionary(lang);
+  const t = dict.recipesPage;
+  const { supabase, profile } = await requireMember(lang);
 
   const { data, error } = await supabase
     .from("cocktails")
@@ -21,16 +26,14 @@ export default async function RecipesPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">
-      <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.25em] text-crimson-glow">Rx · Tarifler</div>
+      <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.25em] text-crimson-glow">{t.eyebrow}</div>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Tariflerim</h1>
-          <p className="mt-1 text-xs text-text-muted">
-            Yazdığın tarifler. Yayındakiler profilinde ve akışta görünür; taslakları yalnızca sen görürsün.
-          </p>
+          <h1 className="text-3xl font-bold">{t.title}</h1>
+          <p className="mt-1 text-xs text-text-muted">{t.subtitle}</p>
         </div>
         <Link href="/account" className="font-mono text-[11px] text-text-muted underline underline-offset-2 hover:text-text-primary">
-          ← Hesabım
+          {dict.notificationsPage.back}
         </Link>
       </div>
 
@@ -38,12 +41,12 @@ export default async function RecipesPage() {
         href="/account/recipes/new"
         className="mt-8 inline-flex items-center rounded bg-crimson px-4 py-2 text-xs text-white transition-opacity hover:opacity-90"
       >
-        + Yeni tarif
+        {t.newRecipe}
       </Link>
 
       <section className="mt-8">
         {data.length === 0 ? (
-          <p className="text-xs leading-relaxed text-text-muted">Henüz tarif yok. İlk tarifini yaz.</p>
+          <p className="text-xs leading-relaxed text-text-muted">{t.empty}</p>
         ) : (
           <ul className="space-y-2">
             {data.map((r) => (
@@ -61,18 +64,18 @@ export default async function RecipesPage() {
                     <span className="block truncate text-sm font-semibold text-text-primary">{r.name}</span>
                   )}
                   <span className="block truncate font-mono text-[11px] text-text-muted">
-                    {r.hidden_at ? "Yöneticiler tarafından gizlendi; yalnızca sen görüyorsun." : r.subtitle}
+                    {r.hidden_at ? t.hidden : r.subtitle}
                   </span>
                 </span>
                 <span className="flex shrink-0 items-center gap-1 font-mono text-[10px] text-text-muted">
                   {r.is_published ? <Globe className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
-                  {r.is_published ? "Yayında" : "Taslak"}
+                  {r.is_published ? t.published : t.draft}
                 </span>
                 <Link
                   href={`/account/recipes/${r.id}`}
                   className="shrink-0 font-mono text-[11px] text-crimson-glow underline underline-offset-2"
                 >
-                  Düzenle
+                  {dict.common.edit}
                 </Link>
               </li>
             ))}

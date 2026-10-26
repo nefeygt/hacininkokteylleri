@@ -3,20 +3,26 @@
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { fieldClass, labelClass, primaryButtonClass } from "@/components/AccountCard";
+import { useLocale } from "@/components/LocaleProvider";
 import { MIN_PASSWORD_LENGTH } from "@/lib/account-config";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
+import { format } from "@/lib/i18n/format";
 import { createClient } from "@/lib/supabase/browser";
 
-/** Supabase's answer to a password change, in Turkish. */
-function passwordError(message: string): string {
-  if (/different from the old/i.test(message)) return "Yeni şifre eskisinden farklı olmalı.";
-  if (/aal2|mfa/i.test(message)) return "Önce doğrulama uygulamandaki 6 haneli kodu gir.";
-  if (/at least|too short|weak/i.test(message)) return `Şifre en az ${MIN_PASSWORD_LENGTH} karakter olmalı.`;
-  if (/session|expired|jwt/i.test(message)) return "Oturumun sona erdi. Sıfırlama bağlantısını yeniden iste.";
-  if (/rate limit|too many/i.test(message)) return "Çok fazla deneme yapıldı. Biraz bekleyip tekrar dene.";
-  return "Şifre kaydedilemedi. Tekrar dene.";
+/** Supabase's answer to a password change, in the page's language. */
+function passwordError(message: string, t: Dictionary): string {
+  const r = t.resetPassword;
+  if (/different from the old/i.test(message)) return r.errDifferent;
+  if (/aal2|mfa/i.test(message)) return r.errMfa;
+  if (/at least|too short|weak/i.test(message)) return format(t.auth.passwordShort, { min: MIN_PASSWORD_LENGTH });
+  if (/session|expired|jwt/i.test(message)) return r.errExpired;
+  if (/rate limit|too many/i.test(message)) return t.auth.rateLimit;
+  return r.errSaveFailed;
 }
 
 export default function NewPasswordForm({ next }: { next: string }) {
+  const { t } = useLocale();
+  const tr = t.resetPassword;
   const [password, setPassword] = useState("");
   const [repeat, setRepeat] = useState("");
   const [code, setCode] = useState("");
@@ -36,7 +42,7 @@ export default function NewPasswordForm({ next }: { next: string }) {
     e.preventDefault();
     setError(null);
     if (password !== repeat) {
-      setError("Şifreler aynı değil.");
+      setError(tr.mismatch);
       return;
     }
     setPending(true);
@@ -49,7 +55,7 @@ export default function NewPasswordForm({ next }: { next: string }) {
         ? await auth.mfa.challengeAndVerify({ factorId: factor.id, code: code.trim() })
         : { error: new Error("no factor") };
       if (error) {
-        setError("Doğrulama kodu yanlış ya da süresi geçti. Tekrar dene.");
+        setError(tr.wrongCode);
         setPending(false);
         return;
       }
@@ -58,7 +64,7 @@ export default function NewPasswordForm({ next }: { next: string }) {
 
     const { error } = await auth.updateUser({ password });
     if (error) {
-      setError(passwordError(error.message));
+      setError(passwordError(error.message, t));
       setPending(false);
       return;
     }
@@ -68,7 +74,7 @@ export default function NewPasswordForm({ next }: { next: string }) {
   return (
     <form onSubmit={submit} className="space-y-4">
       <label className="block">
-        <span className={labelClass}>Yeni şifre</span>
+        <span className={labelClass}>{tr.newPassword}</span>
         <input
           type="password"
           value={password}
@@ -80,7 +86,7 @@ export default function NewPasswordForm({ next }: { next: string }) {
         />
       </label>
       <label className="block">
-        <span className={labelClass}>Yeni şifre (tekrar)</span>
+        <span className={labelClass}>{tr.repeat}</span>
         <input
           type="password"
           value={repeat}
@@ -93,7 +99,7 @@ export default function NewPasswordForm({ next }: { next: string }) {
       </label>
       {needsCode && (
         <label className="block">
-          <span className={labelClass}>Doğrulama kodu</span>
+          <span className={labelClass}>{tr.code}</span>
           <input
             value={code}
             onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
@@ -105,7 +111,7 @@ export default function NewPasswordForm({ next }: { next: string }) {
             className={fieldClass}
           />
           <span className="mt-1 block font-mono text-[11px] text-text-muted">
-            Bu hesapta iki adımlı doğrulama açık: doğrulama uygulamandaki 6 haneli kodu gir.
+            {tr.codeHint}
           </span>
         </label>
       )}
@@ -114,7 +120,7 @@ export default function NewPasswordForm({ next }: { next: string }) {
 
       <button disabled={pending} className={primaryButtonClass}>
         {pending && <Loader2 className="h-4 w-4 animate-spin" />}
-        Şifreyi kaydet
+        {tr.save}
       </button>
     </form>
   );

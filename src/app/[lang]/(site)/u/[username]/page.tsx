@@ -9,6 +9,9 @@ import FollowButton from "@/components/FollowButton";
 import ReportProfileButton from "@/components/ReportProfileButton";
 import Stars from "@/components/Stars";
 import { getNewRecipes, recipeHref } from "@/lib/content";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { format } from "@/lib/i18n/format";
+import { asLocale, DEFAULT_LOCALE, INTL_LOCALES, type Locale } from "@/lib/i18n/locales";
 import { createPublicClient } from "@/lib/supabase/public";
 
 // Public profiles, rendered on first visit and kept for a few minutes; a
@@ -34,10 +37,11 @@ const getProfile = cache(async (username: string) => {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ username: string }>;
+  params: Promise<{ lang: string; username: string }>;
 }): Promise<Metadata> {
-  const profile = await getProfile((await params).username);
-  if (!profile) return { title: "Bulunamadı" };
+  const { lang, username } = await params;
+  const profile = await getProfile(username);
+  if (!profile) return { title: getDictionary(asLocale(lang)).status.notFoundMeta };
   return {
     title: `${profile.display_name} (@${profile.username})`,
     description: profile.bio ?? undefined,
@@ -85,20 +89,39 @@ async function getActivity(profileId: string) {
   };
 }
 
+/** The subtitles of house recipes in the page's language, where translated (members' recipes stay as written). */
+async function houseSubtitles(cocktails: { id: string; author_id: string | null }[], lang: Locale): Promise<Map<string, string>> {
+  const ids = cocktails.filter((c) => !c.author_id).map((c) => c.id);
+  const found = new Map<string, string>();
+  if (lang === DEFAULT_LOCALE || ids.length === 0) return found;
+  const { data } = await createPublicClient()
+    .from("cocktail_translations")
+    .select("cocktail_id, subtitle")
+    .eq("locale", lang)
+    .in("cocktail_id", ids);
+  for (const row of data ?? []) if (row.subtitle) found.set(row.cocktail_id, row.subtitle);
+  return found;
+}
+
 function cocktailHref(c: { slug: string; author_id: string | null }) {
   return recipeHref(c.slug, Boolean(c.author_id));
 }
 
-export default async function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
-  const profile = await getProfile((await params).username);
+export default async function ProfilePage({ params }: { params: Promise<{ lang: string; username: string }> }) {
+  const { lang: rawLang, username } = await params;
+  const lang = asLocale(rawLang);
+  const dict = getDictionary(lang);
+  const t = dict.profilePage;
+  const profile = await getProfile(username);
   if (!profile) notFound();
   const { reviews, favorites, logs, recipes, followers, following } = await getActivity(profile.id);
+  const subtitles = await houseSubtitles(favorites.map((f) => f.cocktails), lang);
 
-  const joined = new Date(profile.created_at).toLocaleDateString("tr-TR", { month: "long", year: "numeric" });
+  const joined = new Date(profile.created_at).toLocaleDateString(INTL_LOCALES[lang], { month: "long", year: "numeric" });
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">
-      <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.25em] text-crimson-glow">Rx · Profil</div>
+      <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.25em] text-crimson-glow">{dict.follow.profileEyebrow}</div>
       <div className="flex items-center gap-5">
         <Avatar path={profile.avatar_path} name={profile.display_name} size={88} />
         <div>
@@ -110,24 +133,26 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3">
         <p className="font-mono text-[11px] text-text-secondary">
           <Link href={`/u/${profile.username}/followers`} className="hover:text-text-primary hover:underline">
-            <strong className="text-text-primary">{followers}</strong> takipçi
+            <strong className="text-text-primary">{followers}</strong>
+            {t.followersSuffix}
           </Link>{" "}
           ·{" "}
           <Link href={`/u/${profile.username}/following`} className="hover:text-text-primary hover:underline">
-            <strong className="text-text-primary">{following}</strong> takip
+            <strong className="text-text-primary">{following}</strong>
+            {t.followingSuffix}
           </Link>
         </p>
         <FollowButton profileId={profile.id} username={profile.username} />
       </div>
       <div className="mt-4 flex items-center justify-between gap-4">
-        <p className="font-mono text-[11px] text-text-muted">{joined} tarihinden beri üye</p>
+        <p className="font-mono text-[11px] text-text-muted">{format(t.memberSince, { date: joined })}</p>
         <ReportProfileButton profileId={profile.id} />
       </div>
 
       {recipes.length > 0 && (
         <section className="mt-12">
           <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.15em] text-text-muted">
-            Tarifler <span className="text-text-muted">({recipes.length})</span>
+            {t.recipes} <span className="text-text-muted">({recipes.length})</span>
           </h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {recipes.map((recipe) => (
@@ -139,10 +164,10 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
 
       <section className="mt-12">
         <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.15em] text-text-muted">
-          Favoriler <span className="text-text-muted">({favorites.length})</span>
+          {t.favorites} <span className="text-text-muted">({favorites.length})</span>
         </h2>
         {favorites.length === 0 ? (
-          <p className="text-xs text-text-muted">Henüz favori yok.</p>
+          <p className="text-xs text-text-muted">{t.noFavorites}</p>
         ) : (
           <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             {favorites.map(({ cocktails: c }) => (
@@ -154,7 +179,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
                   <span className="h-6 w-1 shrink-0 rounded-full" style={{ backgroundColor: c.color }} />
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-semibold text-text-primary">{c.name}</span>
-                    <span className="block truncate font-mono text-[11px] text-text-muted">{c.subtitle}</span>
+                    <span className="block truncate font-mono text-[11px] text-text-muted">{subtitles.get(c.id) ?? c.subtitle}</span>
                   </span>
                 </Link>
               </li>
@@ -166,7 +191,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       {logs.length > 0 && (
         <section className="mt-12">
           <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.15em] text-text-muted">
-            İçki günlüğü <span className="text-text-muted">({logs.length})</span>
+            {t.drinkLog} <span className="text-text-muted">({logs.length})</span>
           </h2>
           <ul className="space-y-3">
             {logs.map((log) => (
@@ -180,10 +205,10 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
 
       <section className="mt-12">
         <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.15em] text-text-muted">
-          Değerlendirmeler <span className="text-text-muted">({reviews.length})</span>
+          {dict.reviews.heading} <span className="text-text-muted">({reviews.length})</span>
         </h2>
         {reviews.length === 0 ? (
-          <p className="text-xs text-text-muted">Henüz değerlendirme yok.</p>
+          <p className="text-xs text-text-muted">{t.noReviews}</p>
         ) : (
           <ul className="space-y-5">
             {reviews.map((review) => (
@@ -194,7 +219,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
                   </Link>
                   <Stars value={review.rating} size={12} />
                   <span className="font-mono text-[10px] text-text-muted">
-                    {new Date(review.updated_at).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" })}
+                    {new Date(review.updated_at).toLocaleDateString(INTL_LOCALES[lang], { day: "numeric", month: "long", year: "numeric" })}
                   </span>
                 </div>
                 {review.body && (
