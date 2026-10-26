@@ -15,11 +15,14 @@ export const metadata: Metadata = {
 
 export default async function AccountPage() {
   const { supabase, profile, user } = await requireMember();
-  const { data: settings } = await supabase
-    .from("account_settings")
-    .select("logs_public_default")
-    .eq("user_id", user.id)
-    .maybeSingle();
+  const [{ data: settings }, { count: unread }] = await Promise.all([
+    supabase.from("account_settings").select("logs_public_default").eq("user_id", user.id).maybeSingle(),
+    supabase
+      .from("notifications")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .is("read_at", null),
+  ]);
 
   return (
     <AccountCard title="Hesabım" subtitle={user.email ? `${user.email} ile giriş yaptın.` : undefined} wide>
@@ -29,6 +32,22 @@ export default async function AccountPage() {
             Profilin bir yönetici tarafından gizlendi; şu an yalnızca sen görüyorsun.
           </p>
         )}
+
+        {/* On phones the navbar has no bell (ADR-030); this is the way in. */}
+        <Link
+          href="/account/notifications"
+          className="flex items-center justify-between rounded border border-border bg-bg-elevated/40 px-4 py-3 transition-colors hover:bg-bg-elevated"
+        >
+          <span className="font-mono text-xs uppercase tracking-[0.15em] text-text-secondary">Bildirimler</span>
+          <span className="flex items-center gap-2 font-mono text-[11px] text-text-muted">
+            {unread ? (
+              <span className="rounded-full bg-crimson-glow px-2 py-0.5 text-white">{unread} yeni</span>
+            ) : (
+              "Yeni yok"
+            )}
+            →
+          </span>
+        </Link>
 
         <section>
           <div className="mb-4 flex items-baseline justify-between">

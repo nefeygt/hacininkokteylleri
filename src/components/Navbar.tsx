@@ -30,7 +30,7 @@ export default function Navbar() {
           <NavLink href="/feed" active={pathname === "/feed"}>
             Akış
           </NavLink>
-          <AccountLink active={pathname === "/account" || pathname === "/login"} />
+          <AccountLink pathname={pathname} />
           <ThemePicker />
         </div>
       </div>

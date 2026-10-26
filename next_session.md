@@ -113,6 +113,11 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 - **Members' recipes in "Elimde ne var?"** (ADR-029 amendment): the app's recipe form needs the catalogue select per
   line ("Katalogda yok", the hint and the counter, `isFullyLinked` from `@shared/ingredients`); catalogue from
   `ingredients` (`groupByCategory`). It already keeps `ingredientId` through an edit and revalidates `/what-can-i-make`.
+- **Share cards and 404/error screens** (M9 A, 2026-10-26): web-only (the app has no link previews); the app's own
+  error states are already its own.
+- **Notifications** (ADR-030): a screen with `NOTIFICATION_COLUMNS` and `describeNotification` from
+  `@shared/notifications` (links map to the app's screens), a badge on the account tab with the unread count, mark
+  read on opening. Push notifications are a separate decision.
 - **"cl | oz"** on recipes (ADR-027): a toggle beside "Kaç kişilik?" with `convertAmount`, `formatOunces`,
   `isConvertibleUnit` from `@shared/recipe`; remember the choice (AsyncStorage or the app's existing storage).
 

@@ -1160,3 +1160,34 @@ would rarely match. *Fuzzy name matching:* unpredictable ("Elma" vs "Elma Suyu")
   form (no picker yet), so an edit there keeps the links; the app's picker comes with the parity pass.
 - (−) A recipe with a line like "Buz" or a homemade syrup never matches unless the member leaves that line out.
 
+
+## ADR-030 — Notifications written by database triggers; a bell on the site
+
+**Context.** The council's round before the app is synced and frozen (2026-10-26): a community site at launch tells
+nobody that they were followed, that their log got a comment or that their showcase application was decided (§9 said
+applicants are never told). The user picked it as package B of M9. It changes the data the app reads, so it comes before
+the parity pass.
+
+**Decision.**
+- **`public.notifications`** (`user_id` the recipient, `type` enum `notification_type`, `actor_id`, and one optional
+  reference each: `cocktail_id`, `log_id`, `comment_id`, `review_id`, `entry_id`, all `on delete cascade`; `read_at`).
+  Migration `notifications`.
+- **Only triggers write** (security definer, `private.notify`; members have no insert grant). A member reads, marks
+  read (`read_at` only) and deletes their own rows. Nobody is notified about their own action. Rows older than 90 days
+  are pruned when a new one arrives for that member.
+- **Types:** `follow` (one per follower: unfollow + follow again does not stack; unfollow removes it), `log_comment`
+  (the log's owner), `comment_thread` (everyone else who commented on that log), `recipe_review` (the author of a
+  member's recipe; house recipes have none), `showcase_approved` / `showcase_rejected` (the applicant; a changed
+  decision replaces the old one), `content_hidden` (an admin hid your recipe, log, comment or review; showing it again
+  removes it; a hidden comment's or review's notifications to others go with it).
+- **The site:** `/account/notifications` lists the latest 50 and marks them read on opening. Desktop navbar: a bell with
+  the unread count. Phones (375 px has no room): a dot on the account icon, and `/account` opens with a "Bildirimler"
+  row. The wording and links live in the shared `src/lib/notifications.ts` (`describeNotification`) for the app.
+- **Not now:** e-mail or push notifications, real-time updates (the count is read on each page change), favourites and
+  showcase votes (too noisy).
+
+**Consequences.**
+- (+) No app code can forget to notify: the database does it for the site, the app and the panel alike.
+- (+) The app gets notifications for the price of a screen and a badge (parity pass).
+- (−) The navbar makes one count query per page change for signed-in members.
+- (−) Push notifications in the app are a later, separate decision (Expo push tokens, a sender).

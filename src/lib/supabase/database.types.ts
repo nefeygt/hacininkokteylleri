@@ -431,6 +431,105 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          actor_id: string | null
+          cocktail_id: string | null
+          comment_id: string | null
+          created_at: string
+          entry_id: string | null
+          id: string
+          log_id: string | null
+          read_at: string | null
+          review_id: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          cocktail_id?: string | null
+          comment_id?: string | null
+          created_at?: string
+          entry_id?: string | null
+          id?: string
+          log_id?: string | null
+          read_at?: string | null
+          review_id?: string | null
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          cocktail_id?: string | null
+          comment_id?: string | null
+          created_at?: string
+          entry_id?: string | null
+          id?: string
+          log_id?: string | null
+          read_at?: string | null
+          review_id?: string | null
+          type?: Database["public"]["Enums"]["notification_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_cocktail_id_fkey"
+            columns: ["cocktail_id"]
+            isOneToOne: false
+            referencedRelation: "cocktails"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_cocktail_id_fkey"
+            columns: ["cocktail_id"]
+            isOneToOne: false
+            referencedRelation: "recipe_popularity"
+            referencedColumns: ["cocktail_id"]
+          },
+          {
+            foreignKeyName: "notifications_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "log_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "showcase_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_log_id_fkey"
+            columns: ["log_id"]
+            isOneToOne: false
+            referencedRelation: "drink_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_path: string | null
@@ -751,6 +850,14 @@ export type Database = {
         | "fresh"
         | "other"
       ingredient_icon: "shot" | "dash" | "drop" | "slice" | "spoon" | "topup"
+      notification_type:
+        | "follow"
+        | "log_comment"
+        | "comment_thread"
+        | "recipe_review"
+        | "showcase_approved"
+        | "showcase_rejected"
+        | "content_hidden"
       report_target:
         | "profile"
         | "cocktail"
@@ -897,6 +1004,15 @@ export const Constants = {
         "other",
       ],
       ingredient_icon: ["shot", "dash", "drop", "slice", "spoon", "topup"],
+      notification_type: [
+        "follow",
+        "log_comment",
+        "comment_thread",
+        "recipe_review",
+        "showcase_approved",
+        "showcase_rejected",
+        "content_hidden",
+      ],
       report_target: [
         "profile",
         "cocktail",

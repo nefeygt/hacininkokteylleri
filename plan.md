@@ -146,6 +146,7 @@ In the user's words, collected while M0 was being built. Milestones in §6.
 | 027 | Weekly backup of house content by a GitHub Action with the public key; cl ↔ oz at 1 oz = 3 cl | Free plan has no backups; pourable ounces |
 | 028 | Six themes (Rx default) via `data-theme` + an inline boot script; reading text in a sans, mono for labels | Readable on phones; a choice of looks |
 | 029 | An `ingredients` catalogue; house recipe lines link to it; `/what-can-i-make` matches house recipes (ready + one missing) | The user chose the database over groups in code; house only |
+| 030 | Notifications written by database triggers; a bell (desktop) / a dot and an `/account` row (phones) | The council's round, package B; before the app's parity pass |
 | 020 | Expo app in `mobile/` (this repo), full parity, both stores, native Google + e-mail (+ Apple on iOS); site pages refreshed through `/api/revalidate` | The user's answers; shared types and validation, one handoff |
 | 024 | Store release waits (Apple account / a shared Play closed test); web first, one parity pass before release | Cheaper testers for three apps; no store round for an app that will change |
 
@@ -672,9 +673,10 @@ While the store release waits (ADR-024), the site gets better first; every user-
   draft saved and reopened with its links; all linked + published → "Bir malzeme eksik" with Votka + Limon, "Yapabileceklerin"
   after Şeker Şurubu, card by @ahmet_kafa; form at 375 px no horizontal scroll); the test recipe deleted. Not yet seen live
 - **The council's round (the user's pick, 2026-10-26: all four, in this order; the app is synced and frozen only after them):**
-  - [ ] **A — Launch basics:** themed `not-found` / `error` / `loading` pages; analytics (Vercel Analytics, a line in
+  - [x] **A — Launch basics** (2026-10-26, deployed): themed `not-found` / `error` pages (no `loading`: it turned
+    missing pages into 200s); analytics (Vercel Analytics, a line in
     `/privacy`); share cards (a generated OG image when a recipe has no photo, descriptions on every page); a PWA manifest
-  - [ ] **B — Notifications:** a `notifications` table filled by triggers (new follower, a comment on your log, a showcase
+  - [x] **B — Notifications** (2026-10-26, ADR-030; SQL-tested in a rolled-back transaction, not yet seen signed in): a `notifications` table filled by triggers (new follower, a comment on your log, a showcase
     application approved/rejected, your content hidden), a bell in the navbar, `/account/notifications`
   - [ ] **C — Found on Google:** landing pages per base spirit and flavour, a public glossary with a page per term, in the sitemap
   - [ ] **D — First impression:** empty states with house picks, filters and sort (incl. by rating) in the archive URL,
