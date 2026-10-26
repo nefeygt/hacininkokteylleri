@@ -4,12 +4,12 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-15 (M9 members' recipes in "Elimde ne var?") · **Handing off:** M8 steps 1–6 are done;
-**the store release is paused (ADR-024)**. **M9 (web improvements)** so far: recipe pages, data filters, share, servings,
-similar recipes, the weekly backup, cl ↔ oz, six themes (ADR-025 to ADR-028), "Elimde ne var?" (ADR-029) — and **this
-session: members' recipes join "Elimde ne var?"** (ADR-029 amendment): a catalogue select per line in the member form,
-`save_recipe` keeps the links, only fully linked recipes match. Built, checked on localhost signed in, deployed.
-**Next: ask the user what M9 still needs** before the app ↔ site parity pass.
+**Prepared by session:** 2026-10-26 (M9: the council's round, packages A–D) · **Handing off:** M8 steps 1–6 done; **the
+store release is paused (ADR-024)**. **M9** gained four packages the user picked from a three-agent council: **A** launch
+basics (404/error pages, share cards, manifest, Vercel Analytics — enabled in Vercel), **B** notifications (ADR-030),
+**C** spirit/flavour landing pages and `/glossary`, **D** shareable archive views, sort by rating, "Günün kokteyli",
+house picks in a thin feed. All deployed. **Next: the user's signed-in look at notifications, then ask whether M9 is
+done** — if yes, the parity pass.
 ---
 
 ## 📋 Prompt to Copy
@@ -53,41 +53,39 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — ask what M9 still needs, then the open checks
+## 🎯 This Session's Task — check the council's round live, then close M9
 
-1. **Ask the user what M9 still needs** before the parity pass (AskUserQuestion). Icebox candidates (plan.md §9):
-   localization, a rating breakdown; also worth offering: a catalogue picker in the app's recipe form now rather than in
-   the parity pass. Don't start one without their pick. If they say M9 is done, the next step is the parity pass below
-   (the list "Web changes since 2026-10-15") — it ends M9 and prepares the store release (ADR-024).
-2. **A live look at members' recipes in "Elimde ne var?"** (deployed this session, not yet seen on the domain): on the
-   user's phone or Claude in Chrome — `/account/recipes/new` shows a catalogue select under each line ("Katalogda yok"
-   by default), the hint and the counter. There are **no members' recipes** in the database, so the page shows house
-   recipes only until a member links one. If the user wants to try it, they write a recipe themselves (don't seed one).
-3. **Check the backup** (ADR-027; a manual run on 2026-10-15 passed with "Nothing changed"; the first scheduled run is
-   **Monday 2026-10-19**): the Action "Back up content" ran on Monday 03:00 UTC, or start it by hand
-   (`gh workflow run backup-content.yml`, then `gh run list --workflow backup-content.yml`). Nothing changed → no commit;
-   a change → a commit by `github-actions[bot]` and **no new Vercel deployment** for it
-   (`gh api repos/nefeygt/hacininkokteylleri/commits/<sha>/status`: Vercel should report the build skipped/ignored).
-   If Vercel built it anyway, check `ignoreCommand` in `vercel.json` and the project's "Ignored Build Step" setting.
-4. **A live look at the themes** on the domain (the user's phone): open "Görünüm" (palette icon, top right), try each
-   theme on a recipe, the archive, `/feed`, `/account` and `/login`. Pages not checked yet in the light themes: the
-   account forms (the recipe form's new select too), logs, members' recipes, the feed's showcase, `/privacy`,
-   `/u/{username}` — look for text that vanishes (a fixed colour instead of a token) and fix it with tokens (ADR-028).
+1. **Notifications signed in** (ADR-030; SQL-tested only): on the user's phone or Claude in Chrome (this network
+   blocks the domain: use the user's phone, or `localhost:3000` signed in). Ask before creating anything: e.g. the user
+   follows/unfollows `mustafa_hayat`'s profile *only with both their OKs* — or a temporary member follows `ahmet_kafa`.
+   Expect: the bell's count on desktop, the dot on the account icon at 375 px, the "Bildirimler" row on `/account`,
+   the list on `/account/notifications`, the count gone after opening it. Delete every test row afterwards.
+2. **Search Console:** C and D were checked live on 2026-10-26 (check-host: landing pages and `/glossary` 200,
+   `/cocktails/spirit/yok` 404, `/account/notifications` 307 signed out). Left: submit the sitemap again in Google
+   Search Console so the 13 new URLs are crawled (the user's signed-in Chrome, on a network that reaches the domain).
+3. **Vercel Analytics:** enabled 2026-10-26 (Hobby, free); the first numbers should be in the project's Analytics tab.
+4. **Ask the user whether M9 is done.** Left from the council (not picked yet): an English privacy notice, a rating
+   breakdown once reviews exist, DMARC beyond `p=none` (Outlook spam), a contrast pass of the light themes, a
+   cleanup of orphaned photos, rate limits on sign-up. If M9 is done → the parity pass (list below), which ends M9.
+5. Content for the user (panel): "Simple Syrup" in the glossary is used by no recipe and repeats "Şeker Şurubu".
+6. Still open from 2026-10-15: a live look at members' recipes in "Elimde ne var?" and at the themes on the phone.
 
 **Things that bite (from this session):**
-- The app's recipe form (`mobile/src/components/RecipeForm.tsx`) keeps its own rows (`IngredientRow`); anything new on a
-  line must be carried there too (`ingredientId` now is). A renamed line in the app keeps its old link until the app has
-  a picker.
-- `npm run typecheck` in `mobile/` with PowerShell `Set-Location` leaves the shell there — `npm run build` must run from
-  the repo root.
-- Testing a signed-in form: the user signed in as `ahmet_kafa` in Claude in Chrome on `localhost:3000`; a test recipe was
-  made and deleted through the form. Ask first each time.
+- **This machine has no git identity:** commit with `git -c user.name=nefeygt -c user.email=n.efeyigit@outlook.com
+  commit …` (the repo's usual author); don't change the global config without asking.
+- **This network blocks `hacininkokteylleri.tech`** (curl and Claude in Chrome both fail); check live pages with
+  check-host.net, and Vercel/GitHub through `gh`.
+- A `loading.tsx` in `(site)` makes missing pages answer **200** (the stream starts before `notFound()`): don't add one.
+- The share card (`src/lib/og-card.tsx`) reads fonts from `src/assets/fonts` with `process.cwd()`; it works on Vercel
+  (checked live). Satori cannot draw WebP, so recipes with a photo keep the photo as their share image.
+- The built-in browser's preview pane is often hidden, so lazy images never load there; read the DOM, don't trust the
+  picture.
 
 **While doing web work:**
 - Add every user-visible web change to **"Web changes since 2026-10-15 (for the parity pass)"** below — it is the
   app's checklist before release.
 - A change in a shared module in `src/lib` (the app imports it through `@shared/*`) must keep the app compiling:
-  run `npm run typecheck` in `mobile/` too (PowerShell `Set-Location …\mobile`).
+  run `npx tsc --noEmit` in `mobile/` too.
 
 ### Web changes since 2026-10-15 (for the parity pass)
 

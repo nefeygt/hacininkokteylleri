@@ -9,7 +9,7 @@
 > **Language rule (ADR-002):** everything we write — docs, code, comments, commits, SQL — is
 > **English**. Everything visitors and admins read — UI strings, recipes — is **Turkish**.
 
-**Last updated:** 2026-10-15 (M9 members' recipes in "Elimde ne var?") · **Active milestone:** **M9 — Web improvements** (recipe pages, data filters, wordmark, rich results, share, servings, similar, weekly backup, cl ↔ oz, six themes with readable type — ADR-025 to ADR-028) · **M8 — Mobile app** steps 1–6 done, **step 7 (store release) paused** until the Apple account or the user's two other Play apps (ADR-024) · M6 and M7 done · **Brand:** `haci` (ADR-015)
+**Last updated:** 2026-10-26 (M9: the council's round, packages A–D) · **Active milestone:** **M9 — Web improvements** (recipe pages, data filters, wordmark, rich results, share, servings, similar, weekly backup, cl ↔ oz, six themes with readable type — ADR-025 to ADR-028) · **M8 — Mobile app** steps 1–6 done, **step 7 (store release) paused** until the Apple account or the user's two other Play apps (ADR-024) · M6 and M7 done · **Brand:** `haci` (ADR-015)
 
 ---
 
@@ -88,6 +88,9 @@ around the archive; they never crowd it off the home page except through the sho
   page shows the winner of the latest ended period below the hero. Panel → **Vitrin**: open a period
   (start day, 1 week / 1 month), approve/reject, votes and the winner, delete a period; reported
   applications in Moderasyon (ADR-019).
+- **M9 additions (2026-10-15 → 10-26)** — recipe pages, data filters, share, servings, similar, cl ↔ oz, six themes,
+  "Elimde ne var?", themed 404/error pages, share cards, a manifest, analytics, notifications (`/account/notifications`,
+  ADR-030), landing pages per spirit/flavour, `/glossary`, archive views in the URL with sort, "Günün kokteyli".
 
 ### 3.2 Roadmap — what the user has asked for (2026-10-13)
 
@@ -744,9 +747,9 @@ While the store release waits (ADR-024), the site gets better first; every user-
 - **Videos for cocktails** (the user, 2026-10-15: "in the future") — generated or shot short clips on the recipe pages
 - A `haci` domain, if the product grows (ADR-015)
 - Paging / "show more" for reviews (the card shows the latest 50; a profile the latest 100)
-- Rating breakdown (how many 5s, 4s, …) and sorting the archive by rating
+- Rating breakdown (how many 5s, 4s, …) — sorting by rating shipped in M9 D (2026-10-26)
 - Follower / following lists on profiles; "people you may know" (M6 shows counts only)
-- Notifications (a reply to your comment, a new follower, a comment on your log)
+- Notifications by e-mail or push (on-site notifications shipped, ADR-030)
 - Editing a comment; threaded replies (M6 comments are flat, delete-only)
 - Tune "popular" (weights, logs, a week vs a month) once there is real traffic
 - House recipes on `/recipes/{slug}` too (the path is ready: slugs are unique across both)
@@ -768,6 +771,7 @@ While the store release waits (ADR-024), the site gets better first; every user-
 | 2026-10-15 | M9 backup + cl ↔ oz | The user chose the GitHub Action backup (public key, published house content only, photos too) and 1 oz = 3 cl. Built both (ADR-027); the backup ran locally, Vercel skips backup-only commits. Live check: last session's features on the domain and Google's Rich Results Test (1 valid Recipe). Claude in Chrome's screenshots timed out again; DOM checks there, visuals in the built-in browser. Three theme/font directions published as an artifact for the user to pick |
 | 2026-10-15 | M9 quick wins | The user picked the order: quick wins first, theme and font last. Built (ADR-026): chips from the data with flavour notes (site and app), the wordmark in the navbar, recipe JSON-LD, "Paylaş", "Kaç kişilik?", "Benzer kokteyller". Fixed on the way: the wordmark shrank to 0 px on phones and the bar overflowed 375 px. Checked: build, the app's typecheck (`npm ci` in `mobile/` first — `node_modules` was missing), Claude in Chrome (its screenshots timed out after a resize) and the built-in browser |
 | 2026-10-15 | M9 start: recipe pages | The user asked for house recipe pages: the card opens `/cocktails/{slug}`, a magnifier opens the modal (ADR-025); video → Icebox. Built, checked in the built-in browser (Claude in Chrome not connected) and with curl; build passes; deployed `149e6fa`, live page 200 from the user's home network. M9 opened with Claude's suggestions — the user liked them all; order next session |
+| 2026-10-26 | M9 council round | Pulled 13 commits (`3ed267b`; the 2026-10-19 backup committed and Vercel skipped it). The user's answers: Hacı's admin sign-in and the first showcase period at launch; Apple account by Şükrü Balta (not yet); one of the two other Play apps nearly ready. A three-agent council (community, discovery, quality) → the user took all four packages: A (404/error pages, share cards, manifest, Vercel Analytics + a `/privacy` line the user approved, version 2026-10-26; Analytics enabled in Vercel through Claude in Chrome), B notifications (ADR-030, migration `notifications`, SQL-tested in a rolled-back transaction), C (spirit/flavour landing pages, `/glossary`), D (archive URL state and sort, Günün kokteyli, house picks). Each built, typechecked (site + app), checked in the built-in browser at 375 px, pushed; A checked live via check-host. Not yet: notifications signed in |
 | 2026-10-15 | Store release paused | Pulled `dc4340d`. The user does not want to publish yet: wait for the Apple account, or for two more Play apps to share one paid closed test; web improvements first, then one parity pass before the store (ADR-024) |
 | 2026-10-15 | M8 step 6 | Claude in Chrome still disconnected → the built-in browser. The showcase in the app: `showcase.ts`, `fetchShowcase`/`fetchShowcaseWinner`, the Vitrin section on the Akış tab (apply, status, withdraw, votes, report, winner). Checked signed in at phone width with a temporary member and a test period (the user's OK); every test row deleted (community tables empty; profiles `ahmet_kafa`, `mustafa_hayat`). **The app has the site's features**; next is the store release. Then Claude in Chrome came back: the signed-out showcase, followed people's logs and reports on another member's entry and comment checked with a seeded member (deleted) |
 | 2026-10-15 | M8 step 5 | Claude in Chrome still disconnected → the built-in browser (Expo web, phone width). Members' recipes in the app (form, photo upload, units from the list, drafts, delete), their screen, the Akış tab, follows on profiles, public log pages with comments; links that opened the site now stay in the app; the site's recipe form uses the unit list. Checked signed in with a temporary member on the owner admin's login (the user's OK), then every test row deleted (community tables empty again; profiles `ahmet_kafa`, `mustafa_hayat`). Bug found and fixed: the web image manipulator needs both sides to resize. A stale Expo server held 8081 again — stopped |
