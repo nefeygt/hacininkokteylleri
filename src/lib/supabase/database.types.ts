@@ -834,6 +834,13 @@ export type Database = {
     }
     Functions: {
       delete_my_account: { Args: never; Returns: undefined }
+      orphan_photos: {
+        Args: { max_rows?: number; min_age?: unknown }
+        Returns: {
+          bucket_id: string
+          name: string
+        }[]
+      }
       save_cocktail: {
         Args: { cocktail: Json; ingredients: Json }
         Returns: string

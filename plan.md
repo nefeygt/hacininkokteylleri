@@ -707,7 +707,10 @@ While the store release waits (ADR-024), the site gets better first; every user-
   - [x] The glass as a picker with drawings: 13 glasses drawn on a 24 px grid (`GlassIcon`), `GLASSES` and `glassKind`
     in the shared `src/lib/glasses.ts` (matches all 14 values in the data, "Bakır Kupa" before "Kupa"); the log form, the
     member's recipe form and the panel pick by drawing, "Başka" keeps free text; the recipe page shows the drawing
-  - [ ] A scheduled cleanup of orphaned photos (Edge Function; the service key stays in Supabase)
+  - [x] Orphaned photo cleanup: `public.orphan_photos()` (service role only; per bucket, unreferenced, older than a day;
+    a dry run finds 0 of 38 files), the Edge Function `cleanup-orphan-photos` (Storage API with Supabase's own service
+    key), the workflow `cleanup-photos.yml` — **manual only**: the auto-mode classifier refused my test call (a bulk
+    delete), so the first run and a weekly schedule are the user's call
   - [ ] **Last step of M9, before the parity pass: translation** (out of the Icebox, the user 2026-10-26)
   - Videos stay in the Icebox: Gemini's free tier has no video model (Veo is paid per second); revisit with a budget
   - Not now (the council and the user, 2026-10-26): English localization, a rating breakdown (no reviews yet); the app's
@@ -755,7 +758,6 @@ While the store release waits (ADR-024), the site gets better first; every user-
 - Who changed what (`updated_by`) and a change history in the panel
 - Drag-and-drop ordering in the panel
 - Google sign-in for admins
-- A cleanup for orphaned photos in the bucket
 - HEIC photos from iPhones (today the browser must be able to decode the file)
 - **Localization** — English first, then others; UI strings out of the components (the user,
   2026-10-13: later, once the current work is done). **Includes an English privacy notice next to

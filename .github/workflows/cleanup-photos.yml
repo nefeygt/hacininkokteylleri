@@ -1,0 +1,20 @@
+# Orphaned photo cleanup (M9 Icebox round): calls the Edge Function cleanup-orphan-photos, which removes
+# uploads no recipe or profile points at, older than a day (public.orphan_photos, service role only).
+# Manual for now: the user decides when it runs on a schedule (add `schedule: - cron: "30 3 * * 1"`).
+name: Clean up orphaned photos
+
+on:
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call the Edge Function
+        env:
+          # The legacy anon key: public by design, only to pass the function gateway's JWT check.
+          ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3dm5oZGdod3ljcWx2c25sdmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE4OTMxMTUsImV4cCI6MjEwNzQ2OTExNX0.TIqf315BDezLGMpLklUsMryie9ea52HYzeoVzqde6dM
+        run: |
+          curl -sS --fail-with-body -X POST \
+            https://qwvnhdghwycqlvsnlvlt.supabase.co/functions/v1/cleanup-orphan-photos \
+            -H "Authorization: Bearer $ANON_KEY"
