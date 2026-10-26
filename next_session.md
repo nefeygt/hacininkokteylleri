@@ -68,7 +68,10 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
    only, or recipes too; which language(s); URLs (`/en/...`) and how the language is chosen. Done since: rating
    breakdown, follower lists, comment editing, glass picker, orphaned photo cleanup (plan.md M9 "Icebox round").
    Waiting for the user (not blocking): the first run / weekly schedule of `cleanup-photos.yml`; e-mail notifications
-   (their Resend API key as a Supabase secret); an English privacy notice (comes with translation).
+   (their Resend API key as a Supabase secret: Edge Functions → Secrets → `RESEND_API_KEY`; before it, the user approves
+   a `/privacy` line — draft: "Resend: üye olursan doğrulama ve şifre sıfırlama e-postalarını, ayrıca kapatmadığın
+   sürece okunmamış bildirimlerinin özetini göndermek için; sunucular İrlanda."); an English privacy notice (with
+   the translation).
 5. Content for the user (panel): "Simple Syrup" in the glossary is used by no recipe and repeats "Şeker Şurubu".
 6. Still open from 2026-10-15: a live look at members' recipes in "Elimde ne var?" and at the themes on the phone.
 

@@ -1191,3 +1191,26 @@ the parity pass.
 - (+) The app gets notifications for the price of a screen and a badge (parity pass).
 - (−) The navbar makes one count query per page change for signed-in members.
 - (−) Push notifications in the app are a later, separate decision (Expo push tokens, a sender).
+
+## ADR-031 — Notification e-mails: a digest from an Edge Function, scheduled by pg_cron, sent through Resend
+
+**Context.** On-site notifications (ADR-030) reach only members who come back. The user wants e-mails too and will
+add the Resend API key at home (2026-10-26); the infrastructure is built now.
+
+**Decision.**
+- `account_settings.email_notifications` (default on; a checkbox on `/account`) and `account_settings.locale` (the
+  member's language, any language tag — the site will speak more than Turkish and English).
+- `notifications.emailed_at`; `public.pending_notification_emails()` (service role only, it returns addresses) lists,
+  per member who opted in, unread notifications not e-mailed yet, older than 10 minutes (read on the site first → no
+  e-mail) and younger than a day.
+- The Edge Function `send-notification-emails` sends one digest per member (counts per kind, a link to
+  `/account/notifications` in their language) from `haci <noreply@hacininkokteylleri.tech>` and stamps `emailed_at`.
+  **Without the `RESEND_API_KEY` secret it sends and marks nothing.** pg_cron calls it every 15 minutes through pg_net
+  (the bearer is the public legacy anon key; the function uses Supabase's own service key — nothing secret in the app).
+- Wording lives in the function per locale (tr, en; others fall back to English).
+
+**Consequences.**
+- (+) Turning e-mails on is one secret in Supabase (Edge Functions → Secrets → `RESEND_API_KEY`).
+- (−) The privacy notice must name these e-mails before the key is set (the Resend line today names verification and
+  password e-mails only) — the user approves the text.
+- (−) The wording is a second copy of `describeNotification` (the function is Deno; kept short on purpose).

@@ -4,6 +4,7 @@ import AccountCard from "@/components/AccountCard";
 import { requireMember } from "@/lib/account";
 import AvatarField from "./AvatarField";
 import DeleteAccount from "./DeleteAccount";
+import EmailNotificationsToggle from "./EmailNotificationsToggle";
 import LogsDefaultToggle from "./LogsDefaultToggle";
 import ProfileForm from "./ProfileForm";
 import SignOutButton from "./SignOutButton";
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
 export default async function AccountPage() {
   const { supabase, profile, user } = await requireMember();
   const [{ data: settings }, { count: unread }] = await Promise.all([
-    supabase.from("account_settings").select("logs_public_default").eq("user_id", user.id).maybeSingle(),
+    supabase.from("account_settings").select("logs_public_default, email_notifications").eq("user_id", user.id).maybeSingle(),
     supabase
       .from("notifications")
       .select("id", { count: "exact", head: true })
@@ -48,6 +49,7 @@ export default async function AccountPage() {
             →
           </span>
         </Link>
+        <EmailNotificationsToggle initial={settings?.email_notifications ?? true} />
 
         <section>
           <div className="mb-4 flex items-baseline justify-between">

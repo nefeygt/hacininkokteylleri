@@ -102,3 +102,14 @@ export async function setLogsPublicDefault(isPublic: boolean): Promise<LogResult
   if (error) return { error: `Kaydedilemedi: ${error.message}` };
   return { ok: true };
 }
+
+/** Whether unread notifications are e-mailed as a digest (ADR-031). */
+export async function setEmailNotifications(on: boolean): Promise<LogResult> {
+  const session = await accountSession();
+  if (session.state !== "ok") return { error: SESSION_LOST };
+  const { supabase, user } = session;
+
+  const { error } = await supabase.from("account_settings").update({ email_notifications: on }).eq("user_id", user.id);
+  if (error) return { error: `Kaydedilemedi: ${error.message}` };
+  return { ok: true };
+}

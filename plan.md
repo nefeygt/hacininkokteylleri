@@ -150,6 +150,7 @@ In the user's words, collected while M0 was being built. Milestones in §6.
 | 028 | Six themes (Rx default) via `data-theme` + an inline boot script; reading text in a sans, mono for labels | Readable on phones; a choice of looks |
 | 029 | An `ingredients` catalogue; house recipe lines link to it; `/what-can-i-make` matches house recipes (ready + one missing) | The user chose the database over groups in code; house only |
 | 030 | Notifications written by database triggers; a bell (desktop) / a dot and an `/account` row (phones) | The council's round, package B; before the app's parity pass |
+| 031 | Notification e-mails: a digest from an Edge Function every 15 min (pg_cron), Resend; off until the key is set | The user adds the Resend key at home |
 | 020 | Expo app in `mobile/` (this repo), full parity, both stores, native Google + e-mail (+ Apple on iOS); site pages refreshed through `/api/revalidate` | The user's answers; shared types and validation, one handoff |
 | 024 | Store release waits (Apple account / a shared Play closed test); web first, one parity pass before release | Cheaper testers for three apps; no store round for an app that will change |
 
@@ -711,8 +712,9 @@ While the store release waits (ADR-024), the site gets better first; every user-
     a dry run finds 0 of 38 files), the Edge Function `cleanup-orphan-photos` (Storage API with Supabase's own service
     key), the workflow `cleanup-photos.yml` — **manual only**: the auto-mode classifier refused my test call (a bulk
     delete), so the first run and a weekly schedule are the user's call
-  - Not done, needing the user: e-mail notifications (a sender needs the user's Resend API key as a Supabase secret);
-    push notifications belong to the app (Expo push tokens) and come with or after the parity pass
+  - [x] E-mail notification infrastructure (ADR-031): opt-out on `/account`, `pending_notification_emails`, the Edge
+    Function `send-notification-emails` (checked: without the key it skips; 401 without a bearer), pg_cron every 15 min.
+    **Left for the user:** the `RESEND_API_KEY` secret and the privacy line. Push notifications belong to the app (Expo push tokens) and come with or after the parity pass
   - [ ] **Last step of M9, before the parity pass: translation** (out of the Icebox, the user 2026-10-26)
   - Videos stay in the Icebox: Gemini's free tier has no video model (Veo is paid per second); revisit with a budget
   - Not now (the council and the user, 2026-10-26): English localization, a rating breakdown (no reviews yet); the app's

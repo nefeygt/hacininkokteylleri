@@ -26,6 +26,8 @@ export type Database = {
           privacy_notice_version: string
           updated_at: string
           user_id: string
+          email_notifications: boolean
+          locale: string
         }
         Insert: {
           adult_confirmed_at?: string
@@ -34,6 +36,8 @@ export type Database = {
           privacy_notice_version: string
           updated_at?: string
           user_id: string
+          email_notifications?: boolean
+          locale?: string
         }
         Update: {
           adult_confirmed_at?: string
@@ -42,6 +46,8 @@ export type Database = {
           privacy_notice_version?: string
           updated_at?: string
           user_id?: string
+          email_notifications?: boolean
+          locale?: string
         }
         Relationships: []
       }
@@ -447,6 +453,7 @@ export type Database = {
           review_id: string | null
           type: Database["public"]["Enums"]["notification_type"]
           user_id: string
+          emailed_at: string | null
         }
         Insert: {
           actor_id?: string | null
@@ -460,6 +467,7 @@ export type Database = {
           review_id?: string | null
           type: Database["public"]["Enums"]["notification_type"]
           user_id: string
+          emailed_at?: string | null
         }
         Update: {
           actor_id?: string | null
@@ -473,6 +481,7 @@ export type Database = {
           review_id?: string | null
           type?: Database["public"]["Enums"]["notification_type"]
           user_id?: string
+          emailed_at?: string | null
         }
         Relationships: [
           {
@@ -834,6 +843,17 @@ export type Database = {
     }
     Functions: {
       delete_my_account: { Args: never; Returns: undefined }
+      pending_notification_emails: {
+        Args: never
+        Returns: {
+          display_name: string
+          email: string
+          locale: string
+          notification_ids: string[]
+          types: string[]
+          user_id: string
+        }[]
+      }
       orphan_photos: {
         Args: { max_rows?: number; min_age?: unknown }
         Returns: {
