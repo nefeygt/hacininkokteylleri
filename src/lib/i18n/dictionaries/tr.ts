@@ -701,6 +701,10 @@ export const tr = {
     drinkLog: "İçki günlüğü",
     noReviews: "Henüz değerlendirme yok.",
   },
+  og: {
+    cocktail: "Kokteyl",
+    memberRecipe: "Üye tarifi",
+  },
   logPage: {
     eyebrow: "Rx · Günlük kaydı",
     titleFrom: "{name} günlüğünden",

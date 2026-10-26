@@ -3,7 +3,8 @@
 import { revalidateLocalized } from "@/lib/i18n/revalidate";
 import { accountSession, PRIVACY_NOTICE_VERSION } from "@/lib/account";
 import { format } from "@/lib/i18n/format";
-import { actionDictionary } from "@/lib/i18n/server";
+import { isLocale } from "@/lib/i18n/locales";
+import { actionDictionary, actionLocale } from "@/lib/i18n/server";
 import { checkProfile, profileError, type ProfileFields } from "@/lib/profile";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { createClient } from "@/lib/supabase/server";
@@ -46,6 +47,8 @@ export async function completeOnboarding(formData: FormData): Promise<AccountRes
       { onConflict: "user_id", ignoreDuplicates: true }
     );
   if (settingsError) return { error: format(t.validation.saveFailed, { message: settingsError.message }) };
+  // E-mails go out in the language the member signed up in (ADR-032); the switcher updates it later.
+  await supabase.from("account_settings").update({ locale: await actionLocale() }).eq("user_id", user.id);
 
   const { error } = await supabase.from("profiles").insert({
     id: user.id,
@@ -135,4 +138,12 @@ export async function deleteAccount(confirmation: string): Promise<AccountResult
   revalidateLocalized("/cocktails"); // their reviews leave the averages
   revalidateLocalized("/cocktails/[slug]", "page");
   return { ok: true };
+}
+
+/** The language a member's e-mails use (ADR-032), set from the language switcher; ignored when signed out. */
+export async function rememberLocale(locale: string): Promise<void> {
+  if (!isLocale(locale)) return;
+  const session = await accountSession();
+  if (session.state !== "ok") return;
+  await session.supabase.from("account_settings").update({ locale }).eq("user_id", session.user.id);
 }

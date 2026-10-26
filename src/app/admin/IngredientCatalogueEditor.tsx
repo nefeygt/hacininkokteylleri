@@ -10,8 +10,9 @@ import {
   type IngredientCategory,
 } from "@/lib/ingredients";
 import { deleteCatalogueIngredient, saveCatalogueIngredient } from "./actions";
+import { emptyNames, PANEL_LOCALE_NAMES, TRANSLATED_LOCALES, type TranslatedLocale } from "./translations";
 
-type Item = CatalogueIngredient & { uses: number };
+type Item = CatalogueIngredient & { uses: number; translations: Record<TranslatedLocale, string> };
 
 const field =
   "w-full rounded border border-border bg-bg-primary px-3 py-2 text-sm text-text-primary outline-none transition-colors focus:border-crimson-glow/50";
@@ -20,21 +21,24 @@ function ItemRow({ initial }: { initial: Item | null }) {
   const [name, setName] = useState(initial?.name ?? "");
   const [category, setCategory] = useState<IngredientCategory>(initial?.category ?? "spirit");
   const [alwaysAtHand, setAlwaysAtHand] = useState(initial?.alwaysAtHand ?? false);
+  const [translations, setTranslations] = useState(initial?.translations ?? emptyNames);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const dirty =
     name !== (initial?.name ?? "") ||
     category !== (initial?.category ?? "spirit") ||
-    alwaysAtHand !== (initial?.alwaysAtHand ?? false);
+    alwaysAtHand !== (initial?.alwaysAtHand ?? false) ||
+    TRANSLATED_LOCALES.some((l) => translations[l] !== (initial?.translations[l] ?? ""));
 
   function save() {
     setError(null);
     startTransition(async () => {
-      const result = await saveCatalogueIngredient(initial?.id ?? null, name, category, alwaysAtHand);
+      const result = await saveCatalogueIngredient(initial?.id ?? null, name, category, alwaysAtHand, translations);
       if (result.error) setError(result.error);
       else if (!initial) {
         setName("");
         setAlwaysAtHand(false);
+        setTranslations(emptyNames());
       }
     });
   }
@@ -49,7 +53,7 @@ function ItemRow({ initial }: { initial: Item | null }) {
   }
 
   return (
-    <li className="grid items-center gap-2 p-3 sm:grid-cols-[1fr_220px_110px_auto]">
+    <li className="grid items-center gap-2 p-3 sm:grid-cols-[1fr_1fr_200px_100px_auto]">
       <input
         value={name}
         maxLength={CATALOGUE_NAME_MAX}
@@ -57,6 +61,17 @@ function ItemRow({ initial }: { initial: Item | null }) {
         placeholder={initial ? "Ad" : "Yeni malzeme"}
         className={field}
       />
+      {TRANSLATED_LOCALES.map((l) => (
+        <input
+          key={l}
+          value={translations[l]}
+          maxLength={CATALOGUE_NAME_MAX}
+          onChange={(e) => setTranslations((all) => ({ ...all, [l]: e.target.value }))}
+          placeholder={`${PANEL_LOCALE_NAMES[l]} ad`}
+          aria-label={`${PANEL_LOCALE_NAMES[l]} ad`}
+          className={field}
+        />
+      ))}
       <select value={category} onChange={(e) => setCategory(e.target.value as IngredientCategory)} className={field}>
         {INGREDIENT_CATEGORIES.map((c) => (
           <option key={c.value} value={c.value}>
@@ -95,7 +110,7 @@ function ItemRow({ initial }: { initial: Item | null }) {
           </>
         )}
       </div>
-      {error && <p className="text-xs text-crimson-glow sm:col-span-4">{error}</p>}
+      {error && <p className="text-xs text-crimson-glow sm:col-span-5">{error}</p>}
     </li>
   );
 }

@@ -1,6 +1,7 @@
 import { requireAdmin } from "@/lib/admin";
 import CocktailForm from "../../../CocktailForm";
 import { loadSuggestions } from "../../../suggestions";
+import { emptyNames, emptyTranslations } from "../../../translations";
 import type { CocktailInput } from "../../../types";
 
 export default async function NewCocktailPage() {
@@ -20,7 +21,7 @@ export default async function NewCocktailPage() {
     tags: [],
     color: "#c0392b",
     imagePath: null,
-    ingredients: [{ name: "", amount: 4, unit: "cl", icon: "shot", ingredientId: "" }],
+    ingredients: [{ name: "", amount: 4, unit: "cl", icon: "shot", ingredientId: "", translatedNames: emptyNames() }],
     instructions: [""],
     garnish: "",
     glass: "",
@@ -28,6 +29,7 @@ export default async function NewCocktailPage() {
     note: "",
     sortOrder: (last?.[0]?.sort_order ?? 0) + 10,
     isPublished: true,
+    translations: emptyTranslations(),
   };
 
   return (

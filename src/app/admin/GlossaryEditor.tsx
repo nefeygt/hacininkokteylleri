@@ -2,9 +2,15 @@
 
 import { useState, useTransition } from "react";
 import { Loader2, Plus, Trash2 } from "lucide-react";
-import { deleteGlossaryTerm, saveGlossaryTerm } from "./actions";
+import { deleteGlossaryTerm, saveGlossaryTerm, type TermTranslation } from "./actions";
+import { PANEL_LOCALE_NAMES, TRANSLATED_LOCALES, type TranslatedLocale } from "./translations";
 
-type Term = { term: string; definition: string };
+type Translations = Record<TranslatedLocale, TermTranslation>;
+type Term = { term: string; definition: string; translations: Translations };
+
+function emptyTermTranslations(): Translations {
+  return Object.fromEntries(TRANSLATED_LOCALES.map((l) => [l, { term: "", definition: "" }])) as Translations;
+}
 
 const field =
   "w-full rounded border border-border bg-bg-primary px-3 py-2 text-sm text-text-primary outline-none transition-colors focus:border-crimson-glow/50";
@@ -12,18 +18,27 @@ const field =
 function TermRow({ initial }: { initial: Term | null }) {
   const [term, setTerm] = useState(initial?.term ?? "");
   const [definition, setDefinition] = useState(initial?.definition ?? "");
+  const [translations, setTranslations] = useState<Translations>(initial?.translations ?? emptyTermTranslations);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-  const dirty = term !== (initial?.term ?? "") || definition !== (initial?.definition ?? "");
+  const dirty =
+    term !== (initial?.term ?? "") ||
+    definition !== (initial?.definition ?? "") ||
+    JSON.stringify(translations) !== JSON.stringify(initial?.translations ?? emptyTermTranslations());
+
+  function setTranslation(locale: TranslatedLocale, patch: Partial<TermTranslation>) {
+    setTranslations((all) => ({ ...all, [locale]: { ...all[locale], ...patch } }));
+  }
 
   function save() {
     setError(null);
     startTransition(async () => {
-      const result = await saveGlossaryTerm(initial?.term ?? null, term, definition);
+      const result = await saveGlossaryTerm(initial?.term ?? null, term, definition, translations);
       if (result.error) setError(result.error);
       else if (!initial) {
         setTerm("");
         setDefinition("");
+        setTranslations(emptyTermTranslations());
       }
     });
   }
@@ -46,7 +61,7 @@ function TermRow({ initial }: { initial: Term | null }) {
         placeholder="Açıklama"
         className={`${field} resize-y`}
       />
-      <div className="flex items-start gap-1">
+      <div className="flex items-start gap-1 sm:row-span-2">
         <button
           type="button"
           disabled={!dirty || pending}
@@ -68,6 +83,23 @@ function TermRow({ initial }: { initial: Term | null }) {
           </button>
         )}
       </div>
+      {TRANSLATED_LOCALES.map((l) => (
+        <div key={l} className="contents">
+          <input
+            value={translations[l].term}
+            onChange={(e) => setTranslation(l, { term: e.target.value })}
+            placeholder={`${PANEL_LOCALE_NAMES[l]} terim`}
+            className={`${field} sm:col-start-1`}
+          />
+          <textarea
+            rows={2}
+            value={translations[l].definition}
+            onChange={(e) => setTranslation(l, { definition: e.target.value })}
+            placeholder={`${PANEL_LOCALE_NAMES[l]} açıklama`}
+            className={`${field} resize-y`}
+          />
+        </div>
+      ))}
       {error && <p className="text-xs text-crimson-glow sm:col-span-3">{error}</p>}
     </li>
   );

@@ -22,7 +22,8 @@ export function alternatesFor(lang: Locale, path: string): Metadata["alternates"
   return { canonical, languages };
 }
 
-/** The share image of a recipe page: its photo, else the generated card under /og. */
+/** The share image of a recipe page: its photo, else the generated card under /og (in the page's language). */
 export function recipeOpenGraph(path: string, imageUrl?: string, lang: Locale = DEFAULT_LOCALE): Metadata["openGraph"] {
-  return { ...openGraphBase(lang), url: localePath(lang, path), images: [imageUrl ?? `/og${path}`] };
+  const card = lang === DEFAULT_LOCALE ? `/og${path}` : `/og${path}?lang=${lang}`;
+  return { ...openGraphBase(lang), url: localePath(lang, path), images: [imageUrl ?? card] };
 }

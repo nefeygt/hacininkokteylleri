@@ -10,7 +10,7 @@ import ReportProfileButton from "@/components/ReportProfileButton";
 import Stars from "@/components/Stars";
 import { getNewRecipes, recipeHref } from "@/lib/content";
 import { getDictionary } from "@/lib/i18n/dictionaries";
-import { format } from "@/lib/i18n/format";
+import { format, plural } from "@/lib/i18n/format";
 import { asLocale, DEFAULT_LOCALE, INTL_LOCALES, type Locale } from "@/lib/i18n/locales";
 import { createPublicClient } from "@/lib/supabase/public";
 
@@ -134,7 +134,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ lang: 
         <p className="font-mono text-[11px] text-text-secondary">
           <Link href={`/u/${profile.username}/followers`} className="hover:text-text-primary hover:underline">
             <strong className="text-text-primary">{followers}</strong>
-            {t.followersSuffix}
+            {plural(t.followersSuffix, followers)}
           </Link>{" "}
           ·{" "}
           <Link href={`/u/${profile.username}/following`} className="hover:text-text-primary hover:underline">

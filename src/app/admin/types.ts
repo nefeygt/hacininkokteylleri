@@ -1,5 +1,6 @@
 import type { IngredientIcon } from "@/lib/content";
 import type { CatalogueIngredient } from "@/lib/ingredients";
+import type { TranslatedLocale, TranslationInput } from "./translations";
 
 export interface IngredientInput {
   name: string;
@@ -8,6 +9,8 @@ export interface IngredientInput {
   icon: IngredientIcon;
   /** The catalogue ingredient (ADR-029); "" until one is picked. */
   ingredientId: string;
+  /** The line's name in other languages ("" shows the Turkish name there); moves with the line. */
+  translatedNames: Record<TranslatedLocale, string>;
 }
 
 /** What the cocktail form edits and `saveCocktail` receives. */
@@ -29,6 +32,8 @@ export interface CocktailInput {
   note: string;
   sortOrder: number;
   isPublished: boolean;
+  /** The recipe in other languages (ADR-032). */
+  translations: Record<TranslatedLocale, TranslationInput>;
 }
 
 /** Values already used elsewhere, offered as suggestions in the form. */

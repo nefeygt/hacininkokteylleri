@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { BRAND } from "@/lib/brand";
+import { DEFAULT_LOCALE, INTL_LOCALES, type Locale } from "@/lib/i18n/locales";
 
 // The share card (Open Graph image) for pages without a photo: WhatsApp, Instagram and X show it
 // when a link is shared. Rx's colours (src/app/globals.css), drawn by Satori, which needs real font
@@ -24,7 +25,17 @@ async function fonts() {
   ];
 }
 
-export async function ogCard({ label, title, subtitle }: { label: string; title: string; subtitle?: string }) {
+export async function ogCard({
+  label,
+  title,
+  subtitle,
+  locale = DEFAULT_LOCALE,
+}: {
+  label: string;
+  title: string;
+  subtitle?: string;
+  locale?: Locale;
+}) {
   const titleSize = title.length > 28 ? 72 : title.length > 16 ? 92 : 112;
   return new ImageResponse(
     (
@@ -42,7 +53,7 @@ export async function ogCard({ label, title, subtitle }: { label: string; title:
         }}
       >
         <div style={{ display: "flex", fontFamily: "Mono", fontSize: 26, letterSpacing: 6, color: "#d0453a" }}>
-          {`RX · ${label.toLocaleUpperCase("tr")}`}
+          {`RX · ${label.toLocaleUpperCase(INTL_LOCALES[locale])}`}
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ display: "flex", fontSize: titleSize, fontWeight: 700, lineHeight: 1.05, letterSpacing: -2 }}>

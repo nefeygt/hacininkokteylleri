@@ -10,6 +10,7 @@ import { SLUG_PATTERN } from "@/lib/slug";
 import { COCKTAIL_IMAGES_BUCKET } from "@/lib/supabase/config";
 import { Constants, type Database } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
+import { PANEL_LOCALE_NAMES, PANEL_LOCALE_OF, TRANSLATED_LOCALES, type TranslatedLocale } from "./translations";
 import type { CocktailInput } from "./types";
 
 // Public pages that show content. Every write revalidates them, so an edit is
@@ -184,6 +185,11 @@ export async function saveCocktail(input: CocktailInput): Promise<ActionResult> 
     return { error: `Kaydedilemedi: ${error.message}` };
   }
 
+  if (id) {
+    const problem = await saveCocktailTranslations(supabase, id, input);
+    if (problem) return { error: problem, id };
+  }
+
   // The old photo is no longer referenced; images are never overwritten in place (ADR-006).
   if (previousImage && previousImage !== input.imagePath) {
     await supabase.storage.from(COCKTAIL_IMAGES_BUCKET).remove([previousImage]);
@@ -192,6 +198,41 @@ export async function saveCocktail(input: CocktailInput): Promise<ActionResult> 
   revalidatePublicPages();
   revalidatePath("/admin", "layout");
   return { id: id ?? undefined };
+}
+
+type AdminClient = NonNullable<Awaited<ReturnType<typeof adminClient>>>;
+
+/**
+ * Writes the recipe's other languages (ADR-032): one row per language, deleted when every field is empty, so
+ * the site falls back to Turkish. Ingredient names are stored by position, steps without the empty lines.
+ */
+async function saveCocktailTranslations(supabase: AdminClient, id: string, input: CocktailInput): Promise<string | null> {
+  for (const locale of TRANSLATED_LOCALES) {
+    const t = input.translations[locale];
+    const names = input.ingredients.map((i) => i.translatedNames[locale].trim());
+    const row = {
+      cocktail_id: id,
+      locale,
+      name: t.name.trim() || null,
+      subtitle: t.subtitle.trim(),
+      base_alcohol: t.baseAlcohol.trim(),
+      flavor: t.flavor.trim(),
+      tags: t.tags.map((tag) => tag.trim()).filter(Boolean),
+      garnish: t.garnish.trim(),
+      glass: t.glass.trim(),
+      note: t.note.trim() || null,
+      instructions: t.instructions.map((step) => step.trim()).filter(Boolean),
+      ingredient_names: names.some(Boolean) ? names : [],
+    };
+    const empty =
+      !row.name && !row.subtitle && !row.base_alcohol && !row.flavor && row.tags.length === 0 && !row.garnish &&
+      !row.glass && !row.note && row.instructions.length === 0 && row.ingredient_names.length === 0;
+    const { error } = empty
+      ? await supabase.from("cocktail_translations").delete().eq("cocktail_id", id).eq("locale", locale)
+      : await supabase.from("cocktail_translations").upsert(row, { onConflict: "cocktail_id,locale" });
+    if (error) return `Türkçe kaydedildi, ${PANEL_LOCALE_OF[locale]} kaydedilemedi: ${error.message}`;
+  }
+  return null;
 }
 
 export async function setPublished(id: string, published: boolean): Promise<ActionResult> {
@@ -223,16 +264,26 @@ export async function deleteCocktail(id: string): Promise<ActionResult> {
 
 // ---------------------------------------------------------------- glossary
 
+/** A glossary term in another language: the word to underline there and its tooltip. */
+export type TermTranslation = { term: string; definition: string };
+
 export async function saveGlossaryTerm(
   originalTerm: string | null,
   term: string,
-  definition: string
+  definition: string,
+  translations: Record<TranslatedLocale, TermTranslation>
 ): Promise<ActionResult> {
   const supabase = await adminClient();
   if (!supabase) return { error: SESSION_LOST };
   term = term.trim();
   definition = definition.trim();
   if (!term || !definition) return { error: "Terim ve açıklama boş olamaz." };
+  for (const locale of TRANSLATED_LOCALES) {
+    const t = translations[locale];
+    if (!t.term.trim() !== !t.definition.trim()) {
+      return { error: `${PANEL_LOCALE_NAMES[locale]} terim ve açıklama birlikte doldurulmalı (ya da ikisi de boş).` };
+    }
+  }
 
   const { error } = originalTerm
     ? await supabase.from("glossary_terms").update({ term, definition }).eq("term", originalTerm)
@@ -241,6 +292,17 @@ export async function saveGlossaryTerm(
   if (error) {
     if (error.code === "23505") return { error: "Bu terim zaten sözlükte var." };
     return { error: error.message };
+  }
+
+  // A renamed term's translations followed it (on update cascade).
+  for (const locale of TRANSLATED_LOCALES) {
+    const t = translations[locale];
+    const { error: txError } = t.term.trim()
+      ? await supabase
+          .from("glossary_term_translations")
+          .upsert({ term, locale, translated_term: t.term.trim(), definition: t.definition.trim() }, { onConflict: "term,locale" })
+      : await supabase.from("glossary_term_translations").delete().eq("term", term).eq("locale", locale);
+    if (txError) return { error: `Türkçe kaydedildi, ${PANEL_LOCALE_OF[locale]} kaydedilemedi: ${txError.message}` };
   }
 
   revalidatePublicPages();
@@ -264,7 +326,8 @@ export async function saveCatalogueIngredient(
   id: string | null,
   name: string,
   category: IngredientCategory,
-  alwaysAtHand: boolean
+  alwaysAtHand: boolean,
+  translations: Record<TranslatedLocale, string>
 ): Promise<ActionResult> {
   const supabase = await adminClient();
   if (!supabase) return { error: SESSION_LOST };
@@ -273,14 +336,30 @@ export async function saveCatalogueIngredient(
   if (name.length > CATALOGUE_NAME_MAX) return { error: `Ad en fazla ${CATALOGUE_NAME_MAX} karakter olabilir.` };
   if (!Constants.public.Enums.ingredient_category.includes(category)) return { error: "Grup geçersiz." };
 
+  for (const locale of TRANSLATED_LOCALES) {
+    if (translations[locale].trim().length > CATALOGUE_NAME_MAX) {
+      return { error: `${PANEL_LOCALE_OF[locale]} en fazla ${CATALOGUE_NAME_MAX} karakter olabilir.` };
+    }
+  }
+
   const row = { name, category, always_at_hand: alwaysAtHand };
-  const { error } = id
-    ? await supabase.from("ingredients").update(row).eq("id", id)
-    : await supabase.from("ingredients").insert(row);
+  const { data, error } = id
+    ? await supabase.from("ingredients").update(row).eq("id", id).select("id").single()
+    : await supabase.from("ingredients").insert(row).select("id").single();
 
   if (error) {
     if (error.code === "23505") return { error: "Bu malzeme katalogda zaten var." };
     return { error: error.message };
+  }
+
+  for (const locale of TRANSLATED_LOCALES) {
+    const translated = translations[locale].trim();
+    const { error: txError } = translated
+      ? await supabase
+          .from("ingredient_translations")
+          .upsert({ ingredient_id: data.id, locale, name: translated }, { onConflict: "ingredient_id,locale" })
+      : await supabase.from("ingredient_translations").delete().eq("ingredient_id", data.id).eq("locale", locale);
+    if (txError) return { error: `Türkçe kaydedildi, ${PANEL_LOCALE_OF[locale]} kaydedilemedi: ${txError.message}` };
   }
 
   revalidatePublicPages();

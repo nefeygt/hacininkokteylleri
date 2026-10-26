@@ -11,6 +11,8 @@ import { deleteCocktail, saveCocktail } from "./actions";
 import ImageField from "@/components/ImageField";
 import type { CocktailInput, IngredientInput, Suggestions } from "./types";
 import GlassPicker from "@/components/GlassPicker";
+import CocktailTranslation from "./CocktailTranslation";
+import { emptyNames, TRANSLATED_LOCALES, type TranslatedLocale, type TranslationInput } from "./translations";
 
 // What each icon means on the recipe card (VisualQuantity draws one per unit).
 const ICONS: { value: IngredientIcon; label: string }[] = [
@@ -56,6 +58,9 @@ export default function CocktailForm({
   const isNew = !initial.id;
   const [form, setForm] = useState(initial);
   const [tagsText, setTagsText] = useState(initial.tags.join(", "));
+  const [translatedTags, setTranslatedTags] = useState(
+    () => Object.fromEntries(TRANSLATED_LOCALES.map((l) => [l, initial.translations[l].tags.join(", ")])) as Record<TranslatedLocale, string>
+  );
   const [slugEdited, setSlugEdited] = useState(!isNew);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -72,6 +77,10 @@ export default function CocktailForm({
     set("ingredients", form.ingredients.map((ing, i) => (i === index ? { ...ing, ...patch } : ing)));
   }
 
+  function setTranslation(locale: TranslatedLocale, patch: Partial<TranslationInput>) {
+    set("translations", { ...form.translations, [locale]: { ...form.translations[locale], ...patch } });
+  }
+
   function setStep(index: number, text: string) {
     set("instructions", form.instructions.map((s, i) => (i === index ? text : s)));
   }
@@ -79,9 +88,13 @@ export default function CocktailForm({
   function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    const splitTags = (text: string) => text.split(",").map((t) => t.trim()).filter(Boolean);
     const input: CocktailInput = {
       ...form,
-      tags: tagsText.split(",").map((t) => t.trim()).filter(Boolean),
+      tags: splitTags(tagsText),
+      translations: Object.fromEntries(
+        TRANSLATED_LOCALES.map((l) => [l, { ...form.translations[l], tags: splitTags(translatedTags[l]) }])
+      ) as CocktailInput["translations"],
     };
     startTransition(async () => {
       const result = await saveCocktail(input);
@@ -281,7 +294,7 @@ export default function CocktailForm({
         </div>
         <button
           type="button"
-          onClick={() => set("ingredients", [...form.ingredients, { name: "", amount: 1, unit: "cl", icon: "shot", ingredientId: "" }])}
+          onClick={() => set("ingredients", [...form.ingredients, { name: "", amount: 1, unit: "cl", icon: "shot", ingredientId: "", translatedNames: emptyNames() }])}
           className="mt-3 inline-flex items-center gap-1.5 text-xs text-text-secondary hover:text-crimson-glow"
         >
           <Plus className="h-3.5 w-3.5" /> Malzeme ekle
@@ -356,6 +369,23 @@ export default function CocktailForm({
           </div>
         </div>
       </Section>
+
+      {TRANSLATED_LOCALES.map((locale) => (
+        <CocktailTranslation
+          key={locale}
+          locale={locale}
+          form={{ ...form, tags: tagsText.split(",").map((t) => t.trim()).filter(Boolean) }}
+          tagsText={translatedTags[locale]}
+          onTagsText={(text) => {
+            setTranslatedTags((all) => ({ ...all, [locale]: text }));
+            setSaved(false);
+          }}
+          onChange={(patch) => setTranslation(locale, patch)}
+          onIngredientName={(i, name) =>
+            setIngredient(i, { translatedNames: { ...form.ingredients[i].translatedNames, [locale]: name } })
+          }
+        />
+      ))}
 
       {!isNew && (
         <Section title="Tehlikeli bölge">

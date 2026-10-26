@@ -4,12 +4,14 @@ import NextLink from "next/link";
 import { usePathname } from "next/navigation";
 import { Languages } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { rememberLocale } from "@/app/[lang]/(site)/account/actions";
 import { LOCALE_NAMES, localePath, PUBLISHED_LOCALES, splitLocale } from "@/lib/i18n/locales";
 import { useLocale } from "./LocaleProvider";
 
 /**
  * The page in another language (ADR-032): the same path with the other prefix. Hidden while only one language
- * is published. Plain next/link, since the target already carries its prefix.
+ * is published. Plain next/link, since the target already carries its prefix. A signed-in member's e-mails
+ * follow the choice (rememberLocale does nothing for visitors).
  */
 export default function LanguageSwitcher() {
   const { locale, t } = useLocale();
@@ -57,7 +59,10 @@ export default function LanguageSwitcher() {
                 hrefLang={l}
                 lang={l}
                 aria-current={l === locale ? "true" : undefined}
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  setOpen(false);
+                  if (l !== locale) void rememberLocale(l);
+                }}
                 className={`block rounded-md px-2.5 py-2 text-sm transition-colors hover:bg-bg-elevated ${
                   l === locale ? "text-crimson-glow" : "text-text-primary"
                 }`}

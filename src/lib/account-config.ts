@@ -12,7 +12,7 @@ import { format } from "./i18n/format";
 export const ACCOUNTS_OPEN = true;
 
 /** Shown at onboarding and stored in account_settings. Bump it when /privacy changes. */
-export const PRIVACY_NOTICE_VERSION = "2026-10-26";
+export const PRIVACY_NOTICE_VERSION = "2026-10-26.2";
 
 /** Matches "Minimum password length" in Supabase Auth, which is the rule; the form only warns early. */
 export const MIN_PASSWORD_LENGTH = 8;

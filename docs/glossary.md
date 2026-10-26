@@ -21,6 +21,8 @@ into the text.** Spanish, German… will get a column each. Started 2026-10-26 f
   next_session.md.)*
 - **Members' recipes and comments are never translated** — they stay in the language they were written in.
 - **Placeholders** `{name}` are kept exactly; word order around them may change.
+- **Counts:** a string with `{n}` that needs a singular is written "one|other" (`"{n} vote|{n} votes"`); `format()` picks
+  by `n` (`plural()` in `src/lib/i18n/format.ts`). Turkish strings have no "|".
 - **Form errors** address the reader ("Pick a rating…"), never blame ("Invalid input").
 - **Don't translate:** URLs, slugs, `cl`/`ml`/`oz`, product names (Aperol, Baileys, Jägermeister, Malibu, Prosecco,
   Sprite, Campari), `Top up` (see below), the theme name "Rx".
@@ -54,10 +56,10 @@ for an amount of 1). A unit the list does not know (a member typed it) shows as 
 |---|---|
 | Shot / ölçü | Shot / measure |
 | Şurup / kaşık | Syrup / spoon |
-| Dash | Dash |
-| Damla | Drop |
-| Dilim | Slice |
-| Top up | Top up |
+| Az (dash) | A little (dash) |
+| Damla / adet | Drop / piece |
+| Dilim / yaprak | Slice / leaf |
+| Tamamla (top up) | Top up |
 
 ## Glasses
 
@@ -177,7 +179,7 @@ Juices: Ananas Suyu Pineapple juice · Cranberry Suyu Cranberry juice · Elma Su
 juice · Nar Suyu Pomegranate juice · Portakal Suyu Orange juice.
 Syrups and sweeteners: Bal Honey · Blue Curaçao Şurubu Blue curaçao syrup · Çilek Püresi Strawberry purée · Çilek Şurubu
 Strawberry syrup · Esmer Şeker Brown sugar · Frambuaz Şurubu Raspberry syrup · Grenadine · Şeker Şurubu Simple syrup ·
-Sweet & Sour.
+Sweet & Sour **Sweet & sour mix** (the catalogue and the recipe lines).
 Mixers: Çay Tea · Hibiskus Çayı Hibiscus tea · Kahve Coffee · Kola Cola · Krema Cream · Soda Soda water · Sprite ·
 Süt Milk · Tonik Tonic water · Zencefilli Gazoz Ginger soda.
 Fresh: Adaçayı Sage · Böğürtlen Blackberry · Çilek Strawberry · Elma Apple · Fesleğen Basil · Kuzu Kulağı **Sorrel**
@@ -253,6 +255,13 @@ Kâğıt Rx **Paper Rx**.
 - **Members' recipes and comments are not translated**; on an English page their Turkish terms keep their tooltips
   (`getGlossary(lang, true)`).
 - **Page titles:** "Elimde ne var?" is "What do I have?" everywhere (page title, link, form text).
+
+## Final check (2026-10-26, Opus session)
+
+All 38 recipe rows, 52 catalogue rows, 4 glossary rows and `en.ts` were read against this file. Fixed: B-52's garnish
+("Flame (optional: light it)", migration `translations_en_review`), English counts in the singular ("1 vote", not
+"1 votes"), the hero tagline in sentence case. Confirmed as written: "mint and sugar" in the Mojito follows the Turkish
+step; "fine strainer" where the Turkish says "ince süzgeç" and "double-strain" only for "çift süzgeç".
 
 ## Inconsistencies found (2026-10-26) — resolve in the final check
 

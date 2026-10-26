@@ -4,6 +4,7 @@ import Link from "@/components/LocaleLink";
 import { useCallback, useEffect, useState } from "react";
 import { Bell, UserRound } from "lucide-react";
 import { ACCOUNTS_OPEN } from "@/lib/account-config";
+import { format } from "@/lib/i18n/format";
 import { createClient } from "@/lib/supabase/browser";
 import { useLocale } from "./LocaleProvider";
 import { NOTIFICATIONS_SEEN_EVENT } from "./NotificationsSeen";
@@ -81,7 +82,7 @@ export default function AccountLink({ pathname }: { pathname: string }) {
       )}
       <Link
         href={signedIn ? "/account" : "/login"}
-        aria-label={signedIn && unread > 0 ? t.nav.accountNew.replace("{n}", String(unread)) : undefined}
+        aria-label={signedIn && unread > 0 ? format(t.nav.accountNew, { n: unread }) : undefined}
         className={`${linkClass(accountActive)} ml-1`}
       >
         <UserRound className="h-3.5 w-3.5" />
