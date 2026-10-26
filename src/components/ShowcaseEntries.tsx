@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { ArrowBigUp } from "lucide-react";
-import { setShowcaseVote } from "@/app/(site)/feed/actions";
+import { setShowcaseVote } from "@/app/[lang]/(site)/feed/actions";
 import CocktailCard from "@/components/CocktailCard";
 import { ReportIfSignedIn } from "@/components/ReportProfileButton";
 import { useMember } from "@/components/useMember";

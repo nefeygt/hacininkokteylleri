@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { Wine, Leaf, Star, Heart, ZoomIn } from "lucide-react";
 import { formatAverage } from "@/lib/community";
 import type { Cocktail } from "@/lib/content";

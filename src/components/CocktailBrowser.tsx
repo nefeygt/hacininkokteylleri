@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { Search, X, SlidersHorizontal, Heart } from "lucide-react";
-import { setFavorite } from "@/app/(site)/cocktails/actions";
+import { setFavorite } from "@/app/[lang]/(site)/cocktails/actions";
 import CocktailCard from "@/components/CocktailCard";
 import CocktailModal from "@/components/CocktailModal";
 import { CollectionLinks } from "@/components/CollectionView";

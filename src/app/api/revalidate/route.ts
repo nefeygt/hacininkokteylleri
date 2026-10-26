@@ -1,4 +1,4 @@
-import { revalidatePath } from "next/cache";
+import { revalidateLocalized } from "@/lib/i18n/revalidate";
 import { SLUG_PATTERN } from "@/lib/slug";
 import { createPublicClient } from "@/lib/supabase/public";
 
@@ -63,11 +63,11 @@ export async function POST(request: Request) {
   }
 
   for (const path of new Set(paths)) {
-    if (path === EVERY_RECIPE_PAGE) revalidatePath(path, "page");
-    else revalidatePath(path);
+    if (path === EVERY_RECIPE_PAGE) revalidateLocalized(path, "page");
+    else revalidateLocalized(path);
     // House recipes have their own pages too (ADR-025): whatever moves the
     // archive's averages moves theirs. The app keeps sending "/cocktails".
-    if (path === "/cocktails") revalidatePath("/cocktails/[slug]", "page");
+    if (path === "/cocktails") revalidateLocalized("/cocktails/[slug]", "page");
   }
   return reply({ ok: true, revalidated: paths.length });
 }

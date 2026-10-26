@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Flag } from "lucide-react";
-import { reportContent, type ReportableTarget } from "@/app/(site)/cocktails/actions";
+import { reportContent, type ReportableTarget } from "@/app/[lang]/(site)/cocktails/actions";
 import { REPORT_REASON_MAX_LENGTH } from "@/lib/community";
 
 /** "Bildir": opens a small inline form with an optional reason, then sends the report. */

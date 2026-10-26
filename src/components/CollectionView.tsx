@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import CocktailCard from "@/components/CocktailCard";
 import { recipeHref, type Cocktail } from "@/lib/content";
 import { collectionHref, collectionIntro, collectionTitle, type Collection } from "@/lib/collections";

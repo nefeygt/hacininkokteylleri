@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { useCallback, useEffect, useState, useTransition } from "react";
-import { deleteReview, saveReview } from "@/app/(site)/cocktails/actions";
+import { deleteReview, saveReview } from "@/app/[lang]/(site)/cocktails/actions";
 import Avatar from "@/components/Avatar";
 import ReportButton from "@/components/ReportButton";
 import Stars from "@/components/Stars";

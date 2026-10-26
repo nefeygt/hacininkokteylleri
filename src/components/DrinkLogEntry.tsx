@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { Lock, Globe, MessageCircle } from "lucide-react";
 import Avatar from "@/components/Avatar";
 import Stars from "@/components/Stars";

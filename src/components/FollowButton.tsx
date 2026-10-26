@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
-import { setFollow } from "@/app/(site)/u/actions";
+import { setFollow } from "@/app/[lang]/(site)/u/actions";
 import { ACCOUNTS_OPEN } from "@/lib/account-config";
 import { createClient } from "@/lib/supabase/browser";
 

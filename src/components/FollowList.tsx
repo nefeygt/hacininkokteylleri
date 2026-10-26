@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import Avatar from "@/components/Avatar";
 import { createPublicClient } from "@/lib/supabase/public";
 

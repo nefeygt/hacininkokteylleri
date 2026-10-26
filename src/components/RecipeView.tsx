@@ -1,9 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { Leaf, Pencil } from "lucide-react";
-import { setFavorite } from "@/app/(site)/cocktails/actions";
+import { setFavorite } from "@/app/[lang]/(site)/cocktails/actions";
 import type { Cocktail } from "@/lib/content";
 import Avatar from "./Avatar";
 import CocktailReviews from "./CocktailReviews";

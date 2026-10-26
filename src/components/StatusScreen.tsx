@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 
 // The frame of the site's 404 and error pages: a prescription-style code, a line and a way back.
 export default function StatusScreen({

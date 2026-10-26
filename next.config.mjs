@@ -28,6 +28,9 @@ const nextConfig = {
       ["/dogrula", "/verify"],
     ].map(([source, destination]) => ({ source, destination, permanent: true }));
   },
+  // One root layout per tree (the site under [lang], the panel under admin), so unmatched addresses get
+  // src/app/global-not-found.tsx (ADR-032).
+  experimental: { globalNotFound: true },
   // The admin panel is developed at http://admin.localhost:3000 (ADR-007).
   allowedDevOrigins: ["admin.localhost"],
 };

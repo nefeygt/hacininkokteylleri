@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { useCallback, useEffect, useState, useTransition } from "react";
-import { addLogComment, deleteLogComment, editLogComment } from "@/app/(site)/logs/actions";
+import { addLogComment, deleteLogComment, editLogComment } from "@/app/[lang]/(site)/logs/actions";
 import Avatar from "@/components/Avatar";
 import ReportButton from "@/components/ReportButton";
 import { useMember } from "@/components/useMember";

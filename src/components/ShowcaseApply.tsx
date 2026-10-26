@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, useTransition } from "react";
-import { applyToShowcase, withdrawShowcaseEntry } from "@/app/(site)/feed/actions";
+import { applyToShowcase, withdrawShowcaseEntry } from "@/app/[lang]/(site)/feed/actions";
 import { useMember } from "@/components/useMember";
 import { PITCH_MAX_LENGTH, STATUS_LABELS, type ShowcasePeriod } from "@/lib/showcase";
 import type { Database } from "@/lib/supabase/database.types";

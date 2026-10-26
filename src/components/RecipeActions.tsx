@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { Heart, NotebookPen } from "lucide-react";
 import type { Cocktail } from "@/lib/content";
 import type { Member } from "./useMember";

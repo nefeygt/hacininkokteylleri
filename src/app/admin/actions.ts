@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { revalidateLocalized } from "@/lib/i18n/revalidate";
 import { adminSession } from "@/lib/admin";
 import { BRAND } from "@/lib/brand";
 import { CATALOGUE_NAME_MAX, type IngredientCategory } from "@/lib/ingredients";
@@ -14,12 +15,12 @@ import type { CocktailInput } from "./types";
 // Public pages that show content. Every write revalidates them, so an edit is
 // live on the site at once instead of within the hour (ADR-005).
 function revalidatePublicPages() {
-  revalidatePath("/cocktails");
-  revalidatePath("/cocktails/[slug]", "page");
-  revalidatePath("/cocktails/spirit/[slug]", "page");
-  revalidatePath("/cocktails/flavor/[slug]", "page");
-  revalidatePath("/what-can-i-make");
-  revalidatePath("/glossary");
+  revalidateLocalized("/cocktails");
+  revalidateLocalized("/cocktails/[slug]", "page");
+  revalidateLocalized("/cocktails/spirit/[slug]", "page");
+  revalidateLocalized("/cocktails/flavor/[slug]", "page");
+  revalidateLocalized("/what-can-i-make");
+  revalidateLocalized("/glossary");
 }
 
 export type ActionResult = { error?: string; id?: string; ok?: boolean };
@@ -318,7 +319,7 @@ export async function setReviewHidden(id: string, hidden: boolean): Promise<Acti
   if (error) return { error: `Kaydedilemedi: ${error.message}` };
 
   revalidatePublicPages();
-  if (data?.profiles) revalidatePath(`/u/${data.profiles.username}`);
+  if (data?.profiles) revalidateLocalized(`/u/${data.profiles.username}`);
   revalidatePath("/admin/moderation");
   return { ok: true };
 }
@@ -338,9 +339,9 @@ export async function setProfileHidden(id: string, hidden: boolean): Promise<Act
   // A hidden profile's reviews leave the averages too (cocktail_ratings), and
   // its recipes the feed and the home page's showcase winner.
   revalidatePublicPages();
-  revalidatePath("/feed");
-  revalidatePath("/");
-  if (data) revalidatePath(`/u/${data.username}`);
+  revalidateLocalized("/feed");
+  revalidateLocalized("/");
+  if (data) revalidateLocalized(`/u/${data.username}`);
   revalidatePath("/admin/moderation");
   return { ok: true };
 }
@@ -357,8 +358,8 @@ export async function setDrinkLogHidden(id: string, hidden: boolean): Promise<Ac
     .maybeSingle();
   if (error) return { error: `Kaydedilemedi: ${error.message}` };
 
-  if (data?.profiles) revalidatePath(`/u/${data.profiles.username}`);
-  revalidatePath(`/logs/${id}`);
+  if (data?.profiles) revalidateLocalized(`/u/${data.profiles.username}`);
+  revalidateLocalized(`/logs/${id}`);
   revalidatePath("/admin/moderation");
   return { ok: true };
 }
@@ -377,11 +378,11 @@ export async function setRecipeHidden(id: string, hidden: boolean): Promise<Acti
     .maybeSingle();
   if (error) return { error: `Kaydedilemedi: ${error.message}` };
 
-  if (data) revalidatePath(`/recipes/${data.slug}`);
-  if (data?.profiles) revalidatePath(`/u/${data.profiles.username}`);
-  revalidatePath("/feed");
-  revalidatePath("/");
-  revalidatePath("/what-can-i-make");
+  if (data) revalidateLocalized(`/recipes/${data.slug}`);
+  if (data?.profiles) revalidateLocalized(`/u/${data.profiles.username}`);
+  revalidateLocalized("/feed");
+  revalidateLocalized("/");
+  revalidateLocalized("/what-can-i-make");
   revalidatePath("/admin/moderation");
   return { ok: true };
 }
@@ -419,8 +420,8 @@ export async function resolveReport(id: string): Promise<ActionResult> {
 // winner is derived from the votes, never written (ADR-014, ADR-019). The feed
 // shows the open period and the home page the latest winner, so both follow.
 function revalidateShowcase() {
-  revalidatePath("/feed");
-  revalidatePath("/");
+  revalidateLocalized("/feed");
+  revalidateLocalized("/");
   revalidatePath("/admin/showcase");
 }
 

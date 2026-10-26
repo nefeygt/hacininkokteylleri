@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { useCallback, useEffect, useState } from "react";
 import { Bell, UserRound } from "lucide-react";
 import { ACCOUNTS_OPEN } from "@/lib/account-config";

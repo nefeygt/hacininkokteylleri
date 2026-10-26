@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useCallback } from "react";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { X, Leaf, ArrowUpRight } from "lucide-react";
 import { recipeHref, type Cocktail } from "@/lib/content";
 import CocktailReviews from "./CocktailReviews";
