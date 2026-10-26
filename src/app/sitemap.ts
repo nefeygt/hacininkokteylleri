@@ -1,4 +1,6 @@
 import type { MetadataRoute } from "next";
+import { collectionHref, collections } from "@/lib/collections";
+import { getPublishedCocktails } from "@/lib/content";
 import { createPublicClient } from "@/lib/supabase/public";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://hacininkokteylleri.tech";
@@ -11,7 +13,7 @@ export const revalidate = 3600;
 // are shared by link.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const supabase = createPublicClient();
-  const [{ data: cocktails }, { data: recipes }] = await Promise.all([
+  const [{ data: cocktails }, { data: recipes }, archive] = await Promise.all([
     supabase
       .from("cocktails")
       .select("slug, updated_at")
@@ -25,13 +27,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .eq("is_published", true)
       .order("created_at", { ascending: false })
       .limit(5000),
+    getPublishedCocktails(),
   ]);
+  // The collections' landing pages and the glossary (M9 package C).
+  const landing = [...collections("spirit", archive), ...collections("flavor", archive)];
 
   return [
     { url: `${SITE_URL}/`, changeFrequency: "monthly", priority: 1 },
     { url: `${SITE_URL}/cocktails`, changeFrequency: "weekly", priority: 0.8 },
     { url: `${SITE_URL}/what-can-i-make`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${SITE_URL}/feed`, changeFrequency: "daily", priority: 0.6 },
+    { url: `${SITE_URL}/glossary`, changeFrequency: "monthly", priority: 0.5 },
+    ...landing.map((c) => ({
+      url: `${SITE_URL}${collectionHref(c)}`,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    })),
     ...(cocktails ?? []).map((c) => ({
       url: `${SITE_URL}/cocktails/${c.slug}`,
       lastModified: c.updated_at,

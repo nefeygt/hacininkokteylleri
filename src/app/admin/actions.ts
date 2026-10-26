@@ -16,7 +16,10 @@ import type { CocktailInput } from "./types";
 function revalidatePublicPages() {
   revalidatePath("/cocktails");
   revalidatePath("/cocktails/[slug]", "page");
+  revalidatePath("/cocktails/spirit/[slug]", "page");
+  revalidatePath("/cocktails/flavor/[slug]", "page");
   revalidatePath("/what-can-i-make");
+  revalidatePath("/glossary");
 }
 
 export type ActionResult = { error?: string; id?: string; ok?: boolean };

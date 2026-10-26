@@ -6,6 +6,7 @@ import { Search, X, SlidersHorizontal, Heart } from "lucide-react";
 import { setFavorite } from "@/app/(site)/cocktails/actions";
 import CocktailCard from "@/components/CocktailCard";
 import CocktailModal from "@/components/CocktailModal";
+import { CollectionLinks } from "@/components/CollectionView";
 import { useMember } from "@/components/useMember";
 import {
   ALL,
@@ -15,6 +16,7 @@ import {
   filterCocktails,
   hasActiveFilters as anyActive,
 } from "@/lib/archive-filter";
+import { collections } from "@/lib/collections";
 import { recipeHref, type Cocktail } from "@/lib/content";
 
 // A card opens the recipe's page; its magnifier opens the recipe over the
@@ -28,6 +30,8 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
   const [selectedFlavor, setSelectedFlavor] = useState(ALL);
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const spiritCollections = useMemo(() => collections("spirit", cocktails), [cocktails]);
+  const flavorCollections = useMemo(() => collections("flavor", cocktails), [cocktails]);
   const [showFilters, setShowFilters] = useState(true);
   const [onlyFavorites, setOnlyFavorites] = useState(false);
   const { member, favorites, markFavorite } = useMember();
@@ -238,6 +242,18 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
           </button>
         </div>
       )}
+
+      {/* The collections' landing pages (M9 package C): crawlable paths into the archive. */}
+      <section className="mt-16 space-y-5 border-t border-border pt-8">
+        <CollectionLinks heading="Baz içkiye göre" items={spiritCollections} />
+        <CollectionLinks heading="Tada göre" items={flavorCollections} />
+        <p className="text-xs text-text-muted">
+          Altı çizili terimler ne demek?{" "}
+          <Link href="/glossary" className="text-crimson-glow hover:underline">
+            Kokteyl sözlüğü →
+          </Link>
+        </p>
+      </section>
 
       {/* Modal */}
       {selectedCocktail && (

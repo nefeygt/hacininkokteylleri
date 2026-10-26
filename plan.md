@@ -678,7 +678,11 @@ While the store release waits (ADR-024), the site gets better first; every user-
     `/privacy`); share cards (a generated OG image when a recipe has no photo, descriptions on every page); a PWA manifest
   - [x] **B — Notifications** (2026-10-26, ADR-030; SQL-tested in a rolled-back transaction, not yet seen signed in): a `notifications` table filled by triggers (new follower, a comment on your log, a showcase
     application approved/rejected, your content hidden), a bell in the navbar, `/account/notifications`
-  - [ ] **C — Found on Google:** landing pages per base spirit and flavour, a public glossary with a page per term, in the sitemap
+  - [x] **C — Found on Google** (2026-10-26): `/cocktails/spirit/{slug}` and `/cocktails/flavor/{slug}` (values with ≥ 2
+    house recipes: 6 + 6; an intro line each, `ItemList` JSON-LD, links between them; `src/lib/collections.ts`), one
+    `/glossary` page (4 terms are too few for a page each; `DefinedTermSet` JSON-LD, the recipes using each term), linked
+    from the archive's foot, in the sitemap, revalidated by panel writes. Content note: "Simple Syrup" is used by no
+    recipe and repeats "Şeker Şurubu" — the user's call in the panel
   - [ ] **D — First impression:** empty states with house picks, filters and sort (incl. by rating) in the archive URL,
     "Günün kokteyli" on the home page
   - Not now (the council and the user, 2026-10-26): English localization, a rating breakdown (no reviews yet); the app's
