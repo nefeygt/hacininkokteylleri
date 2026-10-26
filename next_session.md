@@ -8,6 +8,10 @@
 the Icebox (the user: Turkish and English are enough for now). **Next: the mobile parity pass** — the user's go,
 2026-10-26 — with the aim of a production-ready haci. The store upload still waits for the Apple account or the user's
 two other Play apps (ADR-024). `main` is pushed and deployed.
+
+**Model split (the user, 2026-10-26):** the parity pass runs over several chats. Each step below is tagged
+**[opus]** or **[sonnet]**; a session works through consecutive steps of its own tag and stops before a step with the
+other tag (see "Model handoff"). **The first session is [opus]** (step 1).
 ---
 
 ## 📋 Prompt to Copy
@@ -42,6 +46,11 @@ WORKING RULES:
   Vercel, Supabase, Namify, Google Cloud and Search Console). plan.md §5.4 has the commands.
 - Use your own judgement on small calls; only use AskUserQuestion for things that
   genuinely change direction.
+- MODEL HANDOFF: steps in "This Session's Task" are tagged [opus] or [sonnet]. Do the
+  consecutive steps that match the model you run on, starting from the first open one.
+  Before a step with the other tag: stop, do the end-of-session routine below, then tell
+  me in Turkish: "Sıradaki adım [opus|sonnet] — yeni bir sohbette o modelle devam et."
+  Also stop and hand off the same way if the context is getting full.
 
 AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 - Update plan.md: status board, milestone checkboxes, session log
@@ -58,24 +67,38 @@ The user (2026-10-26): "close M9, move to the mobile parity pass and get product
 57) did everything the site did on 2026-10-15; since then the site gained everything in **"Web changes since
 2026-10-15"** below. Port it, then make the app release-ready.
 
-**Before you build, ask the user in one message** (see "Questions for the User"): does the app get English and the six
-themes now, or stay Turkish and Rx-only for the first release? Then propose an order and go.
+**Step 1 asks the user in one message** (see "Questions for the User"): English in the app, the six themes or Rx only,
+push notifications. The answers decide which later steps exist.
 
-Suggested order (each step: typecheck in `mobile/`, the site's `npm run build` when a shared `src/lib` module changes,
-check in Expo web at phone width — `npx expo start --web --port 8081`, the built-in browser — then commit):
-1. **State check** (the "State check" under the parked store section): `git status`, `npm ci` in `mobile/` if
-   `node_modules` is missing, `npx expo install --check`, Supabase `list_migrations` (32, the latest
-   `20261026100157_translations_en_names_glossary_dedupe`).
-2. **Recipe screen:** "Kaç kişilik?", "cl | oz", "Paylaş" with the site's URL, "Benzer kokteyller", the rating
-   breakdown, glossary as already done; links to house recipes point to `/cocktails/{slug}`.
-3. **Archive tab:** the sort choices, "Günün kokteyli" and house picks on the feed/home, "Elimde ne var?" (chips from
-   `ingredients`, `matchCocktails`), optionally collection chips.
-4. **Community:** notifications screen + badge, follower lists, comment editing ("düzenlendi"), the glass picker in the
-   log and recipe forms (react-native-svg), the catalogue select per line in the member recipe form.
-5. **Look:** the theme decision (ADR-028) and IBM Plex Sans for reading text.
-6. **Languages** only if the user wants them in the app (ADR-032: dictionaries are shared through `@shared/i18n`,
-   content through `cocktail_translations`).
-7. **Release readiness:** package updates, `npx expo-doctor`, a new development build (`eas build`), the user's phone
+Order, with the model for each step. **Every step's check:** `npm run typecheck` in `mobile/`; the site's
+`npm run build` when a shared `src/lib` module changes; the bundles build (`npx expo export ...`, plan.md §5.4); and the
+changed screens seen in Expo web at phone width (`npx expo start --web --port 8081`, the built-in browser — read the DOM,
+screenshots lag). "Typecheck passed" alone is not done. Commit after each step; tick the step here.
+
+1. **[opus] State check, audit and plan.**
+   - The "State check" under the parked store section: `git status`, `npm ci` in `mobile/` if `node_modules` is
+     missing, `npx expo install --check`, Supabase `list_migrations` (32, the latest
+     `20261026100157_translations_en_names_glossary_dedupe`).
+   - Ask the three questions (one message). Record the answers in "Closed Questions" (and an ADR if they outlive the pass).
+   - Audit "Web changes since 2026-10-15" against the real `mobile/` code: mark items already done, web-only, or missing.
+   - Rewrite steps 2–5 below into a per-screen plan concrete enough for a [sonnet] session: files to touch, `@shared/*`
+     functions to use, the query columns, Turkish UI strings, edge cases, and the acceptance check per screen. Drop
+     steps 6/7 if the answers say no.
+2. **[sonnet] Recipe screen:** "Kaç kişilik?", "cl | oz", "Paylaş" with the site's URL, "Benzer kokteyller", the rating
+   breakdown; links to house recipes point to `/cocktails/{slug}`.
+3. **[sonnet] Archive tab:** the sort choices, "Günün kokteyli" and house picks on the feed/home, "Elimde ne var?" (chips
+   from `ingredients`, `matchCocktails`), optionally collection chips.
+4. **[sonnet] Forms:** the glass picker in the log and recipe forms (react-native-svg), the catalogue select per line in the
+   member recipe form.
+5. **[sonnet] Look:** the theme decision (ADR-028) and IBM Plex Sans for reading text.
+6. **[sonnet] Languages** — only if the user said yes in step 1 (ADR-032: dictionaries through `@shared/i18n`, content
+   through `cocktail_translations`).
+7. **[opus] Community:** notifications screen + badge (mark read), follower lists, comment editing ("düzenlendi").
+   The app writes straight to the database, so check every write against its RLS policy; test signed in with a
+   temporary `@example.test` member (delete it afterwards).
+8. **[opus] Push notifications** — only if the user said yes in step 1: Expo push tokens, a table with RLS, a sender
+   (schema changes follow ADR-009), the privacy text line (the user approves).
+9. **[opus] Release readiness:** package updates, `npx expo-doctor`, a new development build (`eas build`), the user's phone
    pass, then the store steps under the parked section.
 
 **While porting:** keep `@shared/*` modules free of Next imports; mark each item of the list below done (or "web-only")
