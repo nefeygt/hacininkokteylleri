@@ -4,11 +4,14 @@ import CocktailCard from "@/components/CocktailCard";
 import FollowingLogs from "@/components/FollowingLogs";
 import ShowcaseApply from "@/components/ShowcaseApply";
 import ShowcaseEntries from "@/components/ShowcaseEntries";
+import { sortCocktails } from "@/lib/archive-filter";
 import {
   getNewRecipes,
   getPopularRecipes,
+  getPublishedCocktails,
   getShowcase,
   getShowcaseWinner,
+  recipeHref,
   type Cocktail,
   type Showcase,
   type ShowcaseEntry,
@@ -28,14 +31,19 @@ export const metadata: Metadata = {
 };
 
 const SHOWN = 12;
+/** House picks fill the feed until members have published this many recipes. */
+const PICKS_UNTIL = 3;
 
 export default async function FeedPage() {
-  const [popular, latest, showcase, winner] = await Promise.all([
+  const [popular, latest, showcase, winner, archive] = await Promise.all([
     getPopularRecipes(SHOWN),
     getNewRecipes(SHOWN),
     getShowcase(),
     getShowcaseWinner(),
+    getPublishedCocktails(),
   ]);
+  // While members' recipes are few, the feed is not left empty (M9 package D): Hacı's best rated.
+  const housePicks = latest.length < PICKS_UNTIL ? sortCocktails(archive, "rating").slice(0, 3) : [];
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-16">
@@ -62,8 +70,24 @@ export default async function FeedPage() {
       <RecipeRow
         title="Yeni tarifler"
         recipes={latest}
-        empty="Henüz üye tarifi yok. İlk tarifi sen yaz."
+        empty="Henüz üye tarifi yok. İlk tarifi sen yaz; yayınladığın an burada görünür."
       />
+
+      {housePicks.length > 0 && (
+        <section className="mt-12">
+          <div className="mb-4 flex flex-wrap items-baseline gap-x-3">
+            <h2 className="font-mono text-xs uppercase tracking-[0.15em] text-text-muted">Hacı&apos;nın seçtikleri</h2>
+            <Link href="/cocktails" className="font-mono text-[10px] text-text-muted/70 hover:text-text-primary">
+              Arşivin tamamı →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {housePicks.map((c) => (
+              <CocktailCard key={c.id} cocktail={c} href={recipeHref(c.slug, false)} />
+            ))}
+          </div>
+        </section>
+      )}
 
       <section className="mt-14 max-w-3xl">
         <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.15em] text-text-muted">Takip ettiklerinden</h2>

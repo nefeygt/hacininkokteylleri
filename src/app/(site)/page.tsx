@@ -2,7 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowBigUp, ArrowRight, Wine } from "lucide-react";
 import { BRAND } from "@/lib/brand";
-import { getShowcaseWinner } from "@/lib/content";
+import { cocktailOfTheDay } from "@/lib/collections";
+import { getPublishedCocktails, getShowcaseWinner, recipeHref } from "@/lib/content";
+import { todayInTurkey } from "@/lib/drink-log";
 import { formatPeriod } from "@/lib/showcase";
 
 // Static, refreshed hourly so the showcase's winner changes soon after a period
@@ -10,7 +12,9 @@ import { formatPeriod } from "@/lib/showcase";
 export const revalidate = 3600;
 
 export default async function Home() {
-  const winner = await getShowcaseWinner();
+  const [winner, archive] = await Promise.all([getShowcaseWinner(), getPublishedCocktails()]);
+  // The page is rebuilt hourly, so the pick changes within an hour of midnight in Turkey.
+  const pick = cocktailOfTheDay(archive, todayInTurkey());
 
   return (
     <div>
@@ -48,6 +52,56 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
+      {/* "Günün kokteyli" (M9 package D): a reason to come back tomorrow */}
+      {pick && (
+        <section className="mx-auto max-w-4xl px-6 pb-16">
+          <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-crimson-glow">Rx · Günün kokteyli</div>
+            <Link href="/cocktails" className="font-mono text-[11px] text-text-muted hover:text-text-primary">
+              Tüm reçeteler →
+            </Link>
+          </div>
+          <Link
+            href={recipeHref(pick.slug, false)}
+            className="group grid overflow-hidden rounded-sm border border-border bg-bg-card transition-colors hover:border-border-light sm:grid-cols-2"
+          >
+            <div className="relative aspect-video bg-bg-elevated sm:aspect-auto sm:min-h-56">
+              {pick.imageUrl ? (
+                <Image
+                  src={pick.imageUrl}
+                  alt={pick.name}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  sizes="(max-width: 640px) 100vw, 448px"
+                />
+              ) : (
+                <div
+                  className="absolute inset-0 opacity-20"
+                  style={{ background: `radial-gradient(ellipse at 50% 40%, ${pick.color}, transparent 70%)` }}
+                />
+              )}
+              <div className="film-grain absolute inset-0" />
+              <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: pick.color }} />
+            </div>
+            <div className="flex flex-col justify-center gap-3 p-6 sm:p-8">
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-muted">
+                {pick.baseAlcohol} · {pick.flavor}
+              </div>
+              <h2 className="text-3xl font-bold tracking-tight text-text-primary transition-colors group-hover:text-crimson-glow">
+                {pick.name}
+              </h2>
+              {pick.subtitle && <p className="text-sm text-text-secondary">{pick.subtitle}</p>}
+              <p className="font-mono text-[11px] text-text-muted">
+                {pick.ingredients.map((i) => i.name).join(" · ")}
+              </p>
+              <span className="mt-1 inline-flex items-center gap-1.5 text-xs text-crimson-glow">
+                Tarife git <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+              </span>
+            </div>
+          </Link>
+        </section>
+      )}
 
       {/* The showcase's winner (M7): the only member's recipe on the home page (ADR-014) */}
       {winner && (

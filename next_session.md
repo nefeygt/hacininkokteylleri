@@ -120,6 +120,8 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
   read on opening. Push notifications are a separate decision.
 - **Collections and the glossary** (M9 C): web-only SEO pages; the app could later show the collection chips
   (`collections` from `@shared/collections`) on its archive tab — optional.
+- **Sort and "Günün kokteyli"** (M9 D): the app's archive tab gets the three sort choices (`sortCocktails`,
+  `SORT_LABELS` from `@shared/archive-filter`); its home/feed could show `cocktailOfTheDay` and the house picks.
 - **"cl | oz"** on recipes (ADR-027): a toggle beside "Kaç kişilik?" with `convertAmount`, `formatOunces`,
   `isConvertibleUnit` from `@shared/recipe`; remember the choice (AsyncStorage or the app's existing storage).
 

@@ -92,3 +92,14 @@ export function collectionIntro(c: Pick<Collection, "kind" | "label" | "count">)
       : `Tadı ${c.label.toLocaleLowerCase("tr-TR")} olan ${c.count} reçete, Hacı'nın arşivinden.`)
   );
 }
+
+/**
+ * "Günün kokteyli" (M9 package D): one house recipe per Turkish calendar day, the same for every visitor,
+ * stepping through the archive in a scattered order; recipes with a photo first.
+ */
+export function cocktailOfTheDay<T extends { imageUrl?: string }>(cocktails: T[], day: string): T | null {
+  const pool = cocktails.some((c) => c.imageUrl) ? cocktails.filter((c) => c.imageUrl) : cocktails;
+  if (pool.length === 0) return null;
+  const days = Math.floor(Date.parse(`${day}T00:00:00Z`) / 86_400_000);
+  return pool[(days * 7919) % pool.length];
+}

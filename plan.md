@@ -683,8 +683,11 @@ While the store release waits (ADR-024), the site gets better first; every user-
     `/glossary` page (4 terms are too few for a page each; `DefinedTermSet` JSON-LD, the recipes using each term), linked
     from the archive's foot, in the sitemap, revalidated by panel writes. Content note: "Simple Syrup" is used by no
     recipe and repeats "Şeker Şurubu" — the user's call in the panel
-  - [ ] **D — First impression:** empty states with house picks, filters and sort (incl. by rating) in the archive URL,
-    "Günün kokteyli" on the home page
+  - [x] **D — First impression** (2026-10-26): the archive keeps search, filters and the order in its address
+    (`?q=&spirit=&flavor=&ingredient=&sort=rating|name`, `readArchiveQuery`/`writeArchiveQuery`/`sortCocktails` in the
+    shared `archive-filter.ts`), "Önerilen · Puana göre · A–Z" beside the count; "Günün kokteyli" under the home hero
+    (one house recipe per Turkish day, `cocktailOfTheDay`); the feed shows "Hacı'nın seçtikleri" (best rated three)
+    while members have published fewer than three recipes
   - Not now (the council and the user, 2026-10-26): English localization, a rating breakdown (no reviews yet); the app's
     catalogue picker stays in the parity pass. Outside code before launch: DMARC beyond `p=none` (§8)
 

@@ -15,6 +15,11 @@ import {
   flavorChoices,
   filterCocktails,
   hasActiveFilters as anyActive,
+  readArchiveQuery,
+  sortCocktails,
+  SORT_LABELS,
+  writeArchiveQuery,
+  type ArchiveSort,
 } from "@/lib/archive-filter";
 import { collections } from "@/lib/collections";
 import { recipeHref, type Cocktail } from "@/lib/content";
@@ -41,13 +46,38 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
   // Looked up by id so a revalidated page (a new average) updates the open card.
   const selectedCocktail = cocktails.find((c) => c.id === selectedId) ?? null;
 
+  const [sort, setSort] = useState<ArchiveSort>("default");
+  // The address is read once on arrival (the page itself is static), then kept in step.
+  const [queryRead, setQueryRead] = useState(false);
+
   useEffect(() => {
-    const slug = new URLSearchParams(window.location.search).get(OPEN_PARAM);
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get(OPEN_PARAM);
     const match = slug && cocktails.find((c) => c.slug === slug);
     if (match) setSelectedId(match.id);
+    const q = readArchiveQuery(params);
+    setSearch(q.search);
+    setSelectedBase(q.base);
+    setSelectedFlavor(q.flavor);
+    setSelectedIngredients(q.ingredients);
+    setSort(q.sort);
+    setQueryRead(true);
     // Only on arrival; later changes come from clicks.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!queryRead) return;
+    const url = new URL(window.location.href);
+    writeArchiveQuery(url.searchParams, {
+      search,
+      base: selectedBase,
+      flavor: selectedFlavor,
+      ingredients: selectedIngredients,
+      sort,
+    });
+    if (url.href !== window.location.href) window.history.replaceState(window.history.state, "", url);
+  }, [queryRead, search, selectedBase, selectedFlavor, selectedIngredients, sort]);
 
   const openCocktail = (cocktail: Cocktail | null) => {
     setSelectedId(cocktail?.id ?? null);
@@ -91,10 +121,10 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
   const hasActiveFilters = anyActive(filters);
 
   const filtered = useMemo(
-    () => filterCocktails(cocktails, filters),
+    () => sortCocktails(filterCocktails(cocktails, filters), sort),
     // filters is rebuilt every render; its parts are the real dependencies.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [cocktails, search, selectedBase, selectedFlavor, selectedIngredients, onlyFavorites, favorites]
+    [cocktails, search, selectedBase, selectedFlavor, selectedIngredients, onlyFavorites, favorites, sort]
   );
 
   return (
@@ -212,10 +242,29 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
         </div>
       )}
 
-      {/* Results count */}
-      <div className="mb-6 font-mono text-[10px] uppercase tracking-[0.2em] text-text-muted">
-        {filtered.length} sonuç
-        {hasActiveFilters && " (filtrelenmiş)"}
+      {/* Results count and the order (M9 package D) */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-muted">
+          {filtered.length} sonuç
+          {hasActiveFilters && " (filtrelenmiş)"}
+        </div>
+        <div role="group" aria-label="Sırala" className="flex items-center gap-1">
+          {(Object.keys(SORT_LABELS) as ArchiveSort[]).map((key) => (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={sort === key}
+              onClick={() => setSort(key)}
+              className={`rounded-sm px-2.5 py-1 font-mono text-[11px] transition-colors ${
+                sort === key
+                  ? "bg-crimson/20 text-crimson-glow"
+                  : "text-text-muted hover:bg-bg-elevated hover:text-text-secondary"
+              }`}
+            >
+              {SORT_LABELS[key]}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Cocktail grid */}

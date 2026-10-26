@@ -128,3 +128,57 @@ export function similarCocktails<T extends Filterable>(target: T, cocktails: T[]
     .slice(0, limit)
     .map(({ c }) => c);
 }
+
+// ---------------------------------------------------------------- sort and the URL (M9 package D)
+
+export type ArchiveSort = "default" | "rating" | "name";
+
+export const SORT_LABELS: Record<ArchiveSort, string> = {
+  default: "Önerilen",
+  rating: "Puana göre",
+  name: "A–Z",
+};
+
+/** "rating": highest average first, more reviews breaking ties, unrated last; "name": Turkish order. */
+export function sortCocktails<T extends Filterable & { rating?: { average: number; count: number } }>(
+  cocktails: T[],
+  sort: ArchiveSort,
+): T[] {
+  if (sort === "default") return cocktails;
+  const sorted = [...cocktails];
+  if (sort === "name") return sorted.sort((a, b) => a.name.localeCompare(b.name, "tr"));
+  return sorted.sort(
+    (a, b) =>
+      (b.rating?.average ?? -1) - (a.rating?.average ?? -1) || (b.rating?.count ?? 0) - (a.rating?.count ?? 0),
+  );
+}
+
+/** The archive's state in its address, so a filtered view can be shared: ?q=&spirit=&flavor=&ingredient=&sort= */
+export interface ArchiveQuery {
+  search: string;
+  base: string;
+  flavor: string;
+  ingredients: string[];
+  sort: ArchiveSort;
+}
+
+export function readArchiveQuery(params: URLSearchParams): ArchiveQuery {
+  const sort = params.get("sort");
+  return {
+    search: params.get("q") ?? "",
+    base: params.get("spirit") ?? ALL,
+    flavor: params.get("flavor") ?? ALL,
+    ingredients: params.getAll("ingredient").filter((i) => INGREDIENT_FILTERS.includes(i)),
+    sort: sort === "rating" || sort === "name" ? sort : "default",
+  };
+}
+
+/** Writes the query into `params`, leaving other keys (such as the open card) alone. */
+export function writeArchiveQuery(params: URLSearchParams, q: ArchiveQuery): void {
+  for (const key of ["q", "spirit", "flavor", "ingredient", "sort"]) params.delete(key);
+  if (q.search.trim()) params.set("q", q.search.trim());
+  if (q.base !== ALL) params.set("spirit", q.base);
+  if (q.flavor !== ALL) params.set("flavor", q.flavor);
+  for (const i of q.ingredients) params.append("ingredient", i);
+  if (q.sort !== "default") params.set("sort", q.sort);
+}
