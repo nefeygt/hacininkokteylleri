@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Star } from "lucide-react";
 import { formatRating } from "@/lib/community";
+import { format } from "@/lib/i18n/format";
+import { useLocale } from "./LocaleProvider";
 
 /** How much of star `n` (1–5) is filled for `value`: 1, 0.5 or 0, to the nearest half. */
 function fill(n: number, value: number): number {
@@ -37,12 +39,13 @@ export default function Stars({
   size?: number;
   onChange?: (value: number) => void;
 }) {
+  const { t, locale } = useLocale();
   const [hover, setHover] = useState<number | null>(null);
   const shown = hover ?? value;
 
   if (!onChange) {
     return (
-      <span className="inline-flex items-center gap-0.5" aria-label={`5 üzerinden ${formatRating(value)}`} role="img">
+      <span className="inline-flex items-center gap-0.5" aria-label={format(t.cocktails.outOf5, { rating: formatRating(value, locale) })} role="img">
         {[1, 2, 3, 4, 5].map((n) => (
           <StarIcon key={n} amount={fill(n, value)} size={size} muted="text-text-muted/40" />
         ))}
@@ -51,7 +54,7 @@ export default function Stars({
   }
 
   return (
-    <span className="inline-flex items-center gap-1" role="radiogroup" aria-label="Puan" onMouseLeave={() => setHover(null)}>
+    <span className="inline-flex items-center gap-1" role="radiogroup" aria-label={t.cocktails.ratingLabel} onMouseLeave={() => setHover(null)}>
       {[1, 2, 3, 4, 5].map((n) => (
         <span key={n} className="relative rounded p-0.5">
           <StarIcon amount={fill(n, shown)} size={size} muted="text-text-muted/50" />
@@ -61,7 +64,7 @@ export default function Stars({
               type="button"
               role="radio"
               aria-checked={value === v}
-              aria-label={`${formatRating(v)} yıldız`}
+              aria-label={format(t.cocktails.starsLabel, { rating: formatRating(v, locale) })}
               onMouseEnter={() => setHover(v)}
               onClick={() => onChange(v)}
               className={`absolute inset-y-0 w-1/2 ${i === 0 ? "left-0" : "right-0"}`}

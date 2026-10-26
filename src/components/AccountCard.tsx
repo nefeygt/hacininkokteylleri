@@ -1,3 +1,5 @@
+import AccountEyebrow from "./AccountEyebrow";
+
 /** The frame around the public site's sign-in, onboarding and account screens. */
 export default function AccountCard({
   title,
@@ -13,7 +15,7 @@ export default function AccountCard({
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-start justify-center px-4 py-12 md:items-center">
       <div className={`w-full rounded-sm border border-border bg-bg-card p-8 ${wide ? "max-w-xl" : "max-w-sm"}`}>
-        <div className="mb-1 font-mono text-[10px] uppercase tracking-[0.25em] text-crimson-glow">Rx · Üyelik</div>
+        <AccountEyebrow />
         <h1 className="mb-1 text-xl font-bold">{title}</h1>
         {subtitle && <p className="mb-6 text-xs leading-relaxed text-text-muted">{subtitle}</p>}
         {!subtitle && <div className="mb-6" />}

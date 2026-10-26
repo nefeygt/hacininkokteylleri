@@ -11,6 +11,8 @@ import { REVIEW_MAX_LENGTH, formatAverage } from "@/lib/community";
 import { recipeHref, type Cocktail } from "@/lib/content";
 import { createClient } from "@/lib/supabase/browser";
 import RatingBreakdown from "@/components/RatingBreakdown";
+import { useLocale } from "@/components/LocaleProvider";
+import { INTL_LOCALES } from "@/lib/i18n/locales";
 
 interface Review {
   id: string;
@@ -31,6 +33,7 @@ const SHOWN = 50;
  * per cocktail; writing again edits it (ADR-012).
  */
 export default function CocktailReviews({ cocktail, member }: { cocktail: Cocktail; member: Member }) {
+  const { t, locale } = useLocale();
   const [reviews, setReviews] = useState<Review[] | null>(null);
   const [own, setOwn] = useState<Review | null>(null);
   const memberId = member.state === "ok" ? member.id : null;
@@ -62,11 +65,11 @@ export default function CocktailReviews({ cocktail, member }: { cocktail: Cockta
   return (
     <section className="border-t border-border pt-6">
       <div className="mb-4 flex items-baseline justify-between gap-3">
-        <h3 className="font-mono text-xs uppercase tracking-[0.15em] text-text-muted">Değerlendirmeler</h3>
+        <h3 className="font-mono text-xs uppercase tracking-[0.15em] text-text-muted">{t.reviews.heading}</h3>
         {cocktail.rating && (
           <span className="flex items-center gap-2 text-xs text-text-secondary">
             <Stars value={cocktail.rating.average} size={12} />
-            {formatAverage(cocktail.rating.average)} · {cocktail.rating.count}
+            {formatAverage(cocktail.rating.average, locale)} · {cocktail.rating.count}
           </span>
         )}
       </div>
@@ -76,10 +79,10 @@ export default function CocktailReviews({ cocktail, member }: { cocktail: Cockta
       <OwnReview cocktail={cocktail} member={member} own={own} onSaved={load} />
 
       {reviews === null ? (
-        <p className="mt-4 text-xs text-text-muted">Yükleniyor…</p>
+        <p className="mt-4 text-xs text-text-muted">{t.common.loading}</p>
       ) : others.length === 0 ? (
         <p className="mt-4 text-xs text-text-muted">
-          {own ? "Başka değerlendirme yok." : "Henüz değerlendirme yok. İlk sen yaz."}
+          {own ? t.reviews.none : t.reviews.noneYet}
         </p>
       ) : (
         <ul className="mt-5 space-y-5">
@@ -103,6 +106,7 @@ function OwnReview({
   own: Review | null;
   onSaved: () => Promise<void>;
 }) {
+  const { t } = useLocale();
   const [editing, setEditing] = useState(false);
   const [rating, setRating] = useState(0);
   const [body, setBody] = useState("");
@@ -121,9 +125,8 @@ function OwnReview({
     const next = recipeHref(cocktail.slug, Boolean(cocktail.author));
     return (
       <p className="rounded bg-bg-elevated/50 px-4 py-3 text-xs text-text-secondary">
-        Değerlendirmek ve favorilere eklemek için{" "}
-        <Link href={`/login?next=${encodeURIComponent(next)}`} className="text-crimson-glow underline underline-offset-2">
-          giriş yap
+        {t.reviews.signInPrefix}        <Link href={`/login?next=${encodeURIComponent(next)}`} className="text-crimson-glow underline underline-offset-2">
+          {t.common.signIn}
         </Link>
         .
       </p>
@@ -133,9 +136,8 @@ function OwnReview({
   if (member.state === "onboarding") {
     return (
       <p className="rounded bg-bg-elevated/50 px-4 py-3 text-xs text-text-secondary">
-        Değerlendirme yazmak için önce{" "}
-        <Link href="/welcome" className="text-crimson-glow underline underline-offset-2">
-          profilini tamamla
+        {t.reviews.finishPrefix}        <Link href="/welcome" className="text-crimson-glow underline underline-offset-2">
+          {t.common.completeProfile}
         </Link>
         .
       </p>
@@ -146,20 +148,20 @@ function OwnReview({
     return (
       <div className="rounded border border-border bg-bg-elevated/40 px-4 py-3">
         <div className="mb-1 flex items-center justify-between gap-3">
-          <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">Senin değerlendirmen</span>
+          <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">{t.reviews.yours}</span>
           <button
             type="button"
             onClick={() => setEditing(true)}
             className="font-mono text-[11px] text-crimson-glow underline underline-offset-2"
           >
-            Düzenle
+            {t.common.edit}
           </button>
         </div>
         <Stars value={own.rating} />
         {own.body && <p className="mt-2 whitespace-pre-line text-sm text-text-secondary">{own.body}</p>}
         {own.hidden_at && (
           <p className="mt-2 font-mono text-[11px] text-crimson-glow">
-            Bu değerlendirme yöneticiler tarafından gizlendi; yalnızca sen görüyorsun.
+            {t.reviews.hiddenOwn}
           </p>
         )}
       </div>
@@ -169,7 +171,7 @@ function OwnReview({
   function save() {
     setError(null);
     if (rating < 0.5) {
-      setError("Önce bir puan seç.");
+      setError(t.reviews.pickRating);
       return;
     }
     startTransition(async () => {
@@ -205,7 +207,7 @@ function OwnReview({
     <div className="rounded border border-border bg-bg-elevated/40 px-4 py-4">
       <div className="mb-3 flex items-center justify-between gap-3">
         <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
-          {own ? "Değerlendirmeni düzenle" : "Değerlendir"}
+          {own ? t.reviews.editTitle : t.reviews.rate}
         </span>
         <Stars value={rating} size={24} onChange={setRating} />
       </div>
@@ -214,7 +216,7 @@ function OwnReview({
         onChange={(e) => setBody(e.target.value)}
         maxLength={REVIEW_MAX_LENGTH}
         rows={3}
-        placeholder="Nasıldı? (isteğe bağlı)"
+        placeholder={t.reviews.placeholder}
         className="w-full resize-y rounded border border-border bg-bg-card px-3 py-2 text-sm text-text-primary placeholder-text-muted outline-none focus:border-crimson-glow/40"
       />
       {error && <p className="mt-2 text-xs text-crimson-glow">{error}</p>}
@@ -225,7 +227,7 @@ function OwnReview({
           disabled={pending}
           className="rounded bg-crimson px-4 py-1.5 text-xs text-white transition-opacity hover:opacity-90 disabled:opacity-50"
         >
-          {pending ? "Kaydediliyor…" : "Kaydet"}
+          {pending ? t.common.saving : t.common.save}
         </button>
         {own && (
           <>
@@ -241,7 +243,7 @@ function OwnReview({
               disabled={pending}
               className="text-xs text-text-muted hover:text-text-primary"
             >
-              Vazgeç
+              {t.common.cancel}
             </button>
             <button
               type="button"
@@ -251,7 +253,7 @@ function OwnReview({
                 confirmingDelete ? "text-crimson-glow" : "text-text-muted"
               }`}
             >
-              {confirmingDelete ? "Emin misin? Evet, sil" : "Sil"}
+              {confirmingDelete ? t.common.confirmDelete : t.common.delete}
             </button>
           </>
         )}
@@ -261,7 +263,8 @@ function OwnReview({
 }
 
 function ReviewItem({ review, canReport }: { review: Review; canReport: boolean }) {
-  const date = new Date(review.updated_at).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
+  const { locale } = useLocale();
+  const date = new Date(review.updated_at).toLocaleDateString(INTL_LOCALES[locale], { day: "numeric", month: "long", year: "numeric" });
 
   return (
     <li className="flex gap-3">

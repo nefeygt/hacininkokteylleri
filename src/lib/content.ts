@@ -376,8 +376,11 @@ export async function getShowcaseWinner(): Promise<(ShowcaseEntry & { period: Sh
   return winner ? { ...winner, period: toPeriod(data) } : null;
 }
 
-/** The glossary in a language: for English the translated terms (the words that appear in English text). */
-export async function getGlossary(locale: Locale = DEFAULT_LOCALE): Promise<Glossary> {
+/**
+ * The glossary in a language: for English the translated terms (the words that appear in English text);
+ * `withTurkish` adds the Turkish terms for pages that show members' recipes.
+ */
+export async function getGlossary(locale: Locale = DEFAULT_LOCALE, withTurkish = false): Promise<Glossary> {
   const supabase = createPublicClient();
   if (locale !== DEFAULT_LOCALE) {
     const { data, error } = await supabase
@@ -385,7 +388,9 @@ export async function getGlossary(locale: Locale = DEFAULT_LOCALE): Promise<Glos
       .select("translated_term, definition")
       .eq("locale", locale);
     if (error) throw new Error(`Could not load the glossary: ${error.message}`);
-    return Object.fromEntries(data.map((t) => [t.translated_term, t.definition]));
+    const translated = Object.fromEntries(data.map((t) => [t.translated_term, t.definition]));
+    // A member's recipe stays in the language it was written in, so its Turkish terms keep their tooltips.
+    return withTurkish ? { ...(await getGlossary(DEFAULT_LOCALE)), ...translated } : translated;
   }
   const { data, error } = await supabase.from("glossary_terms").select("term, definition");
 

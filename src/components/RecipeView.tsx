@@ -11,6 +11,7 @@ import RecipeActions from "./RecipeActions";
 import RecipeDetails from "./RecipeDetails";
 import ReportButton from "./ReportButton";
 import ShareButton from "./ShareButton";
+import { useLocale } from "./LocaleProvider";
 import { useMember } from "./useMember";
 import GlassIcon from "@/components/GlassIcon";
 import { glassKind } from "@/lib/glasses";
@@ -22,6 +23,8 @@ import { glassKind } from "@/lib/glasses";
  */
 export default function RecipeView({ cocktail, similar }: { cocktail: Cocktail; similar?: React.ReactNode }) {
   const { member, favorites, markFavorite } = useMember();
+  const { t } = useLocale();
+  const tc = t.cocktails;
   const author = cocktail.author;
   const isAuthor = member.state === "ok" && author?.id === member.id;
   const favorite = favorites.has(cocktail.id);
@@ -36,10 +39,10 @@ export default function RecipeView({ cocktail, similar }: { cocktail: Cocktail; 
   return (
     <article className="mx-auto max-w-2xl px-6 py-12">
       {author ? (
-        <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.25em] text-crimson-glow">Rx · Üye tarifi</div>
+        <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.25em] text-crimson-glow">{tc.memberRecipe}</div>
       ) : (
         <Link href="/cocktails" className="mb-2 block font-mono text-[10px] uppercase tracking-[0.25em] text-crimson-glow hover:underline">
-          ← Rx · Arşiv
+          {tc.backToArchive}
         </Link>
       )}
 
@@ -61,7 +64,7 @@ export default function RecipeView({ cocktail, similar }: { cocktail: Cocktail; 
           {cocktail.vegan && (
             <span className="flex items-center gap-1 rounded bg-vegan-bg/30 px-1.5 py-0.5 font-mono text-[9px] uppercase text-vegan">
               <Leaf className="h-2.5 w-2.5" />
-              Vegan
+              {tc.vegan}
             </span>
           )}
         </div>
@@ -77,7 +80,7 @@ export default function RecipeView({ cocktail, similar }: { cocktail: Cocktail; 
             <Link href={`/u/${author.username}`} className="flex items-center gap-2.5 hover:text-crimson-glow">
               <Avatar path={author.avatarPath} name={author.displayName} size={28} />
               <span className="text-sm">
-                <span className="text-text-muted">tarif: </span>
+                <span className="text-text-muted">{tc.recipeBy}</span>
                 <span className="font-semibold text-text-primary">{author.displayName}</span>
                 <span className="ml-1 font-mono text-[11px] text-text-muted">@{author.username}</span>
               </span>
@@ -87,12 +90,12 @@ export default function RecipeView({ cocktail, similar }: { cocktail: Cocktail; 
                 href={`/account/recipes/${cocktail.id}`}
                 className="ml-auto flex items-center gap-1.5 font-mono text-[11px] text-crimson-glow underline underline-offset-2"
               >
-                <Pencil className="h-3 w-3" /> Düzenle
+                <Pencil className="h-3 w-3" /> {tc.edit}
               </Link>
             )}
             {member.state === "ok" && !isAuthor && (
               <span className="ml-auto flex">
-                <ReportButton targetType="cocktail" targetId={cocktail.id} label="Tarifi bildir" />
+                <ReportButton targetType="cocktail" targetId={cocktail.id} label={tc.reportRecipe} />
               </span>
             )}
           </div>

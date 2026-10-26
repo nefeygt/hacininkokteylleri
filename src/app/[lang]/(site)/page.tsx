@@ -5,14 +5,19 @@ import { BRAND } from "@/lib/brand";
 import { cocktailOfTheDay } from "@/lib/collections";
 import { getPublishedCocktails, getShowcaseWinner, recipeHref } from "@/lib/content";
 import { todayInTurkey } from "@/lib/drink-log";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { format } from "@/lib/i18n/format";
+import { asLocale } from "@/lib/i18n/locales";
 import { formatPeriod } from "@/lib/showcase";
 
 // Static, refreshed hourly so the showcase's winner changes soon after a period
 // ends (ADR-005, ADR-019); panel actions revalidate it at once.
 export const revalidate = 3600;
 
-export default async function Home() {
-  const [winner, archive] = await Promise.all([getShowcaseWinner(), getPublishedCocktails()]);
+export default async function Home({ params }: { params: Promise<{ lang: string }> }) {
+  const lang = asLocale((await params).lang);
+  const t = getDictionary(lang).home;
+  const [winner, archive] = await Promise.all([getShowcaseWinner(), getPublishedCocktails(lang)]);
   // The page is rebuilt hourly, so the pick changes within an hour of midnight in Turkey.
   const pick = cocktailOfTheDay(archive, todayInTurkey());
 
@@ -29,7 +34,7 @@ export default async function Home() {
           {/* Mono subtitle */}
           <div className="mb-6 inline-flex items-center gap-2 rounded bg-bg-elevated/60 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.25em] text-text-muted">
             <Wine className="h-3 w-3 text-crimson-glow" />
-            Sinematik Bir Kokteyl Deneyimi
+            {t.heroTag}
           </div>
 
           {/* Title */}
@@ -37,7 +42,7 @@ export default async function Home() {
 
           {/* Subtitle */}
           <p className="mx-auto mb-10 max-w-md text-sm leading-relaxed text-text-secondary">
-            Her biri özenle formüle edilmiş kokteyl reçeteleri.
+            {t.heroSub}
           </p>
 
           {/* CTA buttons */}
@@ -46,7 +51,7 @@ export default async function Home() {
               href="/cocktails"
               className="group inline-flex items-center gap-2 rounded bg-crimson px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-crimson-light"
             >
-              Kokteyllere Git
+              {t.cta}
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </div>
@@ -57,9 +62,9 @@ export default async function Home() {
       {pick && (
         <section className="mx-auto max-w-4xl px-6 pb-16">
           <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-crimson-glow">Rx · Günün kokteyli</div>
+            <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-crimson-glow">{t.dayLabel}</div>
             <Link href="/cocktails" className="font-mono text-[11px] text-text-muted hover:text-text-primary">
-              Tüm reçeteler →
+              {t.allRecipes}
             </Link>
           </div>
           <Link
@@ -96,7 +101,7 @@ export default async function Home() {
                 {pick.ingredients.map((i) => i.name).join(" · ")}
               </p>
               <span className="mt-1 inline-flex items-center gap-1.5 text-xs text-crimson-glow">
-                Tarife git <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                {t.goToRecipe} <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
               </span>
             </div>
           </Link>
@@ -108,10 +113,10 @@ export default async function Home() {
         <section className="mx-auto max-w-4xl px-6 pb-20">
           <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
             <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-crimson-glow">
-              Rx · Vitrin · {formatPeriod(winner.period)}
+              {format(t.showcaseLabel, { period: formatPeriod(winner.period, lang) })}
             </div>
             <Link href="/feed#showcase" className="font-mono text-[11px] text-text-muted hover:text-text-primary">
-              Vitrine göz at →
+              {t.browseShowcase}
             </Link>
           </div>
           <Link
@@ -137,7 +142,7 @@ export default async function Home() {
               <div className="absolute inset-x-0 top-0 h-0.5" style={{ backgroundColor: winner.recipe.color }} />
             </div>
             <div className="flex flex-col justify-center gap-3 p-6 sm:p-8">
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-muted">Dönemin kazananı</div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-muted">{t.winner}</div>
               <h2 className="text-3xl font-bold tracking-tight text-text-primary transition-colors group-hover:text-crimson-glow">
                 {winner.recipe.name}
               </h2>
@@ -147,7 +152,7 @@ export default async function Home() {
                 {winner.recipe.author && <span>@{winner.recipe.author.username}</span>}
                 <span className="flex items-center gap-1 text-crimson-glow">
                   <ArrowBigUp className="h-3.5 w-3.5" />
-                  {winner.voteCount} oy
+                  {format(t.votes, { n: winner.voteCount })}
                 </span>
               </div>
             </div>
@@ -158,7 +163,7 @@ export default async function Home() {
       {/* Footer */}
       <footer className="border-t border-border px-6 py-8 text-center">
         <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-muted">
-          {BRAND} &mdash; Sevgiyle hazırlandı
+          {BRAND} &mdash; {getDictionary(lang).common.brandFooter}
         </p>
       </footer>
     </div>

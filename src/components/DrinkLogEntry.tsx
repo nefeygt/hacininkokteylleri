@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "@/components/LocaleLink";
+import { useLocale } from "@/components/LocaleProvider";
+import { format } from "@/lib/i18n/format";
 import { Lock, Globe, MessageCircle } from "lucide-react";
 import Avatar from "@/components/Avatar";
 import Stars from "@/components/Stars";
@@ -44,6 +48,7 @@ export default function DrinkLogEntry({
   commentCount?: number;
   showCommentsLink?: boolean;
 }) {
+  const { t, locale } = useLocale();
   const recipe = readRecipe(log.recipe);
   const cocktail = log.cocktails?.is_published ? log.cocktails : null;
   const author = log.profiles;
@@ -69,32 +74,32 @@ export default function DrinkLogEntry({
           <span className="font-semibold text-text-primary">{recipe.name}</span>
         )}
         {log.rating !== null && <Stars value={log.rating} size={12} />}
-        <span className="font-mono text-[10px] text-text-muted">{formatLogDate(log.drunk_on)}</span>
+        <span className="font-mono text-[10px] text-text-muted">{formatLogDate(log.drunk_on, locale)}</span>
         {mode === "own" && (
           <span className="ml-auto flex items-center gap-3">
             <span className="flex items-center gap-1 font-mono text-[10px] text-text-muted">
               {log.is_public ? <Globe className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
-              {log.is_public ? "Herkese açık" : "Yalnızca sen"}
+              {log.is_public ? t.drinkLog.public : t.drinkLog.onlyYou}
             </span>
             <Link
               href={`/account/logs/${log.id}`}
               className="font-mono text-[11px] text-crimson-glow underline underline-offset-2"
             >
-              Düzenle
+              {t.common.edit}
             </Link>
           </span>
         )}
       </div>
 
       <p className="mt-1.5 font-mono text-[11px] leading-relaxed text-text-secondary">
-        {recipe.ingredients.map((i) => `${i.name} ${formatAmount(i)}`).join(" · ")}
+        {recipe.ingredients.map((i) => `${i.name} ${formatAmount(i, locale, t)}`).join(" · ")}
       </p>
 
       {log.note && <p className="mt-2 whitespace-pre-line break-words text-sm text-text-secondary">{log.note}</p>}
 
       {mode === "own" && log.hidden_at && (
         <p className="mt-2 font-mono text-[11px] text-crimson-glow">
-          Bu kayıt yöneticiler tarafından gizlendi; yalnızca sen görüyorsun.
+          {t.drinkLog.hiddenOwn}
         </p>
       )}
       {mode === "own" && log.is_public && !log.hidden_at && (
@@ -113,10 +118,11 @@ export default function DrinkLogEntry({
 }
 
 function CommentsLink({ id, count }: { id: string; count?: number }) {
+  const { t } = useLocale();
   return (
     <Link href={`/logs/${id}`} className="flex items-center gap-1 font-mono text-[10px] text-text-muted hover:text-crimson-glow">
       <MessageCircle className="h-3 w-3" />
-      {count ? `${count} yorum` : "Yorumlar"}
+      {count ? format(t.drinkLog.commentCount, { n: count }) : t.drinkLog.comments}
     </Link>
   );
 }

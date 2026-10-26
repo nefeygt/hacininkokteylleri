@@ -23,6 +23,11 @@ export function isLocale(value: string | null | undefined): value is Locale {
   return (LOCALES as readonly string[]).includes(value ?? "");
 }
 
+/** A route's `lang` segment as a language; anything unknown reads as Turkish (the layout 404s those first). */
+export function asLocale(value: string): Locale {
+  return isLocale(value) ? value : DEFAULT_LOCALE;
+}
+
 export function isPublished(locale: Locale): boolean {
   return PUBLISHED_LOCALES.includes(locale);
 }

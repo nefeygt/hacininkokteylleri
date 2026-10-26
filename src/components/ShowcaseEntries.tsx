@@ -11,6 +11,8 @@ import { useMember } from "@/components/useMember";
 import type { ShowcaseEntry } from "@/lib/content";
 import { periodState, type ShowcasePeriod } from "@/lib/showcase";
 import { createClient } from "@/lib/supabase/browser";
+import { useLocale } from "@/components/LocaleProvider";
+import { format } from "@/lib/i18n/format";
 
 /**
  * The approved entries of a showcase period with their upvotes (M7). The
@@ -19,6 +21,7 @@ import { createClient } from "@/lib/supabase/browser";
  */
 export default function ShowcaseEntries({ period, entries }: { period: ShowcasePeriod; entries: ShowcaseEntry[] }) {
   const router = useRouter();
+  const { t } = useLocale();
   const { member } = useMember();
   const memberId = member.state === "ok" ? member.id : null;
   const [voted, setVoted] = useState<Set<string>>(new Set());
@@ -74,7 +77,7 @@ export default function ShowcaseEntries({ period, entries }: { period: ShowcaseP
   }
 
   if (entries.length === 0) {
-    return <p className="text-xs text-text-muted">Henüz onaylanmış başvuru yok.</p>;
+    return <p className="text-xs text-text-muted">{t.showcase.noEntries}</p>;
   }
 
   return (
@@ -96,7 +99,7 @@ export default function ShowcaseEntries({ period, entries }: { period: ShowcaseP
                       onClick={() => toggle(entry.id)}
                       disabled={pending}
                       aria-pressed={mine}
-                      title={mine ? "Oyunu geri al" : "Oy ver"}
+                      title={mine ? t.showcase.undoVote : t.showcase.vote}
                       className={`flex items-center gap-1.5 rounded px-3 py-1 text-xs transition-colors disabled:opacity-60 ${
                         mine
                           ? "bg-crimson text-white hover:bg-crimson-light"
@@ -117,7 +120,7 @@ export default function ShowcaseEntries({ period, entries }: { period: ShowcaseP
                   ) : (
                     <span className="flex items-center gap-1.5 text-xs text-text-muted">
                       <ArrowBigUp className="h-4 w-4" />
-                      {count} oy
+                      {format(t.showcase.votes, { n: count })}
                     </span>
                   )}
                   <span className="ml-auto">

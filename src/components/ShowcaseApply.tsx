@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { applyToShowcase, withdrawShowcaseEntry } from "@/app/[lang]/(site)/feed/actions";
 import { useMember } from "@/components/useMember";
-import { PITCH_MAX_LENGTH, STATUS_LABELS, type ShowcasePeriod } from "@/lib/showcase";
+import { PITCH_MAX_LENGTH, type ShowcasePeriod } from "@/lib/showcase";
 import type { Database } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/browser";
+import { useLocale } from "@/components/LocaleProvider";
 
 type Status = Database["public"]["Enums"]["showcase_status"];
 type MyEntry = { id: string; status: Status; pitch: string; cocktails: { name: string; slug: string } | null };
@@ -25,6 +26,8 @@ const field =
  */
 export default function ShowcaseApply({ period }: { period: ShowcasePeriod }) {
   const router = useRouter();
+  const { t } = useLocale();
+  const ts = t.showcase;
   const { member } = useMember();
   const memberId = member.state === "ok" ? member.id : null;
   const [mine, setMine] = useState<MyEntry | null | undefined>(undefined);
@@ -72,7 +75,7 @@ export default function ShowcaseApply({ period }: { period: ShowcasePeriod }) {
         href={`/login?next=${encodeURIComponent("/feed#showcase")}`}
         className="inline-flex rounded border border-border px-4 py-2 text-xs text-text-secondary hover:border-crimson-glow/50 hover:text-text-primary"
       >
-        Başvurmak için giriş yap
+        {ts.signInToApply}
       </Link>
     );
   }
@@ -111,7 +114,7 @@ export default function ShowcaseApply({ period }: { period: ShowcasePeriod }) {
     return (
       <div className="rounded border border-border bg-bg-card/60 p-4">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] text-text-muted">
-          <span className="uppercase tracking-[0.15em]">Başvurun</span>
+          <span className="uppercase tracking-[0.15em]">{ts.yourEntry}</span>
           <span
             className={`rounded px-1.5 py-0.5 ${
               mine.status === "approved"
@@ -121,7 +124,7 @@ export default function ShowcaseApply({ period }: { period: ShowcasePeriod }) {
                   : "bg-bg-elevated text-text-secondary"
             }`}
           >
-            {STATUS_LABELS[mine.status]}
+            {t.showcaseStatus[mine.status]}
           </span>
           {mine.cocktails && (
             <Link href={`/recipes/${mine.cocktails.slug}`} className="text-text-secondary hover:text-text-primary">
@@ -134,17 +137,17 @@ export default function ShowcaseApply({ period }: { period: ShowcasePeriod }) {
         <div className="mt-3 flex items-center gap-3 font-mono text-[11px]">
           {confirming ? (
             <>
-              <span className="text-text-muted">Başvuru ve aldığı oylar silinecek.</span>
+              <span className="text-text-muted">{ts.withdrawWarning}</span>
               <button type="button" onClick={withdraw} disabled={pending} className="text-crimson-glow hover:underline disabled:opacity-50">
-                {pending ? "Siliniyor…" : "Evet, geri çek"}
+                {pending ? t.common.deleting : ts.yesWithdraw}
               </button>
               <button type="button" onClick={() => setConfirming(false)} disabled={pending} className="text-text-muted hover:text-text-primary">
-                Vazgeç
+                {t.common.cancel}
               </button>
             </>
           ) : (
             <button type="button" onClick={() => setConfirming(true)} className="text-text-muted hover:text-crimson-glow">
-              Başvuruyu geri çek
+              {ts.withdraw}
             </button>
           )}
         </div>
@@ -159,7 +162,7 @@ export default function ShowcaseApply({ period }: { period: ShowcasePeriod }) {
         onClick={() => setOpen(true)}
         className="inline-flex rounded bg-crimson px-4 py-2 text-xs text-white transition-opacity hover:opacity-90"
       >
-        Vitrine başvur
+        {ts.apply}
       </button>
     );
   }
@@ -168,15 +171,14 @@ export default function ShowcaseApply({ period }: { period: ShowcasePeriod }) {
     <div className="max-w-xl rounded border border-border bg-bg-card/60 p-4">
       {eligible.length === 0 ? (
         <p className="text-xs leading-relaxed text-text-muted">
-          Başvurmak için yayında ve fotoğraflı bir tarifin olmalı.{" "}
-          <Link href="/account/recipes" className="text-text-secondary underline hover:text-text-primary">
-            Tariflerine git
+          {ts.needRecipe}          <Link href="/account/recipes" className="text-text-secondary underline hover:text-text-primary">
+            {ts.toRecipes}
           </Link>
         </p>
       ) : (
         <div className="space-y-3">
           <label className="block">
-            <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.15em] text-text-muted">Tarif</span>
+            <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.15em] text-text-muted">{ts.recipe}</span>
             <select value={cocktailId} onChange={(e) => setCocktailId(e.target.value)} className={field}>
               {eligible.map((r) => (
                 <option key={r.id} value={r.id}>
@@ -187,14 +189,14 @@ export default function ShowcaseApply({ period }: { period: ShowcasePeriod }) {
           </label>
           <label className="block">
             <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.15em] text-text-muted">
-              Neden vitrinde olmalı?
+              {ts.whyTitle}
             </span>
             <textarea
               value={pitch}
               onChange={(e) => setPitch(e.target.value)}
               maxLength={PITCH_MAX_LENGTH}
               rows={3}
-              placeholder="Tarifini birkaç cümleyle tanıt."
+              placeholder={ts.pitchPlaceholder}
               className={field}
             />
             <span className="mt-1 block text-right font-mono text-[10px] text-text-muted">
@@ -202,7 +204,7 @@ export default function ShowcaseApply({ period }: { period: ShowcasePeriod }) {
             </span>
           </label>
           <p className="font-mono text-[10px] leading-relaxed text-text-muted">
-            Her dönem bir başvuru. Bir yönetici onayladıktan sonra başvurun herkese görünür ve oylanır.
+            {ts.rules}
           </p>
         </div>
       )}
@@ -215,7 +217,7 @@ export default function ShowcaseApply({ period }: { period: ShowcasePeriod }) {
             disabled={pending || !pitch.trim() || !cocktailId}
             className="rounded bg-crimson px-4 py-1.5 text-xs text-white hover:opacity-90 disabled:opacity-50"
           >
-            {pending ? "Gönderiliyor…" : "Başvur"}
+            {pending ? t.common.sending : ts.submit}
           </button>
         )}
         <button
@@ -224,7 +226,7 @@ export default function ShowcaseApply({ period }: { period: ShowcasePeriod }) {
           disabled={pending}
           className="text-xs text-text-muted hover:text-text-primary"
         >
-          Vazgeç
+          {t.common.cancel}
         </button>
       </div>
     </div>

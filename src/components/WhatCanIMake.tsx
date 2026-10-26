@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowDown, Check, X } from "lucide-react";
 import CocktailCard from "@/components/CocktailCard";
+import { useLocale } from "@/components/LocaleProvider";
+import { format } from "@/lib/i18n/format";
 import { recipeHref, type Cocktail } from "@/lib/content";
 import { groupByCategory, matchCocktails, type CatalogueIngredient } from "@/lib/ingredients";
 
@@ -37,6 +39,8 @@ export default function WhatCanIMake({
   cocktails: Cocktail[];
   catalogue: CatalogueIngredient[];
 }) {
+  const { t, locale } = useLocale();
+  const tw = t.whatCanIMake;
   // Only what some recipe uses, and never what is always at hand (water).
   const pickable = useMemo(() => {
     const used = new Set(cocktails.flatMap((c) => c.ingredients.map((i) => i.ingredientId)));
@@ -59,12 +63,11 @@ export default function WhatCanIMake({
     <div className="mx-auto max-w-6xl px-6 py-10">
       <div className="mb-8">
         <span className="mb-2 inline-block font-mono text-[10px] uppercase tracking-[0.25em] text-crimson-glow">
-          Ne yapabilirim?
+          {tw.eyebrow}
         </span>
-        <h1 className="text-3xl font-bold tracking-tight">Elimde ne var?</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{tw.title}</h1>
         <p className="mt-2 max-w-xl text-sm text-text-muted">
-          Evde olan malzemeleri seç; Hacı&apos;nın reçetelerinden ve üyelerin tariflerinden hangilerini yapabileceğini gösterelim. Buz ve garnitür
-          sayılmaz; su hep elde sayılır.
+          {tw.intro}
         </p>
       </div>
 
@@ -72,7 +75,7 @@ export default function WhatCanIMake({
         <aside className="space-y-5 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:self-start lg:overflow-y-auto lg:pr-2">
           <div className="flex items-center justify-between">
             <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-text-muted">
-              {have.size} malzeme seçili
+              {format(tw.selected, { n: have.size })}
             </span>
             {have.size > 0 && (
               <button
@@ -80,11 +83,11 @@ export default function WhatCanIMake({
                 onClick={() => setHave(() => new Set())}
                 className="inline-flex items-center gap-1 text-xs text-text-muted hover:text-crimson-glow"
               >
-                <X className="h-3.5 w-3.5" /> Temizle
+                <X className="h-3.5 w-3.5" /> {tw.clear}
               </button>
             )}
           </div>
-          {groupByCategory(pickable).map((g) => (
+          {groupByCategory(pickable, t, locale).map((g) => (
             <div key={g.value}>
               <span className="mb-2 block font-mono text-[10px] uppercase tracking-[0.15em] text-text-muted">
                 {g.label}
@@ -117,17 +120,17 @@ export default function WhatCanIMake({
         <div id="results" className="scroll-mt-24 space-y-10">
           {have.size === 0 ? (
             <p className="rounded-sm border border-dashed border-border p-6 text-sm text-text-muted">
-              Malzeme seçtikçe yapabileceğin kokteyller burada belirir.
+              {tw.empty}
             </p>
           ) : (
             <>
               <section>
                 <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.15em] text-text-secondary">
-                  Yapabileceklerin ({ready.length})
+                  {format(tw.canMake, { n: ready.length })}
                 </h2>
                 {ready.length === 0 ? (
                   <p className="text-sm text-text-muted">
-                    Henüz tamamı elinde olan bir tarif yok. Aşağıdakilerin her birinde tek bir malzeme eksik.
+                    {tw.noneReady}
                   </p>
                 ) : (
                   <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -140,14 +143,14 @@ export default function WhatCanIMake({
               {oneShort.length > 0 && (
                 <section>
                   <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.15em] text-text-secondary">
-                    Bir malzeme eksik ({oneShort.length})
+                    {format(tw.oneMissing, { n: oneShort.length })}
                   </h2>
                   <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                     {oneShort.map(({ cocktail, missing }) => (
                       <div key={cocktail.id}>
                         <CocktailCard cocktail={cocktail} href={recipeHref(cocktail.slug, !!cocktail.author)} />
                         <p className="mt-2 text-xs text-text-muted">
-                          Eksik: <span className="text-text-secondary">{missing.name}</span>
+                          {tw.missing}<span className="text-text-secondary">{missing.name}</span>
                         </p>
                       </div>
                     ))}
@@ -165,7 +168,7 @@ export default function WhatCanIMake({
           href="#results"
           className="fixed inset-x-4 bottom-4 z-40 flex items-center justify-center gap-2 rounded bg-crimson px-4 py-3 text-sm text-white shadow-xl lg:hidden"
         >
-          {ready.length} hazır · {oneShort.length} tek eksikli
+          {format(tw.bar, { ready: ready.length, short: oneShort.length })}
           <ArrowDown className="h-4 w-4" />
         </a>
       )}

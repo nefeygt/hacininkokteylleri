@@ -1,7 +1,11 @@
+"use client";
+
 import Link from "@/components/LocaleLink";
 import CocktailCard from "@/components/CocktailCard";
 import { recipeHref, type Cocktail } from "@/lib/content";
 import { collectionHref, collectionIntro, collectionTitle, type Collection } from "@/lib/collections";
+import { format } from "@/lib/i18n/format";
+import { useLocale } from "./LocaleProvider";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://hacininkokteylleri.tech";
 
@@ -17,7 +21,9 @@ export default function CollectionView({
   spirits: Collection[];
   flavors: Collection[];
 }) {
-  const title = collectionTitle(collection);
+  const { t, locale } = useLocale();
+  const tc = t.cocktails;
+  const title = collectionTitle(collection, locale);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
@@ -33,22 +39,22 @@ export default function CollectionView({
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <nav aria-label="Konum" className="mb-6 font-mono text-[11px] text-text-muted">
+      <nav aria-label={tc.breadcrumb} className="mb-6 font-mono text-[11px] text-text-muted">
         <Link href="/cocktails" className="hover:text-text-primary">
-          Kokteyller
+          {tc.title}
         </Link>
         <span className="mx-2">/</span>
-        <span>{collection.kind === "spirit" ? "Baz içki" : "Tat"}</span>
+        <span>{collection.kind === "spirit" ? tc.spiritCrumb : tc.flavorCrumb}</span>
         <span className="mx-2">/</span>
         <span className="text-text-secondary">{collection.label}</span>
       </nav>
 
       <div className="mb-10 max-w-2xl">
         <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.25em] text-crimson-glow">
-          Rx · {collection.count} reçete
+          {format(tc.recipesCount, { n: collection.count })}
         </div>
         <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{title}</h1>
-        <p className="mt-3 text-sm leading-relaxed text-text-secondary">{collectionIntro(collection)}</p>
+        <p className="mt-3 text-sm leading-relaxed text-text-secondary">{collectionIntro(collection, locale)}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -58,12 +64,12 @@ export default function CollectionView({
       </div>
 
       <section className="mt-14 space-y-5 border-t border-border pt-8">
-        <CollectionLinks heading="Baz içkiye göre" items={spirits} current={collection} />
-        <CollectionLinks heading="Tada göre" items={flavors} current={collection} />
+        <CollectionLinks heading={tc.bySpirit} items={spirits} current={collection} />
+        <CollectionLinks heading={tc.byFlavor} items={flavors} current={collection} />
         <p className="text-xs text-text-muted">
-          Ya da{" "}
+          {tc.orPrefix}
           <Link href="/what-can-i-make" className="text-crimson-glow hover:underline">
-            elindeki malzemelerle yapabileceklerine bak →
+            {tc.orLink}
           </Link>
         </p>
       </section>

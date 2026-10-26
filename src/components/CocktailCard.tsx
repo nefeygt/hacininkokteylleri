@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "@/components/LocaleLink";
 import { Wine, Leaf, Star, Heart, ZoomIn } from "lucide-react";
 import { formatAverage } from "@/lib/community";
+import { format } from "@/lib/i18n/format";
+import { useLocale } from "./LocaleProvider";
 import type { Cocktail } from "@/lib/content";
 
 /**
@@ -24,6 +26,7 @@ export default function CocktailCard({
   href?: string;
   onPreview?: () => void;
 }) {
+  const { t } = useLocale();
   const card = <CardLink cocktail={cocktail} favorite={favorite} onClick={onClick} href={href} />;
   if (!onPreview) return card;
   // The magnifier sits beside the link, not inside it (no button within a link),
@@ -35,8 +38,8 @@ export default function CocktailCard({
         <button
           type="button"
           onClick={onPreview}
-          aria-label={`${cocktail.name}: hızlı bak`}
-          title="Hızlı bak"
+          aria-label={format(t.cocktails.quickLook, { name: cocktail.name })}
+          title={t.cocktails.quickLookTitle}
           className="pointer-events-auto absolute bottom-2.5 right-2.5 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-text-secondary backdrop-blur-sm transition-colors hover:bg-black/70 hover:text-crimson-glow"
         >
           <ZoomIn className="h-4 w-4" />
@@ -75,6 +78,7 @@ function CardLink({
 }
 
 function CardContent({ cocktail, favorite }: { cocktail: Cocktail; favorite: boolean }) {
+  const { t, locale } = useLocale();
   return (
     <>
       {/* Image / Poster Frame */}
@@ -126,7 +130,7 @@ function CardContent({ cocktail, favorite }: { cocktail: Cocktail; favorite: boo
           )}
           {favorite && (
             <div
-              title="Favorilerinde"
+              title={t.cocktails.inFavorites}
               className="flex h-6 w-6 items-center justify-center rounded-full bg-black/40 text-crimson-glow backdrop-blur-sm"
             >
               <Heart className="h-3 w-3 fill-crimson-glow" />
@@ -144,10 +148,10 @@ function CardContent({ cocktail, favorite }: { cocktail: Cocktail; favorite: boo
           {cocktail.rating && (
             <span
               className="flex shrink-0 items-center gap-1 normal-case tracking-normal text-text-secondary"
-              title={`${cocktail.rating.count} değerlendirme`}
+              title={format(t.cocktails.reviewsCount, { n: cocktail.rating.count })}
             >
               <Star className="h-3 w-3 fill-crimson-glow text-crimson-glow" />
-              {formatAverage(cocktail.rating.average)}
+              {formatAverage(cocktail.rating.average, locale)}
               <span className="text-text-muted">({cocktail.rating.count})</span>
             </span>
           )}

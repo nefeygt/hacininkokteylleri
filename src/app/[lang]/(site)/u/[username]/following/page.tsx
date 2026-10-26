@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import FollowList, { loadFollowList } from "@/components/FollowList";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { asLocale } from "@/lib/i18n/locales";
 import { createPublicClient } from "@/lib/supabase/public";
 
 // Like the profile: rendered on first visit, kept a few minutes, revalidated by a follow (u/actions.ts).
@@ -20,15 +22,20 @@ const getOwner = cache(async (username: string) => {
   return data;
 });
 
-export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
-  const owner = await getOwner((await params).username);
-  if (!owner) return { title: "Bulunamadı" };
-  return { title: `${owner.display_name} — takip ettikleri`, robots: { index: false } };
+type Params = Promise<{ lang: string; username: string }>;
+
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const { lang: rawLang, username } = await params;
+  const t = getDictionary(asLocale(rawLang));
+  const owner = await getOwner(username);
+  if (!owner) return { title: t.status.notFoundMeta };
+  return { title: `${owner.display_name} — ${t.follow.followingTitle.toLocaleLowerCase(asLocale(rawLang))}`, robots: { index: false } };
 }
 
-export default async function Page({ params }: { params: Promise<{ username: string }> }) {
-  const owner = await getOwner((await params).username);
+export default async function Page({ params }: { params: Params }) {
+  const { lang, username } = await params;
+  const owner = await getOwner(username);
   if (!owner) notFound();
   const { people, total } = await loadFollowList(owner.id, "following");
-  return <FollowList owner={owner} kind="following" people={people} total={total} />;
+  return <FollowList owner={owner} kind="following" people={people} total={total} lang={asLocale(lang)} />;
 }

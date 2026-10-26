@@ -1,5 +1,8 @@
 import Link from "@/components/LocaleLink";
 import Avatar from "@/components/Avatar";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { format } from "@/lib/i18n/format";
+import type { Locale } from "@/lib/i18n/locales";
 import { createPublicClient } from "@/lib/supabase/public";
 
 export type FollowListKind = "followers" | "following";
@@ -39,16 +42,19 @@ export default function FollowList({
   kind,
   people,
   total,
+  lang,
 }: {
+  lang: Locale;
   owner: { username: string; display_name: string };
   kind: FollowListKind;
   people: Person[];
   total: number;
 }) {
-  const title = kind === "followers" ? "Takipçiler" : "Takip ettikleri";
+  const t = getDictionary(lang).follow;
+  const title = kind === "followers" ? t.followers : t.followingTitle;
   return (
     <div className="mx-auto max-w-3xl px-6 py-16">
-      <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.25em] text-crimson-glow">Rx · Profil</div>
+      <div className="mb-2 font-mono text-[10px] uppercase tracking-[0.25em] text-crimson-glow">{t.profileEyebrow}</div>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <h1 className="text-3xl font-bold">
           {title} <span className="text-text-muted">({total})</span>
@@ -60,7 +66,7 @@ export default function FollowList({
           ← @{owner.username}
         </Link>
       </div>
-      <nav className="mt-6 flex gap-2 font-mono text-[11px]" aria-label="Listeler">
+      <nav className="mt-6 flex gap-2 font-mono text-[11px]" aria-label={t.lists}>
         {(["followers", "following"] as const).map((k) => (
           <Link
             key={k}
@@ -70,7 +76,7 @@ export default function FollowList({
               k === kind ? "bg-crimson/15 text-crimson-glow" : "text-text-secondary hover:bg-bg-elevated hover:text-text-primary"
             }`}
           >
-            {k === "followers" ? "Takipçiler" : "Takip ettikleri"}
+            {k === "followers" ? t.followers : t.followingTitle}
           </Link>
         ))}
       </nav>
@@ -78,8 +84,8 @@ export default function FollowList({
       {people.length === 0 ? (
         <p className="mt-8 text-xs text-text-muted">
           {kind === "followers"
-            ? `${owner.display_name} henüz kimse tarafından takip edilmiyor.`
-            : `${owner.display_name} henüz kimseyi takip etmiyor.`}
+            ? format(t.noFollowers, { name: owner.display_name })
+            : format(t.noFollowing, { name: owner.display_name })}
         </p>
       ) : (
         <ul className="mt-8 divide-y divide-border rounded border border-border bg-bg-card">
@@ -100,7 +106,7 @@ export default function FollowList({
         </ul>
       )}
       {total > people.length && (
-        <p className="mt-4 font-mono text-[11px] text-text-muted">İlk {people.length} kişi gösteriliyor.</p>
+        <p className="mt-4 font-mono text-[11px] text-text-muted">{format(t.firstShown, { n: people.length })}</p>
       )}
     </div>
   );

@@ -14,6 +14,8 @@ import {
 } from "@/lib/recipe";
 import VisualQuantity from "./VisualQuantity";
 import { InstructionText } from "./Tooltip";
+import { useLocale } from "./LocaleProvider";
+import { unitLabel } from "@/lib/drink-log";
 
 /**
  * The prescription itself: ingredients, steps, garnish and note. Shared by the
@@ -23,6 +25,8 @@ import { InstructionText } from "./Tooltip";
  * volumes in ounces (1 oz = 3 cl) and is remembered in this browser.
  */
 export default function RecipeDetails({ cocktail }: { cocktail: Cocktail }) {
+  const { t } = useLocale();
+  const tc = t.cocktails;
   const [servings, setServings] = useState(1);
   const [volumeUnit, setVolumeUnit] = useVolumeUnit();
   const hasVolumes = cocktail.ingredients.some((ing) => isConvertibleUnit(ing.unit));
@@ -39,11 +43,11 @@ export default function RecipeDetails({ cocktail }: { cocktail: Cocktail }) {
       <div className="mb-8">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h3 className="font-mono text-xs uppercase tracking-[0.15em] text-text-muted">
-            Malzemeler
+            {tc.ingredients}
           </h3>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[11px] text-text-muted">
             {hasVolumes && (
-              <div role="group" aria-label="Ölçü birimi" className="flex rounded-full bg-bg-elevated p-0.5">
+              <div role="group" aria-label={tc.volumeUnit} className="flex rounded-full bg-bg-elevated p-0.5">
                 {VOLUME_UNITS.map((unit) => (
                   <button
                     key={unit}
@@ -62,9 +66,9 @@ export default function RecipeDetails({ cocktail }: { cocktail: Cocktail }) {
               </div>
             )}
             <div className="flex items-center gap-2">
-              <span id={`servings-${cocktail.id}`}>Kaç kişilik?</span>
+              <span id={`servings-${cocktail.id}`}>{tc.servings}</span>
               <ServingsButton
-                label="Bir kişi azalt"
+                label={tc.servingsLess}
                 disabled={servings <= 1}
                 onClick={() => setServings(servings - 1)}
               >
@@ -78,7 +82,7 @@ export default function RecipeDetails({ cocktail }: { cocktail: Cocktail }) {
                 {servings}
               </output>
               <ServingsButton
-                label="Bir kişi artır"
+                label={tc.servingsMore}
                 disabled={servings >= SERVINGS_MAX}
                 onClick={() => setServings(servings + 1)}
               >
@@ -110,7 +114,7 @@ export default function RecipeDetails({ cocktail }: { cocktail: Cocktail }) {
       {/* Instructions */}
       <div className="mb-8">
         <h3 className="mb-4 font-mono text-xs uppercase tracking-[0.15em] text-text-muted">
-          Hazırlanışı
+          {tc.preparation}
         </h3>
         <ol className="space-y-3 overflow-visible">
           {cocktail.instructions.map((step, i) => (
@@ -130,7 +134,7 @@ export default function RecipeDetails({ cocktail }: { cocktail: Cocktail }) {
       {cocktail.garnish && (
         <div className="mb-6 rounded bg-bg-elevated/50 px-4 py-3">
           <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
-            Süsleme:{" "}
+            {tc.garnish}{" "}
           </span>
           <span className="prescription-text text-text-secondary">
             {cocktail.garnish}
@@ -163,13 +167,17 @@ function Quantity({
   servings: number;
   volumeUnit: VolumeUnit;
 }) {
+  const { t } = useLocale();
   const shown = convertAmount(scaleAmount(ingredient.amount, servings), ingredient.unit, volumeUnit);
-  return (
-    <VisualQuantity
-      ingredient={{ ...ingredient, ...shown }}
-      label={shown.unit !== ingredient.unit ? `${formatOunces(shown.amount)} oz` : undefined}
-    />
-  );
+  // Ounces read "1½ oz"; other units are written in the page's language ("2 adet" → "2 pieces"), or as stored.
+  const translated = unitLabel(shown.unit, shown.amount, t);
+  const label =
+    shown.unit !== ingredient.unit
+      ? `${formatOunces(shown.amount)} oz`
+      : translated !== shown.unit
+        ? `${shown.amount} ${translated}`
+        : undefined;
+  return <VisualQuantity ingredient={{ ...ingredient, ...shown }} label={label} />;
 }
 
 const VOLUME_UNIT_KEY = "haci.volume-unit";

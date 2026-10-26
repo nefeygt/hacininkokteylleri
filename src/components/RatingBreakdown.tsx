@@ -1,24 +1,29 @@
+"use client";
+
 import { Star } from "lucide-react";
 import { formatRating, ratingBreakdown } from "@/lib/community";
 import type { Rating } from "@/lib/content";
+import { format } from "@/lib/i18n/format";
+import { useLocale } from "./LocaleProvider";
 
 /** How the reviews spread over the half stars, Letterboxd-style: ten bars from ½ to 5 (M9). */
 export default function RatingBreakdown({ rating }: { rating: Rating }) {
+  const { t, locale } = useLocale();
   if (!rating.halfStars || rating.count === 0) return null;
   const bars = ratingBreakdown(rating.halfStars);
   const summary = bars
     .filter((b) => b.count > 0)
-    .map((b) => `${formatRating(b.rating)} yıldız: ${b.count}`)
+    .map((b) => format(t.cocktails.starsCount, { rating: formatRating(b.rating, locale), n: b.count }))
     .join(", ");
 
   return (
-    <figure className="mb-6 flex items-end gap-3" aria-label={`Puan dağılımı. ${summary}`}>
+    <figure className="mb-6 flex items-end gap-3" aria-label={format(t.cocktails.breakdown, { summary })}>
       <Star className="mb-0.5 h-3 w-3 shrink-0 fill-crimson-glow text-crimson-glow" aria-hidden />
       <div className="flex h-12 flex-1 items-end gap-0.5" aria-hidden>
         {bars.map((b) => (
           <div
             key={b.rating}
-            title={`${formatRating(b.rating)} yıldız: ${b.count} değerlendirme`}
+            title={format(t.cocktails.starsReviews, { rating: formatRating(b.rating, locale), n: b.count })}
             className="group relative flex h-full flex-1 items-end"
           >
             <div

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import DrinkLogEntry, { DRINK_LOG_WITH_AUTHOR_COLUMNS, type DrinkLogRow } from "@/components/DrinkLogEntry";
 import { useMember } from "@/components/useMember";
 import { createClient } from "@/lib/supabase/browser";
+import { useLocale } from "@/components/LocaleProvider";
 
 const SHOWN = 30;
 
@@ -13,6 +14,7 @@ const SHOWN = 30;
  * ADR-018), read in the browser so the feed page stays static (ADR-016).
  */
 export default function FollowingLogs() {
+  const { t } = useLocale();
   const { member } = useMember();
   const [logs, setLogs] = useState<DrinkLogRow[] | null>(null);
   const [counts, setCounts] = useState<Map<string, number>>(new Map());
@@ -57,14 +59,13 @@ export default function FollowingLogs() {
     };
   }, [memberId]);
 
-  if (member.state === "loading") return <p className="text-xs text-text-muted">Yükleniyor…</p>;
+  if (member.state === "loading") return <p className="text-xs text-text-muted">{t.common.loading}</p>;
 
   if (member.state === "signed-out") {
     return (
       <p className="rounded bg-bg-elevated/50 px-4 py-3 text-xs leading-relaxed text-text-secondary">
-        Takip ettiğin kişilerin içki günlüklerini burada görmek için{" "}
-        <Link href={`/login?next=${encodeURIComponent("/feed")}`} className="text-crimson-glow underline underline-offset-2">
-          giriş yap
+        {t.feedLogs.signInPrefix}        <Link href={`/login?next=${encodeURIComponent("/feed")}`} className="text-crimson-glow underline underline-offset-2">
+          {t.common.signIn}
         </Link>
         .
       </p>
@@ -74,23 +75,22 @@ export default function FollowingLogs() {
   if (member.state === "onboarding") {
     return (
       <p className="rounded bg-bg-elevated/50 px-4 py-3 text-xs text-text-secondary">
-        Önce{" "}
-        <Link href="/welcome" className="text-crimson-glow underline underline-offset-2">
-          profilini tamamla
+        {t.feedLogs.finishPrefix}        <Link href="/welcome" className="text-crimson-glow underline underline-offset-2">
+          {t.common.completeProfile}
         </Link>
         .
       </p>
     );
   }
 
-  if (logs === null) return <p className="text-xs text-text-muted">Yükleniyor…</p>;
+  if (logs === null) return <p className="text-xs text-text-muted">{t.common.loading}</p>;
 
   if (logs.length === 0) {
     return (
       <p className="text-xs leading-relaxed text-text-muted">
         {followsNobody
-          ? "Henüz kimseyi takip etmiyorsun. Bir tarifin sahibinin ya da bir yorumcunun profiline gidip “Takip et”e dokun."
-          : "Takip ettiklerin henüz herkese açık bir kayıt paylaşmadı."}
+          ? t.feedLogs.followsNobody
+          : t.feedLogs.nothingShared}
       </p>
     );
   }

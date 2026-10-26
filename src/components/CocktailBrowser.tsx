@@ -7,21 +7,23 @@ import { setFavorite } from "@/app/[lang]/(site)/cocktails/actions";
 import CocktailCard from "@/components/CocktailCard";
 import CocktailModal from "@/components/CocktailModal";
 import { CollectionLinks } from "@/components/CollectionView";
+import { useLocale } from "@/components/LocaleProvider";
 import { useMember } from "@/components/useMember";
 import {
   ALL,
-  INGREDIENT_FILTERS as ingredientFilters,
+  ingredientFilters,
   baseChoices,
   flavorChoices,
   filterCocktails,
   hasActiveFilters as anyActive,
   readArchiveQuery,
   sortCocktails,
-  SORT_LABELS,
   writeArchiveQuery,
   type ArchiveSort,
 } from "@/lib/archive-filter";
 import { collections } from "@/lib/collections";
+import { format } from "@/lib/i18n/format";
+import { INTL_LOCALES } from "@/lib/i18n/locales";
 import { recipeHref, type Cocktail } from "@/lib/content";
 
 // A card opens the recipe's page; its magnifier opens the recipe over the
@@ -40,6 +42,14 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
   const [showFilters, setShowFilters] = useState(true);
   const [onlyFavorites, setOnlyFavorites] = useState(false);
   const { member, favorites, markFavorite } = useMember();
+  const { t, locale } = useLocale();
+  const tc = t.cocktails;
+  const sortLabels: Record<ArchiveSort, string> = {
+    default: t.archive.sortDefault,
+    rating: t.archive.sortRating,
+    name: t.archive.sortName,
+  };
+  const ingredientChoices = useMemo(() => ingredientFilters(t), [t]);
   const baseAlcohols = useMemo(() => baseChoices(cocktails), [cocktails]);
   const flavors = useMemo(() => flavorChoices(cocktails), [cocktails]);
 
@@ -132,13 +142,15 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
       {/* Page header */}
       <div className="mb-10">
         <span className="mb-2 inline-block font-mono text-[10px] uppercase tracking-[0.25em] text-crimson-glow">
-          Arşiv
+          {tc.eyebrow}
         </span>
-        <h1 className="text-3xl font-bold tracking-tight">Kokteyller</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{tc.title}</h1>
         <p className="mt-2 text-sm text-text-muted">
-          Hacı onaylı <b>{cocktails.length}</b> reçete.{" "}
+          {tc.approvedPrefix}
+          <b>{cocktails.length}</b>
+          {tc.approvedSuffix}{" "}
           <Link href="/what-can-i-make" className="text-crimson-glow hover:underline">
-            Elimde ne var? →
+            {tc.whatCanIMake}
           </Link>
         </p>
       </div>
@@ -151,15 +163,15 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Kokteyl, malzeme veya etiket ara..."
-            aria-label="Kokteyl ara"
+            placeholder={tc.searchPlaceholder}
+            aria-label={tc.searchLabel}
             className="w-full rounded border border-border bg-bg-card py-2.5 pl-10 pr-4 text-sm text-text-primary placeholder-text-muted outline-none transition-colors focus:border-crimson-glow/40"
           />
           {search && (
             <button
               type="button"
               onClick={() => setSearch("")}
-              aria-label="Aramayı temizle"
+              aria-label={tc.clearSearch}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
             >
               <X className="h-3.5 w-3.5" />
@@ -175,7 +187,7 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
           }`}
         >
           <SlidersHorizontal className="h-3.5 w-3.5" />
-          Filtrele
+          {tc.filters}
         </button>
       </div>
 
@@ -183,11 +195,11 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
       {showFilters && (
         <div className="mb-8 space-y-5 rounded border border-border bg-bg-card/50 p-5">
           {/* Base alcohol */}
-          <FilterRow label="Baz Alkol">
+          <FilterRow label={tc.rowBase}>
             {baseAlcohols.map((b) => (
               <FilterChip
                 key={b}
-                label={b}
+                label={b === ALL ? t.archive.all : b}
                 active={selectedBase === b}
                 onClick={() => setSelectedBase(b)}
               />
@@ -195,11 +207,11 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
           </FilterRow>
 
           {/* Flavor */}
-          <FilterRow label="Baskın Tat">
+          <FilterRow label={tc.rowFlavor}>
             {flavors.map((f) => (
               <FilterChip
                 key={f}
-                label={f}
+                label={f === ALL ? t.archive.all : f}
                 active={selectedFlavor === f}
                 onClick={() => setSelectedFlavor(f)}
               />
@@ -207,8 +219,8 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
           </FilterRow>
 
           {/* Specific ingredients */}
-          <FilterRow label="Malzeme">
-            {ingredientFilters.map((ing) => (
+          <FilterRow label={tc.rowIngredient}>
+            {ingredientChoices.map((ing) => (
               <FilterChip
                 key={ing}
                 label={ing}
@@ -219,7 +231,7 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
           </FilterRow>
 
           {member.state === "ok" && (
-            <FilterRow label="Listem">
+            <FilterRow label={tc.rowList}>
               <button
                 onClick={() => setOnlyFavorites(!onlyFavorites)}
                 className={`flex items-center gap-1.5 rounded-sm px-3 py-1 font-mono text-[11px] transition-colors ${
@@ -229,7 +241,7 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
                 }`}
               >
                 <Heart className={`h-3 w-3 ${onlyFavorites ? "fill-crimson-glow" : ""}`} />
-                Favorilerim ({favorites.size})
+                {format(tc.myFavorites, { n: favorites.size })}
               </button>
             </FilterRow>
           )}
@@ -239,7 +251,7 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
               onClick={clearFilters}
               className="font-mono text-[10px] uppercase tracking-wider text-text-muted underline underline-offset-2 transition-colors hover:text-crimson-glow"
             >
-              Filtreleri Temizle
+              {tc.clearFiltersUpper}
             </button>
           )}
         </div>
@@ -248,11 +260,11 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
       {/* Results count and the order (M9 package D) */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-muted">
-          {filtered.length} sonuç
-          {hasActiveFilters && " (filtrelenmiş)"}
+          {format(tc.results, { n: filtered.length.toLocaleString(INTL_LOCALES[locale]) })}
+          {hasActiveFilters && tc.filteredSuffix}
         </div>
-        <div role="group" aria-label="Sırala" className="flex items-center gap-1">
-          {(Object.keys(SORT_LABELS) as ArchiveSort[]).map((key) => (
+        <div role="group" aria-label={tc.sortLabel} className="flex items-center gap-1">
+          {(Object.keys(sortLabels) as ArchiveSort[]).map((key) => (
             <button
               key={key}
               type="button"
@@ -264,7 +276,7 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
                   : "text-text-muted hover:bg-bg-elevated hover:text-text-secondary"
               }`}
             >
-              {SORT_LABELS[key]}
+              {sortLabels[key]}
             </button>
           ))}
         </div>
@@ -285,24 +297,24 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
         </div>
       ) : (
         <div className="py-20 text-center">
-          <p className="mb-2 text-text-secondary">Sonuç bulunamadı.</p>
+          <p className="mb-2 text-text-secondary">{tc.noResults}</p>
           <button
             onClick={clearFilters}
             className="text-sm text-crimson-glow underline underline-offset-2"
           >
-            Filtreleri temizle
+            {tc.clearFilters}
           </button>
         </div>
       )}
 
       {/* The collections' landing pages (M9 package C): crawlable paths into the archive. */}
       <section className="mt-16 space-y-5 border-t border-border pt-8">
-        <CollectionLinks heading="Baz içkiye göre" items={spiritCollections} />
-        <CollectionLinks heading="Tada göre" items={flavorCollections} />
+        <CollectionLinks heading={tc.bySpirit} items={spiritCollections} />
+        <CollectionLinks heading={tc.byFlavor} items={flavorCollections} />
         <p className="text-xs text-text-muted">
-          Altı çizili terimler ne demek?{" "}
+          {tc.glossaryHint}{" "}
           <Link href="/glossary" className="text-crimson-glow hover:underline">
-            Kokteyl sözlüğü →
+            {tc.glossaryLink}
           </Link>
         </p>
       </section>

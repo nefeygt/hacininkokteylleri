@@ -6,6 +6,7 @@ import { useEffect, useState, useTransition } from "react";
 import { setFollow } from "@/app/[lang]/(site)/u/actions";
 import { ACCOUNTS_OPEN } from "@/lib/account-config";
 import { createClient } from "@/lib/supabase/browser";
+import { useLocale } from "./LocaleProvider";
 
 /**
  * "Takip et" on someone else's profile (M6). Whether the visitor already
@@ -14,6 +15,7 @@ import { createClient } from "@/lib/supabase/browser";
  */
 export default function FollowButton({ profileId, username }: { profileId: string; username: string }) {
   const router = useRouter();
+  const { t } = useLocale();
   const [state, setState] = useState<"loading" | "hidden" | "signed-out" | "following" | "not-following">("loading");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -46,7 +48,7 @@ export default function FollowButton({ profileId, username }: { profileId: strin
         href={`/login?next=${encodeURIComponent(`/u/${username}`)}`}
         className="rounded border border-border px-4 py-1.5 text-xs text-text-secondary transition-colors hover:border-crimson-glow/50 hover:text-text-primary"
       >
-        Takip et
+        {t.follow.follow}
       </Link>
     );
   }
@@ -80,7 +82,7 @@ export default function FollowButton({ profileId, username }: { profileId: strin
             : "bg-crimson text-white hover:bg-crimson-light"
         }`}
       >
-        {following ? "Takip ediliyor" : "Takip et"}
+        {following ? t.follow.following : t.follow.follow}
       </button>
     </span>
   );

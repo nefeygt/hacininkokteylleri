@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { ImagePlus, Loader2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/browser";
+import { useLocale } from "./LocaleProvider";
 import {
   COCKTAIL_IMAGES_BUCKET,
   RECIPE_IMAGES_BUCKET,
@@ -45,7 +46,7 @@ function encode(canvas: HTMLCanvasElement, type: string, quality: number) {
 }
 
 /** Scale to at most 1600 px wide and encode as WebP (JPEG where WebP cannot be encoded). */
-async function prepare(file: File, cleanSparkle: boolean): Promise<{ blob: Blob; ext: string }> {
+async function prepare(file: File, cleanSparkle: boolean, convertFailed: string): Promise<{ blob: Blob; ext: string }> {
   const bitmap = await createImageBitmap(file);
   const scale = Math.min(1, MAX_WIDTH / bitmap.width);
   const canvas = document.createElement("canvas");
@@ -59,7 +60,7 @@ async function prepare(file: File, cleanSparkle: boolean): Promise<{ blob: Blob;
   const webp = await encode(canvas, "image/webp", 0.8);
   if (webp?.type === "image/webp") return { blob: webp, ext: "webp" };
   const jpeg = await encode(canvas, "image/jpeg", 0.85);
-  if (!jpeg) throw new Error("Görsel dönüştürülemedi.");
+  if (!jpeg) throw new Error(convertFailed);
   return { blob: jpeg, ext: "jpg" };
 }
 
@@ -79,6 +80,7 @@ export default function ImageField({
   onChange: (path: string | null) => void;
   folder?: string;
 }) {
+  const { t } = useLocale();
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -90,7 +92,7 @@ export default function ImageField({
     setBusy(true);
     setError(null);
     try {
-      const { blob, ext } = await prepare(file, cleanSparkle);
+      const { blob, ext } = await prepare(file, cleanSparkle, t.imageField.convertFailed);
       // A fresh name every time: objects are never overwritten in place (ADR-006).
       const fileName = `${slug || "kokteyl"}-${Date.now().toString(36)}.${ext}`;
       const name = folder ? `${folder}/${fileName}` : fileName;
@@ -100,7 +102,7 @@ export default function ImageField({
       if (error) throw error;
       onChange(name);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Yükleme başarısız.");
+      setError(e instanceof Error ? e.message : t.imageField.uploadFailed);
     } finally {
       setBusy(false);
       if (input.current) input.current.value = "";
@@ -114,7 +116,7 @@ export default function ImageField({
           <img src={url} alt="" className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full items-center justify-center text-xs text-text-muted">
-            Fotoğraf yok
+            {t.imageField.noPhoto}
           </div>
         )}
         {busy && (
@@ -131,7 +133,7 @@ export default function ImageField({
           onClick={() => input.current?.click()}
           className="inline-flex items-center gap-2 rounded border border-border px-3 py-2 text-xs text-text-secondary hover:border-border-light hover:text-text-primary disabled:opacity-60"
         >
-          <ImagePlus className="h-3.5 w-3.5" /> {url ? "Fotoğrafı değiştir" : "Fotoğraf yükle"}
+          <ImagePlus className="h-3.5 w-3.5" /> {url ? t.imageField.change : t.imageField.upload}
         </button>
         {url && (
           <button
@@ -140,7 +142,7 @@ export default function ImageField({
             onClick={() => onChange(null)}
             className="inline-flex items-center gap-1.5 rounded px-3 py-2 text-xs text-text-muted hover:text-crimson-glow"
           >
-            <X className="h-3.5 w-3.5" /> Kaldır
+            <X className="h-3.5 w-3.5" /> {t.imageField.remove}
           </button>
         )}
         {!folder && (
@@ -151,7 +153,7 @@ export default function ImageField({
               onChange={(e) => setCleanSparkle(e.target.checked)}
               className="accent-crimson-glow"
             />
-            Sağ alttaki Gemini yıldızını temizle
+            {t.imageField.sparkle}
           </label>
         )}
       </div>

@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import { ACCOUNTS_OPEN } from "@/lib/account-config";
 import { createClient } from "@/lib/supabase/browser";
 import type { ReportableTarget } from "@/app/[lang]/(site)/cocktails/actions";
+import { useLocale } from "./LocaleProvider";
 import ReportButton from "./ReportButton";
 
 /** "Profili bildir" on someone else's profile, for signed-in visitors. The page stays static. */
 export default function ReportProfileButton({ profileId }: { profileId: string }) {
-  return <ReportIfSignedIn ownerId={profileId} targetType="profile" targetId={profileId} label="Profili bildir" />;
+  const { t } = useLocale();
+  return <ReportIfSignedIn ownerId={profileId} targetType="profile" targetId={profileId} label={t.report.reportProfile} />;
 }
 
 /**
