@@ -12,6 +12,7 @@ import { groupByCategory } from "@/lib/ingredients";
 import { INGREDIENT_ICONS, RECIPE_LIMITS, type RecipeIngredient, type RecipeInput } from "@/lib/recipe";
 import type { Suggestions } from "@/app/admin/types";
 import { deleteRecipe, saveRecipe } from "./actions";
+import GlassPicker from "@/components/GlassPicker";
 
 const iconButton =
   "flex h-8 w-8 shrink-0 items-center justify-center rounded text-text-muted hover:bg-bg-elevated hover:text-text-primary disabled:opacity-30";
@@ -154,10 +155,10 @@ export default function RecipeForm({
               className={fieldClass}
             />
           </label>
-          <label className="block">
+          <div className="col-span-full">
             <span className={labelClass}>Bardak</span>
-            <input maxLength={L.glass} list="glasses" value={form.glass} onChange={(e) => set("glass", e.target.value)} className={fieldClass} />
-          </label>
+            <GlassPicker value={form.glass} onChange={(v) => set("glass", v)} maxLength={L.glass} inputClassName={fieldClass} list="glasses" />
+          </div>
           <label className="block">
             <span className={labelClass}>Vurgu rengi</span>
             <div className="flex items-center gap-2">

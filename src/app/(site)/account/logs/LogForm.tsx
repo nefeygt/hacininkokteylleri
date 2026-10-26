@@ -8,6 +8,7 @@ import Stars from "@/components/Stars";
 import { LOG_LIMITS, LOG_NOTE_MAX_LENGTH, unitChoices, type LogRecipe } from "@/lib/drink-log";
 import type { IngredientIcon } from "@/lib/content";
 import { deleteDrinkLog, saveDrinkLog } from "./actions";
+import GlassPicker from "@/components/GlassPicker";
 
 interface IngredientRow {
   key: number;
@@ -238,10 +239,11 @@ export default function LogForm({ initial, id, today }: { initial: LogFormValues
           <span className={labelClass}>Süsleme</span>
           <input value={garnish} onChange={(e) => setGarnish(e.target.value)} maxLength={LOG_LIMITS.garnish} className={fieldClass} />
         </label>
-        <label className="block">
-          <span className={labelClass}>Bardak</span>
-          <input value={glass} onChange={(e) => setGlass(e.target.value)} maxLength={LOG_LIMITS.glass} className={fieldClass} />
-        </label>
+      </div>
+
+      <div>
+        <span className={labelClass}>Bardak</span>
+        <GlassPicker value={glass} onChange={setGlass} maxLength={LOG_LIMITS.glass} inputClassName={fieldClass} />
       </div>
 
       <div>

@@ -704,7 +704,9 @@ While the store release waits (ADR-024), the site gets better first; every user-
   - [x] Editing a comment: the commenter edits their visible comment ("Düzenle", "· düzenlendi" with the time;
     `edited_at` stamped by a trigger, migration `log_comment_editing`); SQL-tested as members (author 1 row, another 0,
     hiding still refused)
-  - [ ] The glass as a picker with drawings (log and recipe forms)
+  - [x] The glass as a picker with drawings: 13 glasses drawn on a 24 px grid (`GlassIcon`), `GLASSES` and `glassKind`
+    in the shared `src/lib/glasses.ts` (matches all 14 values in the data, "Bakır Kupa" before "Kupa"); the log form, the
+    member's recipe form and the panel pick by drawing, "Başka" keeps free text; the recipe page shows the drawing
   - [ ] A scheduled cleanup of orphaned photos (Edge Function; the service key stays in Supabase)
   - [ ] **Last step of M9, before the parity pass: translation** (out of the Icebox, the user 2026-10-26)
   - Videos stay in the Icebox: Gemini's free tier has no video model (Veo is paid per second); revisit with a budget
@@ -759,8 +761,6 @@ While the store release waits (ADR-024), the site gets better first; every user-
   2026-10-13: later, once the current work is done). **Includes an English privacy notice next to
   the Turkish one** for global users (the user, 2026-10-13)
 - Themes in the admin panel; the theme saved on the account; light OG images and e-mail templates (ADR-028)
-- **The glass as a picker with glass pictures** (the user, 2026-10-15, unsure): the log's (and the recipe
-  form's) "Bardak" chosen from a list with drawings of each glass we would make
 - **Videos for cocktails** (the user, 2026-10-15: "in the future") — generated or shot short clips on the recipe pages
 - A `haci` domain, if the product grows (ADR-015)
 - Paging / "show more" for reviews (the card shows the latest 50; a profile the latest 100)

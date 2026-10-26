@@ -125,6 +125,8 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 - **Rating breakdown** (M9): the app's recipe screen reads `half_star_counts` with the rating and draws the ten bars
   (`ratingBreakdown` from `@shared/community`). **Follower lists**: profile counts open two lists in the app.
 - **Comment editing** (M9): the app's log comments get "Düzenle" and "düzenlendi" (`edited_at`).
+- **Glass picker** (M9): the app's log and recipe forms pick the glass by drawing (`GLASSES`, `glassKind` from
+  `@shared/glasses`; the 13 paths of `GlassIcon.tsx` move to react-native-svg).
 - **"cl | oz"** on recipes (ADR-027): a toggle beside "Kaç kişilik?" with `convertAmount`, `formatOunces`,
   `isConvertibleUnit` from `@shared/recipe`; remember the choice (AsyncStorage or the app's existing storage).
 

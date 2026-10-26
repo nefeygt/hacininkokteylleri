@@ -12,6 +12,8 @@ import RecipeDetails from "./RecipeDetails";
 import ReportButton from "./ReportButton";
 import ShareButton from "./ShareButton";
 import { useMember } from "./useMember";
+import GlassIcon from "@/components/GlassIcon";
+import { glassKind } from "@/lib/glasses";
 
 /**
  * A recipe on its own page: a member's (M6, ADR-018) or a house recipe
@@ -50,6 +52,9 @@ export default function RecipeView({ cocktail, similar }: { cocktail: Cocktail; 
 
       <div className="mb-8">
         <div className="mb-2 flex flex-wrap items-center gap-2">
+          {glassKind(cocktail.glass) && (
+            <GlassIcon id={glassKind(cocktail.glass)!.id} className="h-4 w-4 text-text-muted" />
+          )}
           <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-text-muted">
             {[cocktail.baseAlcohol, cocktail.flavor, cocktail.glass].filter(Boolean).join(" · ")}
           </span>

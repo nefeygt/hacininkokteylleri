@@ -10,6 +10,7 @@ import { slugify } from "@/lib/slug";
 import { deleteCocktail, saveCocktail } from "./actions";
 import ImageField from "@/components/ImageField";
 import type { CocktailInput, IngredientInput, Suggestions } from "./types";
+import GlassPicker from "@/components/GlassPicker";
 
 // What each icon means on the recipe card (VisualQuantity draws one per unit).
 const ICONS: { value: IngredientIcon; label: string }[] = [
@@ -188,10 +189,10 @@ export default function CocktailForm({
               <input value={form.color} onChange={(e) => set("color", e.target.value)} className={field} />
             </div>
           </label>
-          <label className="block">
+          <div className="col-span-full">
             <span className={label}>Bardak</span>
-            <input list="glasses" value={form.glass} onChange={(e) => set("glass", e.target.value)} className={field} />
-          </label>
+            <GlassPicker value={form.glass} onChange={(v) => set("glass", v)} maxLength={100} inputClassName={field} list="glasses" />
+          </div>
         </div>
       </Section>
 
