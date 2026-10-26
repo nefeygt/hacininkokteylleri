@@ -4,10 +4,12 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-26 (M9: council round, Icebox round, e-mails, translation step 1) · **Handing off
-mid-task: the translation** (ADR-032). The store release is still paused (ADR-024); the app is not synced yet.
-Everything is pushed and live; English is built but **not published** (`PUBLISHED_LOCALES = ["tr"]`), so visitors see
-no change. **Continue the translation where it stopped** (below), then the parity pass on the user's go.
+**Prepared by session:** 2026-10-26 (translation step 2, a Sonnet session) · **Handing off to an Opus session** for the
+rule-heavy last steps. The store release is still paused (ADR-024); the app is not synced yet (the user's rule: no
+parity work until they say so). Everything built is **committed locally on `main`**; `npm run build` passes, nothing
+was pushed from this session (push after the checks below). English is built but **not published**
+(`PUBLISHED_LOCALES = ["tr"]`), so visitors see no change. The database already holds the English content (applied with
+the Supabase MCP, mirrored in `supabase/migrations`).
 ---
 
 ## 📋 Prompt to Copy
@@ -20,6 +22,7 @@ BEFORE YOU START, read these in order:
 1. plan.md         — the single source of truth (status board, product, architecture, milestones)
 2. next_session.md — this file (what to do, open questions, things that bite)
 3. adr.md          — decisions already made and why (don't relitigate them, apply them)
+4. docs/glossary.md — the TR → EN terms and style rules; every English word follows it (a new term goes there first)
 
 Then do the work described under "This Session's Task".
 
@@ -51,51 +54,72 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — finish the translation (ADR-032), then publish English
+## 🎯 This Session's Task — finish the translation (ADR-032): privacy draft, check, publish English
 
-The user (2026-10-26): **everything** in English — interface and Hacı's recipes — at `/en/...`, and built so Spanish,
-German, Russian, Chinese… can follow. Translation is M9's last step; after it comes the app's parity pass (only on the
-user's go). Read ADR-032 first.
+**Run this in an Opus session** (the rest is rule-heavy: legal text, a full consistency check, going live). Read ADR-032
+(with its "Details decided while building") and `docs/glossary.md` first.
 
-**Done (step 1, live):** pages under `src/app/[lang]/(site)`; `src/proxy.ts` rewrites Turkish URLs into `/tr`, 308s a
-typed `/tr/...`, passes published languages; root layouts `[lang]/layout.tsx` and `admin/layout.tsx` (shared
-`root-document.tsx`, `fonts.ts`), `global-not-found.tsx`; `src/lib/i18n/` (`locales.ts`, `dictionaries/{tr,en,types,
-index}.ts`, `format.ts`, `revalidate.ts`); `LocaleProvider`/`useLocale`, `LocaleLink` (all site links already use it),
-`revalidateLocalized` (all public revalidations already use it). **Step 2 started:** dictionary sections `meta`, `nav`,
-`themes`, `status`; localized: Navbar, AccountLink, ThemePicker, LanguageSwitcher (hidden until 2 languages are
-published), StatusScreen, `[lang]/(site)/not-found.tsx`, `error.tsx`.
+### What the Sonnet session finished (2026-10-26)
 
-**Next, in order:**
-1. **Shared helpers take a locale, default `tr`** (the app and the panel keep calling them unchanged):
-   `community.ts` (`formatRating`, `formatAverage`, `RATING_ERROR`), `showcase.ts` (`dayFormat` → per locale,
-   `STATUS_LABELS`), `drink-log.ts` (`formatAmount`, `formatLogDate`, validation errors), `recipe.ts` (validation
-   errors, icon labels), `profile.ts`, `account-config.ts` (`authErrorMessage`), `archive-filter.ts` (`ALL` stays the
-   sentinel, show `t.archive.all`; `SORT_LABELS` → dictionary; `INGREDIENT_FILTERS` per locale since English data has
-   English names), `collections.ts` (titles, intros, slugs from translated labels), `notifications.ts`
-   (`describeNotification(row, t)`), `glasses.ts` (display names per locale; the field value stays as written),
-   `ingredients.ts` (category labels).
-2. **Extract every string** (≈600 lines; `grep -P "[ğüşıöçĞÜŞİÖÇ]"` finds most) page by page into dictionary
-   sections, writing tr and en together. Helper used this session: a JSON of `{section: {tr: {...}, en: {...}}}`
-   appended to both files by a small Python script (rewrite it: read tr.ts/en.ts, insert before the final `};`).
-   Server pages: `const t = getDictionary(lang)` from `params`; server components below get `lang`/`t` as props;
-   client components `useLocale()`. Dates/numbers via `INTL_LOCALES[locale]`. `router.push(...)` → `href(...)` from
-   `useLocale`. `redirect("/login")` in `requireMember` etc. → take the locale. Server actions return messages: read
-   the page's language from the `referer` header (`splitLocale`) — write one helper, e.g. `actionDictionary()`.
-   Page metadata (titles/descriptions) per locale; `alternates.languages` (hreflang) per page.
-3. **Content translation (DB, ADR-009 flow):** `cocktail_translations` (cocktail_id, locale, name, subtitle,
-   base_alcohol, flavor, garnish, glass, note, instructions text[], ingredient_names text[] by position; RLS: read where
-   the cocktail is readable, admins write), `glossary_term_translations`, `ingredient_translations`; loaders in
-   `content.ts` take a locale and fall back to Turkish. **Write the English for all 37 house recipes, the 4 glossary
-   terms and the 52 catalogue items** (Claude writes them; seed through a migration). Units ("dilim", "yaprak", …)
-   translated through the dictionary. Members' recipes stay as written. The panel: an "İngilizce" section in the
-   cocktail form and the glossary/ingredient editors (panel UI stays Turkish).
-4. **English privacy notice** — a translation of `/privacy`, marked "the Turkish text governs"; **the user approves the
-   text before English is published.**
-5. Sitemap with `alternates.languages`, OG locale, the share card (`og-card.tsx`) per language, JSON-LD
-   `inLanguage`, e-mails already read `account_settings.locale` — set it when a member uses `/en` (e.g. on sign-in or a
-   toggle on `/account`).
-6. **Publish:** add `"en"` to `PUBLISHED_LOCALES`; check every page at `/en/...` and Turkish unchanged (curl status
-   list as in this session: 200s, 404s, `/tr/x` → 308), 375 px, then push and check live with check-host.net.
+- `docs/glossary.md` — terms, units, glasses, flavors, preparation verbs, garnish, the 52 catalogue items, the 4 glossary
+  terms, UI phrases, style rules, the decisions taken and the inconsistencies found (list at its end).
+- **Strings:** 604 keys in `tr.ts`/`en.ts` (parity checked by a script: same keys, same `{placeholders}`, no Turkish
+  letters in English except the name "Hacı"). Every public page and component, forms, validation and server-action
+  messages (`actions`, `validation`, `auth` sections; the language comes from `referer` via `src/lib/i18n/server.ts`),
+  metadata (`pageMeta`, `alternatesFor`), recipe JSON-LD, notification texts (`describeNotification(row, t)`), dates and
+  numbers via `INTL_LOCALES`. Shared helpers take a locale/dictionary part and default to Turkish; `mobile/` still typechecks.
+- **Database** (migrations `translation_tables`, `translations_en_catalogue_glossary`, `translations_en_recipes_1…4`):
+  `cocktail_translations` (38 English rows: the 37 published house recipes + the draft `yeni-yil`), `ingredient_translations`
+  (52), `glossary_term_translations` (4). RLS on; the advisors show nothing new. Step and ingredient counts of every row
+  match the Turkish original. **Progress note of the recipe batches** (by `sort_order`): 1–10, 11–20, 21–30, 31–38 — all applied.
+- **Sitemap + hreflang:** `src/app/sitemap.ts` lists every published language with `alternates.languages` (+ `x-default`);
+  pages use `alternatesFor`. With only Turkish published the output equals the old one. **Not yet exercised with two
+  languages** — the auto-mode classifier refused a temporary local publish; do it as part of publishing (step c).
+- Prerendered `/en/...` pages (`.next/server/app/en/…`) were read: English text, English chips and sort labels, English
+  collection slugs (`/en/cocktails/spirit/vodka`), the glossary merged to one "Simple syrup".
+
+### Left, in order
+
+**(a) The English privacy notice — draft it; the user approves before it goes live.** `/en/privacy` still renders the
+Turkish text (`src/app/[lang]/(site)/privacy/page.tsx`, ~47 Turkish lines, version `PRIVACY_NOTICE_VERSION`). A faithful
+translation marked "The Turkish text governs", plus the pending Resend line (draft: "Resend: to send verification and
+password-reset e-mails and, unless you turn it off, a digest of your unread notifications; servers in Ireland."). Put the
+strings in a `privacy` dictionary section (or an English variant of the page); show the draft to the user in chat and
+**wait for their yes**.
+
+**(b) Check all English content against `docs/glossary.md`, then build and advisors.**
+- Read the English rows once more (`select * from cocktail_translations where locale = 'en'`), `en.ts` and the glossary's
+  inconsistency list; fix wording in a new migration (never edit an applied one) or in `en.ts`.
+- Questions I could not settle (ask the user in one message, then record the answers under "Closed Questions"):
+  1. **Cocktail names stay Turkish** ("Kuzu Kulağı Devrimi", "Ferah Manifesto", "Cin Çileği", "Sovyet Elması"…) — does the user
+     want the evocative names translated? (`cocktail_translations.name` is ready; an English page would then show them.)
+  2. The unpublished draft `yeni-yil` (lowercase name, no subtitle or tags) — Hacı should tidy it before it is published.
+  3. The Turkish glossary still has two rows for the same thing ("Simple Syrup", "Şeker Şurubu") — the user's open question.
+- **Panel editors for translations are not built.** Without them a new or edited house recipe has no English until someone
+  writes SQL (it falls back to Turkish). Build an "İngilizce" section in the cocktail form (`CocktailForm.tsx` / `actions.ts`:
+  upsert `cocktail_translations`, `ingredient_names` by position) and small editors in the glossary and ingredient pages
+  (`GlossaryEditor.tsx`, `IngredientCatalogueEditor.tsx`); the panel UI stays Turkish. Decide with the user whether this
+  must be done before publishing (recommended) or right after.
+- Still Turkish on purpose or by omission: `opengraph-image.tsx`, `og/recipes/[slug]/route.tsx` + `lib/og-card.tsx`
+  ("RX · {label}" is uppercased with `"tr"`), `manifest.ts` (`lang: "tr"`), `global-error.tsx` / `global-not-found.tsx`
+  (`lang="tr"`), the panel, the privacy page (a). The share card should read the page's language; the rest is language-neutral
+  enough to leave.
+- Set `account_settings.locale` when a member uses `/en` (the e-mails already read it: `send-notification-emails` has
+  English words and falls back to English for unknown languages): an action called from the language switcher or on
+  sign-in. Check `LanguageSwitcher` (hidden until two languages are published).
+- `rm -rf .next`, then `npm run build`, `npx tsc --noEmit` in the root and in `mobile/`, the Supabase advisors. **An existing
+  advisor WARN to consider:** `log_comments` has two permissive UPDATE policies for `authenticated` ("Admins moderate
+  comments", "Commenters edit their visible comments") — merge them into one policy in a migration if it is cheap.
+- Visual pass at 375 px in English (long words in the navbar, filter chips, the log form).
+
+**(c) Publish.** Add `"en"` to `PUBLISHED_LOCALES` (`src/lib/i18n/locales.ts`) — only after (a) is approved and (b) is
+clean. Then: a curl status list (200 for `/en`, `/en/cocktails`, `/en/cocktails/zombie-brain`, `/en/glossary`, `/en/feed`,
+`/en/login`; 404 for nonsense; `/tr/x` → 308; Turkish URLs unchanged), `/sitemap.xml` carries `xhtml:link` alternates and
+`/cocktails` has `<link rel="alternate" hreflang>`, the language switcher shows, an English sign-in lands back on `/en/…`
+(the `next` parameters are localized), 375 px, then push and check live with check-host.net (this machine's network blocks
+the domain). Update plan.md (status board, M9 checkbox, session log), commit, push.
+
+**Do not start the mobile parity pass** without the user's go (they said so explicitly, 2026-10-26).
 
 **Waiting for the user (do not block on them):** notifications signed in; Search Console sitemap; "Simple Syrup";
 the first run/schedule of `cleanup-photos.yml`; **`RESEND_API_KEY`** in Supabase secrets (+ before it, the user approves the
@@ -222,7 +246,10 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
 
 | # | Question | Why it matters | Until it is answered |
 |---|---|---|---|
-| — | None open (2026-10-26) | | |
+| 1 | Should the cocktail **names** ("Kuzu Kulağı Devrimi", "Ferah Manifesto", "Cin Çileği"…) be translated on the English pages, or stay as they are? | English pages currently show the Turkish names with English subtitles | They stay Turkish (`cocktail_translations.name` is empty) |
+| 2 | The draft house recipe `yeni-yil` (lowercase name, no subtitle or tags) — should Hacı tidy it before it is published? Its English is already written | It is unpublished; publishing it as is would look unfinished | Stays a draft |
+| 3 | The glossary has two Turkish rows for one thing ("Simple Syrup", "Şeker Şurubu") — keep one? (Open since before; English already shows one entry) | The Turkish glossary page lists both | Both stay |
+| 4 | Must the panel's "İngilizce" editors be done **before** English is published (recommended) or right after? | Without them new house recipes have no English | Build them first |
 
 ---
 
@@ -396,6 +423,21 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
   not select it). Host name empty = apex.
 - **The office network blocks the new domain** (a Fortinet FortiGate). Check DNS with
   `https://dns.google/resolve?name=…` and HTTP with check-host.net (plan.md §5.4).
+
+**Lessons (translation step 2)**
+- **The Bash tool eats backslashes and trips on apostrophes in heredocs** (Turkish text, regexes with `\s` or `\.`): write
+  scripts and files with the Write tool, then run them. A Python file named `types.py` in the scratch folder shadows the
+  standard library (`import json` ran it and edited `database.types.ts` twice); never name scratch files after stdlib modules.
+- The dictionaries grow by a JSON of `{section: {tr: {...}, en: {...}}}` appended to both files by a script (read the two
+  files, refuse a key mismatch, insert before the final `};`). A parity script — same keys, same `{placeholders}`, no Turkish
+  letters in `en` — caught nothing at the end, but is worth rewriting for every new batch.
+- **Auto-mode classifier:** it refused a temporary `PUBLISHED_LOCALES = ["tr", "en"]` + dev server ("production deploy").
+  Publishing English is the user's decision; test the two-language output as part of the planned publish.
+- A child `generateStaticParams` receives the parent's params as a plain object (`{ params: { lang } }`), not a Promise.
+- `AccountCard` stays a server component (it exports class-name constants other files import): its translated eyebrow is the
+  client component `AccountEyebrow`.
+- Server actions never see route params: use `actionDictionary()` (it reads the referer; Turkish when the header is missing).
+- Git prints a CRLF warning for every file on `add`/`diff`; send stderr to `/dev/null` to keep the output readable.
 
 **This session's lessons (M9 themes)**
 - **Tailwind 4 tokens can be themed at runtime:** `@theme` (not `@theme inline`) emits `--color-*`/`--font-*` on

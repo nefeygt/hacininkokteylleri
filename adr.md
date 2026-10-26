@@ -1237,10 +1237,29 @@ the app's parity pass.
   `LocaleProvider` (set in `[lang]/(site)/layout.tsx`); links: `@/components/LocaleLink` (every site link);
   revalidation: `revalidateLocalized()` (every public path, all languages). Shared helpers take an optional locale or
   dictionary and default to Turkish, so the app and the panel keep working unchanged.
-- **Content (planned, next step).** Translation rows per language, not `_en` columns: e.g. `cocktail_translations`
-  (cocktail, locale, name, subtitle, base, flavor, garnish, glass, note, instructions[], ingredient names by position),
-  `glossary_term_translations`, `ingredient_translations`; loaders fall back to Turkish where a row is missing.
-  Members' recipes stay in the language they were written in. The panel stays Turkish but edits translations.
+- **Content (built 2026-10-26, migration `translation_tables`).** Translation rows per language, not `_en` columns:
+  `cocktail_translations` (cocktail, locale, name?, subtitle, base_alcohol, flavor, tags[], garnish, glass, note,
+  instructions[], ingredient_names[] by position), `glossary_term_translations` (term, locale, translated_term,
+  definition), `ingredient_translations`. RLS: anyone reads what the base row lets them read, admins write. Loaders
+  (`content.ts`: `getPublishedCocktails`, `getCocktail`, `getGlossary`, `getIngredientCatalogue` take a locale) overlay
+  the row field by field and fall back to Turkish for a missing row, an empty field or a missing position. Members'
+  recipes stay in the language they were written in. The panel stays Turkish but will edit translations.
+  **Cocktail names are not translated** (the `name` column exists for it); the English text for all 38 house recipes
+  (37 published + the draft `yeni-yil`), 52 catalogue items and 4 glossary terms is seeded by migrations and follows
+  `docs/glossary.md`, which every later translation must follow.
+- **Details decided while building.**
+  - *Server actions* have no route params: they read the page's language from the `referer` header
+    (`src/lib/i18n/server.ts`: `actionLocale()`, `actionDictionary()`); messages live in `actions`/`validation`/`auth`.
+  - *Shared helpers* (`recipe.ts`, `drink-log.ts`, `profile.ts`, `account-config.ts`, `collections.ts`, `notifications.ts`,
+    `showcase.ts`, `community.ts`, `ingredients.ts`) take an optional dictionary part or locale and default to Turkish,
+    so the app and the panel are unchanged.
+  - *Units* are a controlled list stored in Turkish form ("adet"); pages show them through `unitLabel()` and the
+    dictionary (`units`, "piece|pieces").
+  - *Addresses:* collection slugs come from the language's own labels (`/en/cocktails/spirit/vodka`); a collection's
+    language versions are linked through the dictionary's label keys (`collectionKey`).
+  - *hreflang:* `alternatesFor(lang, path)` (pages) and `localized()` (sitemap) add `alternates.languages` once more
+    than one language is published; with only Turkish the output is unchanged.
+  - *Logs:* a new drink log of a house recipe starts from the page's language; a stored snapshot is not translated later.
 - **Publishing a language** = add it to `PUBLISHED_LOCALES` once its dictionary and content are complete; then the
   switcher, sitemap alternates and hreflang include it.
 

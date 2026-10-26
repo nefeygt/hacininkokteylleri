@@ -194,6 +194,9 @@ migration file with the version Supabase applied (ADR-009).
 | `cocktail_ingredients` | `cocktail_id`, `position` (unique together), `name` ≤ 100, `amount numeric(6,2)`, `unit` ≤ 20, `icon` enum, `ingredient_id` → `ingredients` (required on house recipes by `save_cocktail`; optional for members, kept by `save_recipe`, ADR-029) | as its cocktail | admins; the recipe's author |
 | `ingredients` (M9) | `id`, `name` unique (case-insensitive) ≤ 60, `category` enum, `always_at_hand` | everyone | admins |
 | `glossary_terms` | `term` PK, `definition` | everyone | admins |
+| `cocktail_translations` (M9) | PK `(cocktail_id, locale)`, `name` (null = keep Turkish), `subtitle`, `base_alcohol`, `flavor`, `tags[]`, `garnish`, `glass`, `note`, `instructions[]`, `ingredient_names[]` by position; empty field / missing position = Turkish (ADR-032) | as its cocktail (published, not hidden) | admins |
+| `glossary_term_translations` (M9) | PK `(term, locale)`, `translated_term`, `definition` | everyone | admins |
+| `ingredient_translations` (M9) | PK `(ingredient_id, locale)`, `name` | everyone | admins |
 | `admins` | `user_id` → `auth.users`, `role` (`owner`/`editor`), `display_name` | own row; admins (all) | nobody over the API — SQL only |
 | `account_settings` | `user_id` PK → `auth.users`, `adult_confirmed_at` (server time), `privacy_notice_version`, `logs_public_default` | owner; admins | owner (column grants) |
 | `profiles` | `id` PK → `auth.users`, `username` unique `^[a-z0-9_]{3,20}$` minus a reserved list (Turkish and English route words), `display_name`, `avatar_path` (`{id}/…` in the `avatars` bucket), `bio` ≤ 280, `hidden_at`/`hidden_by` | everyone (not hidden); owner; admins | owner, only after `account_settings` exists; admins hide |
@@ -319,6 +322,15 @@ mobile/                         the Expo app (M8, ADR-020) — its own package.j
 `src/lib/archive-filter.ts` (the archive's search and filters) and the other browser-safe modules
 in `src/lib/` are shared with the app through its `@shared/*` alias — keep them free of Next.js
 imports. The root `tsconfig.json`, Tailwind (`@source not`) and Vercel (`.vercelignore`) skip `mobile/`.
+
+**Languages (ADR-032).** Public pages live in `src/app/[lang]/(site)`; `src/lib/i18n/` holds `locales.ts`
+(`LOCALES`, `PUBLISHED_LOCALES`, `localePath`, `splitLocale`, `asLocale`), `dictionaries/{tr,en,types,index}.ts`
+(`tr.ts` is the source; the type forces `en.ts` to match), `format.ts` (`{name}` placeholders), `server.ts` (the language of
+a server action, from `referer`), `revalidate.ts`. Server pages: `getDictionary(asLocale(lang))`; client components:
+`useLocale()` → `{ locale, t, href }`; links: `LocaleLink`. Content in another language comes from
+`cocktail_translations`/`glossary_term_translations`/`ingredient_translations` through the loaders in `content.ts`.
+Page metadata: `alternatesFor()` in `lib/seo.ts`; the sitemap lists every published language with `alternates`.
+**Every translated word follows `docs/glossary.md`.**
 
 ### 5.4 Run and verify
 
@@ -718,8 +730,14 @@ While the store release waits (ADR-024), the site gets better first; every user-
     **Left for the user:** the `RESEND_API_KEY` secret and the privacy line. Push notifications belong to the app (Expo push tokens) and come with or after the parity pass
   - [ ] **Last step of M9, before the parity pass: translation** (the user 2026-10-26: everything incl. recipes,
     English first, `/en/...` URLs, built for more languages — ADR-032). Done: step 1 (routing under `[lang]`, proxy,
-    LocaleProvider/LocaleLink, revalidateLocalized, dictionaries; Turkish checked live unchanged), step 2 started
-    (navbar, theme picker, account link, language switcher, 404/error). Left: see next_session.md
+    LocaleProvider/LocaleLink, revalidateLocalized, dictionaries; Turkish checked live unchanged); **step 2 (built
+    2026-10-26, Sonnet session):** `docs/glossary.md`; 604 dictionary keys in `tr.ts`/`en.ts` (every public page,
+    component, form, server-action message, metadata, JSON-LD); localized shared helpers; migrations
+    `translation_tables` + the English rows of all 38 house recipes, 52 ingredients and 4 glossary terms; sitemap and
+    page metadata with hreflang (active once a second language is published). `PUBLISHED_LOCALES` is still `["tr"]`.
+    **Left (Opus session):** the English `/privacy` draft (the user approves), a full check of the English content against
+    the glossary, the panel's "İngilizce" editors, OG cards/manifest/e-mail locale, build + advisors, publishing — see
+    next_session.md
   - Videos stay in the Icebox: Gemini's free tier has no video model (Veo is paid per second); revisit with a budget
   - Not now (the council and the user, 2026-10-26): English localization, a rating breakdown (no reviews yet); the app's
     catalogue picker stays in the parity pass. Outside code before launch: DMARC beyond `p=none` (§8)
@@ -798,6 +816,7 @@ While the store release waits (ADR-024), the site gets better first; every user-
 | 2026-10-15 | M9 backup + cl ↔ oz | The user chose the GitHub Action backup (public key, published house content only, photos too) and 1 oz = 3 cl. Built both (ADR-027); the backup ran locally, Vercel skips backup-only commits. Live check: last session's features on the domain and Google's Rich Results Test (1 valid Recipe). Claude in Chrome's screenshots timed out again; DOM checks there, visuals in the built-in browser. Three theme/font directions published as an artifact for the user to pick |
 | 2026-10-15 | M9 quick wins | The user picked the order: quick wins first, theme and font last. Built (ADR-026): chips from the data with flavour notes (site and app), the wordmark in the navbar, recipe JSON-LD, "Paylaş", "Kaç kişilik?", "Benzer kokteyller". Fixed on the way: the wordmark shrank to 0 px on phones and the bar overflowed 375 px. Checked: build, the app's typecheck (`npm ci` in `mobile/` first — `node_modules` was missing), Claude in Chrome (its screenshots timed out after a resize) and the built-in browser |
 | 2026-10-15 | M9 start: recipe pages | The user asked for house recipe pages: the card opens `/cocktails/{slug}`, a magnifier opens the modal (ADR-025); video → Icebox. Built, checked in the built-in browser (Claude in Chrome not connected) and with curl; build passes; deployed `149e6fa`, live page 200 from the user's home network. M9 opened with Claude's suggestions — the user liked them all; order next session |
+| 2026-10-26 | Translation, step 2 (Sonnet) | `docs/glossary.md` first (terms, style rules, inconsistencies). Shared helpers take a locale/dictionary part (default Turkish; the app compiles unchanged). Three translation tables (migration `translation_tables`, RLS, advisors clean) and English rows for all 38 house recipes (4 batches, checked: step and ingredient counts match), 52 ingredients, 4 glossary terms. ~600 UI strings extracted page by page into `tr.ts`/`en.ts` (parity script: 0 problems), server-action messages read the language from the `referer`, sitemap + page metadata with hreflang. Prerendered `/en/...` pages checked in `.next` (English text only; Turkish names kept). Stopped at the planned hand-off: privacy text, English check and publishing are for an Opus session |
 | 2026-10-26 | Translation, step 1 | Notification e-mails built for a Resend key (ADR-031; pg_cron + Edge Function, skips without the key). The user: everything translated, English first with `/en`, more languages later. Pages moved under `[lang]` with a proxy rewrite (Turkish URLs checked live unchanged), dictionaries and helpers (ADR-032); string extraction started (navbar, themes, 404/error). Stopped for the account limit |
 | 2026-10-26 | M9 Icebox round | The user: translation leaves the Icebox as M9's last step; "do the rest now". Built and pushed: rating breakdown (`half_star_counts`, checked with 24 fake members' reviews, deleted), follower/following lists (same fake members), comment editing (`edited_at`, SQL-tested as members), the glass picker (13 drawings, `glassKind` matches all data), orphaned photo cleanup (`orphan_photos` + Edge Function + manual workflow; my test call was refused by the auto-mode classifier as a bulk delete, so the first run is the user's). Videos stay in the Icebox (no free video model). Next: translation |
 | 2026-10-26 | M9 council round | Pulled 13 commits (`3ed267b`; the 2026-10-19 backup committed and Vercel skipped it). The user's answers: Hacı's admin sign-in and the first showcase period at launch; Apple account by Şükrü Balta (not yet); one of the two other Play apps nearly ready. A three-agent council (community, discovery, quality) → the user took all four packages: A (404/error pages, share cards, manifest, Vercel Analytics + a `/privacy` line the user approved, version 2026-10-26; Analytics enabled in Vercel through Claude in Chrome), B notifications (ADR-030, migration `notifications`, SQL-tested in a rolled-back transaction), C (spirit/flavour landing pages, `/glossary`), D (archive URL state and sort, Günün kokteyli, house picks). Each built, typechecked (site + app), checked in the built-in browser at 375 px, pushed; A checked live via check-host. Not yet: notifications signed in |

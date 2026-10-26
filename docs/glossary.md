@@ -44,8 +44,9 @@ into the text.** Spanish, German… will get a column each. Started 2026-10-26 f
 | yemek kaşığı | tablespoon | |
 | damla | drop / drops | |
 
-Unit **choice** values written by the form stay as the Turkish text for Turkish members; the English page shows the
-translated label and stores the English word for an English author. Plural by amount (1 → singular).
+Unit values are a **controlled list stored in its Turkish form** ("adet", "yaprak", …; `UNITS` in `drink-log.ts`).
+Every page shows them through `unitLabel()` and the dictionary's `units` section ("adet" → "piece|pieces", singular
+for an amount of 1). A unit the list does not know (a member typed it) shows as written. `cl`/`ml`/`oz` never change.
 
 ## Ingredient icons (recipe form)
 
@@ -79,7 +80,7 @@ translated label and stores the English word for an English author. Plural by am
 | Margarita / Kadeh | Margarita glass | |
 
 Combined values ("Martini / Coupe") keep the slash and the order. `glassKind` matches the field's text for drawing the
-glass — English aliases (wine, flute, mug, copper, pitcher, carafe) must be added to `GLASSES` when English publishes.
+glass. English aliases (champagne, copper, carafe) are already in `GLASSES`, so English glass names draw the right icon.
 
 ## Base spirits and categories
 
@@ -206,7 +207,7 @@ Also used in the archive filter: Zencefil Ginger · Campari (unchanged).
 | Kaç kişilik? | How many glasses? |
 | Benzer kokteyller | Similar cocktails |
 | Günün kokteyli | Cocktail of the day |
-| Elimde ne var? | What can I make? *(page title; the chip prompt: "What do you have?")* |
+| Elimde ne var? | What do I have? *(the page and its link; the small eyebrow above it reads "What can I make?")* |
 | Paylaş | Share |
 | Favorilerim | My favorites |
 | Günlüğe ekle / Günlüğüm | Add to log / My log |
@@ -217,7 +218,7 @@ Also used in the archive filter: Zencefil Ginger · Campari (unchanged).
 | düzenlendi | edited |
 | Vitrin | Showcase |
 | Başvur / Oyla | Apply / Vote |
-| İnceleniyor / Onaylandı / Onaylanmadı | Under review / Approved / Not approved |
+| İnceleniyor / Onaylandı / Reddedildi | Under review / Approved / Declined |
 | Tümü | All |
 | Önerilen / Puana göre / A–Z | Recommended / By rating / A–Z |
 | Tekrar dene | Try again |
@@ -238,10 +239,26 @@ Also used in the archive filter: Zencefil Ginger · Campari (unchanged).
 Themes: Rx · Gece Barı **Night Bar** · Negroni · Gece Serifi **Night Serif** · Reçete Kâğıdı **Prescription Paper** ·
 Kâğıt Rx **Paper Rx**.
 
+## Decisions taken while translating (2026-10-26)
+
+- **Cocktail names stay as written** ("Kuzu Kulağı Devrimi", "Ferah Manifesto", "Cin Çileği"); their subtitles, notes, tags,
+  steps, garnish, glass and ingredient lines are translated. *The user may still want the names translated — asked in
+  next_session.md.* The `name` column of `cocktail_translations` exists and is used when filled.
+- **Ingredient lines are translated by position** (`ingredient_names`), not through the catalogue, because a recipe's
+  line can differ from the catalogue name ("Beyaz Rom" is "White rum" while the catalogue item is "Rum").
+- **Kuzu kulağı = sorrel** (garden sorrel). **Viski = whiskey.** **Şampanya (Prosecco) = Sparkling wine (Prosecco)**
+  (Prosecco is not champagne). **Kahlua = Kahlúa.** **Çay = tea; hibiscus = petal** for the garnish.
+- **"Simple syrup" (English) is one glossary entry** — the Turkish glossary's two rows ("Şeker Şurubu", "Simple Syrup")
+  both translate to it, and the page lists it once.
+- **Members' recipes and comments are not translated**; on an English page their Turkish terms keep their tooltips
+  (`getGlossary(lang, true)`).
+- **Page titles:** "Elimde ne var?" is "What do I have?" everywhere (page title, link, form text).
+
 ## Inconsistencies found (2026-10-26) — resolve in the final check
 
 1. **"Simple Syrup" and "Şeker Şurubu"** are two glossary rows with the same definition (the user's "Simple Syrup"
-   question is open in next_session.md). In English both would read "Simple syrup": keep one row.
+   question is open in next_session.md). In English both read "Simple syrup" and show once (done); the Turkish page
+   still lists both until the user decides.
 2. **"Reçete" vs "Tarif"** — the Turkish UI uses both (the prescription motif vs plain recipe). English uses
    "prescription" only for the motif ("This prescription was not found") and "recipe" elsewhere.
 3. **Theme hint "Default: dark, crimson"** — the Turkish hint says "kızıl"; "crimson" is right for Rx, but `Gece Barı`
@@ -254,4 +271,7 @@ Kâğıt Rx **Paper Rx**.
 7. **A garnish field holding a whole sentence** ("Bardağın kenarına bir dal taze biberiye ekleyin…") — translate as a
    sentence, in the imperative.
 8. **Units are written in the data** ("adet", "yaprak", "demet", "kaşık"): the English page translates the label by
-   `unitLabel()` (to be written), the stored value stays.
+   `unitLabel()` (written), the stored value stays.
+9. **Rx's hint** — "Default: dark, crimson" — and Gece Barı's "cherry red" are kept apart on purpose (see 3).
+10. **Draft recipe `yeni-yil`** (house, unpublished): lowercase name, no subtitle, no tags, a garnish that is a whole
+    sentence; its English is written but the Turkish original should be tidied by Hacı before it is published.
