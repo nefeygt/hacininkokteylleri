@@ -4,9 +4,10 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-26 (translation step 3, an Opus session) · **English is live** at `/en/...`
-(`PUBLISHED_LOCALES = ["tr", "en"]`), pushed to `main`. The store release is still paused (ADR-024); the app is not synced
-yet (the user's rule: no parity work until they say so). Next: **plan the next languages with the user.**
+**Prepared by session:** 2026-10-26 (M9 closed) · **M9 is done**: English is live at `/en/...`, more languages went to
+the Icebox (the user: Turkish and English are enough for now). **Next: the mobile parity pass** — the user's go,
+2026-10-26 — with the aim of a production-ready haci. The store upload still waits for the Apple account or the user's
+two other Play apps (ADR-024). `main` is pushed and deployed.
 ---
 
 ## 📋 Prompt to Copy
@@ -51,40 +52,34 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — plan the next languages (ADR-032)
+## 🎯 This Session's Task — the mobile parity pass (M8, toward production)
 
-The user (2026-10-26): "once English is completely ready, we'll add the other popular languages — let's plan that when
-this is done." English is done and live. **Plan first, build after the user agrees.** Read ADR-032 (with "Details decided
-while building") and `docs/glossary.md`.
+The user (2026-10-26): "close M9, move to the mobile parity pass and get production-ready." The app (`mobile/`, Expo SDK
+57) did everything the site did on 2026-10-15; since then the site gained everything in **"Web changes since
+2026-10-15"** below. Port it, then make the app release-ready.
 
-### What to bring to the user (one message, then wait)
+**Before you build, ask the user in one message** (see "Questions for the User"): does the app get English and the six
+themes now, or stay Turkish and Rx-only for the first release? Then propose an order and go.
 
-1. **Which languages, in what order.** Candidates the user named earlier: Spanish, German, Russian, Chinese. Offer a
-   short reasoning per language (likely audience, effort: Russian and Chinese need fonts with Cyrillic/CJK for the OG
-   cards — `src/assets/fonts` has Latin only; plural rules beyond "one|other" for Russian; CJK search and slugs).
-2. **What one language costs**, from what English took: a dictionary file (~610 keys, `en.ts` as the template), a column
-   in `docs/glossary.md`, translation rows for 38 recipes / 52 ingredients / 3 glossary terms (migrations), a privacy
-   notice translation (the user approves; the Turkish text governs), panel names in `admin/translations.ts`, Intl/OG
-   tags in `locales.ts`, collection slugs from the language's labels, then publish. Who checks a language nobody on
-   the team reads? (Options: the user's friends, a paid proofreader, or two-model cross-checks.)
-3. **Code that has to grow first:** `plural()` (Russian has more forms — `Intl.PluralRules` keyed by locale),
-   `toLocaleUpperCase`/`slugifyTr` for non-Latin labels, OG fonts, the switcher (a list, not a toggle, is ready),
-   the navbar at 320 px (the switcher shows only its icon below 360 px), Supabase's Turkish-only auth e-mails.
-4. **Ask** which languages, whether the cocktail names are translated in each (English did), and who proofreads.
+Suggested order (each step: typecheck in `mobile/`, the site's `npm run build` when a shared `src/lib` module changes,
+check in Expo web at phone width — `npx expo start --web --port 8081`, the built-in browser — then commit):
+1. **State check** (the "State check" under the parked store section): `git status`, `npm ci` in `mobile/` if
+   `node_modules` is missing, `npx expo install --check`, Supabase `list_migrations` (32, the latest
+   `20261026100157_translations_en_names_glossary_dedupe`).
+2. **Recipe screen:** "Kaç kişilik?", "cl | oz", "Paylaş" with the site's URL, "Benzer kokteyller", the rating
+   breakdown, glossary as already done; links to house recipes point to `/cocktails/{slug}`.
+3. **Archive tab:** the sort choices, "Günün kokteyli" and house picks on the feed/home, "Elimde ne var?" (chips from
+   `ingredients`, `matchCocktails`), optionally collection chips.
+4. **Community:** notifications screen + badge, follower lists, comment editing ("düzenlendi"), the glass picker in the
+   log and recipe forms (react-native-svg), the catalogue select per line in the member recipe form.
+5. **Look:** the theme decision (ADR-028) and IBM Plex Sans for reading text.
+6. **Languages** only if the user wants them in the app (ADR-032: dictionaries are shared through `@shared/i18n`,
+   content through `cocktail_translations`).
+7. **Release readiness:** package updates, `npx expo-doctor`, a new development build (`eas build`), the user's phone
+   pass, then the store steps under the parked section.
 
-### Done in this session (2026-10-26)
-
-- `/privacy` per language (`privacy/notice.ts`), English approved by the user; the Resend line names the digest in
-  both languages; version `2026-10-26.2`.
-- Full check of English content against the glossary; the 10 Turkish cocktail names translated (the user's request,
-  table in `docs/glossary.md`); "Simple Syrup" glossary row deleted ("Şeker Şurubu" stays).
-- Panel: "İngilizce" sections in the cocktail form, glossary and catalogue (not browser-tested — the user said the panel
-  is only for Hacı and them; test on first real use).
-- Members' e-mail language set at onboarding and from the switcher; the auth callback keeps the language of `next`.
-- Share cards per language (`/og/...?lang=en`); `log_comments` has one UPDATE policy (advisor WARN gone).
-- Published English. Local checks: status list, hreflang/canonical, sitemap `xhtml:link`, 320/375 px, the switcher.
-
-**Do not start the mobile parity pass** without the user's go (they said so explicitly, 2026-10-26).
+**While porting:** keep `@shared/*` modules free of Next imports; mark each item of the list below done (or "web-only")
+as you go, so the list ends empty.
 
 **Waiting for the user (do not block on them):** notifications signed in; Search Console sitemap (now with `/en` alternates);
 the first run/schedule of `cleanup-photos.yml`; **`RESEND_API_KEY`** in Supabase secrets (the `/privacy` digest line is live since 2026-10-26); Rx crimson labels for AA. **Videos: dropped** (the user).
@@ -154,16 +149,16 @@ the first run/schedule of `cleanup-photos.yml`; **`RESEND_API_KEY`** in Supabase
 
 ---
 
-## 📦 Parked — M8 step 7: the store release, Android first (resume per ADR-024)
+## 📦 After the parity pass — M8 step 7: the store release, Android first (ADR-024)
 
-**Resume when:** the Apple Developer account is open, or the user's two other Play apps are ready to share a closed
-test — the user decides. **First:** the parity pass — port every item of the list above to `mobile/`, update packages,
-a new development build and a phone pass. Then:
+**The upload waits** until the Apple Developer account is open, or the user's two other Play apps are ready to share a
+closed test — the user decides. **The parity pass (this session's task) comes first**; everything below that needs no
+store account (packages, a production build, listing drafts) can follow it. Then:
 
 ### State check (when resuming)
 
 `git status` — clean, `main` in step with `origin/main`. **Tools:** the Supabase MCP (`list_migrations` on
-`qwvnhdghwycqlvsnlvlt` → 15, the latest `20261015203143_recipe_ingredient_links`) and a browser: **Claude in Chrome was
+`qwvnhdghwycqlvsnlvlt` → 32, the latest `20261026100157_translations_en_names_glossary_dedupe`) and a browser: **Claude in Chrome was
 disconnected most of 2026-10-15; the user reconnected it at the end** — try `tabs_context_mcp`; if it still fails, use the built-in browser
 (`mcp__Claude_Browser__*`; it reaches `localhost:8081`; read the DOM, screenshots lag). Store consoles (Play Console,
 expo.dev) need the user's signed-in Chrome — ask them to reconnect Claude in Chrome for those. The built-in browser holds the
@@ -217,9 +212,9 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
 
 | # | Question | Why it matters | Until it is answered |
 |---|---|---|---|
-| 1 | Which languages come after English, and in what order? | Decides fonts, plural rules and the work per language | Nothing is built |
-| 2 | Who proofreads a language nobody on the team reads? | Machine translation of recipes and a privacy notice needs a check | — |
-| 3 | Should Supabase's auth e-mails (confirm, reset) follow the member's language? | They are Turkish only today | They stay Turkish |
+| 1 | Does the app get **English** in this pass, or stay Turkish for the first release? | Shared dictionaries make it possible; it doubles the screens to check | Turkish only |
+| 2 | **Themes** in the app: all six (ADR-028) or Rx only for the first release? | A theme picker and font loading in the app | Rx only, readable type |
+| 3 | Push notifications in the app, or the in-app list and e-mail digest only? | Needs Expo push tokens, a table and a sender | In-app list only |
 
 ---
 
@@ -635,6 +630,8 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
 
 | Question | Answer |
 |---|---|
+| More languages after English? | **Not now** — Turkish and English are enough; Icebox (the user, 2026-10-26) |
+| Close M9? | **Yes** — next is the mobile parity pass and production readiness (the user, 2026-10-26) |
 | English privacy notice? | **Approved as drafted, with the digest line** in both languages (the user, 2026-10-26; version `2026-10-26.2`) |
 | Translate cocktail names? | **Yes — meaningful, not literal** (the user, 2026-10-26); 10 Turkish names translated |
 | `yeni-yil` draft? | **Either way** — its English is ready; Hacı may tidy it (the user, 2026-10-26) |
@@ -674,7 +671,8 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
 
 ## 🧭 Look-ahead
 
-- **M8** step 7 (plan.md §6): store release (EAS production builds, Turkish listings, 18+ rating,
-  privacy forms, Play's closed test, App Store review).
-- Icebox highlights: localization (English first), a `haci` domain.
-- M9 after the theme: the user decides what else the site needs before the parity pass and the store.
+- **M8 parity pass** (now), then step 7 (plan.md §6): production builds, Turkish listings, 18+ rating, privacy forms,
+  Play's closed test, App Store review — the upload waits for ADR-024's condition.
+- Before a public launch (outside code): `RESEND_API_KEY` in Supabase secrets, Hacı's first admin sign-in with 2FA,
+  the first showcase period, DMARC beyond `p=none`, auth e-mails out of Outlook's spam.
+- Icebox highlights: more languages, a `haci` domain, videos.
