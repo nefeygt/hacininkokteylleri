@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState, useTransition } from "react";
-import { addLogComment, deleteLogComment } from "@/app/(site)/logs/actions";
+import { addLogComment, deleteLogComment, editLogComment } from "@/app/(site)/logs/actions";
 import Avatar from "@/components/Avatar";
 import ReportButton from "@/components/ReportButton";
 import { useMember } from "@/components/useMember";
@@ -13,12 +13,13 @@ interface Comment {
   id: string;
   body: string;
   created_at: string;
+  edited_at: string | null;
   hidden_at: string | null;
   user_id: string;
   profiles: { username: string; display_name: string; avatar_path: string | null };
 }
 
-const COMMENT_COLUMNS = "id, body, created_at, hidden_at, user_id, profiles!inner(username, display_name, avatar_path)";
+const COMMENT_COLUMNS = "id, body, created_at, edited_at, hidden_at, user_id, profiles!inner(username, display_name, avatar_path)";
 const SHOWN = 200;
 
 function when(value: string) {
@@ -84,6 +85,7 @@ export default function LogComments({ logId, ownerId }: { logId: string; ownerId
               comment={comment}
               isLogOwner={comment.user_id === ownerId}
               canDelete={memberId !== null && (memberId === comment.user_id || memberId === ownerId)}
+              canEdit={memberId !== null && memberId === comment.user_id && !comment.hidden_at}
               canReport={memberId !== null && memberId !== comment.user_id}
               onDeleted={load}
             />
@@ -141,16 +143,20 @@ function CommentItem({
   comment,
   isLogOwner,
   canDelete,
+  canEdit,
   canReport,
   onDeleted,
 }: {
   comment: Comment;
   isLogOwner: boolean;
   canDelete: boolean;
+  canEdit: boolean;
   canReport: boolean;
   onDeleted: () => Promise<void>;
 }) {
   const [confirming, setConfirming] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(comment.body);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -170,6 +176,20 @@ function CommentItem({
     });
   }
 
+  function save(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    startTransition(async () => {
+      const result = await editLogComment(comment.id, draft);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      setEditing(false);
+      await onDeleted();
+    });
+  }
+
   return (
     <li className={`flex gap-3 ${comment.hidden_at ? "opacity-60" : ""}`}>
       <Link href={`/u/${comment.profiles.username}`} className="shrink-0">
@@ -185,17 +205,63 @@ function CommentItem({
               kayıt sahibi
             </span>
           )}
-          <span className="font-mono text-[10px] text-text-muted">{when(comment.created_at)}</span>
+          <span className="font-mono text-[10px] text-text-muted">
+            {when(comment.created_at)}
+            {comment.edited_at && <span title={when(comment.edited_at)}> · düzenlendi</span>}
+          </span>
         </div>
-        <p className="mt-1 whitespace-pre-line break-words text-sm text-text-secondary">{comment.body}</p>
+        {editing ? (
+          <form onSubmit={save} className="mt-1">
+            <textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              maxLength={LOG_COMMENT_MAX_LENGTH}
+              rows={2}
+              aria-label="Yorumu düzenle"
+              autoFocus
+              className="w-full resize-y rounded border border-border bg-bg-card px-3 py-2 text-sm text-text-primary outline-none focus:border-crimson-glow/40"
+            />
+            <div className="mt-1.5 flex items-center gap-3">
+              <button
+                type="submit"
+                disabled={pending || !draft.trim() || draft.trim() === comment.body}
+                className="rounded bg-crimson px-3 py-1 text-xs text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+              >
+                {pending ? "Kaydediliyor…" : "Kaydet"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditing(false);
+                  setDraft(comment.body);
+                  setError(null);
+                }}
+                className="font-mono text-[10px] text-text-muted underline underline-offset-2 hover:text-text-primary"
+              >
+                Vazgeç
+              </button>
+            </div>
+          </form>
+        ) : (
+          <p className="mt-1 whitespace-pre-line break-words text-sm text-text-secondary">{comment.body}</p>
+        )}
         {comment.hidden_at && (
           <p className="mt-1 font-mono text-[11px] text-crimson-glow">
             Bu yorum yöneticiler tarafından gizlendi; yalnızca sen görüyorsun.
           </p>
         )}
         {error && <p className="mt-1 font-mono text-[11px] text-crimson-glow">{error}</p>}
-        {(canDelete || canReport) && (
+        {!editing && (canDelete || canEdit || canReport) && (
           <div className="mt-1.5 flex flex-wrap items-center gap-4">
+            {canEdit && (
+              <button
+                type="button"
+                onClick={() => setEditing(true)}
+                className="font-mono text-[10px] text-text-muted underline underline-offset-2 hover:text-crimson-glow"
+              >
+                Düzenle
+              </button>
+            )}
             {canDelete && (
               <button
                 type="button"

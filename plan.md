@@ -701,7 +701,9 @@ While the store release waits (ADR-024), the site gets better first; every user-
     the reviews (`RatingBreakdown`, `ratingBreakdown` in `community.ts`); checked with 24 fake members' reviews, deleted after
   - [x] Follower / following lists: `/u/{username}/followers` and `/following` (the counts on the profile link there;
     noindex; a follow revalidates the profile's subtree); checked with the same fake members, deleted after
-  - [ ] Editing a comment
+  - [x] Editing a comment: the commenter edits their visible comment ("Düzenle", "· düzenlendi" with the time;
+    `edited_at` stamped by a trigger, migration `log_comment_editing`); SQL-tested as members (author 1 row, another 0,
+    hiding still refused)
   - [ ] The glass as a picker with drawings (log and recipe forms)
   - [ ] A scheduled cleanup of orphaned photos (Edge Function; the service key stays in Supabase)
   - [ ] **Last step of M9, before the parity pass: translation** (out of the Icebox, the user 2026-10-26)

@@ -5,7 +5,7 @@ import { LOG_COMMENT_MAX_LENGTH } from "@/lib/community";
 
 // Comments under public drink logs (M6, ADR-018): a flat thread where the
 // log's author replies. The database is the rule (RLS: only on visible public
-// logs; the commenter, the log's author and admins delete; 100 a day).
+// logs; the commenter, the log's author and admins delete; the commenter edits; 100 a day).
 // Comments are read in the browser, so nothing is revalidated.
 
 export type CommentResult = { ok?: boolean; error?: string };
@@ -36,5 +36,19 @@ export async function deleteLogComment(id: string): Promise<CommentResult> {
   const { data, error } = await session.supabase.from("log_comments").delete().eq("id", id).select("id");
   if (error) return { error: `Silinemedi: ${error.message}` };
   if (!data.length) return { error: "Bu yorumu silemezsin." };
+  return { ok: true };
+}
+
+export async function editLogComment(id: string, body: string): Promise<CommentResult> {
+  const text = body.trim();
+  if (!text) return { error: "Bir şey yaz." };
+  if (text.length > LOG_COMMENT_MAX_LENGTH) return { error: `Yorum en fazla ${LOG_COMMENT_MAX_LENGTH} karakter olabilir.` };
+
+  const session = await accountSession();
+  if (session.state !== "ok") return { error: "Oturumun sona ermiş. Sayfayı yenileyip tekrar giriş yap." };
+
+  const { data, error } = await session.supabase.from("log_comments").update({ body: text }).eq("id", id).select("id");
+  if (error) return { error: `Kaydedilemedi: ${error.message}` };
+  if (!data.length) return { error: "Bu yorumu düzenleyemezsin." };
   return { ok: true };
 }

@@ -390,6 +390,7 @@ export type Database = {
         Row: {
           body: string
           created_at: string
+          edited_at: string | null
           hidden_at: string | null
           hidden_by: string | null
           id: string
@@ -399,6 +400,7 @@ export type Database = {
         Insert: {
           body: string
           created_at?: string
+          edited_at?: string | null
           hidden_at?: string | null
           hidden_by?: string | null
           id?: string
@@ -408,6 +410,7 @@ export type Database = {
         Update: {
           body?: string
           created_at?: string
+          edited_at?: string | null
           hidden_at?: string | null
           hidden_by?: string | null
           id?: string
