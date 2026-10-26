@@ -696,6 +696,16 @@ While the store release waits (ADR-024), the site gets better first; every user-
     (2.78 : 1 in Negroni) to `crimson` (≥ 6 : 1 in every theme); one `:focus-visible` ring in the theme's crimson for
     every link and button; labels on the icon-only close and clear buttons. Left as chosen in ADR-028: Rx's
     `crimson-glow` on cards is 3.5–3.8 : 1 for small mono labels (AA wants 4.5) — the user's call
+- **The Icebox round (the user, 2026-10-26: "do the rest now"; the app is still not synced):**
+  - [x] Rating breakdown: `cocktail_ratings.half_star_counts` (migration `rating_breakdown`), ten bars from ½ to 5 above
+    the reviews (`RatingBreakdown`, `ratingBreakdown` in `community.ts`); checked with 24 fake members' reviews, deleted after
+  - [x] Follower / following lists: `/u/{username}/followers` and `/following` (the counts on the profile link there;
+    noindex; a follow revalidates the profile's subtree); checked with the same fake members, deleted after
+  - [ ] Editing a comment
+  - [ ] The glass as a picker with drawings (log and recipe forms)
+  - [ ] A scheduled cleanup of orphaned photos (Edge Function; the service key stays in Supabase)
+  - [ ] **Last step of M9, before the parity pass: translation** (out of the Icebox, the user 2026-10-26)
+  - Videos stay in the Icebox: Gemini's free tier has no video model (Veo is paid per second); revisit with a budget
   - Not now (the council and the user, 2026-10-26): English localization, a rating breakdown (no reviews yet); the app's
     catalogue picker stays in the parity pass. Outside code before launch: DMARC beyond `p=none` (§8)
 

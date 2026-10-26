@@ -33,3 +33,17 @@ export function formatAverage(average: number): string {
 }
 
 export const LOG_COMMENT_MAX_LENGTH = 1000;
+
+/** One bar of the rating breakdown: the half-star value, its reviews and its height against the tallest (0–1). */
+export interface BreakdownBar {
+  rating: number;
+  count: number;
+  share: number;
+}
+
+/** The ten bars of a rating breakdown (0.5 … 5), from the view's per-half-star counts (M9). */
+export function ratingBreakdown(halfStars: number[] | undefined): BreakdownBar[] {
+  const counts = Array.from({ length: 10 }, (_, i) => halfStars?.[i] ?? 0);
+  const max = Math.max(...counts, 1);
+  return counts.map((count, i) => ({ rating: (i + 1) / 2, count, share: count / max }));
+}

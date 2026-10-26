@@ -26,7 +26,7 @@ export async function setFollow(followeeId: string, follow: boolean): Promise<Fo
   }
 
   const { data: followee } = await supabase.from("profiles").select("username").eq("id", followeeId).maybeSingle();
-  if (followee) revalidatePath(`/u/${followee.username}`);
-  revalidatePath(`/u/${profile.username}`);
+  if (followee) revalidatePath(`/u/${followee.username}`, "layout");
+  revalidatePath(`/u/${profile.username}`, "layout");
   return { ok: true };
 }

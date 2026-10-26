@@ -122,6 +122,8 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
   (`collections` from `@shared/collections`) on its archive tab — optional.
 - **Sort and "Günün kokteyli"** (M9 D): the app's archive tab gets the three sort choices (`sortCocktails`,
   `SORT_LABELS` from `@shared/archive-filter`); its home/feed could show `cocktailOfTheDay` and the house picks.
+- **Rating breakdown** (M9): the app's recipe screen reads `half_star_counts` with the rating and draws the ten bars
+  (`ratingBreakdown` from `@shared/community`). **Follower lists**: profile counts open two lists in the app.
 - **"cl | oz"** on recipes (ADR-027): a toggle beside "Kaç kişilik?" with `convertAmount`, `formatOunces`,
   `isConvertibleUnit` from `@shared/recipe`; remember the choice (AsyncStorage or the app's existing storage).
 

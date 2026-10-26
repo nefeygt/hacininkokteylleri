@@ -10,6 +10,7 @@ import type { Member } from "@/components/useMember";
 import { REVIEW_MAX_LENGTH, formatAverage } from "@/lib/community";
 import { recipeHref, type Cocktail } from "@/lib/content";
 import { createClient } from "@/lib/supabase/browser";
+import RatingBreakdown from "@/components/RatingBreakdown";
 
 interface Review {
   id: string;
@@ -69,6 +70,8 @@ export default function CocktailReviews({ cocktail, member }: { cocktail: Cockta
           </span>
         )}
       </div>
+
+      {cocktail.rating && <RatingBreakdown rating={cocktail.rating} />}
 
       <OwnReview cocktail={cocktail} member={member} own={own} onSaved={load} />
 

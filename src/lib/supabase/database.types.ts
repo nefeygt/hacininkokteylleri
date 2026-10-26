@@ -799,6 +799,7 @@ export type Database = {
         Row: {
           average_rating: number | null
           cocktail_id: string | null
+          half_star_counts: number[] | null
           review_count: number | null
         }
         Relationships: [

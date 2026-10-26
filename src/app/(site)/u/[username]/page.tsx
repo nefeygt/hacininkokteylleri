@@ -109,8 +109,13 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       {profile.bio && <p className="mt-6 max-w-xl whitespace-pre-line leading-relaxed text-text-secondary">{profile.bio}</p>}
       <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3">
         <p className="font-mono text-[11px] text-text-secondary">
-          <strong className="text-text-primary">{followers}</strong> takipçi ·{" "}
-          <strong className="text-text-primary">{following}</strong> takip
+          <Link href={`/u/${profile.username}/followers`} className="hover:text-text-primary hover:underline">
+            <strong className="text-text-primary">{followers}</strong> takipçi
+          </Link>{" "}
+          ·{" "}
+          <Link href={`/u/${profile.username}/following`} className="hover:text-text-primary hover:underline">
+            <strong className="text-text-primary">{following}</strong> takip
+          </Link>
         </p>
         <FollowButton profileId={profile.id} username={profile.username} />
       </div>

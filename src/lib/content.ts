@@ -50,6 +50,14 @@ export interface Author {
 export interface Rating {
   average: number;
   count: number;
+  /** Reviews per half star: [0] = 0.5 stars … [9] = 5 stars (the breakdown, M9). */
+  halfStars?: number[];
+}
+
+const RATING_COLUMNS = "cocktail_id, review_count, average_rating, half_star_counts";
+
+function toRating(r: { average_rating: number | null; review_count: number | null; half_star_counts: number[] | null }): Rating {
+  return { average: Number(r.average_rating), count: r.review_count ?? 0, halfStars: r.half_star_counts ?? undefined };
 }
 
 /** Term → explanation, shown as a tooltip wherever the term appears. */
@@ -127,14 +135,14 @@ export async function getPublishedCocktails(): Promise<Cocktail[]> {
   const supabase = createPublicClient();
   const [{ data, error }, ratings] = await Promise.all([
     supabase.from("cocktails").select(COCKTAIL_COLUMNS).eq("is_published", true).is("author_id", null).order("sort_order"),
-    supabase.from("cocktail_ratings").select("cocktail_id, review_count, average_rating"),
+    supabase.from("cocktail_ratings").select(RATING_COLUMNS),
   ]);
 
   if (error) throw new Error(`Could not load cocktails: ${error.message}`);
   if (ratings.error) throw new Error(`Could not load ratings: ${ratings.error.message}`);
 
   const byCocktail = new Map(
-    ratings.data.map((r) => [r.cocktail_id, { average: Number(r.average_rating), count: r.review_count ?? 0 }])
+    ratings.data.map((r) => [r.cocktail_id, toRating(r)])
   );
   return (data as CocktailRow[]).map((row) => ({ ...toCocktail(row), rating: byCocktail.get(row.id) }));
 }
@@ -153,11 +161,11 @@ async function withRatings(rows: CocktailRow[]): Promise<Cocktail[]> {
   if (rows.length === 0) return [];
   const { data, error } = await createPublicClient()
     .from("cocktail_ratings")
-    .select("cocktail_id, review_count, average_rating")
+    .select(RATING_COLUMNS)
     .in("cocktail_id", rows.map((r) => r.id));
   if (error) throw new Error(`Could not load ratings: ${error.message}`);
   const byCocktail = new Map(
-    data.map((r) => [r.cocktail_id, { average: Number(r.average_rating), count: r.review_count ?? 0 }])
+    data.map((r) => [r.cocktail_id, toRating(r)])
   );
   return rows.map((row) => ({ ...toCocktail(row), rating: byCocktail.get(row.id) }));
 }
