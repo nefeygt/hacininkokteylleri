@@ -71,7 +71,7 @@ export default function AccountLink({ pathname }: { pathname: string }) {
         >
           <Bell className="h-3.5 w-3.5" />
           {unread > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-crimson-glow px-1 text-center text-[9px] leading-4 text-white">
+            <span className="absolute -right-0.5 -top-0.5 min-w-4 rounded-full bg-crimson px-1 text-center text-[9px] leading-4 text-white">
               {badge}
             </span>
           )}

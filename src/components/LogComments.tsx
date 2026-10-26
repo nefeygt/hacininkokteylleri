@@ -69,7 +69,7 @@ export default function LogComments({ logId, ownerId }: { logId: string; ownerId
   return (
     <section className="mt-8">
       <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.15em] text-text-muted">
-        Yorumlar {comments && comments.length > 0 && <span className="text-text-muted/60">({comments.length})</span>}
+        Yorumlar {comments && comments.length > 0 && <span className="text-text-muted">({comments.length})</span>}
       </h2>
 
       {comments === null ? (

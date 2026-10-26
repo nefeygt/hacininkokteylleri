@@ -691,6 +691,11 @@ While the store release waits (ADR-024), the site gets better first; every user-
     shared `archive-filter.ts`), "Önerilen · Puana göre · A–Z" beside the count; "Günün kokteyli" under the home hero
     (one house recipe per Turkish day, `cocktailOfTheDay`); the feed shows "Hacı'nın seçtikleri" (best rated three)
     while members have published fewer than three recipes
+  - [x] **Quality pass** (2026-10-26, the user: "keep developing until M9 is done"): contrast of every theme's tokens
+    computed — faded text (`text-muted/60–80`, 2.7–3.8 : 1) made solid; badges moved from white on `crimson-glow`
+    (2.78 : 1 in Negroni) to `crimson` (≥ 6 : 1 in every theme); one `:focus-visible` ring in the theme's crimson for
+    every link and button; labels on the icon-only close and clear buttons. Left as chosen in ADR-028: Rx's
+    `crimson-glow` on cards is 3.5–3.8 : 1 for small mono labels (AA wants 4.5) — the user's call
   - Not now (the council and the user, 2026-10-26): English localization, a rating breakdown (no reviews yet); the app's
     catalogue picker stays in the parity pass. Outside code before launch: DMARC beyond `p=none` (§8)
 

@@ -56,7 +56,9 @@ export default function CocktailModal({
 
         {/* Close button */}
         <button
+          type="button"
           onClick={onClose}
+          aria-label="Kapat"
           className="absolute right-4 top-5 z-20 flex h-8 w-8 items-center justify-center rounded text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-primary"
         >
           <X className="h-4 w-4" />

@@ -146,6 +146,13 @@
     color: white;
   }
 
+  /* One keyboard focus ring for every theme (M9 quality pass): links, buttons and fields that do not
+     draw their own (a field's outline-none utility wins over this layer and keeps its border instead). */
+  :focus-visible {
+    outline: 2px solid var(--color-crimson-glow);
+    outline-offset: 2px;
+  }
+
   /* Scrollbar styling */
   ::-webkit-scrollbar {
     width: 6px;

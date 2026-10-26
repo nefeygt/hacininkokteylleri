@@ -64,9 +64,11 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
    `/cocktails/spirit/yok` 404, `/account/notifications` 307 signed out). Left: submit the sitemap again in Google
    Search Console so the 13 new URLs are crawled (the user's signed-in Chrome, on a network that reaches the domain).
 3. **Vercel Analytics:** enabled 2026-10-26 (Hobby, free); the first numbers should be in the project's Analytics tab.
-4. **Ask the user whether M9 is done.** Left from the council (not picked yet): an English privacy notice, a rating
-   breakdown once reviews exist, DMARC beyond `p=none` (Outlook spam), a contrast pass of the light themes, a
-   cleanup of orphaned photos, rate limits on sign-up. If M9 is done → the parity pass (list below), which ends M9.
+4. **M9's code is done (the user, 2026-10-26: develop until M9 is done, then stop at the parity pass).** After the
+   council packages a quality pass ran (contrast, focus ring, labels). What remains is the user's: items 1–3 and 5–6
+   here, plus decisions that need them — an English privacy notice (legal text), sign-up rate limits/CAPTCHA (Supabase
+   and Cloudflare settings), DMARC beyond `p=none`, whether Rx's crimson labels should be brighter for AA. **The next
+   step is the parity pass** (list below), started only on the user's go.
 5. Content for the user (panel): "Simple Syrup" in the glossary is used by no recipe and repeats "Şeker Şurubu".
 6. Still open from 2026-10-15: a live look at members' recipes in "Elimde ne var?" and at the themes on the phone.
 

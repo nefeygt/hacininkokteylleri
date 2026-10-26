@@ -77,7 +77,7 @@ export default async function FeedPage() {
         <section className="mt-12">
           <div className="mb-4 flex flex-wrap items-baseline gap-x-3">
             <h2 className="font-mono text-xs uppercase tracking-[0.15em] text-text-muted">Hacı&apos;nın seçtikleri</h2>
-            <Link href="/cocktails" className="font-mono text-[10px] text-text-muted/70 hover:text-text-primary">
+            <Link href="/cocktails" className="font-mono text-[10px] text-text-muted hover:text-text-primary">
               Arşivin tamamı →
             </Link>
           </div>
@@ -109,7 +109,7 @@ function ShowcaseSection({ showcase, winner }: { showcase: Showcase; winner: Sho
         <h2 className="font-mono text-xs uppercase tracking-[0.15em] text-crimson-glow">Vitrin</h2>
         {period && <span className="font-mono text-[11px] text-text-secondary">{formatPeriod(period)}</span>}
         {period && (
-          <span className="font-mono text-[10px] text-text-muted/80">
+          <span className="font-mono text-[10px] text-text-muted">
             {state === "open"
               ? `Oylama ${formatLastDay(period)} günü sonunda bitiyor · en çok oyu alan tarif ana sayfada`
               : `Başvurular açık · oylama ${formatFirstDay(period)} tarihinde başlıyor`}
@@ -156,7 +156,7 @@ function RecipeRow({
     <section className="mt-12">
       <div className="mb-4 flex flex-wrap items-baseline gap-x-3">
         <h2 className="font-mono text-xs uppercase tracking-[0.15em] text-text-muted">{title}</h2>
-        {hint && <span className="font-mono text-[10px] text-text-muted/70">{hint}</span>}
+        {hint && <span className="font-mono text-[10px] text-text-muted">{hint}</span>}
       </div>
       {recipes.length === 0 ? (
         <p className="text-xs text-text-muted">{empty}</p>

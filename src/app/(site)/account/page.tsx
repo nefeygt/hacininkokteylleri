@@ -41,7 +41,7 @@ export default async function AccountPage() {
           <span className="font-mono text-xs uppercase tracking-[0.15em] text-text-secondary">Bildirimler</span>
           <span className="flex items-center gap-2 font-mono text-[11px] text-text-muted">
             {unread ? (
-              <span className="rounded-full bg-crimson-glow px-2 py-0.5 text-white">{unread} yeni</span>
+              <span className="rounded-full bg-crimson px-2 py-0.5 text-white">{unread} yeni</span>
             ) : (
               "Yeni yok"
             )}

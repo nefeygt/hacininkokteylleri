@@ -152,11 +152,14 @@ export default function CocktailBrowser({ cocktails }: { cocktails: Cocktail[] }
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Kokteyl, malzeme veya etiket ara..."
+            aria-label="Kokteyl ara"
             className="w-full rounded border border-border bg-bg-card py-2.5 pl-10 pr-4 text-sm text-text-primary placeholder-text-muted outline-none transition-colors focus:border-crimson-glow/40"
           />
           {search && (
             <button
+              type="button"
               onClick={() => setSearch("")}
+              aria-label="Aramayı temizle"
               className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
             >
               <X className="h-3.5 w-3.5" />

@@ -122,7 +122,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       {recipes.length > 0 && (
         <section className="mt-12">
           <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.15em] text-text-muted">
-            Tarifler <span className="text-text-muted/60">({recipes.length})</span>
+            Tarifler <span className="text-text-muted">({recipes.length})</span>
           </h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {recipes.map((recipe) => (
@@ -134,7 +134,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
 
       <section className="mt-12">
         <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.15em] text-text-muted">
-          Favoriler <span className="text-text-muted/60">({favorites.length})</span>
+          Favoriler <span className="text-text-muted">({favorites.length})</span>
         </h2>
         {favorites.length === 0 ? (
           <p className="text-xs text-text-muted">Henüz favori yok.</p>
@@ -161,7 +161,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
       {logs.length > 0 && (
         <section className="mt-12">
           <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.15em] text-text-muted">
-            İçki günlüğü <span className="text-text-muted/60">({logs.length})</span>
+            İçki günlüğü <span className="text-text-muted">({logs.length})</span>
           </h2>
           <ul className="space-y-3">
             {logs.map((log) => (
@@ -175,7 +175,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
 
       <section className="mt-12">
         <h2 className="mb-4 font-mono text-xs uppercase tracking-[0.15em] text-text-muted">
-          Değerlendirmeler <span className="text-text-muted/60">({reviews.length})</span>
+          Değerlendirmeler <span className="text-text-muted">({reviews.length})</span>
         </h2>
         {reviews.length === 0 ? (
           <p className="text-xs text-text-muted">Henüz değerlendirme yok.</p>
