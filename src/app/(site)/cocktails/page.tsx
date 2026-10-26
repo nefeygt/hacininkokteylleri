@@ -9,6 +9,8 @@ export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Kokteyller",
+  description: "Hacı'nın kokteyl reçeteleri: baz içkiye, tada ve malzemeye göre ara, filtrele, tarifini aç.",
+  alternates: { canonical: "/cocktails" },
 };
 
 export default async function KokteyllerPage() {

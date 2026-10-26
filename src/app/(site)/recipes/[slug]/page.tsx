@@ -5,6 +5,7 @@ import GlossaryProvider from "@/components/GlossaryProvider";
 import RecipeJsonLd from "@/components/RecipeJsonLd";
 import RecipeView from "@/components/RecipeView";
 import { getGlossary, getRecipe } from "@/lib/content";
+import { recipeOpenGraph } from "@/lib/seo";
 
 // Members' recipes (M6, ADR-018), rendered on first visit and kept for a few
 // minutes; the author's edits, reviews and moderation revalidate at once.
@@ -25,7 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: recipe.name,
     description: `${recipe.subtitle || `${recipe.baseAlcohol} bazlı bir kokteyl tarifi`}${by}`,
     alternates: { canonical: `/recipes/${recipe.slug}` },
-    openGraph: recipe.imageUrl ? { images: [recipe.imageUrl] } : undefined,
+    openGraph: recipeOpenGraph(`/recipes/${recipe.slug}`, recipe.imageUrl),
   };
 }
 

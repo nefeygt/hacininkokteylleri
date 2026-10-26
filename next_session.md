@@ -181,9 +181,7 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
 
 | # | Question | Why it matters | Until it is answered |
 |---|---|---|---|
-| 5 | **Hacı's first admin sign-in** — when (his phone, a network that does not block the domain)? | His 2FA factor is not enrolled yet | He cannot use the panel |
-| 6 | **The first real showcase period** — when, a week or a month? | Nothing promotes it until a period exists (the feed hides the section) | No period; the feature is invisible |
-| 11 | **Who enrols the Apple Developer account, and when?** The user expects it to be in **another person's name** | That person is the App Store publisher (seller name) and must give EAS access (their Apple ID with 2FA, or an App Store Connect API key); Sign in with Apple and every iOS build wait for it | Android only |
+| — | None open (2026-10-26) | | |
 
 ---
 
@@ -584,6 +582,10 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
 
 | Question | Answer |
 |---|---|
+| Hacı's first admin sign-in? | **When we are ready to launch** (the user, 2026-10-26) — his 2FA is enrolled then |
+| The first real showcase period? | **Opens at the public launch**, so people start using it (the user, 2026-10-26) |
+| Who enrols the Apple Developer account? | **Şükrü Balta** — not opened yet (2026-10-26); he is the App Store publisher and gives EAS access |
+| The two other Play apps (shared closed test)? | **One is nearly ready; no rush** (the user, 2026-10-26) |
 | Colour theme and font? | **"Rx, readable" is the main look; the other directions and combinations are selectable themes** (ADR-028, 2026-10-15) |
 | Backup and oz? | **GitHub Action with the public key, house content + photos; 1 oz = 3 cl** (ADR-027, 2026-10-15) |
 | Where is the backend? | **Supabase, Frankfurt** (ADR-003) |

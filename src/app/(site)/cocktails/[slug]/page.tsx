@@ -7,6 +7,7 @@ import RecipeView from "@/components/RecipeView";
 import SimilarCocktails from "@/components/SimilarCocktails";
 import { similarCocktails } from "@/lib/archive-filter";
 import { getCocktail, getGlossary, getPublishedCocktails } from "@/lib/content";
+import { recipeOpenGraph } from "@/lib/seo";
 
 // A house recipe's own page (ADR-025), rebuilt hourly like the archive; panel
 // edits and reviews revalidate it at once.
@@ -29,7 +30,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     title: cocktail.name,
     description: cocktail.subtitle || `${cocktail.baseAlcohol} bazlı bir kokteyl tarifi`,
     alternates: { canonical: `/cocktails/${cocktail.slug}` },
-    openGraph: cocktail.imageUrl ? { images: [cocktail.imageUrl] } : undefined,
+    openGraph: recipeOpenGraph(`/cocktails/${cocktail.slug}`, cocktail.imageUrl),
   };
 }
 

@@ -671,6 +671,16 @@ While the store release waits (ADR-024), the site gets better first; every user-
   a bad id refused, rolled back), advisors unchanged, Claude in Chrome on `localhost:3000` signed in as `ahmet_kafa` (a
   draft saved and reopened with its links; all linked + published → "Bir malzeme eksik" with Votka + Limon, "Yapabileceklerin"
   after Şeker Şurubu, card by @ahmet_kafa; form at 375 px no horizontal scroll); the test recipe deleted. Not yet seen live
+- **The council's round (the user's pick, 2026-10-26: all four, in this order; the app is synced and frozen only after them):**
+  - [ ] **A — Launch basics:** themed `not-found` / `error` / `loading` pages; analytics (Vercel Analytics, a line in
+    `/privacy`); share cards (a generated OG image when a recipe has no photo, descriptions on every page); a PWA manifest
+  - [ ] **B — Notifications:** a `notifications` table filled by triggers (new follower, a comment on your log, a showcase
+    application approved/rejected, your content hidden), a bell in the navbar, `/account/notifications`
+  - [ ] **C — Found on Google:** landing pages per base spirit and flavour, a public glossary with a page per term, in the sitemap
+  - [ ] **D — First impression:** empty states with house picks, filters and sort (incl. by rating) in the archive URL,
+    "Günün kokteyli" on the home page
+  - Not now (the council and the user, 2026-10-26): English localization, a rating breakdown (no reviews yet); the app's
+    catalogue picker stays in the parity pass. Outside code before launch: DMARC beyond `p=none` (§8)
 
 ---
 

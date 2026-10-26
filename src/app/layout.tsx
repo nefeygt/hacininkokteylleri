@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import {
   Atkinson_Hyperlegible_Next,
   Bricolage_Grotesque,
@@ -11,6 +11,7 @@ import {
 import "./globals.css";
 import { BRAND } from "@/lib/brand";
 import { THEME_BOOT_SCRIPT } from "@/lib/themes";
+import { OPEN_GRAPH_BASE } from "@/lib/seo";
 
 // Every theme's fonts (ADR-028). Only the default theme's two are preloaded; the others
 // download when a theme that uses them is picked.
@@ -66,11 +67,15 @@ export const metadata: Metadata = {
   title: { default: BRAND, template: `%s · ${BRAND}` },
   applicationName: BRAND,
   description: "Sinematik bir kokteyl arşivi: her biri özenle formüle edilmiş kokteyl reçeteleri.",
-  openGraph: { siteName: BRAND, locale: "tr_TR", type: "website" },
+  openGraph: OPEN_GRAPH_BASE,
+  twitter: { card: "summary_large_image" },
   verification: {
     google: "ZfTQJ4AR0Rq0iytJ0JXhQZgXCSoCOTTWhQB6PvYMLyY",
   },
 };
+
+// The browser bar in Rx's background; the other themes keep it (a per-theme colour is not worth a script).
+export const viewport: Viewport = { themeColor: "#0d0d0d" };
 
 export default function RootLayout({
   children,
