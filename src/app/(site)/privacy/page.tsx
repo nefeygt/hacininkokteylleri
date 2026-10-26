@@ -62,7 +62,7 @@ export default function PrivacyPage() {
         <p>Site, verileri bizim adımıza işleyen şu hizmet sağlayıcılarla çalışır:</p>
         <ul className="mt-2 list-disc space-y-1 pl-5">
           <li>Supabase: veritabanı, kimlik doğrulama ve dosya depolama; sunucular Frankfurt, Almanya.</li>
-          <li>Vercel: sitenin barındırılması; ABD merkezli.</li>
+          <li>Vercel: sitenin barındırılması ve çerezsiz, anonim ziyaret istatistikleri (hangi sayfanın kaç kez açıldığı); ABD merkezli.</li>
           <li>Google: yalnızca Google ile giriş yapmayı seçersen, kimliğini doğrulamak için.</li>
           <li>Resend: e-posta ile üye olursan doğrulama ve şifre sıfırlama e-postalarını göndermek için; sunucular İrlanda.</li>
           <li>ImprovMX: {CONTACT} adresine yazdığın e-postaları bize iletmek için; ABD merkezli.</li>
