@@ -4,12 +4,10 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-26 (M9: the council's round, packages A–D) · **Handing off:** M8 steps 1–6 done; **the
-store release is paused (ADR-024)**. **M9** gained four packages the user picked from a three-agent council: **A** launch
-basics (404/error pages, share cards, manifest, Vercel Analytics — enabled in Vercel), **B** notifications (ADR-030),
-**C** spirit/flavour landing pages and `/glossary`, **D** shareable archive views, sort by rating, "Günün kokteyli",
-house picks in a thin feed. All deployed. **Next: the user's signed-in look at notifications, then ask whether M9 is
-done** — if yes, the parity pass.
+**Prepared by session:** 2026-10-26 (M9: council round, Icebox round, e-mails, translation step 1) · **Handing off
+mid-task: the translation** (ADR-032). The store release is still paused (ADR-024); the app is not synced yet.
+Everything is pushed and live; English is built but **not published** (`PUBLISHED_LOCALES = ["tr"]`), so visitors see
+no change. **Continue the translation where it stopped** (below), then the parity pass on the user's go.
 ---
 
 ## 📋 Prompt to Copy
@@ -53,44 +51,70 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — check the council's round live, then close M9
+## 🎯 This Session's Task — finish the translation (ADR-032), then publish English
 
-1. **Notifications signed in** (ADR-030; SQL-tested only): on the user's phone or Claude in Chrome (this network
-   blocks the domain: use the user's phone, or `localhost:3000` signed in). Ask before creating anything: e.g. the user
-   follows/unfollows `mustafa_hayat`'s profile *only with both their OKs* — or a temporary member follows `ahmet_kafa`.
-   Expect: the bell's count on desktop, the dot on the account icon at 375 px, the "Bildirimler" row on `/account`,
-   the list on `/account/notifications`, the count gone after opening it. Delete every test row afterwards.
-2. **Search Console:** C and D were checked live on 2026-10-26 (check-host: landing pages and `/glossary` 200,
-   `/cocktails/spirit/yok` 404, `/account/notifications` 307 signed out). Left: submit the sitemap again in Google
-   Search Console so the 13 new URLs are crawled (the user's signed-in Chrome, on a network that reaches the domain).
-3. **Vercel Analytics:** enabled 2026-10-26 (Hobby, free); the first numbers should be in the project's Analytics tab.
-4. **Next: translation — the last step of M9** (the user, 2026-10-26), then the parity pass. Ask first: interface
-   only, or recipes too; which language(s); URLs (`/en/...`) and how the language is chosen. Done since: rating
-   breakdown, follower lists, comment editing, glass picker, orphaned photo cleanup (plan.md M9 "Icebox round").
-   Waiting for the user (not blocking): the first run / weekly schedule of `cleanup-photos.yml`; e-mail notifications
-   (their Resend API key as a Supabase secret: Edge Functions → Secrets → `RESEND_API_KEY`; before it, the user approves
-   a `/privacy` line — draft: "Resend: üye olursan doğrulama ve şifre sıfırlama e-postalarını, ayrıca kapatmadığın
-   sürece okunmamış bildirimlerinin özetini göndermek için; sunucular İrlanda."); an English privacy notice (with
-   the translation).
-5. Content for the user (panel): "Simple Syrup" in the glossary is used by no recipe and repeats "Şeker Şurubu".
-6. Still open from 2026-10-15: a live look at members' recipes in "Elimde ne var?" and at the themes on the phone.
+The user (2026-10-26): **everything** in English — interface and Hacı's recipes — at `/en/...`, and built so Spanish,
+German, Russian, Chinese… can follow. Translation is M9's last step; after it comes the app's parity pass (only on the
+user's go). Read ADR-032 first.
+
+**Done (step 1, live):** pages under `src/app/[lang]/(site)`; `src/proxy.ts` rewrites Turkish URLs into `/tr`, 308s a
+typed `/tr/...`, passes published languages; root layouts `[lang]/layout.tsx` and `admin/layout.tsx` (shared
+`root-document.tsx`, `fonts.ts`), `global-not-found.tsx`; `src/lib/i18n/` (`locales.ts`, `dictionaries/{tr,en,types,
+index}.ts`, `format.ts`, `revalidate.ts`); `LocaleProvider`/`useLocale`, `LocaleLink` (all site links already use it),
+`revalidateLocalized` (all public revalidations already use it). **Step 2 started:** dictionary sections `meta`, `nav`,
+`themes`, `status`; localized: Navbar, AccountLink, ThemePicker, LanguageSwitcher (hidden until 2 languages are
+published), StatusScreen, `[lang]/(site)/not-found.tsx`, `error.tsx`.
+
+**Next, in order:**
+1. **Shared helpers take a locale, default `tr`** (the app and the panel keep calling them unchanged):
+   `community.ts` (`formatRating`, `formatAverage`, `RATING_ERROR`), `showcase.ts` (`dayFormat` → per locale,
+   `STATUS_LABELS`), `drink-log.ts` (`formatAmount`, `formatLogDate`, validation errors), `recipe.ts` (validation
+   errors, icon labels), `profile.ts`, `account-config.ts` (`authErrorMessage`), `archive-filter.ts` (`ALL` stays the
+   sentinel, show `t.archive.all`; `SORT_LABELS` → dictionary; `INGREDIENT_FILTERS` per locale since English data has
+   English names), `collections.ts` (titles, intros, slugs from translated labels), `notifications.ts`
+   (`describeNotification(row, t)`), `glasses.ts` (display names per locale; the field value stays as written),
+   `ingredients.ts` (category labels).
+2. **Extract every string** (≈600 lines; `grep -P "[ğüşıöçĞÜŞİÖÇ]"` finds most) page by page into dictionary
+   sections, writing tr and en together. Helper used this session: a JSON of `{section: {tr: {...}, en: {...}}}`
+   appended to both files by a small Python script (rewrite it: read tr.ts/en.ts, insert before the final `};`).
+   Server pages: `const t = getDictionary(lang)` from `params`; server components below get `lang`/`t` as props;
+   client components `useLocale()`. Dates/numbers via `INTL_LOCALES[locale]`. `router.push(...)` → `href(...)` from
+   `useLocale`. `redirect("/login")` in `requireMember` etc. → take the locale. Server actions return messages: read
+   the page's language from the `referer` header (`splitLocale`) — write one helper, e.g. `actionDictionary()`.
+   Page metadata (titles/descriptions) per locale; `alternates.languages` (hreflang) per page.
+3. **Content translation (DB, ADR-009 flow):** `cocktail_translations` (cocktail_id, locale, name, subtitle,
+   base_alcohol, flavor, garnish, glass, note, instructions text[], ingredient_names text[] by position; RLS: read where
+   the cocktail is readable, admins write), `glossary_term_translations`, `ingredient_translations`; loaders in
+   `content.ts` take a locale and fall back to Turkish. **Write the English for all 37 house recipes, the 4 glossary
+   terms and the 52 catalogue items** (Claude writes them; seed through a migration). Units ("dilim", "yaprak", …)
+   translated through the dictionary. Members' recipes stay as written. The panel: an "İngilizce" section in the
+   cocktail form and the glossary/ingredient editors (panel UI stays Turkish).
+4. **English privacy notice** — a translation of `/privacy`, marked "the Turkish text governs"; **the user approves the
+   text before English is published.**
+5. Sitemap with `alternates.languages`, OG locale, the share card (`og-card.tsx`) per language, JSON-LD
+   `inLanguage`, e-mails already read `account_settings.locale` — set it when a member uses `/en` (e.g. on sign-in or a
+   toggle on `/account`).
+6. **Publish:** add `"en"` to `PUBLISHED_LOCALES`; check every page at `/en/...` and Turkish unchanged (curl status
+   list as in this session: 200s, 404s, `/tr/x` → 308), 375 px, then push and check live with check-host.net.
+
+**Waiting for the user (do not block on them):** notifications signed in; Search Console sitemap; "Simple Syrup";
+the first run/schedule of `cleanup-photos.yml`; **`RESEND_API_KEY`** in Supabase secrets (+ before it, the user approves the
+`/privacy` line, draft: "Resend: üye olursan doğrulama ve şifre sıfırlama e-postalarını, ayrıca kapatmadığın sürece
+okunmamış bildirimlerinin özetini göndermek için; sunucular İrlanda."); the English privacy text; Rx crimson labels for AA. **Videos: dropped** (the user).
 
 **Things that bite (from this session):**
-- **This machine has no git identity:** commit with `git -c user.name=nefeygt -c user.email=n.efeyigit@outlook.com
-  commit …` (the repo's usual author); don't change the global config without asking.
-- **This network blocks `hacininkokteylleri.tech`** (curl and Claude in Chrome both fail); check live pages with
-  check-host.net, and Vercel/GitHub through `gh`.
-- A `loading.tsx` in `(site)` makes missing pages answer **200** (the stream starts before `notFound()`): don't add one.
-- The share card (`src/lib/og-card.tsx`) reads fonts from `src/assets/fonts` with `process.cwd()`; it works on Vercel
-  (checked live). Satori cannot draw WebP, so recipes with a photo keep the photo as their share image.
-- The built-in browser's preview pane is often hidden, so lazy images never load there; read the DOM, don't trust the
-  picture.
+- **No git identity on the DESKTOP-ELV0EC4 machine:** `git -c user.name=nefeygt -c user.email=n.efeyigit@outlook.com
+  commit …`. **Its network blocks the domain:** use check-host.net (plan.md §5.4) and `gh`.
+- `[lang]/layout.tsx` must not set `dynamicParams = false` (children inherit it; profiles 404'd).
+- After moving app files, `rm -rf .next` before `tsc` (stale validator types).
+- Imports of actions are `@/app/[lang]/(site)/...` now.
+- A `loading.tsx` in `(site)` makes missing pages answer 200 — don't add one.
+- The auto-mode classifier refuses calling the photo-cleanup function (bulk delete): leave its runs to the user.
+- Fake data for testing: `auth.users` with `@example.test` e-mails + profiles; delete with
+  `delete from auth.users where email like '...@example.test'` (cascades). Never touch `ahmet_kafa`/`mustafa_hayat`.
 
-**While doing web work:**
-- Add every user-visible web change to **"Web changes since 2026-10-15 (for the parity pass)"** below — it is the
-  app's checklist before release.
-- A change in a shared module in `src/lib` (the app imports it through `@shared/*`) must keep the app compiling:
-  run `npx tsc --noEmit` in `mobile/` too.
+**While doing web work:** add user-visible changes to the list below (the app's checklist); a change in a shared
+`src/lib` module must keep `mobile/` compiling (`npx tsc --noEmit` there).
 
 ### Web changes since 2026-10-15 (for the parity pass)
 

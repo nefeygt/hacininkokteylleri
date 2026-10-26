@@ -3,12 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, Palette } from "lucide-react";
 import { DEFAULT_THEME, THEMES, THEME_STORAGE_KEY, isThemeId, type ThemeId } from "@/lib/themes";
+import { useLocale } from "./LocaleProvider";
 
 /**
  * "Görünüm" in the navbar (ADR-028): picks one of THEMES, applies it to <html> at once and keeps
  * it in this browser. The inline boot script in the root layout applies it on the next visit.
  */
 export default function ThemePicker() {
+  const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const [theme, setTheme] = useState<ThemeId>(DEFAULT_THEME);
   const root = useRef<HTMLDivElement>(null);
@@ -50,8 +52,8 @@ export default function ThemePicker() {
         onClick={() => setOpen(!open)}
         aria-expanded={open}
         aria-haspopup="true"
-        aria-label="Görünüm"
-        title="Görünüm"
+        aria-label={t.themes.title}
+        title={t.themes.title}
         className="flex h-8 w-8 shrink-0 items-center justify-center rounded text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-secondary"
       >
         <Palette className="h-4 w-4" />
@@ -59,7 +61,7 @@ export default function ThemePicker() {
       {open && (
         <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-lg border border-border bg-bg-card p-1.5 shadow-xl">
           <p className="px-2.5 pb-1.5 pt-1 font-mono text-[10px] uppercase tracking-[0.15em] text-text-muted">
-            Görünüm
+            {t.themes.title}
           </p>
           <ul className="grid gap-0.5">
             {THEMES.map((option) => (
@@ -78,8 +80,8 @@ export default function ThemePicker() {
                     }}
                   />
                   <span className="min-w-0 flex-1">
-                    <span className="block text-sm text-text-primary">{option.name}</span>
-                    <span className="block text-xs text-text-muted">{option.hint}</span>
+                    <span className="block text-sm text-text-primary">{t.themes[option.id].name}</span>
+                    <span className="block text-xs text-text-muted">{t.themes[option.id].hint}</span>
                   </span>
                   {theme === option.id && <Check className="h-4 w-4 shrink-0 text-crimson-glow" />}
                 </button>

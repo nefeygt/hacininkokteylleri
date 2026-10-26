@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "@/components/LocaleLink";
+import { useLocale } from "./LocaleProvider";
 
 // The frame of the site's 404 and error pages: a prescription-style code, a line and a way back.
 export default function StatusScreen({
@@ -12,6 +15,7 @@ export default function StatusScreen({
   children?: React.ReactNode;
   action?: React.ReactNode;
 }) {
+  const { t } = useLocale();
   return (
     <section className="relative flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center px-6 text-center">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -27,13 +31,13 @@ export default function StatusScreen({
             href="/cocktails"
             className="inline-flex items-center gap-2 rounded bg-crimson px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-crimson-light"
           >
-            Kokteyllere git
+            {t.status.toCocktails}
           </Link>
           <Link
             href="/"
             className="inline-flex items-center gap-2 rounded border border-border-light px-5 py-2.5 text-sm text-text-secondary transition-colors hover:text-text-primary"
           >
-            Ana sayfa
+            {t.status.home}
           </Link>
         </div>
       </div>

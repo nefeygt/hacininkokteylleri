@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Bell, UserRound } from "lucide-react";
 import { ACCOUNTS_OPEN } from "@/lib/account-config";
 import { createClient } from "@/lib/supabase/browser";
+import { useLocale } from "./LocaleProvider";
 import { NOTIFICATIONS_SEEN_EVENT } from "./NotificationsSeen";
 
 const NOTIFICATIONS_PATH = "/account/notifications";
@@ -16,6 +17,7 @@ const NOTIFICATIONS_PATH = "/account/notifications";
  * /account leads on to the notifications.
  */
 export default function AccountLink({ pathname }: { pathname: string }) {
+  const { t } = useLocale();
   const [userId, setUserId] = useState<string | null | undefined>(undefined);
   const [unread, setUnread] = useState(0);
 
@@ -66,7 +68,7 @@ export default function AccountLink({ pathname }: { pathname: string }) {
       {signedIn && (
         <Link
           href={NOTIFICATIONS_PATH}
-          aria-label={unread ? `Bildirimler, ${unread} yeni` : "Bildirimler"}
+          aria-label={unread ? t.nav.notificationsNew.replace("{n}", String(unread)) : t.nav.notifications}
           className={`${linkClass(bellActive)} ml-1 hidden sm:flex`}
         >
           <Bell className="h-3.5 w-3.5" />
@@ -79,7 +81,7 @@ export default function AccountLink({ pathname }: { pathname: string }) {
       )}
       <Link
         href={signedIn ? "/account" : "/login"}
-        aria-label={signedIn && unread > 0 ? `Hesabım, ${unread} yeni bildirim` : undefined}
+        aria-label={signedIn && unread > 0 ? t.nav.accountNew.replace("{n}", String(unread)) : undefined}
         className={`${linkClass(accountActive)} ml-1`}
       >
         <UserRound className="h-3.5 w-3.5" />
@@ -87,7 +89,7 @@ export default function AccountLink({ pathname }: { pathname: string }) {
           <span className="absolute right-0.5 top-0.5 h-2 w-2 rounded-full bg-crimson-glow sm:hidden" aria-hidden />
         )}
         {/* Icon only on phones, so the bar (with "Görünüm") fits 375 px. */}
-        <span className="sr-only sm:not-sr-only">{signedIn ? "Hesabım" : "Giriş"}</span>
+        <span className="sr-only sm:not-sr-only">{signedIn ? t.nav.account : t.nav.login}</span>
       </Link>
     </>
   );

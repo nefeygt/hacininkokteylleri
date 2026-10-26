@@ -1214,3 +1214,37 @@ add the Resend API key at home (2026-10-26); the infrastructure is built now.
 - (−) The privacy notice must name these e-mails before the key is set (the Resend line today names verification and
   password e-mails only) — the user approves the text.
 - (−) The wording is a second copy of `describeNotification` (the function is Deno; kept short on purpose).
+
+## ADR-032 — Languages: a [lang] tree, Turkish at the root, typed dictionaries, translation rows per language
+
+**Context.** The user (2026-10-26): translate everything — interface and house recipes — into English first, with
+`/en/...` addresses, and build it so Spanish, German, Russian, Chinese… can follow. Translation is M9's last step before
+the app's parity pass.
+
+**Decision.**
+- **Routing.** Public pages live in `src/app/[lang]/(site)`; `[lang]/layout.tsx` is the site's root layout
+  (`<html lang>`), `admin/layout.tsx` the panel's (both use `src/app/root-document.tsx` and `fonts.ts`);
+  `global-not-found.tsx` (experimental flag) answers unmatched URLs. `src/proxy.ts` rewrites Turkish addresses into
+  `/tr/...` (URLs unchanged), sends a typed `/tr/...` to the bare address (308), lets a **published** language pass with
+  its prefix, and leaves route handlers (`/auth/`, `/og/`, sitemap, robots, manifest, OG image) alone.
+  No `dynamicParams = false` in `[lang]/layout.tsx`: children inherit it and on-demand pages would 404.
+- **Languages.** `src/lib/i18n/locales.ts`: `LOCALES` (built), `PUBLISHED_LOCALES` (served: only `tr` until English is
+  complete), `localePath`, `splitLocale`, names and Intl/OG tags. `account_settings.locale` stores a member's language
+  (any language tag) for e-mails.
+- **Interface words.** `src/lib/i18n/dictionaries/tr.ts` is the source; `types.ts` derives `Dictionary` from it, so every
+  other language (`en.ts`) must have the same keys or the build fails. Placeholders `{name}` with `format()`.
+  Server components: `getDictionary(lang)` from the page's params; client components: `useLocale()` from
+  `LocaleProvider` (set in `[lang]/(site)/layout.tsx`); links: `@/components/LocaleLink` (every site link);
+  revalidation: `revalidateLocalized()` (every public path, all languages). Shared helpers take an optional locale or
+  dictionary and default to Turkish, so the app and the panel keep working unchanged.
+- **Content (planned, next step).** Translation rows per language, not `_en` columns: e.g. `cocktail_translations`
+  (cocktail, locale, name, subtitle, base, flavor, garnish, glass, note, instructions[], ingredient names by position),
+  `glossary_term_translations`, `ingredient_translations`; loaders fall back to Turkish where a row is missing.
+  Members' recipes stay in the language they were written in. The panel stays Turkish but edits translations.
+- **Publishing a language** = add it to `PUBLISHED_LOCALES` once its dictionary and content are complete; then the
+  switcher, sitemap alternates and hreflang include it.
+
+**Consequences.**
+- (+) A new language is a dictionary file, translation rows and one line in `locales.ts`; no schema change.
+- (+) Turkish URLs and caching are untouched (checked live after the move).
+- (−) Every page and component must take its words from the dictionary; until English is complete it stays unpublished.
