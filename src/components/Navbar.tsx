@@ -17,7 +17,7 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-bg-primary/80 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 px-4 sm:px-6">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 px-3 min-[360px]:px-4 sm:px-6">
         {/* The wordmark carries the cherry over the "i" (ADR-015); on phones it is the only link home. */}
         <Link href="/" aria-label={t.nav.homeLabel.replace("{brand}", BRAND)} className="flex shrink-0 items-center opacity-90 transition-opacity hover:opacity-100">
           {/* Light themes swap in the dark drawing (globals.css). */}
@@ -25,7 +25,8 @@ export default function Navbar() {
           <Image src="/brand/haci-wordmark-dark.svg" alt="" width={69} height={32} className="wordmark-on-light" />
         </Link>
 
-        <div className="flex items-center gap-1">
+        {/* At 320 px the language switcher leaves no room: tighter gaps, and the switcher drops its code there. */}
+        <div className="flex items-center gap-0.5 min-[360px]:gap-1">
           <NavLink href="/" active={pathname === "/"} className="hidden sm:block">
             {t.nav.home}
           </NavLink>
@@ -58,7 +59,7 @@ function NavLink({
   return (
     <Link
       href={href}
-      className={`${className} whitespace-nowrap rounded px-2 py-1.5 sm:px-3 font-mono text-xs tracking-wide transition-colors ${
+      className={`${className} whitespace-nowrap rounded px-1.5 py-1.5 min-[360px]:px-2 sm:px-3 font-mono text-xs tracking-wide transition-colors ${
         active
           ? "bg-crimson/15 text-crimson-glow"
           : "text-text-secondary hover:bg-bg-elevated hover:text-text-primary"

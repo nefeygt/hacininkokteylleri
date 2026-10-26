@@ -1,6 +1,7 @@
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { safeNext } from "@/lib/account";
+import { localePath, splitLocale } from "@/lib/i18n/locales";
 import { createClient } from "@/lib/supabase/server";
 
 // Where Google (through Supabase Auth) and the links in our e-mails (sign-up
@@ -9,7 +10,8 @@ import { createClient } from "@/lib/supabase/server";
 // supabase/templates), which works in any browser and for links the app asked
 // for, where the PKCE verifier lives on the phone. Either becomes a session
 // cookie; a member without a profile goes to onboarding first, except on the
-// way to a new password. These redirects are real HTTP redirects (ADR-007).
+// way to a new password. These redirects are real HTTP redirects (ADR-007). The language of `next`
+// ("/en/account") carries over to the sign-in, onboarding and reset pages (ADR-032).
 
 const EMAIL_LINK_TYPES: EmailOtpType[] = ["signup", "email", "recovery", "email_change", "invite", "magiclink"];
 
@@ -20,25 +22,27 @@ export async function GET(request: NextRequest) {
   const type = searchParams.get("type") as EmailOtpType | null;
   const next = safeNext(searchParams.get("next"));
   const failed = searchParams.get("via") === "email" ? "link" : "google";
+  const { locale } = splitLocale(next);
+  const page = (path: string) => new URL(localePath(locale, path), request.url);
 
   if (tokenHash && type && EMAIL_LINK_TYPES.includes(type)) {
     const supabase = await createClient();
     const { data, error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
-    if (error || !data.user) return NextResponse.redirect(new URL("/login?error=link", request.url));
-    return afterSignIn(request, supabase, data.user.id, type === "recovery" ? "/reset-password" : next);
+    if (error || !data.user) return NextResponse.redirect(page("/login?error=link"));
+    return afterSignIn(request, supabase, data.user.id, type === "recovery" ? localePath(locale, "/reset-password") : next);
   }
 
   if (!code) {
     // Supabase sends errors back as query parameters, e.g. when sign-ups are off.
     const description = searchParams.get("error_description") ?? "";
     const reason = /signups? not allowed/i.test(description) ? "closed" : failed;
-    return NextResponse.redirect(new URL(`/login?error=${reason}`, request.url));
+    return NextResponse.redirect(page(`/login?error=${reason}`));
   }
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
   if (error || !data.user) {
-    return NextResponse.redirect(new URL(`/login?error=${failed}`, request.url));
+    return NextResponse.redirect(page(`/login?error=${failed}`));
   }
 
   return afterSignIn(request, supabase, data.user.id, next);
@@ -50,7 +54,8 @@ async function afterSignIn(
   userId: string,
   next: string
 ) {
-  if (next === "/reset-password") return NextResponse.redirect(new URL(next, request.url));
+  const { locale, path } = splitLocale(next);
+  if (path === "/reset-password") return NextResponse.redirect(new URL(next, request.url));
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -58,6 +63,6 @@ async function afterSignIn(
     .eq("id", userId)
     .maybeSingle();
 
-  const destination = profile ? next : `/welcome?next=${encodeURIComponent(next)}`;
+  const destination = profile ? next : `${localePath(locale, "/welcome")}?next=${encodeURIComponent(next)}`;
   return NextResponse.redirect(new URL(destination, request.url));
 }

@@ -48,7 +48,7 @@ export default function LanguageSwitcher() {
         className="flex h-8 shrink-0 items-center gap-1 rounded px-1.5 font-mono text-[11px] uppercase text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-secondary"
       >
         <Languages className="h-3.5 w-3.5" />
-        {locale}
+        <span className="hidden min-[360px]:inline">{locale}</span>
       </button>
       {open && (
         <ul className="absolute right-0 top-full z-50 mt-2 w-40 rounded-lg border border-border bg-bg-card p-1.5 shadow-xl">

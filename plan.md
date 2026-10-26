@@ -9,7 +9,7 @@
 > **Language rule (ADR-002):** everything we write — docs, code, comments, commits, SQL — is
 > **English**. Everything visitors and admins read — UI strings, recipes — is **Turkish**.
 
-**Last updated:** 2026-10-26 (M9: the council's round, packages A–D) · **Active milestone:** **M9 — Web improvements** (recipe pages, data filters, wordmark, rich results, share, servings, similar, weekly backup, cl ↔ oz, six themes with readable type — ADR-025 to ADR-028) · **M8 — Mobile app** steps 1–6 done, **step 7 (store release) paused** until the Apple account or the user's two other Play apps (ADR-024) · M6 and M7 done · **Brand:** `haci` (ADR-015)
+**Last updated:** 2026-10-26 (M9: **English published** at `/en`) · **Active milestone:** **M9 — Web improvements** (recipe pages, data filters, wordmark, rich results, share, servings, similar, weekly backup, cl ↔ oz, six themes with readable type — ADR-025 to ADR-028) · **M8 — Mobile app** steps 1–6 done, **step 7 (store release) paused** until the Apple account or the user's two other Play apps (ADR-024) · M6 and M7 done · **Brand:** `haci` (ADR-015)
 
 ---
 
@@ -21,7 +21,7 @@
 | Previous milestone | **M7 — The showcase** (2026-10-14, ADR-019) and **M6 — Community recipes and feeds** (2026-10-14, ADR-018): built, tested on `localhost`, deployed; **live checks passed on the user's phone** (2026-10-14). **Both done**. M5 — Drink log done 2026-10-14 |
 | Last completed | **M2 — Domain** (Search Console moved from vercel.app to the domain) and the **brand change to `haci`** with English URLs and the cherry logo (ADR-015). M1 is done except Hacı's own first sign-in |
 | Blockers | None in the code. **The user's accounts for M8:** Expo `nefeygt` (EAS project `@nefeygt/haci`, linked 2026-10-15); Google Play — personal, **created after 2023-11-13**, developer name **"KZN"** (renamed by the user 2026-10-15; haci is published from it), so a 12-tester, 14-day closed test comes before production (the user sources the testers); Apple Developer — **not opened yet, and likely in another person's name** (the user, 2026-10-15), so Android is built and tested first. The office network (FortiGate) blocks the domain — check from outside (§5.4) |
-| Next critical decision | What M9 still needs before the parity pass (the theme is decided: Rx readable + five more, ADR-028) and, later, localization. The mobile app is decided: Expo, after M3 (ADR-013) |
+| Next critical decision | **More languages after English** (the user, 2026-10-26: plan the popular languages next) — which ones, in what order, and how they are translated and checked. The mobile parity pass waits for the user's go. The mobile app is decided: Expo, after M3 (ADR-013) |
 
 ---
 
@@ -728,16 +728,18 @@ While the store release waits (ADR-024), the site gets better first; every user-
   - [x] E-mail notification infrastructure (ADR-031): opt-out on `/account`, `pending_notification_emails`, the Edge
     Function `send-notification-emails` (checked: without the key it skips; 401 without a bearer), pg_cron every 15 min.
     **Left for the user:** the `RESEND_API_KEY` secret and the privacy line. Push notifications belong to the app (Expo push tokens) and come with or after the parity pass
-  - [ ] **Last step of M9, before the parity pass: translation** (the user 2026-10-26: everything incl. recipes,
+  - [x] **Last step of M9, before the parity pass: translation — English published 2026-10-26** (the user 2026-10-26: everything incl. recipes,
     English first, `/en/...` URLs, built for more languages — ADR-032). Done: step 1 (routing under `[lang]`, proxy,
     LocaleProvider/LocaleLink, revalidateLocalized, dictionaries; Turkish checked live unchanged); **step 2 (built
     2026-10-26, Sonnet session):** `docs/glossary.md`; 604 dictionary keys in `tr.ts`/`en.ts` (every public page,
     component, form, server-action message, metadata, JSON-LD); localized shared helpers; migrations
     `translation_tables` + the English rows of all 38 house recipes, 52 ingredients and 4 glossary terms; sitemap and
-    page metadata with hreflang (active once a second language is published). `PUBLISHED_LOCALES` is still `["tr"]`.
-    **Left (Opus session):** the English `/privacy` draft (the user approves), a full check of the English content against
-    the glossary, the panel's "İngilizce" editors, OG cards/manifest/e-mail locale, build + advisors, publishing — see
-    next_session.md
+    page metadata with hreflang (active once a second language is published). (Published in step 3.)
+    **Step 3 (2026-10-26, Opus session):** the English `/privacy` (approved by the user; the Turkish text governs;
+    the digest line in both languages, version `2026-10-26.2`), the full check against the glossary, English cocktail
+    names (the user's request), one Turkish "Şeker Şurubu" glossary row, the panel's "İngilizce" sections (cocktail
+    form, glossary, catalogue), members' e-mail language, share cards per language, `log_comments` with one UPDATE
+    policy, and **`PUBLISHED_LOCALES = ["tr", "en"]`**. Next: plan the next languages with the user
   - Videos stay in the Icebox: Gemini's free tier has no video model (Veo is paid per second); revisit with a budget
   - Not now (the council and the user, 2026-10-26): English localization, a rating breakdown (no reviews yet); the app's
     catalogue picker stays in the parity pass. Outside code before launch: DMARC beyond `p=none` (§8)
@@ -785,9 +787,8 @@ While the store release waits (ADR-024), the site gets better first; every user-
 - Drag-and-drop ordering in the panel
 - Google sign-in for admins
 - HEIC photos from iPhones (today the browser must be able to decode the file)
-- **Localization** — English first, then others; UI strings out of the components (the user,
-  2026-10-13: later, once the current work is done). **Includes an English privacy notice next to
-  the Turkish one** for global users (the user, 2026-10-13)
+- **More languages** — English shipped 2026-10-26 (ADR-032); the popular languages next, planned with the user
+- Auth e-mails (Supabase templates) in the member's language
 - Themes in the admin panel; the theme saved on the account; light OG images and e-mail templates (ADR-028)
 - **Videos for cocktails** (the user, 2026-10-15: "in the future") — generated or shot short clips on the recipe pages
 - A `haci` domain, if the product grows (ADR-015)
@@ -816,6 +817,7 @@ While the store release waits (ADR-024), the site gets better first; every user-
 | 2026-10-15 | M9 backup + cl ↔ oz | The user chose the GitHub Action backup (public key, published house content only, photos too) and 1 oz = 3 cl. Built both (ADR-027); the backup ran locally, Vercel skips backup-only commits. Live check: last session's features on the domain and Google's Rich Results Test (1 valid Recipe). Claude in Chrome's screenshots timed out again; DOM checks there, visuals in the built-in browser. Three theme/font directions published as an artifact for the user to pick |
 | 2026-10-15 | M9 quick wins | The user picked the order: quick wins first, theme and font last. Built (ADR-026): chips from the data with flavour notes (site and app), the wordmark in the navbar, recipe JSON-LD, "Paylaş", "Kaç kişilik?", "Benzer kokteyller". Fixed on the way: the wordmark shrank to 0 px on phones and the bar overflowed 375 px. Checked: build, the app's typecheck (`npm ci` in `mobile/` first — `node_modules` was missing), Claude in Chrome (its screenshots timed out after a resize) and the built-in browser |
 | 2026-10-15 | M9 start: recipe pages | The user asked for house recipe pages: the card opens `/cocktails/{slug}`, a magnifier opens the modal (ADR-025); video → Icebox. Built, checked in the built-in browser (Claude in Chrome not connected) and with curl; build passes; deployed `149e6fa`, live page 200 from the user's home network. M9 opened with Claude's suggestions — the user liked them all; order next session |
+| 2026-10-26 | Translation, step 3 (Opus): English live | The user approved the English privacy draft with the digest line (Turkish too, version `2026-10-26.2`). Content check against the glossary: B-52's garnish, singular counts ("one\|other" in `format()`), hero case. The user's answers: translate the Turkish cocktail names meaningfully (10 names, migration `translations_en_names_glossary_dedupe`), `yeni-yil` either way, keep "Şeker Şurubu" (deleted "Simple Syrup"), no panel test needed. Built the panel's translation sections, member locale, share cards per language, one `log_comments` UPDATE policy. Found while checking: the language switcher overflowed the navbar at 320 px (tightened below 360 px) and the auth callback sent English sign-ins to Turkish onboarding/login pages (fixed). Published English; local checks (status list, hreflang, sitemap alternates, 320/375 px, switcher) passed; pushed |
 | 2026-10-26 | Translation, step 2 (Sonnet) | `docs/glossary.md` first (terms, style rules, inconsistencies). Shared helpers take a locale/dictionary part (default Turkish; the app compiles unchanged). Three translation tables (migration `translation_tables`, RLS, advisors clean) and English rows for all 38 house recipes (4 batches, checked: step and ingredient counts match), 52 ingredients, 4 glossary terms. ~600 UI strings extracted page by page into `tr.ts`/`en.ts` (parity script: 0 problems), server-action messages read the language from the `referer`, sitemap + page metadata with hreflang. Prerendered `/en/...` pages checked in `.next` (English text only; Turkish names kept). Stopped at the planned hand-off: privacy text, English check and publishing are for an Opus session |
 | 2026-10-26 | Translation, step 1 | Notification e-mails built for a Resend key (ADR-031; pg_cron + Edge Function, skips without the key). The user: everything translated, English first with `/en`, more languages later. Pages moved under `[lang]` with a proxy rewrite (Turkish URLs checked live unchanged), dictionaries and helpers (ADR-032); string extraction started (navbar, themes, 404/error). Stopped for the account limit |
 | 2026-10-26 | M9 Icebox round | The user: translation leaves the Icebox as M9's last step; "do the rest now". Built and pushed: rating breakdown (`half_star_counts`, checked with 24 fake members' reviews, deleted), follower/following lists (same fake members), comment editing (`edited_at`, SQL-tested as members), the glass picker (13 drawings, `glassKind` matches all data), orphaned photo cleanup (`orphan_photos` + Edge Function + manual workflow; my test call was refused by the auto-mode classifier as a bulk delete, so the first run is the user's). Videos stay in the Icebox (no free video model). Next: translation |

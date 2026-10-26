@@ -16,9 +16,8 @@ into the text.** Spanish, German… will get a column each. Started 2026-10-26 f
   the data ("Sweet-Sour").
 - **Spelling:** American English (flavor, color, liqueur — "flavor" is also the database column). Numbers: 1,5 → 1.5;
   dates and numbers go through `INTL_LOCALES[locale]`, never hand-formatted.
-- **Cocktail names are not translated** ("Kuzu Kulağı Devrimi" stays). Their subtitle, note, tags' descriptive words,
-  steps, garnish and ingredient names are. *(Open question: the user may want the evocative names translated — see
-  next_session.md.)*
+- **Turkish cocktail names are translated** into a meaningful English name, not word for word (the user,
+  2026-10-26); names already in English stay. See "Cocktail names" below.
 - **Members' recipes and comments are never translated** — they stay in the language they were written in.
 - **Placeholders** `{name}` are kept exactly; word order around them may change.
 - **Counts:** a string with `{n}` that needs a singular is written "one|other" (`"{n} vote|{n} votes"`); `format()` picks
@@ -193,8 +192,24 @@ Also used in the archive filter: Zencefil Ginger · Campari (unchanged).
 |---|---|---|
 | Aquafaba | Aquafaba | Vegan-friendly! Chickpea water used instead of egg white to give a cocktail foam. |
 | Şeker Şurubu | Simple syrup | The base syrup made by boiling 1 part sugar with 1 part water. |
-| Simple Syrup | Simple syrup | *(duplicate of the one above — see inconsistencies)* |
 | Top up | Top up | Fill the rest of the glass with this drink. |
+
+## Cocktail names (2026-10-26)
+
+| TR | EN | Why |
+|---|---|---|
+| Kuzu Kulağı Devrimi | Sorrel Revolution | |
+| Kuzu Kulağı Sour | Sorrel Sour | |
+| Ferah Manifesto | Fresh Manifesto | |
+| Sovyet Elması | Soviet Apple | |
+| Mavi İşçi | Blue Collar | the subtitle is about blue-collar workers |
+| Cin Çileği | Gin Berry | "cin" is gin (and a djinn); keeps the short rhyme |
+| Klasik Viski Sour | Classic Whiskey Sour | |
+| Tekila Sunrise | Tequila Sunrise | the classic's name |
+| Fesleğen Frozen | Frozen Basil | |
+| yeni yıl (draft) | New Year | |
+
+A new house recipe with a Turkish name gets a row here and an English name in the panel.
 
 ## Interface phrases (already translated in `en.ts`, and the ones to come)
 
@@ -243,9 +258,7 @@ Kâğıt Rx **Paper Rx**.
 
 ## Decisions taken while translating (2026-10-26)
 
-- **Cocktail names stay as written** ("Kuzu Kulağı Devrimi", "Ferah Manifesto", "Cin Çileği"); their subtitles, notes, tags,
-  steps, garnish, glass and ingredient lines are translated. *The user may still want the names translated — asked in
-  next_session.md.* The `name` column of `cocktail_translations` exists and is used when filled.
+- **Cocktail names:** first kept as written, then translated at the user's request (2026-10-26, table above).
 - **Ingredient lines are translated by position** (`ingredient_names`), not through the catalogue, because a recipe's
   line can differ from the catalogue name ("Beyaz Rom" is "White rum" while the catalogue item is "Rum").
 - **Kuzu kulağı = sorrel** (garden sorrel). **Viski = whiskey.** **Şampanya (Prosecco) = Sparkling wine (Prosecco)**
@@ -265,9 +278,8 @@ step; "fine strainer" where the Turkish says "ince süzgeç" and "double-strain"
 
 ## Inconsistencies found (2026-10-26) — resolve in the final check
 
-1. **"Simple Syrup" and "Şeker Şurubu"** are two glossary rows with the same definition (the user's "Simple Syrup"
-   question is open in next_session.md). In English both read "Simple syrup" and show once (done); the Turkish page
-   still lists both until the user decides.
+1. **"Simple Syrup" and "Şeker Şurubu"** — resolved 2026-10-26: the user kept "Şeker Şurubu"; "Simple Syrup" was
+   deleted (no recipe used it).
 2. **"Reçete" vs "Tarif"** — the Turkish UI uses both (the prescription motif vs plain recipe). English uses
    "prescription" only for the motif ("This prescription was not found") and "recipe" elsewhere.
 3. **Theme hint "Default: dark, crimson"** — the Turkish hint says "kızıl"; "crimson" is right for Rx, but `Gece Barı`

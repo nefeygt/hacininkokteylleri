@@ -7,8 +7,8 @@ export type Locale = (typeof LOCALES)[number];
 
 export const DEFAULT_LOCALE: Locale = "tr";
 
-/** The languages visitors reach. English joins when its dictionary and content are complete. */
-export const PUBLISHED_LOCALES: readonly Locale[] = ["tr"];
+/** The languages visitors reach (English since 2026-10-26); a new one joins once its dictionary and content are complete. */
+export const PUBLISHED_LOCALES: readonly Locale[] = ["tr", "en"];
 
 /** Each language in its own words, for the switcher. */
 export const LOCALE_NAMES: Record<Locale, string> = { tr: "Türkçe", en: "English" };

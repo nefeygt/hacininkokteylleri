@@ -1228,7 +1228,7 @@ the app's parity pass.
   `/tr/...` (URLs unchanged), sends a typed `/tr/...` to the bare address (308), lets a **published** language pass with
   its prefix, and leaves route handlers (`/auth/`, `/og/`, sitemap, robots, manifest, OG image) alone.
   No `dynamicParams = false` in `[lang]/layout.tsx`: children inherit it and on-demand pages would 404.
-- **Languages.** `src/lib/i18n/locales.ts`: `LOCALES` (built), `PUBLISHED_LOCALES` (served: only `tr` until English is
+- **Languages.** `src/lib/i18n/locales.ts`: `LOCALES` (built), `PUBLISHED_LOCALES` (served: `tr` and, since 2026-10-26, `en`; English was held back until it was
   complete), `localePath`, `splitLocale`, names and Intl/OG tags. `account_settings.locale` stores a member's language
   (any language tag) for e-mails.
 - **Interface words.** `src/lib/i18n/dictionaries/tr.ts` is the source; `types.ts` derives `Dictionary` from it, so every
@@ -1244,9 +1244,10 @@ the app's parity pass.
   (`content.ts`: `getPublishedCocktails`, `getCocktail`, `getGlossary`, `getIngredientCatalogue` take a locale) overlay
   the row field by field and fall back to Turkish for a missing row, an empty field or a missing position. Members'
   recipes stay in the language they were written in. The panel stays Turkish but will edit translations.
-  **Cocktail names are not translated** (the `name` column exists for it); the English text for all 38 house recipes
-  (37 published + the draft `yeni-yil`), 52 catalogue items and 4 glossary terms is seeded by migrations and follows
-  `docs/glossary.md`, which every later translation must follow.
+  **Cocktail names are translated when they are Turkish** (amended 2026-10-26, the user: "meaningful, not literal" —
+  "Kuzu Kulağı Devrimi" → "Sorrel Revolution"; names already in English keep `name` null). The English text for all
+  38 house recipes (37 published + the draft `yeni-yil`), 52 catalogue items and the glossary terms is seeded by
+  migrations and follows `docs/glossary.md`, which every later translation must follow.
 - **Details decided while building.**
   - *Server actions* have no route params: they read the page's language from the `referer` header
     (`src/lib/i18n/server.ts`: `actionLocale()`, `actionDictionary()`); messages live in `actions`/`validation`/`auth`.
@@ -1260,8 +1261,20 @@ the app's parity pass.
   - *hreflang:* `alternatesFor(lang, path)` (pages) and `localized()` (sitemap) add `alternates.languages` once more
     than one language is published; with only Turkish the output is unchanged.
   - *Logs:* a new drink log of a house recipe starts from the page's language; a stored snapshot is not translated later.
+  - *The privacy notice* (2026-10-26, Opus session) is per language in `privacy/notice.ts`, not in the dictionaries
+    (they ship whole to the browser); translations say the Turkish text governs and change with it (one
+    `PRIVACY_NOTICE_VERSION`). The English text was approved by the user.
+  - *Counts:* "one|other" strings (`"{n} vote|{n} votes"`); `format()` picks by `n` through `plural()`. Turkish has none.
+  - *The panel* edits every built language below the Turkish form (`admin/translations.ts`: `TRANSLATED_LOCALES`,
+    Turkish names of the languages): the cocktail form (a section per language, ingredient names travel with their
+    line), the glossary (term + definition) and the catalogue (name). An empty field falls back to Turkish; an empty
+    recipe translation deletes its row.
+  - *Members' language:* `account_settings.locale` is set at onboarding (the page's language) and by the switcher;
+    the auth callback keeps the language of `next` for sign-in, onboarding and reset pages. Supabase's auth e-mail
+    templates are still Turkish only.
+  - *Share cards* take `?lang=` from the page (`recipeOpenGraph`).
 - **Publishing a language** = add it to `PUBLISHED_LOCALES` once its dictionary and content are complete; then the
-  switcher, sitemap alternates and hreflang include it.
+  switcher, sitemap alternates and hreflang include it. **English was published on 2026-10-26.**
 
 **Consequences.**
 - (+) A new language is a dictionary file, translation rows and one line in `locales.ts`; no schema change.
