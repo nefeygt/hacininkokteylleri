@@ -1,12 +1,14 @@
 import { Image } from "expo-image";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { similarCocktails } from "@shared/archive-filter";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import { Leaf } from "lucide-react-native";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
+import CocktailCard from "@/components/CocktailCard";
 import CocktailReviews from "@/components/CocktailReviews";
 import KeyboardScrollView from "@/components/KeyboardScrollView";
 import { Message, Notice } from "@/components/Form";
-import { FavoriteButton, LogButton } from "@/components/RecipeActions";
+import { FavoriteButton, LogButton, RecipeButtons, ShareButton } from "@/components/RecipeActions";
 import RecipeDetails from "@/components/RecipeDetails";
 import { Body, Heading, Label } from "@/components/Type";
 import { useArchive } from "@/lib/archive";
@@ -25,6 +27,7 @@ export default function CocktailScreen() {
   const { favorites, toggle, savedOnSignIn } = useFavorites();
   const [favoriteError, setFavoriteError] = useState<string | null>(null);
   const cocktail = archive?.cocktails.find((c) => c.slug === slug);
+  const similar = useMemo(() => (cocktail && archive ? similarCocktails(cocktail, archive.cocktails, 4) : []), [cocktail, archive]);
 
   if (!archive) {
     return (
@@ -70,7 +73,10 @@ export default function CocktailScreen() {
             }}
           />
         </View>
-        <LogButton slug={cocktail.slug} from={{ pathname: "/cocktail/[slug]", params: { slug: cocktail.slug } }} />
+        <RecipeButtons>
+          <LogButton slug={cocktail.slug} from={{ pathname: "/cocktail/[slug]", params: { slug: cocktail.slug } }} />
+          <ShareButton name={cocktail.name} path={`/cocktails/${cocktail.slug}`} />
+        </RecipeButtons>
         {favoriteError && <Message error>{favoriteError}</Message>}
         {savedOnSignIn === cocktail.id && <Notice>{a.recipe.savedToFavorites}</Notice>}
         <Body style={styles.subtitle}>{cocktail.subtitle}</Body>
@@ -80,6 +86,20 @@ export default function CocktailScreen() {
         </View>
 
         <CocktailReviews cocktail={cocktail} onChanged={refresh} />
+
+        {similar.length > 0 && (
+          <View style={styles.similar}>
+            <Label style={styles.similarTitle}>{t.cocktails.similar}</Label>
+            {similar.map((c) => (
+              <CocktailCard
+                key={c.id}
+                cocktail={c}
+                favorite={favorites.has(c.id)}
+                onPress={() => router.push({ pathname: "/cocktail/[slug]", params: { slug: c.slug } })}
+              />
+            ))}
+          </View>
+        )}
       </View>
     </KeyboardScrollView>
   );
@@ -90,6 +110,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   content: { paddingBottom: 48 },
   center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: t.colors.bgPrimary },
   accent: { height: 4 },
+  similar: { marginTop: 32, gap: 12 },
+  similarTitle: { fontSize: 12, letterSpacing: 1.8, marginBottom: 4 },
   photo: { width: "100%", aspectRatio: 16 / 9, backgroundColor: t.colors.bgElevated },
   body: { padding: 24 },
   metaRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 8 },

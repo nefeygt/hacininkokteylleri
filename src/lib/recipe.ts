@@ -166,6 +166,9 @@ export function scaleAmount(amount: number, servings: number): number {
 export type VolumeUnit = "cl" | "oz";
 export const VOLUME_UNITS: readonly VolumeUnit[] = ["cl", "oz"];
 
+/** Where the cl/oz choice is kept (localStorage on the site, AsyncStorage in the app). */
+export const VOLUME_UNIT_KEY = "haci.volume-unit";
+
 /** The bar convention, not the exact 2,957 cl: 6 cl pours as 2 oz with a jigger. */
 export const CL_PER_OZ = 3;
 const CL_PER_UNIT: Record<string, number> = { cl: 1, ml: 0.1 };

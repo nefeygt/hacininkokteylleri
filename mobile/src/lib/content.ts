@@ -2,6 +2,7 @@
 // the app's twin of the site's src/lib/content.ts (which is server-side).
 
 import { DEFAULT_LOCALE, type Locale } from "@shared/i18n/locales";
+import { RATING_COLUMNS, toRating } from "@shared/community";
 import { COCKTAIL_TRANSLATION_COLUMNS, applyCocktailTranslation, type CocktailTranslationRow } from "@shared/translations";
 import type { ShowcasePeriod } from "@shared/showcase";
 import type { Database } from "@shared/supabase/database.types";
@@ -26,6 +27,8 @@ export interface Author {
 export interface Rating {
   average: number;
   count: number;
+  /** Reviews per half star: [0] = 0.5 stars … [9] = 5 stars (the breakdown). */
+  halfStars?: number[];
 }
 
 export interface Cocktail {
@@ -106,11 +109,11 @@ async function withRatings(rows: CocktailRow[]): Promise<Cocktail[]> {
   if (rows.length === 0) return [];
   const { data, error } = await supabase
     .from("cocktail_ratings")
-    .select("cocktail_id, review_count, average_rating")
+    .select(RATING_COLUMNS)
     .in("cocktail_id", rows.map((r) => r.id));
   if (error) throw new Error(error.message);
   const byCocktail = new Map(
-    data.map((r) => [r.cocktail_id, { average: Number(r.average_rating), count: r.review_count ?? 0 }])
+    data.map((r) => [r.cocktail_id, toRating(r)])
   );
   return rows.map((row) => ({ ...toCocktail(row), rating: byCocktail.get(row.id) }));
 }
@@ -188,7 +191,7 @@ export async function fetchArchive(locale: Locale = DEFAULT_LOCALE): Promise<Arc
   const translated = locale !== DEFAULT_LOCALE;
   const [cocktails, ratings, glossary, cocktailTranslations, glossaryTranslations] = await Promise.all([
     supabase.from("cocktails").select(COCKTAIL_COLUMNS).eq("is_published", true).is("author_id", null).order("sort_order"),
-    supabase.from("cocktail_ratings").select("cocktail_id, review_count, average_rating"),
+    supabase.from("cocktail_ratings").select(RATING_COLUMNS),
     supabase.from("glossary_terms").select("term, definition"),
     translated
       ? supabase.from("cocktail_translations").select(COCKTAIL_TRANSLATION_COLUMNS).eq("locale", locale)
@@ -207,7 +210,7 @@ export async function fetchArchive(locale: Locale = DEFAULT_LOCALE): Promise<Arc
     ((cocktailTranslations?.data ?? []) as unknown as CocktailTranslationRow[]).map((row) => [row.cocktail_id, row])
   );
   const byCocktail = new Map(
-    ratings.data.map((r) => [r.cocktail_id, { average: Number(r.average_rating), count: r.review_count ?? 0 }])
+    ratings.data.map((r) => [r.cocktail_id, toRating(r)])
   );
   return {
     cocktails: (cocktails.data as CocktailRow[]).map((row) =>

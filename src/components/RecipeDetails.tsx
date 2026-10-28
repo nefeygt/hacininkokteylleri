@@ -6,6 +6,7 @@ import type { Cocktail, Ingredient } from "@/lib/content";
 import {
   SERVINGS_MAX,
   VOLUME_UNITS,
+  VOLUME_UNIT_KEY,
   convertAmount,
   formatOunces,
   isConvertibleUnit,
@@ -179,8 +180,6 @@ function Quantity({
         : undefined;
   return <VisualQuantity ingredient={{ ...ingredient, ...shown }} label={label} />;
 }
-
-const VOLUME_UNIT_KEY = "haci.volume-unit";
 
 /** The visitor's cl/oz choice, kept in localStorage; "cl" until it is read (and when storage is off). */
 function useVolumeUnit(): [VolumeUnit, (unit: VolumeUnit) => void] {

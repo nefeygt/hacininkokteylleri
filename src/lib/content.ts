@@ -4,6 +4,7 @@ import { cocktailImageUrl, recipeImageUrl } from "@/lib/supabase/config";
 import { createPublicClient } from "@/lib/supabase/public";
 import type { ShowcasePeriod } from "@/lib/showcase";
 import type { CatalogueIngredient } from "@/lib/ingredients";
+import { RATING_COLUMNS, toRating } from "@/lib/community";
 import { COCKTAIL_TRANSLATION_COLUMNS, applyCocktailTranslation, type CocktailTranslationRow } from "@/lib/translations";
 
 // The shapes the site's components draw. Database rows are mapped into these
@@ -54,12 +55,6 @@ export interface Rating {
   count: number;
   /** Reviews per half star: [0] = 0.5 stars … [9] = 5 stars (the breakdown, M9). */
   halfStars?: number[];
-}
-
-const RATING_COLUMNS = "cocktail_id, review_count, average_rating, half_star_counts";
-
-function toRating(r: { average_rating: number | null; review_count: number | null; half_star_counts: number[] | null }): Rating {
-  return { average: Number(r.average_rating), count: r.review_count ?? 0, halfStars: r.half_star_counts ?? undefined };
 }
 
 /** Term → explanation, shown as a tooltip wherever the term appears. */

@@ -11,6 +11,7 @@ import { useStyles, useTheme } from "@/lib/theme-context";
 import Avatar from "./Avatar";
 import { Message } from "./Form";
 import ReportButton from "./ReportButton";
+import RatingBreakdown from "./RatingBreakdown";
 import Stars from "./Stars";
 import { Body, Label, Mono } from "./Type";
 import { useLocale } from "@/lib/i18n";
@@ -60,6 +61,8 @@ export default function CocktailReviews({ cocktail, onChanged }: { cocktail: Coc
           </View>
         )}
       </View>
+
+      {cocktail.rating && <RatingBreakdown rating={cocktail.rating} />}
 
       <OwnReview
         cocktail={cocktail}

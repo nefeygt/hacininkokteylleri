@@ -7,7 +7,7 @@ import Avatar from "@/components/Avatar";
 import CocktailReviews from "@/components/CocktailReviews";
 import { Message, Notice } from "@/components/Form";
 import KeyboardScrollView from "@/components/KeyboardScrollView";
-import { FavoriteButton, LogButton } from "@/components/RecipeActions";
+import { FavoriteButton, LogButton, RecipeButtons, ShareButton } from "@/components/RecipeActions";
 import RecipeDetails from "@/components/RecipeDetails";
 import ReportButton from "@/components/ReportButton";
 import { Body, Heading, Label, Mono } from "@/components/Type";
@@ -99,7 +99,10 @@ export default function RecipeScreen() {
             }}
           />
         </View>
-        <LogButton slug={recipe.slug} from={here} />
+        <RecipeButtons>
+          <LogButton slug={recipe.slug} from={here} />
+          <ShareButton name={recipe.name} path={`/recipes/${recipe.slug}`} />
+        </RecipeButtons>
         {favoriteError && <Message error>{favoriteError}</Message>}
         {savedOnSignIn === recipe.id && <Notice>{a.recipe.savedToFavorites}</Notice>}
         {recipe.subtitle ? <Body style={styles.subtitle}>{recipe.subtitle}</Body> : null}

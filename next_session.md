@@ -157,7 +157,11 @@ each step; tick the step here; mark the items of "Web changes since 2026-10-15" 
      ratings in English format; labels uppercased correctly ("İ" in Turkish, "I" in English); 320 px-wide text that
      grew in English still fits (buttons, tab labels, chips).
 
-4. **[sonnet] Recipe screens** (`cocktail/[slug].tsx`, `recipes/[slug].tsx`, `RecipeDetails.tsx`).
+4. ✅ **[sonnet] Recipe screens** — done 2026-10-28: servings 1–8 and the cl/oz toggle (key `haci.volume-unit`, now `VOLUME_UNIT_KEY`
+   in `@shared/recipe`), `ShareButton` (house `/cocktails/{slug}`, members' `/recipes/{slug}`, in the language), "similar" under house
+   recipes, `RatingBreakdown` (shared `RATING_COLUMNS`/`toRating` moved to `src/lib/community.ts`). Seen in Expo web: servings,
+   oz remembered after reload, similar, share pill. **Not seen:** the breakdown bars (no reviews exist) — check with a
+   temporary member in step 9. No `/cocktails?cocktail=` links remain in the app. Original brief:
    - "Kaç kişilik?" stepper 1–`SERVINGS_MAX` (`@shared/recipe`), amounts through `scaleAmount`; the "cl | oz" toggle
      beside it (`isConvertibleUnit`, `convertAmount`, `formatOunces`), the choice in AsyncStorage under the site's key
      (`VOLUME_UNIT_KEY`, `src/components/RecipeDetails.tsx:185` — move it to `@shared/recipe` if it is not exported).
@@ -269,16 +273,16 @@ the first run/schedule of `cleanup-photos.yml`; **`RESEND_API_KEY`** in Supabase
 **Audit 2026-10-28 (step 1):** only the filter chips are in the app (typecheck only — see them in Expo web in step 2).
 Every other item below is **missing** and planned in the step named in brackets; web-only items are marked so.
 
-- [step 4] **House recipe pages `/cocktails/{slug}`** (ADR-025). The app already has a recipe screen (`cocktail/[slug]`); for
+- ✅ [step 4, done] **House recipe pages `/cocktails/{slug}`** (ADR-025). The app already has a recipe screen (`cocktail/[slug]`); for
   parity: a "share" link should use the site's URL, and links the app opens to house recipes should point here,
   not to `/cocktails?cocktail=`. The magnifier/quick card is a web-only pattern.
 - **Filter chips from the data** (ADR-026) — **already in the app**: `(tabs)/index.tsx` uses `baseChoices` /
   `flavorChoices`, and the shared `filterCocktails` matches flavour notes. Typecheck passed; not yet seen in Expo web.
-- [step 4] **"Kaç kişilik?"** (1–8 glasses) on the recipe: port to the app's recipe screens with `SERVINGS_MAX` and
+- ✅ [step 4, done] **"Kaç kişilik?"** (1–8 glasses) on the recipe: port to the app's recipe screens with `SERVINGS_MAX` and
   `scaleAmount` from `@shared/recipe`.
-- [step 4] **"Paylaş"** on recipes: React Native's `Share.share({ message, url })` with the site's URL
+- ✅ [step 4, done] **"Paylaş"** on recipes: React Native's `Share.share({ message, url })` with the site's URL
   (`/cocktails/{slug}` or `/recipes/{slug}`).
-- [step 4] **"Benzer kokteyller"** under house recipes: `similarCocktails(target, archive, 4)` from `@shared/archive-filter`.
+- ✅ [step 4, done] **"Benzer kokteyller"** under house recipes: `similarCocktails(target, archive, 4)` from `@shared/archive-filter`.
 - The wordmark and the recipe JSON-LD are web-only (the app has its own header; no SEO).
 - **The Letterboxd icon is gone from the navbar** (the user, 2026-10-15). The app never had it — nothing to port.
 - [step 5] **"Elimde ne var?"** (ADR-029): a screen (or a section on the archive tab) with chips from `ingredients`
@@ -302,12 +306,12 @@ Every other item below is **missing** and planned in the step named in brackets;
   (`collections` from `@shared/collections`) on its archive tab — optional.
 - [step 5] **Sort and "Günün kokteyli"** (M9 D): the app's archive tab gets the three sort choices (`sortCocktails`,
   `SORT_LABELS` from `@shared/archive-filter`); its home/feed could show `cocktailOfTheDay` and the house picks.
-- [step 4; follower lists step 7] **Rating breakdown** (M9): the app's recipe screen reads `half_star_counts` with the rating and draws the ten bars
+- ✅ [step 4 done; follower lists step 7] **Rating breakdown** (M9): the app's recipe screen reads `half_star_counts` with the rating and draws the ten bars
   (`ratingBreakdown` from `@shared/community`). **Follower lists**: profile counts open two lists in the app.
 - [step 7] **Comment editing** (M9): the app's log comments get "Düzenle" and "düzenlendi" (`edited_at`).
 - [step 6] **Glass picker** (M9): the app's log and recipe forms pick the glass by drawing (`GLASSES`, `glassKind` from
   `@shared/glasses`; the 13 paths of `GlassIcon.tsx` move to react-native-svg).
-- [step 4] **"cl | oz"** on recipes (ADR-027): a toggle beside "Kaç kişilik?" with `convertAmount`, `formatOunces`,
+- ✅ [step 4, done] **"cl | oz"** on recipes (ADR-027): a toggle beside "Kaç kişilik?" with `convertAmount`, `formatOunces`,
   `isConvertibleUnit` from `@shared/recipe`; remember the choice (AsyncStorage or the app's existing storage).
 
 ---

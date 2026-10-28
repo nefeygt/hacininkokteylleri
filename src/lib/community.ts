@@ -51,3 +51,15 @@ export function ratingBreakdown(halfStars: number[] | undefined): BreakdownBar[]
   const max = Math.max(...counts, 1);
   return counts.map((count, i) => ({ rating: (i + 1) / 2, count, share: count / max }));
 }
+
+/** The columns of `cocktail_ratings` that `toRating` reads. */
+export const RATING_COLUMNS = "cocktail_id, review_count, average_rating, half_star_counts";
+
+/** A recipe's rating from a `cocktail_ratings` row: average, count and the reviews per half star ([0] = 0.5 … [9] = 5). */
+export function toRating(r: { average_rating: number | null; review_count: number | null; half_star_counts: number[] | null }): {
+  average: number;
+  count: number;
+  halfStars?: number[];
+} {
+  return { average: Number(r.average_rating), count: r.review_count ?? 0, halfStars: r.half_star_counts ?? undefined };
+}
