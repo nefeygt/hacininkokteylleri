@@ -9,38 +9,21 @@ import { readable, type Theme } from "@/lib/theme";
 import { useStyles } from "@/lib/theme-context";
 import { Button, Divider, Field, Message, Notice } from "./Form";
 import { Body, Heading, Label, Mono } from "./Type";
+import { localePath } from "@shared/i18n/locales";
+import { useLocale } from "@/lib/i18n";
+import { format } from "@shared/i18n/format";
 
 type Mode = "sign-in" | "sign-up" | "forgot";
 
 // Supabase answers the same way for an address that already has an account
 // (so nobody can probe which addresses are members); the text says so.
-const SIGN_UP_SENT = [
-  "Onay e-postasını gönderdik.",
-  "1. E-postanı aç. Gelmediyse Gereksiz/Spam klasörüne bak.",
-  "2. Bağlantıya tıkla. Site açılır; orada başka bir şey yapman gerekmez.",
-  "3. Buraya dönüp aynı e-posta ve şifreyle giriş yap.",
-  "Bu adresle zaten bir hesap varsa e-posta gelmez: giriş yap ya da şifreni sıfırla.",
-].join("\n");
-
-const RESET_SENT = [
-  "Bu adresle bir hesap varsa şifre sıfırlama bağlantısını gönderdik.",
-  "1. E-postanı aç. Gelmediyse Gereksiz/Spam klasörüne bak.",
-  "2. Bağlantıya tıkla ve yeni şifreni sitede belirle.",
-  "3. Buraya dönüp yeni şifrenle giriş yap.",
-].join("\n");
-
-const TITLES: Record<Mode, string> = {
-  "sign-in": "Giriş yap",
-  "sign-up": "Hesap oluştur",
-  forgot: "Sıfırlama bağlantısı gönder",
-};
-
 /**
  * The site's /login for the app. E-mail links (sign-up confirmation, password
  * reset) open the website, as on the web; after confirming, the member signs
  * in here (ADR-020).
  */
 export default function SignIn() {
+  const { t, a, locale } = useLocale();
   const styles = useStyles(makeStyles);
   const [error, setError] = useState<string | null>(null);
   const [nativePending, setNativePending] = useState<"google" | "apple" | null>(null);
@@ -61,10 +44,10 @@ export default function SignIn() {
 
   return (
     <View style={styles.card}>
-      <Label style={styles.eyebrow}>Hesap</Label>
-      <Heading style={styles.title}>Giriş yap</Heading>
+      <Label style={styles.eyebrow}>{a.tabs.account}</Label>
+      <Heading style={styles.title}>{t.login.title}</Heading>
       <Body style={styles.subtitle}>
-        Yorum yazmak, favorilerini ve içtiklerini kaydetmek için bir hesap aç ya da giriş yap.
+        {t.login.subtitle}
       </Body>
 
       <View style={styles.stack}>
@@ -81,20 +64,20 @@ export default function SignIn() {
         {googleAvailable && (
           <Button
             kind="secondary"
-            title="Google ile devam et"
+            title={t.login.google}
             pending={nativePending === "google"}
             disabled={nativePending !== null}
             onPress={() => native("google", signInWithGoogle)}
           />
         )}
-        {(apple || googleAvailable) && <Divider label="ya da" />}
+        {(apple || googleAvailable) && <Divider label={t.login.or} />}
         <EmailForm />
         <Mono style={styles.legal}>
-          Devam ederek{" "}
-          <Mono style={styles.link} onPress={() => WebBrowser.openBrowserAsync(`${SITE_URL}/privacy`)}>
-            aydınlatma metnini
-          </Mono>{" "}
-          okumuş olursun. Hesap açmak için 18 yaşından büyük olmalısın.
+          {t.login.continuePrefix}
+          <Mono style={styles.link} onPress={() => WebBrowser.openBrowserAsync(`${SITE_URL}${localePath(locale, "/privacy")}`)}>
+            {t.login.privacyLink}
+          </Mono>
+          {t.login.continueSuffix}
         </Mono>
       </View>
     </View>
@@ -102,6 +85,7 @@ export default function SignIn() {
 }
 
 function EmailForm() {
+  const { t, a, locale } = useLocale();
   const styles = useStyles(makeStyles);
   const [mode, setMode] = useState<Mode>("sign-in");
   const [email, setEmail] = useState("");
@@ -129,28 +113,28 @@ function EmailForm() {
 
     if (mode === "sign-in") {
       const { error } = await supabase.auth.signInWithPassword({ email: address, password });
-      if (error) setError(authErrorMessage(error.message));
+      if (error) setError(authErrorMessage(error.message, t.auth));
       // On success the session provider moves on (onboarding or the account).
     } else if (mode === "sign-up") {
       if (password.length < MIN_PASSWORD_LENGTH) {
-        setError(`Şifre en az ${MIN_PASSWORD_LENGTH} karakter olmalı.`);
+        setError(format(t.auth.passwordShort, { min: MIN_PASSWORD_LENGTH }));
       } else {
         const { error } = await supabase.auth.signUp({
           email: address,
           password,
-          options: { emailRedirectTo: callback("/account") },
+          options: { emailRedirectTo: callback(localePath(locale, "/account")) },
         });
-        if (error) setError(authErrorMessage(error.message));
+        if (error) setError(authErrorMessage(error.message, t.auth));
         else {
           // Back to sign-in with the address filled in: the next step happens here.
           setMode("sign-in");
-          setSent(SIGN_UP_SENT);
+          setSent(a.signIn.signUpSent);
         }
       }
     } else {
-      const { error } = await supabase.auth.resetPasswordForEmail(address, { redirectTo: callback("/reset-password") });
-      if (error) setError(authErrorMessage(error.message));
-      else setSent(RESET_SENT);
+      const { error } = await supabase.auth.resetPasswordForEmail(address, { redirectTo: callback(localePath(locale, "/reset-password")) });
+      if (error) setError(authErrorMessage(error.message, t.auth));
+      else setSent(a.signIn.resetSent);
     }
     setPending(false);
   }
@@ -158,7 +142,7 @@ function EmailForm() {
   return (
     <View style={styles.stack}>
       <Field
-        label="E-posta"
+        label={t.login.email}
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
@@ -170,7 +154,7 @@ function EmailForm() {
       />
       {mode !== "forgot" && (
         <Field
-          label="Şifre"
+          label={t.login.password}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -185,16 +169,16 @@ function EmailForm() {
       {error && <Message error>{error}</Message>}
       {sent && <Notice>{sent}</Notice>}
 
-      <Button title={TITLES[mode]} onPress={submit} pending={pending} disabled={!email.trim() || (mode !== "forgot" && !password)} />
+      <Button title={{ "sign-in": t.login.signIn, "sign-up": t.login.signUp, forgot: t.login.forgot }[mode]} onPress={submit} pending={pending} disabled={!email.trim() || (mode !== "forgot" && !password)} />
 
       <View style={styles.switches}>
         {mode === "sign-in" ? (
           <>
-            <Button kind="link" title="Hesabın yok mu? Oluştur" onPress={() => switchTo("sign-up")} />
-            <Button kind="link" title="Şifremi unuttum" onPress={() => switchTo("forgot")} />
+            <Button kind="link" title={t.login.noAccount} onPress={() => switchTo("sign-up")} />
+            <Button kind="link" title={t.login.forgotLink} onPress={() => switchTo("forgot")} />
           </>
         ) : (
-          <Button kind="link" title="Giriş yapmaya dön" onPress={() => switchTo("sign-in")} />
+          <Button kind="link" title={t.login.backToSignIn} onPress={() => switchTo("sign-in")} />
         )}
       </View>
     </View>

@@ -13,8 +13,11 @@ import { alpha, readable, type Theme } from "@/lib/theme";
 import { useStyles, useTheme } from "@/lib/theme-context";
 import Avatar from "./Avatar";
 import { Button, Field, Message, Notice } from "./Form";
+import LanguagePicker from "./LanguagePicker";
 import ThemePicker from "./ThemePicker";
 import { Body, Heading, Label, Mono } from "./Type";
+import { useLocale } from "@/lib/i18n";
+import { format } from "@shared/i18n/format";
 
 const AVATARS_BUCKET = "avatars";
 const RECIPE_IMAGES_BUCKET = "recipe-images";
@@ -32,26 +35,27 @@ export default function AccountView({
   settings: Settings;
   reload: () => Promise<void>;
 }) {
+  const { t, a } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   return (
     <View style={styles.card}>
-      <Label style={styles.eyebrow}>Hesap</Label>
-      <Heading style={styles.title}>Hesabım</Heading>
-      {email && <Body style={styles.subtitle}>{email} ile giriş yaptın.</Body>}
+      <Label style={styles.eyebrow}>{a.tabs.account}</Label>
+      <Heading style={styles.title}>{t.account.title}</Heading>
+      {email && <Body style={styles.subtitle}>{format(t.account.signedInAs, { email })}</Body>}
 
       {profile.hidden_at && (
         <View style={styles.section}>
-          <Notice>Profilin bir yönetici tarafından gizlendi; şu an yalnızca sen görüyorsun.</Notice>
+          <Notice>{t.account.hidden}</Notice>
         </View>
       )}
 
       <View style={styles.section}>
         <View style={styles.sectionHead}>
-          <Label style={styles.sectionTitle}>Profil</Label>
+          <Label style={styles.sectionTitle}>{t.account.profile}</Label>
           <Button
             kind="link"
-            title="Herkese açık profilin →"
+            title={t.account.publicProfile}
             onPress={() => router.push({ pathname: "/u/[username]", params: { username: profile.username } })}
           />
         </View>
@@ -61,32 +65,36 @@ export default function AccountView({
 
       <View style={[styles.section, styles.ruled]}>
         <View style={styles.sectionHead}>
-          <Label style={styles.sectionTitle}>İçki günlüğü</Label>
-          <Button kind="link" title="Günlüğüm →" onPress={() => router.push("/logs")} />
+          <Label style={styles.sectionTitle}>{t.account.logSection}</Label>
+          <Button kind="link" title={t.account.myLog} onPress={() => router.push("/logs")} />
         </View>
         <LogsDefaultToggle userId={profile.id} initial={settings.logs_public_default} reload={reload} />
       </View>
 
       <View style={[styles.section, styles.ruled]}>
         <View style={styles.sectionHead}>
-          <Label style={styles.sectionTitle}>Tarifler</Label>
-          <Button kind="link" title="Tariflerim →" onPress={() => router.push("/my-recipes")} />
+          <Label style={styles.sectionTitle}>{t.profilePage.recipes}</Label>
+          <Button kind="link" title={t.account.myRecipesLink} onPress={() => router.push("/my-recipes")} />
         </View>
-        <Mono style={styles.muted}>Kendi tariflerini yaz; yayınladıkların profilinde ve akışta görünür.</Mono>
+        <Mono style={styles.muted}>{t.account.myRecipesHint}</Mono>
       </View>
 
       <View style={[styles.section, styles.ruled]}>
         <ThemePicker />
       </View>
 
+      <View style={[styles.section, styles.ruled]}>
+        <LanguagePicker />
+      </View>
+
       <View style={[styles.section, styles.ruled, styles.row]}>
-        <Mono style={styles.muted}>Bu cihazdan çık</Mono>
+        <Mono style={styles.muted}>{t.account.signOutLabel}</Mono>
         <SignOutButton />
       </View>
 
       <View style={[styles.section, styles.ruled]}>
-        <Label style={[styles.sectionTitle, { color: theme.colors.crimsonGlow }]}>Hesabı sil</Label>
-        <Mono style={styles.muted}>Hesabın, profilin ve yazdığın her şey kalıcı olarak silinir. Bu geri alınamaz.</Mono>
+        <Label style={[styles.sectionTitle, { color: theme.colors.crimsonGlow }]}>{t.account.deleteTitle}</Label>
+        <Mono style={styles.muted}>{t.account.deleteWarning}</Mono>
         <DeleteAccount profile={profile} />
       </View>
     </View>
@@ -95,6 +103,7 @@ export default function AccountView({
 
 /** Centre square → 256 px WebP → "{user_id}/{base36}.webp"; the old picture is deleted, never overwritten (ADR-006). */
 function AvatarField({ profile, reload }: { profile: Profile; reload: () => Promise<void> }) {
+  const { t } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const [busy, setBusy] = useState(false);
@@ -106,7 +115,7 @@ function AvatarField({ profile, reload }: { profile: Profile; reload: () => Prom
     if (error) {
       // The profile still points at the old picture; drop the unused upload.
       if (next) await storage.remove([next]);
-      throw new Error(`Kaydedilemedi: ${error.message}`);
+      throw new Error(format(t.validation.saveFailed, { message: error.message }));
     }
     if (profile.avatar_path && profile.avatar_path !== next) await storage.remove([profile.avatar_path]);
     await reload();
@@ -133,10 +142,10 @@ function AvatarField({ profile, reload }: { profile: Profile; reload: () => Prom
       const { error } = await supabase.storage
         .from(AVATARS_BUCKET)
         .upload(name, body, { contentType: "image/webp", cacheControl: "31536000", upsert: false });
-      if (error) throw new Error("Yükleme başarısız.");
+      if (error) throw new Error(t.imageField.uploadFailed);
       await point(name);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Yükleme başarısız.");
+      setError(e instanceof Error ? e.message : t.imageField.uploadFailed);
     } finally {
       setBusy(false);
     }
@@ -148,7 +157,7 @@ function AvatarField({ profile, reload }: { profile: Profile; reload: () => Prom
     try {
       await point(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Kaldırılamadı.");
+      setError(e instanceof Error ? e.message : t.account.removeFailed);
     } finally {
       setBusy(false);
     }
@@ -167,13 +176,13 @@ function AvatarField({ profile, reload }: { profile: Profile; reload: () => Prom
       <View style={styles.avatarActions}>
         <Button
           kind="secondary"
-          title={profile.avatar_path ? "Fotoğrafı değiştir" : "Fotoğraf yükle"}
+          title={profile.avatar_path ? t.imageField.change : t.imageField.upload}
           icon={<ImagePlus size={14} color={theme.colors.textSecondary} />}
           onPress={pick}
           disabled={busy}
         />
         {profile.avatar_path && (
-          <Button kind="link" title="Kaldır" icon={<X size={12} color={theme.colors.textMuted} />} onPress={remove} disabled={busy} />
+          <Button kind="link" title={t.imageField.remove} icon={<X size={12} color={theme.colors.textMuted} />} onPress={remove} disabled={busy} />
         )}
         {error && <Message error>{error}</Message>}
       </View>
@@ -182,6 +191,7 @@ function AvatarField({ profile, reload }: { profile: Profile; reload: () => Prom
 }
 
 function ProfileForm({ profile, reload }: { profile: Profile; reload: () => Promise<void> }) {
+  const { t } = useLocale();
   const styles = useStyles(makeStyles);
   const [username, setUsername] = useState(profile.username);
   const [displayName, setDisplayName] = useState(profile.display_name);
@@ -193,7 +203,7 @@ function ProfileForm({ profile, reload }: { profile: Profile; reload: () => Prom
   async function save() {
     setError(null);
     setSaved(false);
-    const fields = checkProfile({ username, displayName, bio });
+    const fields = checkProfile({ username, displayName, bio }, t.validation);
     if ("error" in fields) return setError(fields.error);
 
     setPending(true);
@@ -202,7 +212,7 @@ function ProfileForm({ profile, reload }: { profile: Profile; reload: () => Prom
       .update({ username: fields.username, display_name: fields.displayName, bio: fields.bio })
       .eq("id", profile.id);
     setPending(false);
-    if (error) return setError(profileError(error.code, error.message));
+    if (error) return setError(profileError(error.code, error.message, t.validation));
 
     setSaved(true);
     revalidateSite([`/u/${profile.username}`, `/u/${fields.username}`]);
@@ -212,18 +222,18 @@ function ProfileForm({ profile, reload }: { profile: Profile; reload: () => Prom
   return (
     <View style={styles.stack}>
       <Field
-        label="Kullanıcı adı"
+        label={t.welcome.username}
         prefix="@"
         value={username}
         onChangeText={(text) => setUsername(text.toLowerCase())}
         maxLength={20}
         autoCapitalize="none"
         autoCorrect={false}
-        hint="3–20 karakter: küçük harf, rakam, alt çizgi."
+        hint={t.welcome.usernameHint}
       />
-      <Field label="Görünen ad" value={displayName} onChangeText={setDisplayName} maxLength={DISPLAY_NAME_MAX} />
+      <Field label={t.welcome.displayName} value={displayName} onChangeText={setDisplayName} maxLength={DISPLAY_NAME_MAX} />
       <Field
-        label="Hakkında"
+        label={t.account.bioLabel}
         value={bio}
         onChangeText={setBio}
         maxLength={BIO_MAX}
@@ -232,14 +242,15 @@ function ProfileForm({ profile, reload }: { profile: Profile; reload: () => Prom
         hint={`${bio.length}/${BIO_MAX}`}
       />
       {error && <Message error>{error}</Message>}
-      {saved && <Message>Kaydedildi.</Message>}
-      <Button title="Kaydet" onPress={save} pending={pending} />
+      {saved && <Message>{t.account.saved}</Message>}
+      <Button title={t.common.save} onPress={save} pending={pending} />
     </View>
   );
 }
 
 /** Whether new drink logs start public; private unless the member changes it (ADR-014). */
 function LogsDefaultToggle({ userId, initial, reload }: { userId: string; initial: boolean; reload: () => Promise<void> }) {
+  const { t, a } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const [checked, setChecked] = useState(initial);
@@ -254,7 +265,7 @@ function LogsDefaultToggle({ userId, initial, reload }: { userId: string; initia
     setPending(false);
     if (error) {
       setChecked(!next);
-      setError(`Kaydedilemedi: ${error.message}`);
+      setError(format(t.validation.saveFailed, { message: error.message }));
       return;
     }
     // The log form reads the default from the session.
@@ -265,13 +276,13 @@ function LogsDefaultToggle({ userId, initial, reload }: { userId: string; initia
     <View style={styles.stack}>
       <View style={styles.toggleRow}>
         <Mono style={[styles.muted, styles.toggleText]}>
-          Yeni kayıtlarım herkese açık başlasın. Her kaydı ayrıca açıp kapatabilirsin; mevcut kayıtlar değişmez.
+          {t.account.logsDefault}
         </Mono>
         <Switch
           value={checked}
           onValueChange={change}
           disabled={pending}
-          accessibilityLabel="Yeni kayıtlarım herkese açık başlasın"
+          accessibilityLabel={a.account.logsDefaultLabel}
           trackColor={{ true: theme.colors.crimson, false: theme.colors.borderLight }}
           thumbColor={theme.colors.textPrimary}
         />
@@ -282,11 +293,12 @@ function LogsDefaultToggle({ userId, initial, reload }: { userId: string; initia
 }
 
 function SignOutButton() {
+  const { t } = useLocale();
   const [pending, setPending] = useState(false);
   return (
     <Button
       kind="secondary"
-      title="Çıkış yap"
+      title={t.account.signOut}
       pending={pending}
       onPress={async () => {
         setPending(true);
@@ -304,6 +316,7 @@ function SignOutButton() {
  * still owns Storage objects, so the member's own files go first (ADR-014).
  */
 function DeleteAccount({ profile }: { profile: Profile }) {
+  const { t } = useLocale();
   const styles = useStyles(makeStyles);
   const [open, setOpen] = useState(false);
   const [confirmation, setConfirmation] = useState("");
@@ -321,18 +334,18 @@ function DeleteAccount({ profile }: { profile: Profile }) {
     for (const bucket of [AVATARS_BUCKET, RECIPE_IMAGES_BUCKET]) {
       const storage = supabase.storage.from(bucket);
       const { data: files, error: listError } = await storage.list(profile.id, { limit: 1000 });
-      if (listError) return fail("Dosyaların okunamadı. Tekrar dene.");
+      if (listError) return fail(t.account.filesReadFailed);
       if (files.length > 0) {
         const { error: removeError } = await storage.remove(files.map((f) => `${profile.id}/${f.name}`));
-        if (removeError) return fail("Dosyaların silinemedi. Tekrar dene.");
+        if (removeError) return fail(t.account.filesDeleteFailed);
       }
     }
 
     const { error } = await supabase.rpc("delete_my_account");
     if (error) {
-      if (error.message.includes("Admin accounts")) return fail("Yönetici hesapları buradan silinemez.");
-      if (error.message.includes("uploaded files")) return fail("Önce yüklediğin dosyalar silinmeli. Tekrar dene.");
-      return fail(`Hesap silinemedi: ${error.message}`);
+      if (error.message.includes("Admin accounts")) return fail(t.actions.adminNoDelete);
+      if (error.message.includes("uploaded files")) return fail(t.actions.uploadsFirst);
+      return fail(format(t.actions.accountDeleteFailed, { message: error.message }));
     }
 
     // The site's pages drop the member within their revalidation window: the
@@ -341,12 +354,12 @@ function DeleteAccount({ profile }: { profile: Profile }) {
     await supabase.auth.signOut({ scope: "local" });
   }
 
-  if (!open) return <Button kind="danger" title="Hesabımı silmek istiyorum" onPress={() => setOpen(true)} />;
+  if (!open) return <Button kind="danger" title={t.account.deleteStart} onPress={() => setOpen(true)} />;
 
   return (
     <View style={[styles.stack, styles.danger]}>
       <Field
-        label={`Onaylamak için kullanıcı adını yaz: ${profile.username}`}
+        label={`${t.account.deleteConfirm}${profile.username}`}
         value={confirmation}
         onChangeText={setConfirmation}
         autoCapitalize="none"
@@ -355,14 +368,14 @@ function DeleteAccount({ profile }: { profile: Profile }) {
       {error && <Message error>{error}</Message>}
       <View style={styles.row}>
         <Button
-          title="Kalıcı olarak sil"
+          title={t.account.deleteFinal}
           onPress={remove}
           pending={pending}
           disabled={confirmation.trim().toLowerCase() !== profile.username}
         />
         <Button
           kind="secondary"
-          title="Vazgeç"
+          title={t.common.cancel}
           disabled={pending}
           onPress={() => {
             setOpen(false);

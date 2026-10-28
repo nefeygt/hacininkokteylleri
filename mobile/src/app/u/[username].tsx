@@ -253,7 +253,7 @@ export default function ProfileScreen() {
                     <Body style={styles.reviewName}>{review.cocktails.name}</Body>
                   </Pressable>
                   <Stars value={review.rating} size={12} />
-                  <Mono style={styles.date}>{formatDay(review.updated_at)}</Mono>
+                  <Mono style={styles.date}>{formatDay(review.updated_at, locale)}</Mono>
                 </View>
                 {review.body && <Body style={styles.reviewBody}>{review.body}</Body>}
               </View>

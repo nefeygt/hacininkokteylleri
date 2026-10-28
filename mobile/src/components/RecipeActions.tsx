@@ -6,9 +6,11 @@ import { useSession } from "@/lib/session";
 import { alpha, type Theme } from "@/lib/theme";
 import { useStyles, useTheme } from "@/lib/theme-context";
 import { Mono } from "./Type";
+import { useLocale } from "@/lib/i18n";
 
 /** The heart next to a recipe's name (the site's RecipeActions); a visitor without a profile goes to the Hesap tab. */
 export function FavoriteButton({ on, onPress }: { on: boolean; onPress: () => void }) {
+  const { t } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   return (
@@ -17,7 +19,7 @@ export function FavoriteButton({ on, onPress }: { on: boolean; onPress: () => vo
       hitSlop={8}
       style={[styles.heart, on && styles.heartOn]}
       accessibilityRole="button"
-      accessibilityLabel={on ? "Favorilerden çıkar" : "Favorilere ekle"}
+      accessibilityLabel={on ? t.cocktails.removeFromFavorites : t.cocktails.addToFavorites}
       accessibilityState={{ selected: on }}
     >
       <Heart size={16} color={on ? theme.colors.crimsonGlow : theme.colors.textMuted} fill={on ? theme.colors.crimsonGlow : "transparent"} />
@@ -30,6 +32,7 @@ export function FavoriteButton({ on, onPress }: { on: boolean; onPress: () => vo
  * in first and comes back to `from` (ADR-022), then taps again.
  */
 export function LogButton({ slug, from }: { slug: string; from: Href }) {
+  const { t } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const session = useSession();
@@ -42,10 +45,10 @@ export function LogButton({ slug, from }: { slug: string; from: Href }) {
       hitSlop={6}
       style={styles.log}
       accessibilityRole="button"
-      accessibilityLabel="Günlüğe ekle"
+      accessibilityLabel={t.cocktails.addToLog}
     >
       <NotebookPen size={13} color={theme.colors.textMuted} />
-      <Mono style={styles.logText}>Günlüğe ekle</Mono>
+      <Mono style={styles.logText}>{t.cocktails.addToLog}</Mono>
     </Pressable>
   );
 }

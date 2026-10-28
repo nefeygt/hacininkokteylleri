@@ -9,6 +9,8 @@ import Avatar from "./Avatar";
 import ReportButton from "./ReportButton";
 import Stars from "./Stars";
 import { Body, Mono } from "./Type";
+import { useLocale } from "@/lib/i18n";
+import { format } from "@shared/i18n/format";
 
 /**
  * One drink log (the site's DrinkLogEntry): the cocktail as made, the date,
@@ -27,6 +29,7 @@ export default function DrinkLogEntry({
   commentCount?: number;
   showCommentsLink?: boolean;
 }) {
+  const { t, a, locale } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const recipe = readRecipe(log.recipe);
@@ -39,7 +42,7 @@ export default function DrinkLogEntry({
     else router.push({ pathname: "/cocktail/[slug]", params: { slug: cocktail.slug } });
   }
 
-  const commentsLabel = commentCount ? `${commentCount} yorum` : "Yorumlar";
+  const commentsLabel = commentCount ? format(t.drinkLog.commentCount, { n: commentCount }) : t.drinkLog.comments;
   const comments = (
     <Pressable
       onPress={() => router.push({ pathname: "/log/[id]", params: { id: log.id } })}
@@ -72,32 +75,32 @@ export default function DrinkLogEntry({
           <Body style={styles.name}>{recipe.name}</Body>
         </Pressable>
         {log.rating !== null && <Stars value={log.rating} size={12} />}
-        <Mono style={styles.date}>{formatLogDate(log.drunk_on)}</Mono>
+        <Mono style={styles.date}>{formatLogDate(log.drunk_on, locale)}</Mono>
       </View>
 
       {mode === "own" && (
         <View style={styles.ownRow}>
           <View style={styles.badge}>
             {log.is_public ? <Globe size={11} color={theme.colors.textMuted} /> : <Lock size={11} color={theme.colors.textMuted} />}
-            <Mono style={styles.small}>{log.is_public ? "Herkese açık" : "Yalnızca sen"}</Mono>
+            <Mono style={styles.small}>{log.is_public ? t.drinkLog.public : t.drinkLog.onlyYou}</Mono>
           </View>
           <Pressable
             onPress={() => router.push({ pathname: "/logs/[id]", params: { id: log.id } })}
             hitSlop={8}
             accessibilityRole="button"
-            accessibilityLabel={`${recipe.name} kaydını düzenle`}
+            accessibilityLabel={format(a.log.editLabel, { name: recipe.name })}
           >
-            <Mono style={styles.edit}>Düzenle</Mono>
+            <Mono style={styles.edit}>{t.common.edit}</Mono>
           </Pressable>
         </View>
       )}
 
-      <Mono style={styles.ingredients}>{recipe.ingredients.map((i) => `${i.name} ${formatAmount(i)}`).join(" · ")}</Mono>
+      <Mono style={styles.ingredients}>{recipe.ingredients.map((i) => `${i.name} ${formatAmount(i, locale, t)}`).join(" · ")}</Mono>
 
       {log.note && <Body style={styles.note}>{log.note}</Body>}
 
       {mode === "own" && log.hidden_at && (
-        <Mono style={styles.hiddenNote}>Bu kayıt yöneticiler tarafından gizlendi; yalnızca sen görüyorsun.</Mono>
+        <Mono style={styles.hiddenNote}>{t.drinkLog.hiddenOwn}</Mono>
       )}
       {mode === "own" && log.is_public && !log.hidden_at && <View style={styles.footer}>{comments}</View>}
       {mode === "public" && (

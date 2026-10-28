@@ -13,6 +13,7 @@ import { Message } from "./Form";
 import ReportButton from "./ReportButton";
 import Stars from "./Stars";
 import { Body, Label, Mono } from "./Type";
+import { useLocale } from "@/lib/i18n";
 
 /**
  * The reviews under a recipe (the site's CocktailReviews). A member writes one
@@ -20,6 +21,7 @@ import { Body, Label, Mono } from "./Type";
  * screen reload the average after the member's own write.
  */
 export default function CocktailReviews({ cocktail, onChanged }: { cocktail: Cocktail; onChanged: () => void }) {
+  const { t, a, locale } = useLocale();
   const styles = useStyles(makeStyles);
   const session = useSession();
   const writer: Writer | null = session.state === "ok" ? { id: session.profile.id, username: session.profile.username } : null;
@@ -48,12 +50,12 @@ export default function CocktailReviews({ cocktail, onChanged }: { cocktail: Coc
   return (
     <View style={styles.section}>
       <View style={styles.head}>
-        <Label style={styles.title}>Değerlendirmeler</Label>
+        <Label style={styles.title}>{t.reviews.heading}</Label>
         {cocktail.rating && (
           <View style={styles.average}>
             <Stars value={cocktail.rating.average} size={12} />
             <Mono style={styles.averageText}>
-              {formatAverage(cocktail.rating.average)} · {cocktail.rating.count}
+              {formatAverage(cocktail.rating.average, locale)} · {cocktail.rating.count}
             </Mono>
           </View>
         )}
@@ -73,12 +75,12 @@ export default function CocktailReviews({ cocktail, onChanged }: { cocktail: Coc
 
       {failed ? (
         <Pressable onPress={load} style={styles.gapTop}>
-          <Mono style={styles.muted}>Değerlendirmeler yüklenemedi. Tekrar dene</Mono>
+          <Mono style={styles.muted}>{a.load.reviews}</Mono>
         </Pressable>
       ) : reviews === null ? (
-        <Mono style={[styles.muted, styles.gapTop]}>Yükleniyor…</Mono>
+        <Mono style={[styles.muted, styles.gapTop]}>{t.common.loading}</Mono>
       ) : others.length === 0 ? (
-        <Mono style={[styles.muted, styles.gapTop]}>{own ? "Başka değerlendirme yok." : "Henüz değerlendirme yok. İlk sen yaz."}</Mono>
+        <Mono style={[styles.muted, styles.gapTop]}>{own ? t.reviews.none : t.reviews.noneYet}</Mono>
       ) : (
         <View style={styles.list}>
           {others.map((review) => (
@@ -105,6 +107,7 @@ function OwnReview({
   own: Review | null;
   onSaved: () => Promise<void>;
 }) {
+  const { t } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const [editing, setEditing] = useState(false);
@@ -130,8 +133,8 @@ function OwnReview({
         accessibilityRole="link"
       >
         <Mono style={styles.promptText}>
-          {signedIn ? "Değerlendirme yazmak için önce " : "Değerlendirmek ve favorilere eklemek için "}
-          <Mono style={styles.link}>{signedIn ? "profilini tamamla" : "giriş yap"}</Mono>.
+          {signedIn ? t.reviews.finishPrefix : t.reviews.signInPrefix}
+          <Mono style={styles.link}>{signedIn ? t.common.completeProfile : t.common.signIn}</Mono>.
         </Mono>
       </Pressable>
     );
@@ -141,8 +144,8 @@ function OwnReview({
     return (
       <View style={styles.box}>
         <View style={styles.boxHead}>
-          <Label>Senin değerlendirmen</Label>
-          <Pressable onPress={() => setEditing(true)} hitSlop={8} accessibilityRole="button" accessibilityLabel="Düzenle">
+          <Label>{t.reviews.yours}</Label>
+          <Pressable onPress={() => setEditing(true)} hitSlop={8} accessibilityRole="button" accessibilityLabel={t.common.edit}>
             <Mono style={styles.link}>Düzenle</Mono>
           </Pressable>
         </View>
@@ -159,7 +162,7 @@ function OwnReview({
     Keyboard.dismiss();
     setError(null);
     if (rating < 0.5) {
-      setError("Önce bir puan seç.");
+      setError(t.reviews.pickRating);
       return;
     }
     setPending(true);
@@ -205,27 +208,27 @@ function OwnReview({
   return (
     <View style={styles.box}>
       {/* The stars get their own row: next to the label they ran out of the box on a phone. */}
-      <Label>{own ? "Değerlendirmeni düzenle" : "Değerlendir"}</Label>
+      <Label>{own ? t.reviews.editTitle : t.reviews.rate}</Label>
       <Stars value={rating} onChange={setRating} />
       <TextInput
         value={body}
         onChangeText={setBody}
         maxLength={REVIEW_MAX_LENGTH}
         multiline
-        placeholder="Nasıldı? (isteğe bağlı)"
+        placeholder={t.reviews.placeholder}
         placeholderTextColor={theme.colors.textMuted}
-        accessibilityLabel="Yorum"
+        accessibilityLabel={t.logComments.comment}
         style={styles.textarea}
       />
       {error && <Message error>{error}</Message>}
       <View style={styles.actions}>
-        <Pressable onPress={save} disabled={pending} style={[styles.save, pending && styles.off]} accessibilityRole="button" accessibilityLabel="Kaydet">
-          <Mono style={styles.saveText}>{pending ? "Kaydediliyor…" : "Kaydet"}</Mono>
+        <Pressable onPress={save} disabled={pending} style={[styles.save, pending && styles.off]} accessibilityRole="button" accessibilityLabel={t.common.save}>
+          <Mono style={styles.saveText}>{pending ? t.common.saving : t.common.save}</Mono>
         </Pressable>
         {own && (
           <>
-            <Pressable onPress={cancel} disabled={pending} hitSlop={8} accessibilityRole="button" accessibilityLabel="Vazgeç">
-              <Mono style={styles.muted}>Vazgeç</Mono>
+            <Pressable onPress={cancel} disabled={pending} hitSlop={8} accessibilityRole="button" accessibilityLabel={t.common.cancel}>
+              <Mono style={styles.muted}>{t.common.cancel}</Mono>
             </Pressable>
             <Pressable
               onPress={remove}
@@ -233,10 +236,10 @@ function OwnReview({
               hitSlop={8}
               style={styles.delete}
               accessibilityRole="button"
-              accessibilityLabel={confirmingDelete ? "Emin misin? Evet, sil" : "Sil"}
+              accessibilityLabel={confirmingDelete ? t.common.confirmDelete : t.common.delete}
             >
               <Mono style={[styles.underline, confirmingDelete ? styles.danger : styles.muted]}>
-                {confirmingDelete ? "Emin misin? Evet, sil" : "Sil"}
+                {confirmingDelete ? t.common.confirmDelete : t.common.delete}
               </Mono>
             </Pressable>
           </>
@@ -247,6 +250,7 @@ function OwnReview({
 }
 
 function ReviewItem({ review }: { review: Review }) {
+  const { locale } = useLocale();
   const styles = useStyles(makeStyles);
   const openProfile = () => router.push({ pathname: "/u/[username]", params: { username: review.profiles.username } });
 
@@ -261,7 +265,7 @@ function ReviewItem({ review }: { review: Review }) {
             <Body style={styles.name}>{review.profiles.display_name}</Body>
           </Pressable>
           <Stars value={review.rating} size={12} />
-          <Mono style={styles.date}>{formatDay(review.updated_at)}</Mono>
+          <Mono style={styles.date}>{formatDay(review.updated_at, locale)}</Mono>
         </View>
         {review.body && <Body style={styles.reviewBody}>{review.body}</Body>}
         <View style={styles.report}>

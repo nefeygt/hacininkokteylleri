@@ -4,6 +4,7 @@
 // no self-follows, 200 follows and 100 comments a day; comments only on
 // visible public logs; ADR-018).
 
+import { INTL_LOCALES, type Locale } from "@shared/i18n/locales";
 import { LOG_COMMENT_MAX_LENGTH } from "@shared/community";
 import type { Writer } from "./community";
 import { LOG_COLUMNS, type DrinkLog } from "./drink-logs";
@@ -141,6 +142,6 @@ export async function deleteComment(id: string): Promise<SocialResult> {
 }
 
 /** "15 Ekim 21:40". */
-export function formatCommentTime(iso: string): string {
-  return new Date(iso).toLocaleString("tr-TR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+export function formatCommentTime(iso: string, locale: Locale): string {
+  return new Date(iso).toLocaleString(INTL_LOCALES[locale], { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
 }

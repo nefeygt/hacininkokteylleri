@@ -21,6 +21,7 @@ export const en: AppDictionary = {
     lastStep: "One last step",
     lastStepBody: "Pick a username and confirm you're over 18.",
     completeProfile: "Complete your profile",
+    logsDefaultLabel: "New entries start public",
   },
   feed: {
     recipesLoadFailed: "Couldn't load the recipes. Try again",
@@ -58,5 +59,31 @@ export const en: AppDictionary = {
   },
   recipe: {
     savedToFavorites: "Added to your favorites.",
+  },
+  log: {
+    editLabel: "Edit the entry for {name}",
+  },
+  stars: {
+    none: "No rating",
+  },
+  glossary: {
+    showDefinition: "Show the definition",
+  },
+  signIn: {
+    signUpSent: "We sent the confirmation e-mail.\n1. Open your e-mail. If it isn't there, check the spam folder.\n2. Tap the link. The site opens; you don't need to do anything else there.\n3. Come back here and sign in with the same e-mail and password.\nIf an account with this address already exists, no e-mail comes: sign in or reset your password.",
+    resetSent: "If an account with this address exists, we sent the password reset link.\n1. Open your e-mail. If it isn't there, check the spam folder.\n2. Tap the link and set your new password on the site.\n3. Come back here and sign in with the new password.",
+  },
+  date: {
+    previousDay: "Previous day",
+    nextDay: "Next day",
+    previousMonth: "Previous month",
+    nextMonth: "Next month",
+    openCalendar: "Date: {date}. Open the calendar",
+    closeCalendar: "Close the calendar",
+    today: "Today",
+    yesterday: "Yesterday",
+  },
+  profile: {
+    of: "{name}'s profile",
   },
 };

@@ -1,3 +1,4 @@
+import { INTL_LOCALES, type Locale } from "@shared/i18n/locales";
 import { formatLogDate } from "@shared/drink-log";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react-native";
 import { useState } from "react";
@@ -6,13 +7,20 @@ import { shiftDate } from "@/lib/drink-logs";
 import { alpha, type Theme } from "@/lib/theme";
 import { useStyles, useTheme } from "@/lib/theme-context";
 import { Label, Mono } from "./Type";
+import { useLocale } from "@/lib/i18n";
+import { format } from "@shared/i18n/format";
 
 const EARLIEST = "2000-01-01";
-const WEEKDAYS = ["Pt", "Sa", "Ça", "Pe", "Cu", "Ct", "Pz"];
+// 2024-01-01 is a Monday: the week starts there, in the language's short weekday names.
+function weekdays(locale: Locale): string[] {
+  return [0, 1, 2, 3, 4, 5, 6].map((i) =>
+    new Date(Date.UTC(2024, 0, 1 + i)).toLocaleDateString(INTL_LOCALES[locale], { weekday: "short", timeZone: "UTC" })
+  );
+}
 
-/** "2026-10" → "Ekim 2026". */
-function monthTitle(year: number, month: number): string {
-  return new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString("tr-TR", { month: "long", year: "numeric", timeZone: "UTC" });
+/** "2026-10" → "Ekim 2026" / "October 2026". */
+function monthTitle(year: number, month: number, locale: Locale): string {
+  return new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString(INTL_LOCALES[locale], { month: "long", year: "numeric", timeZone: "UTC" });
 }
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -25,6 +33,7 @@ const isoOf = (year: number, month: number, day: number) => `${year}-${pad(month
  * after `today` (today in Turkey; ADR-017).
  */
 export default function DateField({ value, today, onChange }: { value: string; today: string; onChange: (date: string) => void }) {
+  const { a, locale } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const [open, setOpen] = useState(false);
@@ -41,7 +50,7 @@ export default function DateField({ value, today, onChange }: { value: string; t
           hitSlop={6}
           style={[styles.step, atEarliest && styles.off]}
           accessibilityRole="button"
-          accessibilityLabel="Önceki gün"
+          accessibilityLabel={a.date.previousDay}
         >
           <ChevronLeft size={18} color={theme.colors.textSecondary} />
         </Pressable>
@@ -49,10 +58,10 @@ export default function DateField({ value, today, onChange }: { value: string; t
           onPress={() => setOpen(true)}
           style={styles.dateButton}
           accessibilityRole="button"
-          accessibilityLabel={`Tarih: ${formatLogDate(value)}. Takvimi aç`}
+          accessibilityLabel={format(a.date.openCalendar, { date: formatLogDate(value, locale) })}
         >
           <CalendarDays size={14} color={theme.colors.textMuted} />
-          <Mono style={styles.date}>{formatLogDate(value)}</Mono>
+          <Mono style={styles.date}>{formatLogDate(value, locale)}</Mono>
         </Pressable>
         <Pressable
           onPress={() => onChange(shiftDate(value, 1))}
@@ -60,15 +69,15 @@ export default function DateField({ value, today, onChange }: { value: string; t
           hitSlop={6}
           style={[styles.step, atToday && styles.off]}
           accessibilityRole="button"
-          accessibilityLabel="Sonraki gün"
+          accessibilityLabel={a.date.nextDay}
         >
           <ChevronRight size={18} color={theme.colors.textSecondary} />
         </Pressable>
       </View>
       <View style={styles.chips}>
         {[
-          { label: "Bugün", date: today },
-          { label: "Dün", date: shiftDate(today, -1) },
+          { label: a.date.today, date: today },
+          { label: a.date.yesterday, date: shiftDate(today, -1) },
         ].map((chip) => (
           <Pressable
             key={chip.label}
@@ -84,7 +93,7 @@ export default function DateField({ value, today, onChange }: { value: string; t
       </View>
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
-        <Pressable style={styles.backdrop} onPress={() => setOpen(false)} accessibilityLabel="Takvimi kapat">
+        <Pressable style={styles.backdrop} onPress={() => setOpen(false)} accessibilityLabel={a.date.closeCalendar}>
           {/* Taps inside the sheet stay inside it. */}
           <Pressable style={styles.sheet} onPress={() => {}}>
             <Calendar
@@ -103,6 +112,7 @@ export default function DateField({ value, today, onChange }: { value: string; t
 }
 
 function Calendar({ value, today, onPick }: { value: string; today: string; onPick: (date: string) => void }) {
+  const { a, locale } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const [year, setYear] = useState(Number(value.slice(0, 4)));
@@ -127,16 +137,16 @@ function Calendar({ value, today, onPick }: { value: string; today: string; onPi
   return (
     <View>
       <View style={styles.calendarHead}>
-        <Pressable onPress={() => move(-1)} disabled={!canBack} hitSlop={8} style={[styles.step, !canBack && styles.off]} accessibilityRole="button" accessibilityLabel="Önceki ay">
+        <Pressable onPress={() => move(-1)} disabled={!canBack} hitSlop={8} style={[styles.step, !canBack && styles.off]} accessibilityRole="button" accessibilityLabel={a.date.previousMonth}>
           <ChevronLeft size={18} color={theme.colors.textSecondary} />
         </Pressable>
-        <Mono style={styles.month}>{monthTitle(year, month)}</Mono>
-        <Pressable onPress={() => move(1)} disabled={!canForward} hitSlop={8} style={[styles.step, !canForward && styles.off]} accessibilityRole="button" accessibilityLabel="Sonraki ay">
+        <Mono style={styles.month}>{monthTitle(year, month, locale)}</Mono>
+        <Pressable onPress={() => move(1)} disabled={!canForward} hitSlop={8} style={[styles.step, !canForward && styles.off]} accessibilityRole="button" accessibilityLabel={a.date.nextMonth}>
           <ChevronRight size={18} color={theme.colors.textSecondary} />
         </Pressable>
       </View>
       <View style={styles.grid}>
-        {WEEKDAYS.map((d) => (
+        {weekdays(locale).map((d) => (
           <View key={d} style={styles.cell}>
             <Mono style={styles.weekday}>{d}</Mono>
           </View>
@@ -153,7 +163,7 @@ function Calendar({ value, today, onPick }: { value: string; today: string; onPi
               disabled={disabled}
               style={styles.cell}
               accessibilityRole="button"
-              accessibilityLabel={formatLogDate(iso)}
+              accessibilityLabel={formatLogDate(iso, locale)}
               accessibilityState={{ selected, disabled }}
             >
               <View style={[styles.day, selected && styles.daySelected, iso === today && !selected && styles.dayToday]}>

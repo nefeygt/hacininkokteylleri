@@ -7,6 +7,8 @@ import type { Cocktail } from "@/lib/content";
 import { alpha, type Theme } from "@/lib/theme";
 import { useStyles, useTheme } from "@/lib/theme-context";
 import { Body, Heading, Label, Mono } from "./Type";
+import { useLocale } from "@/lib/i18n";
+import { format } from "@shared/i18n/format";
 
 /** A recipe's poster, as in the site's archive grid. */
 export default function CocktailCard({
@@ -18,6 +20,7 @@ export default function CocktailCard({
   favorite?: boolean;
   onPress: () => void;
 }) {
+  const { t, locale } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   return (
@@ -57,9 +60,9 @@ export default function CocktailCard({
             {cocktail.baseAlcohol} · {cocktail.flavor}
           </Label>
           {cocktail.rating && (
-            <View style={styles.rating} accessibilityLabel={`${cocktail.rating.count} değerlendirme`}>
+            <View style={styles.rating} accessibilityLabel={format(t.cocktails.reviewsCount, { n: cocktail.rating.count })}>
               <Star size={12} color={theme.colors.crimsonGlow} fill={theme.colors.crimsonGlow} />
-              <Mono style={styles.ratingText}>{formatAverage(cocktail.rating.average)}</Mono>
+              <Mono style={styles.ratingText}>{formatAverage(cocktail.rating.average, locale)}</Mono>
               <Mono style={styles.ratingCount}>({cocktail.rating.count})</Mono>
             </View>
           )}

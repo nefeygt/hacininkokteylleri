@@ -22,6 +22,7 @@ export const tr = {
     lastStep: "Son bir adım",
     lastStepBody: "Kullanıcı adını seç ve 18 yaşından büyük olduğunu onayla.",
     completeProfile: "Profilini tamamla",
+    logsDefaultLabel: "Yeni kayıtlarım herkese açık başlasın",
   },
   feed: {
     recipesLoadFailed: "Tarifler yüklenemedi. Tekrar dene",
@@ -59,6 +60,32 @@ export const tr = {
   },
   recipe: {
     savedToFavorites: "Favorilerine eklendi.",
+  },
+  log: {
+    editLabel: "{name} kaydını düzenle",
+  },
+  stars: {
+    none: "Puan yok",
+  },
+  glossary: {
+    showDefinition: "Açıklamayı göster",
+  },
+  signIn: {
+    signUpSent: "Onay e-postasını gönderdik.\n1. E-postanı aç. Gelmediyse Gereksiz/Spam klasörüne bak.\n2. Bağlantıya tıkla. Site açılır; orada başka bir şey yapman gerekmez.\n3. Buraya dönüp aynı e-posta ve şifreyle giriş yap.\nBu adresle zaten bir hesap varsa e-posta gelmez: giriş yap ya da şifreni sıfırla.",
+    resetSent: "Bu adresle bir hesap varsa şifre sıfırlama bağlantısını gönderdik.\n1. E-postanı aç. Gelmediyse Gereksiz/Spam klasörüne bak.\n2. Bağlantıya tıkla ve yeni şifreni sitede belirle.\n3. Buraya dönüp yeni şifrenle giriş yap.",
+  },
+  date: {
+    previousDay: "Önceki gün",
+    nextDay: "Sonraki gün",
+    previousMonth: "Önceki ay",
+    nextMonth: "Sonraki ay",
+    openCalendar: "Tarih: {date}. Takvimi aç",
+    closeCalendar: "Takvimi kapat",
+    today: "Bugün",
+    yesterday: "Dün",
+  },
+  profile: {
+    of: "{name} profili",
   },
 };
 

@@ -2,6 +2,7 @@ import { Modal, Pressable, ScrollView, StyleSheet } from "react-native";
 import { alpha, type Theme } from "@/lib/theme";
 import { useStyles } from "@/lib/theme-context";
 import { Label, Mono } from "./Type";
+import { useLocale } from "@/lib/i18n";
 
 export interface Option {
   value: string;
@@ -25,10 +26,11 @@ export default function OptionSheet({
   onPick: (value: string) => void;
   onClose: () => void;
 }) {
+  const { t } = useLocale();
   const styles = useStyles(makeStyles);
   return (
     <Modal visible={current !== null} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Kapat">
+      <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel={t.cocktails.close}>
         <Pressable style={styles.sheet} onPress={() => {}}>
           <Label style={styles.title}>{title}</Label>
           <ScrollView style={styles.list}>

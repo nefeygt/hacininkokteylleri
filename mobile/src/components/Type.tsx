@@ -1,5 +1,7 @@
 import { Children, type ReactNode } from "react";
 import { StyleSheet, Text, type TextProps } from "react-native";
+import { INTL_LOCALES, type Locale } from "@shared/i18n/locales";
+import { useLocale } from "@/lib/i18n";
 import { type Theme } from "@/lib/theme";
 import { useStyles } from "@/lib/theme-context";
 
@@ -21,23 +23,24 @@ export function Mono({ style, ...props }: TextProps) {
   return <Text {...props} style={[styles.mono, style]} />;
 }
 
-/** "i" → "İ" first: toUpperCase() alone gives "ARŞIV", and so does CSS/textTransform without a Turkish locale. */
-export function upperTr(text: string): string {
-  return text.replace(/i/g, "İ").toUpperCase();
+/** Uppercase in the language: Turkish needs "i" → "İ" first ("ARŞİV"); English keeps "I" ("DRINK"). */
+export function upperCase(text: string, locale: Locale): string {
+  return locale === "tr" ? text.replace(/i/g, "İ").toLocaleUpperCase(INTL_LOCALES.tr) : text.toLocaleUpperCase(INTL_LOCALES[locale]);
 }
 
-function upperChildren(children: ReactNode): ReactNode {
+function upperChildren(children: ReactNode, locale: Locale): ReactNode {
   return Children.map(children, (child) =>
-    typeof child === "string" ? upperTr(child) : typeof child === "number" ? String(child) : child
+    typeof child === "string" ? upperCase(child, locale) : typeof child === "number" ? String(child) : child
   );
 }
 
-/** The small uppercase mono label ("MALZEMELER", "ARŞİV"), uppercased the Turkish way. */
+/** The small uppercase mono label ("MALZEMELER", "ARŞİV" / "INGREDIENTS"), uppercased the way its language does. */
 export function Label({ style, children, ...props }: TextProps) {
   const styles = useStyles(makeStyles);
+  const { locale } = useLocale();
   return (
     <Text {...props} style={[styles.label, style]}>
-      {upperChildren(children)}
+      {upperChildren(children, locale)}
     </Text>
   );
 }

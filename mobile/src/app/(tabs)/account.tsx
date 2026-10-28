@@ -5,6 +5,7 @@ import AccountView from "@/components/AccountView";
 import { Button } from "@/components/Form";
 import KeyboardScrollView from "@/components/KeyboardScrollView";
 import SignIn from "@/components/SignIn";
+import LanguagePicker from "@/components/LanguagePicker";
 import ThemePicker from "@/components/ThemePicker";
 import { Body, Heading } from "@/components/Type";
 import { forgetSignInRequest, leaveAfterSignIn } from "@/lib/after-sign-in";
@@ -65,6 +66,7 @@ export default function AccountScreen() {
             <SignIn />
             <View style={styles.picker}>
               <ThemePicker />
+              <LanguagePicker />
             </View>
           </>
         )}
@@ -99,5 +101,5 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   title: { fontSize: 26, marginBottom: 8 },
   text: { color: t.colors.textSecondary, lineHeight: 22, marginBottom: 24 },
   actions: { gap: 12 },
-  picker: { padding: 24, paddingTop: 0, ...readable },
+  picker: { padding: 24, paddingTop: 0, gap: 24, ...readable },
 });

@@ -12,6 +12,8 @@ import Avatar from "./Avatar";
 import { Button, Message } from "./Form";
 import ReportButton from "./ReportButton";
 import { Body, Label, Mono } from "./Type";
+import { useLocale } from "@/lib/i18n";
+import { format } from "@shared/i18n/format";
 
 /**
  * The comment thread under a public drink log (the site's LogComments, ADR-018).
@@ -19,6 +21,7 @@ import { Body, Label, Mono } from "./Type";
  * "kayıt sahibi", and may remove comments on their own log.
  */
 export default function LogComments({ logId, ownerId }: { logId: string; ownerId: string }) {
+  const { t, a } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const session = useSession();
@@ -62,17 +65,17 @@ export default function LogComments({ logId, ownerId }: { logId: string; ownerId
   return (
     <View style={styles.section}>
       <Label style={styles.title}>
-        Yorumlar {comments && comments.length > 0 ? <Label style={styles.count}>({comments.length})</Label> : null}
+        {t.logComments.heading} {comments && comments.length > 0 ? <Label style={styles.count}>({comments.length})</Label> : null}
       </Label>
 
       {failed ? (
         <Pressable onPress={load}>
-          <Mono style={styles.muted}>Yorumlar yüklenemedi. Tekrar dene</Mono>
+          <Mono style={styles.muted}>{a.load.comments}</Mono>
         </Pressable>
       ) : comments === null ? (
-        <Mono style={styles.muted}>Yükleniyor…</Mono>
+        <Mono style={styles.muted}>{t.common.loading}</Mono>
       ) : comments.length === 0 ? (
-        <Mono style={styles.muted}>Henüz yorum yok.</Mono>
+        <Mono style={styles.muted}>{t.logComments.none}</Mono>
       ) : (
         <View style={styles.list}>
           {comments.map((comment) => (
@@ -91,11 +94,11 @@ export default function LogComments({ logId, ownerId }: { logId: string; ownerId
         {session.state === "loading" ? null : !writer ? (
           <View style={styles.prompt}>
             <Mono style={styles.promptText}>
-              {session.state === "onboarding" ? "Yorum yazmak için önce profilini tamamla." : "Yorum yazmak için giriş yap."}
+              {session.state === "onboarding" ? `${t.logComments.finishPrefix}${t.common.completeProfile}.` : `${t.logComments.signInPrefix}${t.common.signIn}.`}
             </Mono>
             <Button
               kind="secondary"
-              title={session.state === "onboarding" ? "Profilini tamamla" : "Giriş yap"}
+              title={session.state === "onboarding" ? a.account.completeProfile : t.login.signIn}
               onPress={() => askToSignIn({ pathname: "/log/[id]", params: { id: logId } })}
             />
           </View>
@@ -106,14 +109,14 @@ export default function LogComments({ logId, ownerId }: { logId: string; ownerId
               onChangeText={setBody}
               maxLength={LOG_COMMENT_MAX_LENGTH}
               multiline
-              placeholder={memberId === ownerId ? "Yanıt yaz…" : "Yorum yaz…"}
+              placeholder={memberId === ownerId ? t.logComments.replyPlaceholder : t.logComments.commentPlaceholder}
               placeholderTextColor={theme.colors.textMuted}
-              accessibilityLabel="Yorum"
+              accessibilityLabel={t.logComments.comment}
               style={styles.input}
             />
             {error && <Message error>{error}</Message>}
             <View style={styles.send}>
-              <Button title={pending ? "Gönderiliyor…" : "Gönder"} onPress={send} pending={pending} disabled={!body.trim()} />
+              <Button title={pending ? t.common.sending : t.common.send} onPress={send} pending={pending} disabled={!body.trim()} />
             </View>
           </View>
         )}
@@ -133,6 +136,7 @@ function CommentItem({
   canDelete: boolean;
   onDeleted: () => Promise<void>;
 }) {
+  const { t, a, locale } = useLocale();
   const styles = useStyles(makeStyles);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -158,7 +162,7 @@ function CommentItem({
 
   return (
     <View style={[styles.item, comment.hidden_at ? styles.hidden : null]}>
-      <Pressable onPress={openProfile} accessibilityRole="link" accessibilityLabel={`${profile.display_name} profili`}>
+      <Pressable onPress={openProfile} accessibilityRole="link" accessibilityLabel={format(a.profile.of, { name: profile.display_name })}>
         <Avatar path={profile.avatar_path} name={profile.display_name} size={30} />
       </Pressable>
       <View style={styles.itemBody}>
@@ -168,14 +172,14 @@ function CommentItem({
           </Pressable>
           {isLogOwner && (
             <View style={styles.ownerBadge}>
-              <Label style={styles.ownerText}>kayıt sahibi</Label>
+              <Label style={styles.ownerText}>{t.logComments.owner}</Label>
             </View>
           )}
-          <Mono style={styles.time}>{formatCommentTime(comment.created_at)}</Mono>
+          <Mono style={styles.time}>{formatCommentTime(comment.created_at, locale)}</Mono>
         </View>
         <Body style={styles.text}>{comment.body}</Body>
         {comment.hidden_at && (
-          <Mono style={styles.hiddenNote}>Bu yorum yöneticiler tarafından gizlendi; yalnızca sen görüyorsun.</Mono>
+          <Mono style={styles.hiddenNote}>{t.logComments.hiddenOwn}</Mono>
         )}
         {error && <Message error>{error}</Message>}
         <View style={styles.actions}>
@@ -185,9 +189,9 @@ function CommentItem({
               disabled={pending}
               hitSlop={6}
               accessibilityRole="button"
-              accessibilityLabel={confirming ? "Emin misin? Evet, sil" : "Yorumu sil"}
+              accessibilityLabel={confirming ? t.common.confirmDelete : t.common.delete}
             >
-              <Mono style={[styles.action, confirming && styles.danger]}>{confirming ? "Emin misin? Evet, sil" : "Sil"}</Mono>
+              <Mono style={[styles.action, confirming && styles.danger]}>{confirming ? t.common.confirmDelete : t.common.delete}</Mono>
             </Pressable>
           )}
           <ReportButton targetType="log_comment" targetId={comment.id} ownerId={comment.user_id} />

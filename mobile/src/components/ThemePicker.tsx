@@ -4,14 +4,16 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { type Theme } from "@/lib/theme";
 import { useStyles, useTheme } from "@/lib/theme-context";
 import { Body, Label, Mono } from "./Type";
+import { useLocale } from "@/lib/i18n";
 
 /** The six themes as rows (the site's theme switcher): two swatch colours, the name, a hint, the current one marked. */
 export default function ThemePicker() {
+  const { t } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   return (
     <View style={styles.section}>
-      <Label style={styles.title}>Görünüm</Label>
+      <Label style={styles.title}>{t.themes.title}</Label>
       <View accessibilityRole="radiogroup" style={styles.list}>
         {THEMES.map((option) => {
           const current = option.id === theme.id;
@@ -21,7 +23,7 @@ export default function ThemePicker() {
               onPress={() => theme.setTheme(option.id)}
               accessibilityRole="radio"
               accessibilityState={{ selected: current }}
-              accessibilityLabel={`${option.name}. ${option.hint}`}
+              accessibilityLabel={`${t.themes[option.id].name}. ${t.themes[option.id].hint}`}
               style={[styles.row, current && styles.rowOn]}
             >
               <View style={styles.swatch}>
@@ -29,8 +31,8 @@ export default function ThemePicker() {
                 <View style={[styles.half, { backgroundColor: option.swatch[1] }]} />
               </View>
               <View style={styles.text}>
-                <Body style={styles.name}>{option.name}</Body>
-                <Mono style={styles.hint}>{option.hint}</Mono>
+                <Body style={styles.name}>{t.themes[option.id].name}</Body>
+                <Mono style={styles.hint}>{t.themes[option.id].hint}</Mono>
               </View>
               {current && <Check size={16} color={theme.colors.crimsonGlow} strokeWidth={2.5} />}
             </Pressable>

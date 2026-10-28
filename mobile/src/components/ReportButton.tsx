@@ -8,6 +8,7 @@ import { alpha, type Theme } from "@/lib/theme";
 import { useStyles, useTheme } from "@/lib/theme-context";
 import { Message } from "./Form";
 import { Mono } from "./Type";
+import { useLocale } from "@/lib/i18n";
 
 /**
  * "Bildir" (the site's ReportButton): opens a small inline form with an
@@ -18,13 +19,14 @@ export default function ReportButton({
   targetType,
   targetId,
   ownerId,
-  label = "Bildir",
+  label,
 }: {
   targetType: ReportableTarget;
   targetId: string;
   ownerId: string;
   label?: string;
 }) {
+  const { t } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const session = useSession();
@@ -50,13 +52,13 @@ export default function ReportButton({
     setOpen(false);
   }
 
-  if (reported) return <Mono style={styles.small}>Bildirildi, teşekkürler.</Mono>;
+  if (reported) return <Mono style={styles.small}>{t.report.reported}</Mono>;
 
   if (!open) {
     return (
       <Pressable onPress={() => setOpen(true)} hitSlop={8} style={styles.trigger} accessibilityRole="button" accessibilityLabel={label}>
         <Flag size={11} color={theme.colors.textMuted} />
-        <Mono style={styles.small}>{label}</Mono>
+        <Mono style={styles.small}>{label ?? t.report.report}</Mono>
       </Pressable>
     );
   }
@@ -67,18 +69,18 @@ export default function ReportButton({
         value={reason}
         onChangeText={setReason}
         maxLength={REPORT_REASON_MAX_LENGTH}
-        placeholder="Neden? (isteğe bağlı)"
+        placeholder={t.report.reasonPlaceholder}
         placeholderTextColor={theme.colors.textMuted}
-        accessibilityLabel="Bildirim nedeni"
+        accessibilityLabel={t.report.reasonLabel}
         style={styles.input}
       />
       {error && <Message error>{error}</Message>}
       <View style={styles.actions}>
-        <Pressable onPress={send} disabled={pending} style={[styles.send, pending && styles.off]} accessibilityRole="button" accessibilityLabel="Gönder">
-          <Mono style={styles.sendText}>{pending ? "Gönderiliyor…" : "Gönder"}</Mono>
+        <Pressable onPress={send} disabled={pending} style={[styles.send, pending && styles.off]} accessibilityRole="button" accessibilityLabel={t.common.send}>
+          <Mono style={styles.sendText}>{pending ? t.common.sending : t.common.send}</Mono>
         </Pressable>
-        <Pressable onPress={() => setOpen(false)} disabled={pending} hitSlop={8} accessibilityRole="button" accessibilityLabel="Vazgeç">
-          <Mono style={styles.small}>Vazgeç</Mono>
+        <Pressable onPress={() => setOpen(false)} disabled={pending} hitSlop={8} accessibilityRole="button" accessibilityLabel={t.common.cancel}>
+          <Mono style={styles.small}>{t.common.cancel}</Mono>
         </Pressable>
       </View>
     </View>

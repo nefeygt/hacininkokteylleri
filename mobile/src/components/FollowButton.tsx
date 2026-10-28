@@ -6,6 +6,7 @@ import { isFollowing, setFollow } from "@/lib/social";
 import { type Theme } from "@/lib/theme";
 import { useStyles, useTheme } from "@/lib/theme-context";
 import { Mono } from "./Type";
+import { useLocale } from "@/lib/i18n";
 
 /**
  * "Takip et" on someone else's profile (the site's FollowButton, ADR-018).
@@ -13,6 +14,7 @@ import { Mono } from "./Type";
  * back to the profile. `onChanged` lets the screen reload the counts.
  */
 export default function FollowButton({ profile, onChanged }: { profile: { id: string; username: string }; onChanged: () => void }) {
+  const { t } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const session = useSession();
@@ -40,9 +42,9 @@ export default function FollowButton({ profile, onChanged }: { profile: { id: st
         onPress={() => askToSignIn({ pathname: "/u/[username]", params: { username: profile.username } })}
         style={[styles.button, styles.outline]}
         accessibilityRole="button"
-        accessibilityLabel="Takip et"
+        accessibilityLabel={t.follow.follow}
       >
-        <Mono style={styles.outlineText}>Takip et</Mono>
+        <Mono style={styles.outlineText}>{t.follow.follow}</Mono>
       </Pressable>
     );
   }
@@ -70,10 +72,10 @@ export default function FollowButton({ profile, onChanged }: { profile: { id: st
         disabled={pending}
         style={[styles.button, following ? styles.outline : styles.solid, pending && styles.off]}
         accessibilityRole="button"
-        accessibilityLabel={following ? "Takip ediliyor" : "Takip et"}
+        accessibilityLabel={following ? t.follow.following : t.follow.follow}
         accessibilityState={{ selected: following, busy: pending }}
       >
-        <Mono style={following ? styles.outlineText : styles.solidText}>{following ? "Takip ediliyor" : "Takip et"}</Mono>
+        <Mono style={following ? styles.outlineText : styles.solidText}>{following ? t.follow.following : t.follow.follow}</Mono>
       </Pressable>
       {error && <Mono style={styles.error}>{error}</Mono>}
     </View>

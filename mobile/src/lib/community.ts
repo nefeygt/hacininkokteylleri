@@ -3,6 +3,7 @@
 // cocktail, daily limits); these give the same friendly errors, then ask the
 // site to refresh the static pages that show the result (ADR-020).
 
+import { INTL_LOCALES, type Locale } from "@shared/i18n/locales";
 import { RATING_ERROR, REPORT_REASON_MAX_LENGTH, REVIEW_MAX_LENGTH, isValidRating } from "@shared/community";
 import type { Database } from "@shared/supabase/database.types";
 import { revalidateSite } from "./revalidate";
@@ -131,6 +132,6 @@ export async function reportContent(writer: Writer, targetType: ReportableTarget
 }
 
 /** "15 Ekim 2026". */
-export function formatDay(iso: string): string {
-  return new Date(iso).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" });
+export function formatDay(iso: string, locale: Locale): string {
+  return new Date(iso).toLocaleDateString(INTL_LOCALES[locale], { day: "numeric", month: "long", year: "numeric" });
 }

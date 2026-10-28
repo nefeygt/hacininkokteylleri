@@ -3,6 +3,8 @@ import { Star } from "lucide-react-native";
 import { Pressable, StyleSheet, View } from "react-native";
 import { alpha, type Theme } from "@/lib/theme";
 import { useStyles, useTheme } from "@/lib/theme-context";
+import { useLocale } from "@/lib/i18n";
+import { format } from "@shared/i18n/format";
 
 /** How much of star `n` (1–5) is filled for `value`: 1, 0.5 or 0, to the nearest half. */
 function fill(n: number, value: number): number {
@@ -32,12 +34,13 @@ function StarIcon({ amount, size, muted }: { amount: number; size: number; muted
  * get one adjustable control that moves by half a star.
  */
 export default function Stars({ value, size, onChange }: { value: number; size?: number; onChange?: (value: number) => void }) {
+  const { t, a, locale } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   if (!onChange) {
     const shown = size ?? 14;
     return (
-      <View style={styles.row} accessibilityRole="image" accessibilityLabel={`5 üzerinden ${formatRating(value)}`}>
+      <View style={styles.row} accessibilityRole="image" accessibilityLabel={format(t.cocktails.outOf5, { rating: formatRating(value, locale) })}>
         {[1, 2, 3, 4, 5].map((n) => (
           <StarIcon key={n} amount={fill(n, value)} size={shown} muted={alpha(theme.colors.textMuted, 0.4)} />
         ))}
@@ -53,8 +56,8 @@ export default function Stars({ value, size, onChange }: { value: number; size?:
       style={[styles.row, styles.input]}
       accessible
       accessibilityRole="adjustable"
-      accessibilityLabel="Puan"
-      accessibilityValue={{ text: value ? `${formatRating(value)} yıldız` : "Puan yok" }}
+      accessibilityLabel={t.cocktails.ratingLabel}
+      accessibilityValue={{ text: value ? format(t.cocktails.starsLabel, { rating: formatRating(value, locale) }) : a.stars.none }}
       accessibilityActions={[{ name: "increment" }, { name: "decrement" }]}
       onAccessibilityAction={(event) => change(value + (event.nativeEvent.actionName === "increment" ? RATING_STEP : -RATING_STEP))}
     >

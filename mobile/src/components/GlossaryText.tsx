@@ -4,6 +4,7 @@ import { StyleSheet, Text, View, type StyleProp, type TextStyle } from "react-na
 import { useArchive } from "@/lib/archive";
 import { alpha, type Theme } from "@/lib/theme";
 import { useStyles, useTheme } from "@/lib/theme-context";
+import { useLocale } from "@/lib/i18n";
 
 function escapeRegex(s: string) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -15,6 +16,7 @@ function escapeRegex(s: string) {
  * phone can show without a hover.
  */
 export default function GlossaryText({ text, style }: { text: string; style?: StyleProp<TextStyle> }) {
+  const { a } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const glossary = useArchive().archive?.glossary ?? {};
@@ -34,7 +36,7 @@ export default function GlossaryText({ text, style }: { text: string; style?: St
               style={styles.term}
               onPress={() => setOpen(open === part ? null : part)}
               accessibilityRole="button"
-              accessibilityHint="Açıklamayı göster"
+              accessibilityHint={a.glossary.showDefinition}
             >
               {part}
             </Text>
