@@ -99,5 +99,6 @@ export const en: AppDictionary = {
     colorCode: "Color code",
     stepLabel: "Step {n}",
     removeStep: "Delete the step",
+    ingredientN: "Ingredient {n}",
   },
 };

@@ -61,7 +61,7 @@ function EditRecipe({ writer, id }: { writer: Writer; id: string }) {
       <View style={styles.center}>
         <Body style={styles.muted}>{a.notFound.recipe}</Body>
         <Pressable onPress={() => router.replace("/my-recipes")}>
-          <Mono style={styles.link}>Tariflerim</Mono>
+          <Mono style={styles.link}>{t.recipeForm.myRecipes}</Mono>
         </Pressable>
       </View>
     );

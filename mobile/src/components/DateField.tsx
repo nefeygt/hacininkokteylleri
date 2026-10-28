@@ -33,7 +33,7 @@ const isoOf = (year: number, month: number, day: number) => `${year}-${pad(month
  * after `today` (today in Turkey; ADR-017).
  */
 export default function DateField({ value, today, onChange }: { value: string; today: string; onChange: (date: string) => void }) {
-  const { a, locale } = useLocale();
+  const { t, a, locale } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const [open, setOpen] = useState(false);
@@ -42,7 +42,7 @@ export default function DateField({ value, today, onChange }: { value: string; t
 
   return (
     <View style={styles.group}>
-      <Label style={styles.label}>Tarih</Label>
+      <Label style={styles.label}>{t.logForm.date}</Label>
       <View style={styles.row}>
         <Pressable
           onPress={() => onChange(shiftDate(value, -1))}

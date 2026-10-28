@@ -4,13 +4,14 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-28 (parity pass steps 2–3, [sonnet]) · Themes and languages are in the app (ADR-033);
-**next is step 4 [sonnet] (recipe screens)**, then 5 and 6 — the same model. The store upload still waits for the Apple account or the user's two other Play apps (ADR-024).
+**Prepared by session:** 2026-10-28 (parity pass steps 2–6, [sonnet]) · Themes, languages, the recipe screens, the archive/feed
+additions and the forms are in the app (ADR-033); **next is step 7 [opus] (community: notifications, follower lists, comment
+editing)**, then 8 push [opus], 9 sweep [sonnet], 10 release readiness [opus]. The store upload still waits for the Apple account or the user's two other Play apps (ADR-024).
 `main` is pushed and deployed.
 
 **Model split (the user, 2026-10-26):** the parity pass runs over several chats. Each step below is tagged
 **[opus]** or **[sonnet]**; a session works through consecutive steps of its own tag and stops before a step with the
-other tag (see "Model handoff"). **Steps 1–3 are done; the next session is [sonnet]** (steps 4–6).
+other tag (see "Model handoff"). **Steps 1–6 are done; the next session is [opus]** (steps 7–8).
 ---
 
 ## 📋 Prompt to Copy
@@ -198,7 +199,12 @@ each step; tick the step here; mark the items of "Web changes since 2026-10-15" 
    - Check: each sort, the cocktail of the day matches the site's for today, picking 3 ingredients gives the same result
      as the site.
 
-6. **[sonnet] Forms** (`LogForm.tsx`, `RecipeForm.tsx`).
+6. ✅ **[sonnet] Forms** — built 2026-10-28, **typecheck + bundles only, not seen**: `GlassIcon` (react-native-svg) and `GlassPicker`
+   (grid of the 13 glasses + "Other" text field) in the log form and the recipe form; the catalogue select per ingredient line in
+   `RecipeForm` (`OptionSheet` now takes `group` headings; "Katalogda yok" first; intro with a link to "Elimde ne var?"; the
+   all/some-matched counter). **Check in step 9 with a temporary `@example.test` member (ask the user first — the built-in browser's admin
+   login is in use):** create and edit a log and a member's recipe with a glass and linked lines; the recipe then shows in "Elimde ne var?".
+   Original brief:
    - Glass picker: new `mobile/src/components/GlassIcon.tsx` — the 13 paths of `src/components/GlassIcon.tsx` in
      `react-native-svg` (already installed), stroke `t.colors.textSecondary`, selected `crimsonGlow` — and
      `GlassPicker.tsx` (a horizontal row/grid of the 13 `GLASSES` from `@shared/glasses` with names from the dictionary;
@@ -252,6 +258,16 @@ as you go, so the list ends empty.
 **Waiting for the user (do not block on them):** notifications signed in; Search Console sitemap (now with `/en` alternates);
 the first run/schedule of `cleanup-photos.yml`; **`RESEND_API_KEY`** in Supabase secrets (the `/privacy` digest line is live since 2026-10-26); Rx crimson labels for AA. **Videos: dropped** (the user).
 
+**Things that bite (parity pass, steps 2–6):**
+- **Theme and words in components:** `const theme = useTheme()` (colours, fonts), `const { t, a, locale } = useLocale()` (t = the
+  site's dictionary, a = the app's own words); inside `makeStyles = (t: Theme)` `t` is the theme. Plain `lib/*.ts` modules use
+  `words().t` / `words().a`. A missing English key in `mobile/src/lib/i18n/en.ts` fails typecheck.
+- **A diacritics grep misses Turkish words without them** ("Tarif", "Malzeme ekle", "Vurgu rengi" slipped through): also grep JSX
+  text and attribute strings (`>[A-Z]…</`, `label="…"`) — and run the signed-in screens in English in step 9.
+- Expo web: the first request after `preview_start` can take a minute (`navigate` fails until the bundle is ready — poll with curl).
+  Set a language with `localStorage.setItem('haci.locale','en')`, a theme with `'haci.theme'`; clear them afterwards.
+- The built-in browser's `.click()` via JS works on RN-web `Pressable`s; two quick clicks on a toggle can cancel each other.
+
 **Things that bite (translation step 3):**
 - The navbar has no room at 320 px: the language switcher shows only its icon below 360 px and the gaps shrink there.
   A new navbar item needs the same check (`scrollWidth` in a 320 px iframe).
@@ -296,7 +312,7 @@ Every other item below is **missing** and planned in the step named in brackets;
   crimson glow `#d0453a`, greys `#b4b1ae` / `#7d7a78`); reading text in IBM Plex Sans, mono only for labels
   (`@expo-google-fonts/ibm-plex-sans`); a theme choice from `@shared/themes` (`THEMES`) on the account screen, kept in
   storage — or decide with the user that the app stays Rx only.
-- [step 6] **Members' recipes in "Elimde ne var?"** (ADR-029 amendment): the app's recipe form needs the catalogue select per
+- ✅ [step 6, built — not yet seen] **Members' recipes in "Elimde ne var?"** (ADR-029 amendment): the app's recipe form needs the catalogue select per
   line ("Katalogda yok", the hint and the counter, `isFullyLinked` from `@shared/ingredients`); catalogue from
   `ingredients` (`groupByCategory`). It already keeps `ingredientId` through an edit and revalidates `/what-can-i-make`.
 - ✅ [step 3, done] **Languages** (ADR-032, English live 2026-10-26): the app is Turkish only; for parity it could read
@@ -313,7 +329,7 @@ Every other item below is **missing** and planned in the step named in brackets;
 - ✅ [step 4 done; follower lists step 7] **Rating breakdown** (M9): the app's recipe screen reads `half_star_counts` with the rating and draws the ten bars
   (`ratingBreakdown` from `@shared/community`). **Follower lists**: profile counts open two lists in the app.
 - [step 7] **Comment editing** (M9): the app's log comments get "Düzenle" and "düzenlendi" (`edited_at`).
-- [step 6] **Glass picker** (M9): the app's log and recipe forms pick the glass by drawing (`GLASSES`, `glassKind` from
+- ✅ [step 6, built — not yet seen] **Glass picker** (M9): the app's log and recipe forms pick the glass by drawing (`GLASSES`, `glassKind` from
   `@shared/glasses`; the 13 paths of `GlassIcon.tsx` move to react-native-svg).
 - ✅ [step 4, done] **"cl | oz"** on recipes (ADR-027): a toggle beside "Kaç kişilik?" with `convertAmount`, `formatOunces`,
   `isConvertibleUnit` from `@shared/recipe`; remember the choice (AsyncStorage or the app's existing storage).

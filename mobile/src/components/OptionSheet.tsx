@@ -1,4 +1,4 @@
-import { Modal, Pressable, ScrollView, StyleSheet } from "react-native";
+import { Modal, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { alpha, type Theme } from "@/lib/theme";
 import { useStyles } from "@/lib/theme-context";
 import { Label, Mono } from "./Type";
@@ -7,6 +7,8 @@ import { useLocale } from "@/lib/i18n";
 export interface Option {
   value: string;
   label: string;
+  /** A heading shown above the first option of each group (the catalogue's categories). */
+  group?: string;
 }
 
 /**
@@ -34,11 +36,13 @@ export default function OptionSheet({
         <Pressable style={styles.sheet} onPress={() => {}}>
           <Label style={styles.title}>{title}</Label>
           <ScrollView style={styles.list}>
-            {options.map((option) => {
+            {options.map((option, index) => {
               const on = option.value === current;
+              const heading = option.group && option.group !== options[index - 1]?.group ? option.group : null;
               return (
+                <View key={option.value}>
+                {heading && <Label style={styles.group}>{heading}</Label>}
                 <Pressable
-                  key={option.value}
                   onPress={() => onPick(option.value)}
                   style={({ pressed }) => [styles.option, on && styles.optionOn, pressed && styles.optionPressed]}
                   accessibilityRole="button"
@@ -47,6 +51,7 @@ export default function OptionSheet({
                 >
                   <Mono style={[styles.optionText, on && styles.optionTextOn]}>{option.label}</Mono>
                 </Pressable>
+                </View>
               );
             })}
           </ScrollView>
@@ -57,6 +62,7 @@ export default function OptionSheet({
 }
 
 const makeStyles = (t: Theme) => StyleSheet.create({
+  group: { fontSize: 10, letterSpacing: 1.5, color: t.colors.textMuted, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 },
   backdrop: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24, backgroundColor: "rgba(0, 0, 0, 0.6)" },
   sheet: {
     width: "100%",

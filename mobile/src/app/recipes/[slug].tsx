@@ -117,7 +117,7 @@ export default function RecipeScreen() {
             >
               <Avatar path={author.avatarPath} name={author.displayName} size={28} />
               <Body style={styles.authorText} numberOfLines={1}>
-                <Body style={styles.by}>tarif: </Body>
+                <Body style={styles.by}>{t.cocktails.recipeBy}</Body>
                 <Body style={styles.authorName}>{author.displayName}</Body>
                 <Mono style={styles.username}> @{author.username}</Mono>
               </Body>

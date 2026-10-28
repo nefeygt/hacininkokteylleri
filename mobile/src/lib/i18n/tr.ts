@@ -100,6 +100,7 @@ export const tr = {
     colorCode: "Renk kodu",
     stepLabel: "{n}. adım",
     removeStep: "Adımı sil",
+    ingredientN: "{n}. malzeme",
   },
 };
 

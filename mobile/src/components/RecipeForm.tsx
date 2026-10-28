@@ -1,17 +1,19 @@
 import { unitLabel } from "@shared/drink-log";
+import { groupByCategory, type CatalogueIngredient } from "@shared/ingredients";
 import { INGREDIENT_ICONS, RECIPE_LIMITS, type RecipeInput } from "@shared/recipe";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { ArrowDown, ArrowUp, ChevronDown, ImagePlus, Plus, X } from "lucide-react-native";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Keyboard, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { useArchive } from "@/lib/archive";
 import type { Writer } from "@/lib/community";
-import type { IngredientIcon } from "@/lib/content";
+import { fetchIngredientCatalogue, type IngredientIcon } from "@/lib/content";
 import { deleteRecipe, discardRecipePhoto, leaveRecipeForm, pickRecipePhoto, saveRecipe } from "@/lib/recipes";
 import { recipeImageUrl } from "@/lib/supabase";
 import { alpha, type Theme } from "@/lib/theme";
 import { useStyles, useTheme } from "@/lib/theme-context";
+import GlassPicker from "./GlassPicker";
 import { Button, Checkbox, Field, Message } from "./Form";
 import { unitOptions } from "./LogForm";
 import OptionSheet from "./OptionSheet";
@@ -25,7 +27,7 @@ interface IngredientRow {
   amount: string; // as typed; "1,5" works too
   unit: string;
   icon: IngredientIcon;
-  /** The catalogue link, kept through an edit until the app has a picker (ADR-029). */
+  /** The catalogue ingredient this line names (ADR-029); a recipe takes part in "what can I make" when every line has one. */
   ingredientId?: string;
 }
 
@@ -79,7 +81,7 @@ export default function RecipeForm({
   id?: string;
   slug?: string;
 }) {
-  const { t, a } = useLocale();
+  const { t, a, locale } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const suggestions = useSuggestions();
@@ -96,7 +98,8 @@ export default function RecipeForm({
     }))
   );
   const [steps, setSteps] = useState<StepRow[]>(() => initial.instructions.map((text) => ({ key: nextKey++, text })));
-  const [sheet, setSheet] = useState<{ key: number; kind: "unit" | "icon" } | null>(null);
+  const [sheet, setSheet] = useState<{ key: number; kind: "unit" | "icon" | "catalogue" } | null>(null);
+  const [catalogue, setCatalogue] = useState<CatalogueIngredient[]>([]);
   const [photoBusy, setPhotoBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -105,6 +108,12 @@ export default function RecipeForm({
   // A photo uploaded here but not saved with the recipe yet: replaced or abandoned, it is deleted.
   const unsavedPhoto = useRef<string | null>(null);
   const L = RECIPE_LIMITS;
+
+  useEffect(() => {
+    fetchIngredientCatalogue(locale)
+      .then(setCatalogue)
+      .catch(() => {});
+  }, [locale]);
 
   function set<K extends keyof RecipeInput>(key: K, value: RecipeInput[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -227,11 +236,11 @@ export default function RecipeForm({
           <Chips values={suggestions.flavors} current={form.flavor} onPick={(v) => set("flavor", v)} />
         </View>
         <View style={styles.group}>
-          <Field label={t.recipeForm.glass} value={form.glass} onChangeText={(v) => set("glass", v)} maxLength={L.glass} />
-          <Chips values={suggestions.glasses} current={form.glass} onPick={(v) => set("glass", v)} />
+          <Label style={styles.label}>{t.recipeForm.glass}</Label>
+          <GlassPicker value={form.glass} onChange={(v) => set("glass", v)} maxLength={L.glass} />
         </View>
         <View style={styles.group}>
-          <Label style={styles.label}>Vurgu rengi</Label>
+          <Label style={styles.label}>{t.recipeForm.color}</Label>
           <View style={styles.swatches}>
             {SWATCHES.map((c) => (
               <Pressable
@@ -296,6 +305,13 @@ export default function RecipeForm({
       </Section>
 
       <Section title={t.recipeForm.sectionIngredients}>
+        <Mono style={styles.hint}>
+          {t.recipeForm.catalogueIntro1}
+          <Mono style={styles.linkText} onPress={() => router.push("/what-can-i-make")}>
+            {t.recipeForm.linkText}
+          </Mono>
+          {t.recipeForm.catalogueIntro2}
+        </Mono>
         {rows.map((row, i) => (
           <View key={row.key} style={styles.ingredient}>
             <View style={styles.row}>
@@ -305,7 +321,7 @@ export default function RecipeForm({
                 maxLength={L.ingredientName}
                 placeholder={t.recipeForm.ingredient}
                 placeholderTextColor={theme.colors.textMuted}
-                accessibilityLabel={`${i + 1}. malzeme`}
+                accessibilityLabel={format(a.recipeForm.ingredientN, { n: i + 1 })}
                 style={[styles.small, styles.grow]}
               />
               <TextInput
@@ -332,6 +348,20 @@ export default function RecipeForm({
                 <ChevronDown size={12} color={theme.colors.textMuted} />
               </Pressable>
             </View>
+            <Pressable
+              onPress={() => {
+                Keyboard.dismiss();
+                setSheet({ key: row.key, kind: "catalogue" });
+              }}
+              style={[styles.small, styles.select]}
+              accessibilityRole="button"
+              accessibilityLabel={`${t.recipeForm.catalogueMatch}: ${catalogue.find((c) => c.id === row.ingredientId)?.name ?? t.recipeForm.notInCatalogue}`}
+            >
+              <Mono numberOfLines={1} style={[styles.selectText, !row.ingredientId && styles.placeholder]}>
+                {catalogue.find((c) => c.id === row.ingredientId)?.name ?? t.recipeForm.notInCatalogue}
+              </Mono>
+              <ChevronDown size={12} color={theme.colors.textMuted} />
+            </Pressable>
             <View style={styles.row}>
               <Pressable
                 onPress={() => {
@@ -340,10 +370,10 @@ export default function RecipeForm({
                 }}
                 style={[styles.small, styles.select, styles.grow]}
                 accessibilityRole="button"
-                accessibilityLabel={`Simge: ${INGREDIENT_ICONS.find((o) => o.value === row.icon)?.label ?? row.icon}`}
+                accessibilityLabel={`${t.recipeForm.icon}: ${t.recipeIcons[row.icon]}`}
               >
                 <Mono numberOfLines={1} style={styles.selectText}>
-                  {INGREDIENT_ICONS.find((o) => o.value === row.icon)?.label ?? row.icon}
+                  {t.recipeIcons[row.icon]}
                 </Mono>
                 <ChevronDown size={12} color={theme.colors.textMuted} />
               </Pressable>
@@ -359,6 +389,9 @@ export default function RecipeForm({
             </View>
           </View>
         ))}
+        <Mono style={styles.hint}>
+          {rows.every((r) => r.ingredientId) ? t.recipeForm.allMatched : format(t.recipeForm.someUnmatched, { n: rows.filter((r) => !r.ingredientId).length })}
+        </Mono>
         {rows.length < L.ingredients && (
           <AddButton
             label={t.recipeForm.addIngredient}
@@ -449,11 +482,21 @@ export default function RecipeForm({
       )}
 
       <OptionSheet
-        title={sheet?.kind === "icon" ? t.recipeForm.icon : t.recipeForm.unit}
-        options={sheet?.kind === "icon" ? INGREDIENT_ICONS.map((i) => ({ value: i.value, label: t.recipeIcons[i.value] })) : unitOptions(sheetRow?.unit ?? "", t)}
-        current={sheetRow ? (sheet?.kind === "icon" ? sheetRow.icon : sheetRow.unit) : null}
+        title={sheet?.kind === "icon" ? t.recipeForm.icon : sheet?.kind === "catalogue" ? t.recipeForm.catalogueMatch : t.recipeForm.unit}
+        options={
+          sheet?.kind === "icon"
+            ? INGREDIENT_ICONS.map((i) => ({ value: i.value, label: t.recipeIcons[i.value] }))
+            : sheet?.kind === "catalogue"
+              ? [
+                  { value: "", label: t.recipeForm.notInCatalogue },
+                  ...groupByCategory(catalogue, t, locale).flatMap((g) => g.items.map((i) => ({ value: i.id, label: i.name, group: g.label }))),
+                ]
+              : unitOptions(sheetRow?.unit ?? "", t)
+        }
+        current={sheetRow ? (sheet?.kind === "icon" ? sheetRow.icon : sheet?.kind === "catalogue" ? sheetRow.ingredientId ?? "" : sheetRow.unit) : null}
         onPick={(value) => {
-          if (sheet) setRow(sheet.key, sheet.kind === "icon" ? { icon: value as IngredientIcon } : { unit: value });
+          if (sheet?.kind === "catalogue") setRow(sheet.key, { ingredientId: value || undefined });
+          else if (sheet) setRow(sheet.key, sheet.kind === "icon" ? { icon: value as IngredientIcon } : { unit: value });
           setSheet(null);
         }}
         onClose={() => setSheet(null)}
@@ -533,6 +576,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   group: { gap: 8 },
   label: { color: t.colors.textSecondary, fontSize: 11, letterSpacing: 1.5 },
   hint: { fontSize: 11, lineHeight: 16, color: t.colors.textMuted },
+  linkText: { fontSize: 11, color: t.colors.crimsonGlow, textDecorationLine: "underline" },
   chips: { gap: 6, paddingRight: 8 },
   chip: { borderWidth: 1, borderColor: t.colors.border, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
   chipOn: { borderColor: t.colors.crimson, backgroundColor: alpha(t.colors.crimson, 0.2) },

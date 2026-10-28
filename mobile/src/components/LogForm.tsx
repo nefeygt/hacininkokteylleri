@@ -9,6 +9,7 @@ import { deleteDrinkLog, leave, saveDrinkLog } from "@/lib/drink-logs";
 import { alpha, type Theme } from "@/lib/theme";
 import { useStyles, useTheme } from "@/lib/theme-context";
 import DateField from "./DateField";
+import GlassPicker from "./GlassPicker";
 import { Button, Checkbox, Field, Message } from "./Form";
 import OptionSheet from "./OptionSheet";
 import Stars from "./Stars";
@@ -197,7 +198,7 @@ export default function LogForm({
             accessibilityLabel={t.logForm.addIngredient}
           >
             <Plus size={14} color={theme.colors.textMuted} />
-            <Mono style={styles.addText}>Malzeme ekle</Mono>
+            <Mono style={styles.addText}>{t.logForm.addIngredient}</Mono>
           </Pressable>
         )}
       </View>
@@ -253,7 +254,10 @@ export default function LogForm({
       </View>
 
       <Field label={t.logForm.garnish} value={garnish} onChangeText={setGarnish} maxLength={LOG_LIMITS.garnish} />
-      <Field label={t.logForm.glass} value={glass} onChangeText={setGlass} maxLength={LOG_LIMITS.glass} />
+      <View style={styles.group}>
+        <Label style={styles.label}>{t.logForm.glass}</Label>
+        <GlassPicker value={glass} onChange={setGlass} maxLength={LOG_LIMITS.glass} />
+      </View>
 
       <View style={styles.group}>
         <Label style={styles.label}>{t.logForm.eveningRating}</Label>

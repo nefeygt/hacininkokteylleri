@@ -63,7 +63,7 @@ function MyRecipes({ writer }: { writer: Writer }) {
     >
       <View style={readable}>
         <Label style={styles.eyebrow}>{t.recipesPage.eyebrow}</Label>
-        <Heading style={styles.title}>Tariflerim</Heading>
+        <Heading style={styles.title}>{t.recipesPage.title}</Heading>
         <Body style={styles.subtitle}>{t.recipesPage.subtitle}</Body>
         <View style={styles.new}>
           <Button title={t.recipesPage.newRecipe} onPress={() => router.push("/my-recipes/new")} />

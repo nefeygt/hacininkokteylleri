@@ -228,7 +228,7 @@ function ShowcaseApply({ period, onChanged }: { period: ShowcasePeriod; onChange
       ) : (
         <View style={styles.gap}>
           <View style={styles.field}>
-            <Label style={styles.fieldLabel}>Tarif</Label>
+            <Label style={styles.fieldLabel}>{t.showcase.recipe}</Label>
             <Pressable
               onPress={() => setPicking(true)}
               style={styles.select}

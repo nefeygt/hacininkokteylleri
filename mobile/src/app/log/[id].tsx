@@ -85,7 +85,7 @@ export default function LogScreen() {
             hitSlop={8}
             accessibilityRole="link"
           >
-            <Mono style={styles.profile}>Profil →</Mono>
+            <Mono style={styles.profile}>{t.logPage.profileLink}</Mono>
           </Pressable>
         </View>
         <DrinkLogEntry log={{ ...log, profiles: undefined }} mode="public" showCommentsLink={false} />
