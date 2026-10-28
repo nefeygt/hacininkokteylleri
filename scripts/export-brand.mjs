@@ -38,4 +38,12 @@ const silhouette = await sharp({ create: { width: 760, height: 760, channels: 3,
   .png()
   .toBuffer();
 await sharp({ create: canvas }).composite([{ input: silhouette, gravity: "centre" }]).png().toFile(app("android-icon-monochrome.png"));
-console.log("mobile/assets/images: icon, favicon, splash-icon, android-icon-foreground, android-icon-monochrome");
+
+// Android's status-bar notification icon: white on transparent, 96 px, a little padding.
+// Without it Android draws the full-colour app icon as a white square.
+const small = await sharp(silhouette).resize({ width: 80 }).png().toBuffer();
+await sharp({ create: { ...canvas, width: 96, height: 96 } })
+  .composite([{ input: small, gravity: "centre" }])
+  .png()
+  .toFile(app("notification-icon.png"));
+console.log("mobile/assets/images: icon, favicon, splash-icon, android-icon-foreground, android-icon-monochrome, notification-icon");

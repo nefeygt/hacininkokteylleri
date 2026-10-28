@@ -4,15 +4,16 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-28 (parity pass steps 7–8, [opus]) · Step 7 (community) is done and checked signed in. Step 8
-(push) is **built** — schema, sender function, the app's switch, `/privacy` (approved) — and waits for **the user's Firebase/FCM
-setup and a development build** before the phone test. **Step 9 (the sweep) is done 2026-10-28; next is step 10 [opus]**; step 8's phone test can happen
-whenever the user has done the console steps (any model; the checklist is under step 8). Then 10 release readiness [opus].
-The store upload still waits for the Apple account or the user's two other Play apps (ADR-024). `main` is pushed and deployed.
+**Prepared by session:** 2026-10-28 (parity pass step 10, part 1, [opus]; stopped at the end of the user's workday — they continue
+from home). **Step 10 is half done:** Expo packages updated (4 patch releases), expo-doctor 21/21, all three bundles build, Android
+permissions trimmed, a notification icon added. **Left in step 10: the development build and the user's phone pass** — and the
+build should wait for **the user's Firebase/FCM setup** (step 8), so one build carries push and the phone pass covers it too. Ask
+the user first whether Firebase is done (question below). The store upload still waits for the Apple account or the user's two
+other Play apps (ADR-024). `main` is pushed and deployed.
 
 **Model split (the user, 2026-10-26):** the parity pass runs over several chats. Each step below is tagged
 **[opus]** or **[sonnet]**; a session works through consecutive steps of its own tag and stops before a step with the
-other tag (see "Model handoff"). **Steps 1–7 and 9 are done, 8 waits for the user; the next session is [opus]** (step 10).
+other tag (see "Model handoff"). **Steps 1–7 and 9 are done, 8 waits for the user, 10 is half done; the next session is [opus]** (finish step 10).
 ---
 
 ## 📋 Prompt to Copy
@@ -244,9 +245,20 @@ each step; tick the step here; mark the items of "Web changes since 2026-10-15" 
 9. ✅ **[sonnet] Sweep** — done 2026-10-28, no code change: signed out and signed in (temporary members, deleted), 6 themes × 2 languages at 320/390 px clean; log with glass, rating breakdown and catalogue sheet seen. Original brief: run the whole app once in each of the 6 themes × 2 languages at 320 and 390 px; fix what is off;
    empty the "Web changes" list (every item done or "web-only").
 
-10. **[opus] Release readiness:** `npx expo install --check` (the 5 patch releases), `npx expo-doctor`, `app.json`
-    version/`versionCode`/permissions (photos, notifications), a new development build (`eas build`), the user's phone
-    pass, then the store steps under the parked section.
+10. **[opus] Release readiness** — **part 1 done 2026-10-28:** `npx expo install --fix` (`expo` 57.0.31, `expo-router` 57.0.29,
+    `expo-linking` 57.0.13, `@expo/ui` 57.0.26; one of the five waiting ones was already current), typecheck, expo-doctor 21/21,
+    the three bundles. `app.json`: version `1.0.0` stays; `versionCode`/`buildNumber` are remote on EAS
+    (`appVersionSource: remote`, production `autoIncrement`) — nothing to set. Permissions checked with
+    `npx expo config --type introspect`: CAMERA and RECORD_AUDIO already removed by the image-picker plugin, storage capped at
+    SDK 32 (older phones' gallery), **SYSTEM_ALERT_WINDOW now blocked** (`android.blockedPermissions`); POST_NOTIFICATIONS comes
+    from expo-notifications' own manifest. **New `mobile/assets/images/notification-icon.png`** (white cherry, 96 px, rendered by
+    `scripts/export-brand.mjs`) set as the expo-notifications `icon` — without it Android shows a white square.
+    **Left:** (a) ask the user whether Firebase is set up (step 8's list); if yes, add `googleServicesFile` and build; if not,
+    build anyway only if the user wants the phone pass now (push then needs another build later);
+    (b) `npx eas-cli build -p android --profile development` (~20 min queue on the free plan; run in the background, the
+    CLI on this machine is signed in as `nefeygt` — on another machine `npx eas-cli login` first); (c) the user's phone pass
+    through every new screen (themes, English, servings/oz, share, "Elimde ne var?", glass picker, notifications, push);
+    (d) then the store steps under the parked section (a production AAB, listing drafts).
 
 **While porting:** keep `@shared/*` modules free of Next imports; mark each item of the list below done (or "web-only")
 as you go, so the list ends empty.
@@ -367,8 +379,7 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
 1. **The user's go and a phone pass first:** the app has every feature now; the user should run the development build (or a
    preview APK) on their phone through the new screens (members' recipes, the feed, the showcase) before anything reaches a
    store. Their feedback may come first.
-2. **Packages:** `npx expo install --check` (5 patch releases waited for a new build) → `npm run typecheck`,
-   `npx expo-doctor`.
+2. ✅ **Packages** (2026-10-28): updated, typecheck, expo-doctor 21/21.
 3. **A production Android build** (`eas build -p android --profile production`, an AAB; the Android keystore is on EAS).
    Check `app.json` (version, `versionCode`, permissions — photos only) before it.
 4. **Play Console** (the user's "KZN" account; the user does anything that needs their password or a payment): create the app
@@ -392,8 +403,6 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
   production-access form asks how testers engaged), free tester-exchange communities, or an
   organization account (needs a D-U-N-S number; skips the rule). Start it once a preview build is
   worth testing; the app needs Play's app-signing SHA-1 in a further Android OAuth client then.
-- 5 Expo packages have newer patch releases (`npx expo install --check`); update together with the
-  next development build, not alone.
 - Auth e-mails land in Outlook's spam (plan.md §8).
 - Hacı's own first admin sign-in (question 5).
 - Not yet seen in the app: a showcase entry card with a real recipe photo (everything else of steps 5–6 was checked with
@@ -404,7 +413,9 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
 
 ## 🙋 Questions for the User
 
-None open. Step 8's phone test needs the user's Firebase/FCM console steps (listed under step 8).
+1. **Is Firebase set up?** (step 8's console list: Firebase project → Android app `tech.hacininkokteylleri.haci` →
+   `google-services.json` into `mobile/` → FCM V1 service-account key via `eas credentials`.) The next development build
+   waits for it unless the user wants the phone pass without push first.
 
 ---
 
