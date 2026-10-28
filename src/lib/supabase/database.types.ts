@@ -24,6 +24,7 @@ export type Database = {
           created_at: string
           logs_public_default: boolean
           privacy_notice_version: string
+          push_notifications: boolean
           updated_at: string
           user_id: string
           email_notifications: boolean
@@ -34,6 +35,7 @@ export type Database = {
           created_at?: string
           logs_public_default?: boolean
           privacy_notice_version: string
+          push_notifications?: boolean
           updated_at?: string
           user_id: string
           email_notifications?: boolean
@@ -44,6 +46,7 @@ export type Database = {
           created_at?: string
           logs_public_default?: boolean
           privacy_notice_version?: string
+          push_notifications?: boolean
           updated_at?: string
           user_id?: string
           email_notifications?: boolean
@@ -570,6 +573,7 @@ export type Database = {
           entry_id: string | null
           id: string
           log_id: string | null
+          pushed_at: string | null
           read_at: string | null
           review_id: string | null
           type: Database["public"]["Enums"]["notification_type"]
@@ -584,6 +588,7 @@ export type Database = {
           entry_id?: string | null
           id?: string
           log_id?: string | null
+          pushed_at?: string | null
           read_at?: string | null
           review_id?: string | null
           type: Database["public"]["Enums"]["notification_type"]
@@ -598,6 +603,7 @@ export type Database = {
           entry_id?: string | null
           id?: string
           log_id?: string | null
+          pushed_at?: string | null
           read_at?: string | null
           review_id?: string | null
           type?: Database["public"]["Enums"]["notification_type"]
@@ -696,6 +702,30 @@ export type Database = {
           id?: string
           updated_at?: string
           username?: string
+        }
+        Relationships: []
+      }
+      push_tokens: {
+        Row: {
+          created_at: string
+          last_seen_at: string
+          platform: string
+          token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          last_seen_at?: string
+          platform: string
+          token: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          last_seen_at?: string
+          platform?: string
+          token?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -963,6 +993,27 @@ export type Database = {
       }
     }
     Functions: {
+      claim_push_notifications: {
+        Args: never
+        Returns: {
+          actor_username: string
+          cocktail_author: string
+          cocktail_id: string
+          cocktail_name: string
+          cocktail_slug: string
+          comment_id: string
+          id: string
+          locale: string
+          log_id: string
+          log_name: string
+          review_cocktail_author: string
+          review_cocktail_name: string
+          review_cocktail_slug: string
+          review_id: string
+          tokens: string[]
+          type: string
+        }[]
+      }
       delete_my_account: { Args: never; Returns: undefined }
       pending_notification_emails: {
         Args: never
@@ -981,6 +1032,10 @@ export type Database = {
           bucket_id: string
           name: string
         }[]
+      }
+      register_push_token: {
+        Args: { p_platform: string; p_token: string }
+        Returns: undefined
       }
       save_cocktail: {
         Args: { cocktail: Json; ingredients: Json }

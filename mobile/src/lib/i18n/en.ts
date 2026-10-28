@@ -49,6 +49,12 @@ export const en: AppDictionary = {
     recipe: "This recipe wasn't found.",
     profile: "This profile wasn't found.",
   },
+  push: {
+    label: "Phone notifications: tell me right away when someone follows me, comments on my log entries or rates my recipe.",
+    denied: "Notifications are turned off. You can allow them for haci in your phone's settings.",
+    unsupported: "This device can't receive notifications.",
+    failed: "Couldn't register this device for notifications. Try again in a moment.",
+  },
   gate: {
     logsSignIn: "Sign in to use the drink log.",
     logsFinish: "Complete your profile first to use the drink log.",

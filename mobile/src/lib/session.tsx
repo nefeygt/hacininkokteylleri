@@ -4,7 +4,7 @@ import type { Tables } from "@shared/supabase/database.types";
 import { supabase } from "./supabase";
 
 export type Profile = Pick<Tables<"profiles">, "id" | "username" | "display_name" | "bio" | "avatar_path" | "hidden_at">;
-export type Settings = Pick<Tables<"account_settings">, "logs_public_default" | "email_notifications">;
+export type Settings = Pick<Tables<"account_settings">, "logs_public_default" | "email_notifications" | "push_notifications">;
 
 /**
  * Who is using the app — the site's accountSession() (src/lib/account.ts):
@@ -29,10 +29,10 @@ async function read(user: User | null | undefined): Promise<SessionState> {
   if (!user) return { state: "signed-out" };
   const [{ data: profile }, { data: settings }] = await Promise.all([
     supabase.from("profiles").select("id, username, display_name, bio, avatar_path, hidden_at").eq("id", user.id).maybeSingle(),
-    supabase.from("account_settings").select("logs_public_default, email_notifications").eq("user_id", user.id).maybeSingle(),
+    supabase.from("account_settings").select("logs_public_default, email_notifications, push_notifications").eq("user_id", user.id).maybeSingle(),
   ]);
   if (!profile) return { state: "onboarding", user };
-  return { state: "ok", user, profile, settings: settings ?? { logs_public_default: false, email_notifications: true } };
+  return { state: "ok", user, profile, settings: settings ?? { logs_public_default: false, email_notifications: true, push_notifications: true } };
 }
 
 /** The session in the device's storage, the profile and the account settings, for every screen. */

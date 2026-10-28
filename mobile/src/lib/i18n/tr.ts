@@ -50,6 +50,12 @@ export const tr = {
     recipe: "Bu tarif bulunamadı.",
     profile: "Bu profil bulunamadı.",
   },
+  push: {
+    label: "Telefon bildirimleri: biri seni takip ettiğinde, kayıtlarına yorum yaptığında ya da tarifini puanladığında hemen haber ver.",
+    denied: "Bildirim izni kapalı. Telefonunun ayarlarından haci'ye bildirim izni verebilirsin.",
+    unsupported: "Bu cihaz bildirim alamıyor.",
+    failed: "Bu cihaz bildirimlere kaydedilemedi. Biraz sonra tekrar dene.",
+  },
   gate: {
     logsSignIn: "İçki günlüğü için giriş yap.",
     logsFinish: "İçki günlüğü için önce profilini tamamla.",

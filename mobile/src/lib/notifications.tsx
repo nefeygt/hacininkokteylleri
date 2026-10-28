@@ -4,8 +4,10 @@
 
 import { router, type Href } from "expo-router";
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import * as Notifications from "expo-notifications";
 import { AppState } from "react-native";
 import { NOTIFICATION_COLUMNS, NOTIFICATIONS_SHOWN, type NotificationRow } from "@shared/notifications";
+import { PUSH_SUPPORTED, pushHref, syncPushToken } from "./push";
 import { useSession } from "./session";
 import { supabase } from "./supabase";
 
@@ -101,10 +103,42 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     const subscription = AppState.addEventListener("change", (state) => {
       if (state === "active") refresh();
     });
-    return () => subscription.remove();
+    // A push arriving while the app is open is a new unread notification.
+    const received = PUSH_SUPPORTED ? Notifications.addNotificationReceivedListener(() => void refresh()) : null;
+    return () => {
+      subscription.remove();
+      received?.remove();
+    };
   }, [refresh]);
 
+  // A member who allowed push before gets this device registered again (new token, another member).
+  useEffect(() => {
+    if (memberId) syncPushToken();
+  }, [memberId]);
+
   return <NotificationsContext.Provider value={{ unread, refresh }}>{children}</NotificationsContext.Provider>;
+}
+
+/**
+ * Opens the screen of a tapped push — also the one that launched the app. Called from the tab layout,
+ * so the router is ready.
+ */
+export function usePushResponses() {
+  useEffect(() => {
+    if (!PUSH_SUPPORTED) return;
+    let handled: string | null = null;
+    const open = (response: Notifications.NotificationResponse | null) => {
+      if (!response) return;
+      const id = response.notification.request.identifier;
+      const href = pushHref(response);
+      if (!href || handled === id) return;
+      handled = id;
+      openNotificationLink(href);
+    };
+    Notifications.getLastNotificationResponseAsync().then(open);
+    const subscription = Notifications.addNotificationResponseReceivedListener(open);
+    return () => subscription.remove();
+  }, []);
 }
 
 export function useNotifications(): NotificationsValue {

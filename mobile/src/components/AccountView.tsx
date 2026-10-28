@@ -2,11 +2,12 @@ import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { router, useFocusEffect } from "expo-router";
 import { ImagePlus, X } from "lucide-react-native";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Switch, View } from "react-native";
 import { BIO_MAX, checkProfile, DISPLAY_NAME_MAX, profileError } from "@shared/profile";
 import { signOutOfGoogle } from "@/lib/native-auth";
 import { useNotifications } from "@/lib/notifications";
+import { enablePush, forgetPushToken, PUSH_SUPPORTED, pushAllowed } from "@/lib/push";
 import { revalidateSite } from "@/lib/revalidate";
 import type { Profile, Settings } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
@@ -53,6 +54,7 @@ export default function AccountView({
 
       <View style={[styles.section, styles.stack]}>
         <NotificationsRow />
+        {PUSH_SUPPORTED && <PushToggle userId={profile.id} initial={settings.push_notifications} reload={reload} />}
         <EmailNotificationsToggle userId={profile.id} initial={settings.email_notifications} reload={reload} />
       </View>
 
@@ -374,6 +376,63 @@ function EmailNotificationsToggle({ userId, initial, reload }: { userId: string;
   );
 }
 
+/**
+ * Push on this phone (ADR-033): on only when the member's setting is on and the phone allows it. Turning it on
+ * is the one place the app asks for permission; turning it off stops pushes to all the member's devices.
+ */
+function PushToggle({ userId, initial, reload }: { userId: string; initial: boolean; reload: () => Promise<void> }) {
+  const { t, a } = useLocale();
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
+  const [checked, setChecked] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    pushAllowed().then((allowed) => setChecked(initial && allowed));
+  }, [initial]);
+
+  async function change(next: boolean) {
+    setChecked(next);
+    setError(null);
+    setPending(true);
+    if (next) {
+      const result = await enablePush();
+      if (result.error) {
+        setPending(false);
+        setChecked(false);
+        setError(a.push[result.error]);
+        return;
+      }
+    }
+    const { error } = await supabase.from("account_settings").update({ push_notifications: next }).eq("user_id", userId);
+    setPending(false);
+    if (error) {
+      setChecked(!next);
+      setError(format(t.validation.saveFailed, { message: error.message }));
+      return;
+    }
+    await reload();
+  }
+
+  return (
+    <View style={styles.stack}>
+      <View style={styles.toggleRow}>
+        <Mono style={[styles.muted, styles.toggleText]}>{a.push.label}</Mono>
+        <Switch
+          value={checked}
+          onValueChange={change}
+          disabled={pending}
+          accessibilityLabel={a.push.label}
+          trackColor={{ true: theme.colors.crimson, false: theme.colors.borderLight }}
+          thumbColor={theme.colors.textPrimary}
+        />
+      </View>
+      {error && <Message error>{error}</Message>}
+    </View>
+  );
+}
+
 function SignOutButton() {
   const { t } = useLocale();
   const [pending, setPending] = useState(false);
@@ -384,6 +443,7 @@ function SignOutButton() {
       pending={pending}
       onPress={async () => {
         setPending(true);
+        await forgetPushToken();
         await signOutOfGoogle();
         await supabase.auth.signOut();
         // The session provider shows the sign-in screen.

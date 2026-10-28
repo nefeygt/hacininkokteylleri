@@ -2,13 +2,14 @@ import { Tabs } from "expo-router";
 import { BookOpen, Newspaper, UserRound } from "lucide-react-native";
 import { useTheme } from "@/lib/theme-context";
 import { useLocale } from "@/lib/i18n";
-import { useNotifications } from "@/lib/notifications";
+import { useNotifications, usePushResponses } from "@/lib/notifications";
 
 // The site's navbar as tabs: Kokteyller (the archive), Akış (the feed), Hesap.
 export default function TabLayout() {
   const { t, a } = useLocale();
   const theme = useTheme();
   const { unread, refresh } = useNotifications();
+  usePushResponses();
   return (
     <Tabs
       // The count is read again whenever a tab shows, as the site's navbar does on each page change.
