@@ -14,7 +14,8 @@ import { fetchPublicLogs, type DrinkLog } from "@/lib/drink-logs";
 import { useFavorites } from "@/lib/favorites";
 import { countComments } from "@/lib/social";
 import { supabase } from "@/lib/supabase";
-import { colors, fonts, readable } from "@/lib/theme";
+import { readable, type Theme } from "@/lib/theme";
+import { useStyles, useTheme } from "@/lib/theme-context";
 
 // A member's public profile — the site's /u/{username}: avatar, bio, follow
 // counts and "Takip et", the member's recipes, favourites, public drink logs
@@ -86,6 +87,8 @@ function openCocktail(c: CocktailLink) {
 }
 
 export default function ProfileScreen() {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   const { username } = useLocalSearchParams<{ username: string }>();
   const [data, setData] = useState<ProfileData | null | undefined>(undefined);
   const [failed, setFailed] = useState(false);
@@ -114,7 +117,7 @@ export default function ProfileScreen() {
             <Mono style={styles.link}>Profil yüklenemedi. Tekrar dene</Mono>
           </Pressable>
         ) : (
-          <ActivityIndicator color={colors.crimsonGlow} />
+          <ActivityIndicator color={theme.colors.crimsonGlow} />
         )}
       </View>
     );
@@ -144,7 +147,7 @@ export default function ProfileScreen() {
             await load();
             setRefreshing(false);
           }}
-          tintColor={colors.crimsonGlow}
+          tintColor={theme.colors.crimsonGlow}
         />
       }
     >
@@ -258,27 +261,27 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bgPrimary },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: t.colors.bgPrimary },
   content: { padding: 24, paddingBottom: 48 },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bgPrimary },
-  muted: { color: colors.textSecondary },
-  link: { color: colors.crimsonGlow, textDecorationLine: "underline" },
-  eyebrow: { color: colors.crimsonGlow, letterSpacing: 2.5, marginBottom: 12 },
+  center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: t.colors.bgPrimary },
+  muted: { color: t.colors.textSecondary },
+  link: { color: t.colors.crimsonGlow, textDecorationLine: "underline" },
+  eyebrow: { color: t.colors.crimsonGlow, letterSpacing: 2.5, marginBottom: 12 },
   identity: { flexDirection: "row", alignItems: "center", gap: 16 },
   names: { flex: 1 },
   displayName: { fontSize: 26 },
-  username: { marginTop: 2, color: colors.textMuted },
-  bio: { marginTop: 18, lineHeight: 23, color: colors.textSecondary },
+  username: { marginTop: 2, color: t.colors.textMuted },
+  bio: { marginTop: 18, lineHeight: 23, color: t.colors.textSecondary },
   followRow: { marginTop: 18, flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 },
   counts: { fontSize: 12 },
-  strong: { fontSize: 12, color: colors.textPrimary },
+  strong: { fontSize: 12, color: t.colors.textPrimary },
   metaRow: { marginTop: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 },
-  joined: { fontSize: 11, color: colors.textMuted },
+  joined: { fontSize: 11, color: t.colors.textMuted },
   section: { marginTop: 36 },
   sectionTitle: { fontSize: 11, letterSpacing: 1.5, marginBottom: 14 },
-  sectionCount: { fontSize: 11, color: colors.textMuted, opacity: 0.6 },
-  empty: { fontSize: 12, color: colors.textMuted },
+  sectionCount: { fontSize: 11, color: t.colors.textMuted, opacity: 0.6 },
+  empty: { fontSize: 12, color: t.colors.textMuted },
   favorites: { gap: 8 },
   logs: { gap: 12 },
   recipes: { gap: 16 },
@@ -287,21 +290,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 12,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bgCard,
+    borderColor: t.colors.border,
+    backgroundColor: t.colors.bgCard,
     borderRadius: 4,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
-  pressed: { borderColor: colors.borderLight },
+  pressed: { borderColor: t.colors.borderLight },
   swatch: { width: 4, height: 24, borderRadius: 2 },
   favoriteText: { flex: 1, minWidth: 0 },
-  favoriteName: { fontFamily: fonts.sansBold, fontSize: 14 },
-  favoriteSubtitle: { fontSize: 11, color: colors.textMuted },
+  favoriteName: { fontFamily: t.fonts.sansBold, fontSize: 14 },
+  favoriteSubtitle: { fontSize: 11, color: t.colors.textMuted },
   review: { paddingBottom: 18, marginBottom: 18 },
-  reviewRule: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+  reviewRule: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.colors.border },
   reviewHead: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 10, rowGap: 4 },
-  reviewName: { fontFamily: fonts.sansBold, fontSize: 15 },
-  date: { fontSize: 10, color: colors.textMuted },
-  reviewBody: { marginTop: 6, fontSize: 14, lineHeight: 20, color: colors.textSecondary },
+  reviewName: { fontFamily: t.fonts.sansBold, fontSize: 15 },
+  date: { fontSize: 10, color: t.colors.textMuted },
+  reviewBody: { marginTop: 6, fontSize: 14, lineHeight: 20, color: t.colors.textSecondary },
 });

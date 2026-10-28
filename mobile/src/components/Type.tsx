@@ -1,19 +1,23 @@
 import { Children, type ReactNode } from "react";
 import { StyleSheet, Text, type TextProps } from "react-native";
-import { colors, fonts } from "@/lib/theme";
+import { type Theme } from "@/lib/theme";
+import { useStyles } from "@/lib/theme-context";
 
-// The site's two voices: Inter for names and headings, JetBrains Mono for the
-// prescription text, labels and numbers.
+// The site's voices: the theme's display face for names and headings, its reading face for text, its mono face
+// for labels and amounts (ADR-028).
 
 export function Heading({ style, ...props }: TextProps) {
+  const styles = useStyles(makeStyles);
   return <Text {...props} style={[styles.heading, style]} />;
 }
 
 export function Body({ style, ...props }: TextProps) {
+  const styles = useStyles(makeStyles);
   return <Text {...props} style={[styles.body, style]} />;
 }
 
 export function Mono({ style, ...props }: TextProps) {
+  const styles = useStyles(makeStyles);
   return <Text {...props} style={[styles.mono, style]} />;
 }
 
@@ -30,6 +34,7 @@ function upperChildren(children: ReactNode): ReactNode {
 
 /** The small uppercase mono label ("MALZEMELER", "ARŞİV"), uppercased the Turkish way. */
 export function Label({ style, children, ...props }: TextProps) {
+  const styles = useStyles(makeStyles);
   return (
     <Text {...props} style={[styles.label, style]}>
       {upperChildren(children)}
@@ -37,13 +42,13 @@ export function Label({ style, children, ...props }: TextProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  heading: { fontFamily: fonts.sansBold, color: colors.textPrimary, fontSize: 18, letterSpacing: -0.3 },
-  body: { fontFamily: fonts.sans, color: colors.textPrimary, fontSize: 15 },
-  mono: { fontFamily: fonts.mono, color: colors.textSecondary, fontSize: 13 },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  heading: { fontFamily: t.fonts.displayBold, color: t.colors.textPrimary, fontSize: 18, letterSpacing: -0.3 },
+  body: { fontFamily: t.fonts.sans, color: t.colors.textPrimary, fontSize: 15 },
+  mono: { fontFamily: t.fonts.mono, color: t.colors.textSecondary, fontSize: 13 },
   label: {
-    fontFamily: fonts.mono,
-    color: colors.textMuted,
+    fontFamily: t.fonts.mono,
+    color: t.colors.textMuted,
     fontSize: 10,
     letterSpacing: 2,
   },

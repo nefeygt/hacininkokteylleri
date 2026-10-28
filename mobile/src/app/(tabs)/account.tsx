@@ -5,15 +5,19 @@ import AccountView from "@/components/AccountView";
 import { Button } from "@/components/Form";
 import KeyboardScrollView from "@/components/KeyboardScrollView";
 import SignIn from "@/components/SignIn";
+import ThemePicker from "@/components/ThemePicker";
 import { Body, Heading } from "@/components/Type";
 import { forgetSignInRequest, leaveAfterSignIn } from "@/lib/after-sign-in";
 import { signOutOfGoogle } from "@/lib/native-auth";
 import { useSession } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
-import { colors, readable } from "@/lib/theme";
+import { readable, type Theme } from "@/lib/theme";
+import { useStyles, useTheme } from "@/lib/theme-context";
 
 /** The Hesap tab: sign-in, onboarding's way in, or the account (the site's /login, /welcome, /account). */
 export default function AccountScreen() {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   const session = useSession();
 
   // Straight after sign-in, a member without a profile goes to onboarding once;
@@ -47,14 +51,21 @@ export default function AccountScreen() {
   if (session.state === "loading") {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color={colors.textMuted} />
+        <ActivityIndicator color={theme.colors.textMuted} />
       </View>
     );
   }
 
   return (
     <KeyboardScrollView style={styles.screen}>
-        {session.state === "signed-out" && <SignIn />}
+        {session.state === "signed-out" && (
+          <>
+            <SignIn />
+            <View style={styles.picker}>
+              <ThemePicker />
+            </View>
+          </>
+        )}
         {session.state === "onboarding" && (
           <View style={styles.card}>
             <Heading style={styles.title}>Son bir adım</Heading>
@@ -79,11 +90,12 @@ export default function AccountScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bgPrimary },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bgPrimary },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: t.colors.bgPrimary },
+  center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: t.colors.bgPrimary },
   card: { padding: 24, ...readable },
   title: { fontSize: 26, marginBottom: 8 },
-  text: { color: colors.textSecondary, lineHeight: 22, marginBottom: 24 },
+  text: { color: t.colors.textSecondary, lineHeight: 22, marginBottom: 24 },
   actions: { gap: 12 },
+  picker: { padding: 24, paddingTop: 0, ...readable },
 });

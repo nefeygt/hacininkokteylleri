@@ -1,7 +1,8 @@
 import { RATING_STEP, formatRating } from "@shared/community";
 import { Star } from "lucide-react-native";
 import { Pressable, StyleSheet, View } from "react-native";
-import { alpha, colors } from "@/lib/theme";
+import { alpha, type Theme } from "@/lib/theme";
+import { useStyles, useTheme } from "@/lib/theme-context";
 
 /** How much of star `n` (1–5) is filled for `value`: 1, 0.5 or 0, to the nearest half. */
 function fill(n: number, value: number): number {
@@ -10,12 +11,14 @@ function fill(n: number, value: number): number {
 }
 
 function StarIcon({ amount, size, muted }: { amount: number; size: number; muted: string }) {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   return (
     <View style={{ width: size, height: size }}>
       <Star size={size} color={muted} fill="transparent" style={StyleSheet.absoluteFill} />
       {amount > 0 && (
         <View style={[styles.clip, { width: amount === 1 ? size : size / 2, height: size }]}>
-          <Star size={size} color={colors.crimsonGlow} fill={colors.crimsonGlow} />
+          <Star size={size} color={theme.colors.crimsonGlow} fill={theme.colors.crimsonGlow} />
         </View>
       )}
     </View>
@@ -29,12 +32,14 @@ function StarIcon({ amount, size, muted }: { amount: number; size: number; muted
  * get one adjustable control that moves by half a star.
  */
 export default function Stars({ value, size, onChange }: { value: number; size?: number; onChange?: (value: number) => void }) {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   if (!onChange) {
     const shown = size ?? 14;
     return (
       <View style={styles.row} accessibilityRole="image" accessibilityLabel={`5 üzerinden ${formatRating(value)}`}>
         {[1, 2, 3, 4, 5].map((n) => (
-          <StarIcon key={n} amount={fill(n, value)} size={shown} muted={alpha(colors.textMuted, 0.4)} />
+          <StarIcon key={n} amount={fill(n, value)} size={shown} muted={alpha(theme.colors.textMuted, 0.4)} />
         ))}
       </View>
     );
@@ -55,7 +60,7 @@ export default function Stars({ value, size, onChange }: { value: number; size?:
     >
       {[1, 2, 3, 4, 5].map((n) => (
         <View key={n} style={styles.star}>
-          <StarIcon amount={fill(n, value)} size={shown} muted={alpha(colors.textMuted, 0.5)} />
+          <StarIcon amount={fill(n, value)} size={shown} muted={alpha(theme.colors.textMuted, 0.5)} />
           <Pressable onPress={() => change(n - 0.5)} style={[styles.half, styles.left]} hitSlop={{ top: 6, bottom: 6 }} />
           <Pressable onPress={() => change(n)} style={[styles.half, styles.right]} hitSlop={{ top: 6, bottom: 6 }} />
         </View>
@@ -64,7 +69,7 @@ export default function Stars({ value, size, onChange }: { value: number; size?:
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t: Theme) => StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", gap: 2 },
   input: { gap: 6 },
   clip: { position: "absolute", left: 0, top: 0, overflow: "hidden" },

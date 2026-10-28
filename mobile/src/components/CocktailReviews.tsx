@@ -6,7 +6,8 @@ import { askToSignIn } from "@/lib/after-sign-in";
 import { deleteReview, fetchReviews, formatDay, saveReview, type Review, type Writer } from "@/lib/community";
 import type { Cocktail } from "@/lib/content";
 import { useSession } from "@/lib/session";
-import { alpha, colors, fonts } from "@/lib/theme";
+import { alpha, type Theme } from "@/lib/theme";
+import { useStyles, useTheme } from "@/lib/theme-context";
 import Avatar from "./Avatar";
 import { Message } from "./Form";
 import ReportButton from "./ReportButton";
@@ -19,6 +20,7 @@ import { Body, Label, Mono } from "./Type";
  * screen reload the average after the member's own write.
  */
 export default function CocktailReviews({ cocktail, onChanged }: { cocktail: Cocktail; onChanged: () => void }) {
+  const styles = useStyles(makeStyles);
   const session = useSession();
   const writer: Writer | null = session.state === "ok" ? { id: session.profile.id, username: session.profile.username } : null;
   const memberId = writer?.id ?? null;
@@ -103,6 +105,8 @@ function OwnReview({
   own: Review | null;
   onSaved: () => Promise<void>;
 }) {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   const [editing, setEditing] = useState(false);
   const [rating, setRating] = useState(0);
   const [body, setBody] = useState("");
@@ -209,7 +213,7 @@ function OwnReview({
         maxLength={REVIEW_MAX_LENGTH}
         multiline
         placeholder="Nasıldı? (isteğe bağlı)"
-        placeholderTextColor={colors.textMuted}
+        placeholderTextColor={theme.colors.textMuted}
         accessibilityLabel="Yorum"
         style={styles.textarea}
       />
@@ -243,6 +247,7 @@ function OwnReview({
 }
 
 function ReviewItem({ review }: { review: Review }) {
+  const styles = useStyles(makeStyles);
   const openProfile = () => router.push({ pathname: "/u/[username]", params: { username: review.profiles.username } });
 
   return (
@@ -267,24 +272,24 @@ function ReviewItem({ review }: { review: Review }) {
   );
 }
 
-const styles = StyleSheet.create({
-  section: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: 24, marginTop: 32 },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  section: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.colors.border, paddingTop: 24, marginTop: 32 },
   head: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: 12, marginBottom: 16 },
   title: { fontSize: 11, letterSpacing: 1.5 },
   average: { flexDirection: "row", alignItems: "center", gap: 8 },
   averageText: { fontSize: 12 },
   gapTop: { marginTop: 16 },
-  muted: { fontSize: 12, color: colors.textMuted },
-  link: { fontSize: 12, color: colors.crimsonGlow, textDecorationLine: "underline" },
+  muted: { fontSize: 12, color: t.colors.textMuted },
+  link: { fontSize: 12, color: t.colors.crimsonGlow, textDecorationLine: "underline" },
   underline: { textDecorationLine: "underline" },
-  danger: { fontSize: 12, color: colors.crimsonGlow },
-  prompt: { backgroundColor: alpha(colors.bgElevated, 0.5), borderRadius: 4, paddingHorizontal: 16, paddingVertical: 12 },
+  danger: { fontSize: 12, color: t.colors.crimsonGlow },
+  prompt: { backgroundColor: alpha(t.colors.bgElevated, 0.5), borderRadius: 4, paddingHorizontal: 16, paddingVertical: 12 },
   promptText: { fontSize: 12 },
   box: {
     gap: 10,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: alpha(colors.bgElevated, 0.4),
+    borderColor: t.colors.border,
+    backgroundColor: alpha(t.colors.bgElevated, 0.4),
     borderRadius: 4,
     padding: 14,
   },
@@ -293,27 +298,27 @@ const styles = StyleSheet.create({
     minHeight: 80,
     textAlignVertical: "top",
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bgCard,
+    borderColor: t.colors.border,
+    backgroundColor: t.colors.bgCard,
     borderRadius: 4,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    color: colors.textPrimary,
-    fontFamily: fonts.sans,
+    color: t.colors.textPrimary,
+    fontFamily: t.fonts.sans,
     fontSize: 14,
   },
   actions: { flexDirection: "row", alignItems: "center", gap: 16 },
-  save: { backgroundColor: colors.crimson, borderRadius: 4, paddingHorizontal: 16, paddingVertical: 7 },
+  save: { backgroundColor: t.colors.crimson, borderRadius: 4, paddingHorizontal: 16, paddingVertical: 7 },
   saveText: { fontSize: 12, color: "#fff" },
   delete: { marginLeft: "auto" },
   off: { opacity: 0.5 },
-  hiddenNote: { fontSize: 11, color: colors.crimsonGlow },
+  hiddenNote: { fontSize: 11, color: t.colors.crimsonGlow },
   list: { marginTop: 20, gap: 20 },
   item: { flexDirection: "row", gap: 12 },
   itemBody: { flex: 1, minWidth: 0 },
   itemHead: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 8, rowGap: 4 },
-  name: { fontFamily: fonts.sansBold, fontSize: 14 },
-  date: { fontSize: 10, color: colors.textMuted },
-  reviewBody: { marginTop: 4, fontSize: 14, lineHeight: 20, color: colors.textSecondary },
+  name: { fontFamily: t.fonts.sansBold, fontSize: 14 },
+  date: { fontSize: 10, color: t.colors.textMuted },
+  reviewBody: { marginTop: 4, fontSize: 14, lineHeight: 20, color: t.colors.textSecondary },
   report: { marginTop: 6 },
 });

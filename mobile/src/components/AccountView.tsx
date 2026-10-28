@@ -9,10 +9,12 @@ import { signOutOfGoogle } from "@/lib/native-auth";
 import { revalidateSite } from "@/lib/revalidate";
 import type { Profile, Settings } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
-import { colors, readable } from "@/lib/theme";
+import { alpha, readable, type Theme } from "@/lib/theme";
+import { useStyles, useTheme } from "@/lib/theme-context";
 import Avatar from "./Avatar";
 import { Button, Field, Message, Notice } from "./Form";
-import { Heading, Label, Mono } from "./Type";
+import ThemePicker from "./ThemePicker";
+import { Body, Heading, Label, Mono } from "./Type";
 
 const AVATARS_BUCKET = "avatars";
 const RECIPE_IMAGES_BUCKET = "recipe-images";
@@ -30,11 +32,13 @@ export default function AccountView({
   settings: Settings;
   reload: () => Promise<void>;
 }) {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   return (
     <View style={styles.card}>
       <Label style={styles.eyebrow}>Hesap</Label>
       <Heading style={styles.title}>Hesabım</Heading>
-      {email && <Mono style={styles.subtitle}>{email} ile giriş yaptın.</Mono>}
+      {email && <Body style={styles.subtitle}>{email} ile giriş yaptın.</Body>}
 
       {profile.hidden_at && (
         <View style={styles.section}>
@@ -71,13 +75,17 @@ export default function AccountView({
         <Mono style={styles.muted}>Kendi tariflerini yaz; yayınladıkların profilinde ve akışta görünür.</Mono>
       </View>
 
+      <View style={[styles.section, styles.ruled]}>
+        <ThemePicker />
+      </View>
+
       <View style={[styles.section, styles.ruled, styles.row]}>
         <Mono style={styles.muted}>Bu cihazdan çık</Mono>
         <SignOutButton />
       </View>
 
       <View style={[styles.section, styles.ruled]}>
-        <Label style={[styles.sectionTitle, { color: colors.crimsonGlow }]}>Hesabı sil</Label>
+        <Label style={[styles.sectionTitle, { color: theme.colors.crimsonGlow }]}>Hesabı sil</Label>
         <Mono style={styles.muted}>Hesabın, profilin ve yazdığın her şey kalıcı olarak silinir. Bu geri alınamaz.</Mono>
         <DeleteAccount profile={profile} />
       </View>
@@ -87,6 +95,8 @@ export default function AccountView({
 
 /** Centre square → 256 px WebP → "{user_id}/{base36}.webp"; the old picture is deleted, never overwritten (ADR-006). */
 function AvatarField({ profile, reload }: { profile: Profile; reload: () => Promise<void> }) {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -150,7 +160,7 @@ function AvatarField({ profile, reload }: { profile: Profile; reload: () => Prom
         <Avatar path={profile.avatar_path} name={profile.display_name} size={72} />
         {busy && (
           <View style={styles.avatarBusy}>
-            <ActivityIndicator color={colors.textPrimary} />
+            <ActivityIndicator color={theme.colors.textPrimary} />
           </View>
         )}
       </View>
@@ -158,12 +168,12 @@ function AvatarField({ profile, reload }: { profile: Profile; reload: () => Prom
         <Button
           kind="secondary"
           title={profile.avatar_path ? "Fotoğrafı değiştir" : "Fotoğraf yükle"}
-          icon={<ImagePlus size={14} color={colors.textSecondary} />}
+          icon={<ImagePlus size={14} color={theme.colors.textSecondary} />}
           onPress={pick}
           disabled={busy}
         />
         {profile.avatar_path && (
-          <Button kind="link" title="Kaldır" icon={<X size={12} color={colors.textMuted} />} onPress={remove} disabled={busy} />
+          <Button kind="link" title="Kaldır" icon={<X size={12} color={theme.colors.textMuted} />} onPress={remove} disabled={busy} />
         )}
         {error && <Message error>{error}</Message>}
       </View>
@@ -172,6 +182,7 @@ function AvatarField({ profile, reload }: { profile: Profile; reload: () => Prom
 }
 
 function ProfileForm({ profile, reload }: { profile: Profile; reload: () => Promise<void> }) {
+  const styles = useStyles(makeStyles);
   const [username, setUsername] = useState(profile.username);
   const [displayName, setDisplayName] = useState(profile.display_name);
   const [bio, setBio] = useState(profile.bio ?? "");
@@ -229,6 +240,8 @@ function ProfileForm({ profile, reload }: { profile: Profile; reload: () => Prom
 
 /** Whether new drink logs start public; private unless the member changes it (ADR-014). */
 function LogsDefaultToggle({ userId, initial, reload }: { userId: string; initial: boolean; reload: () => Promise<void> }) {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   const [checked, setChecked] = useState(initial);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -259,8 +272,8 @@ function LogsDefaultToggle({ userId, initial, reload }: { userId: string; initia
           onValueChange={change}
           disabled={pending}
           accessibilityLabel="Yeni kayıtlarım herkese açık başlasın"
-          trackColor={{ true: colors.crimson, false: colors.borderLight }}
-          thumbColor={colors.textPrimary}
+          trackColor={{ true: theme.colors.crimson, false: theme.colors.borderLight }}
+          thumbColor={theme.colors.textPrimary}
         />
       </View>
       {error && <Message error>{error}</Message>}
@@ -291,6 +304,7 @@ function SignOutButton() {
  * still owns Storage objects, so the member's own files go first (ADR-014).
  */
 function DeleteAccount({ profile }: { profile: Profile }) {
+  const styles = useStyles(makeStyles);
   const [open, setOpen] = useState(false);
   const [confirmation, setConfirmation] = useState("");
   const [pending, setPending] = useState(false);
@@ -361,17 +375,17 @@ function DeleteAccount({ profile }: { profile: Profile }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t: Theme) => StyleSheet.create({
   card: { padding: 24, paddingBottom: 48, ...readable },
-  eyebrow: { color: colors.crimsonGlow, letterSpacing: 2.5, marginBottom: 6 },
+  eyebrow: { color: t.colors.crimsonGlow, letterSpacing: 2.5, marginBottom: 6 },
   title: { fontSize: 26, marginBottom: 4 },
-  subtitle: { fontSize: 12, color: colors.textMuted },
+  subtitle: { fontSize: 12, color: t.colors.textMuted },
   section: { marginTop: 24, gap: 16 },
-  ruled: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: 24 },
+  ruled: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.colors.border, paddingTop: 24 },
   sectionHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  sectionTitle: { color: colors.textSecondary, letterSpacing: 2 },
+  sectionTitle: { color: t.colors.textSecondary, letterSpacing: 2 },
   row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
-  muted: { fontSize: 12, lineHeight: 18, color: colors.textMuted },
+  muted: { fontSize: 12, lineHeight: 18, color: t.colors.textMuted },
   stack: { gap: 16 },
   avatarRow: { flexDirection: "row", alignItems: "center", gap: 16 },
   avatarBusy: {
@@ -385,5 +399,5 @@ const styles = StyleSheet.create({
   bio: { minHeight: 80, textAlignVertical: "top" },
   toggleRow: { flexDirection: "row", alignItems: "center", gap: 12 },
   toggleText: { flex: 1 },
-  danger: { borderWidth: 1, borderColor: "rgba(139, 26, 26, 0.4)", backgroundColor: "rgba(139, 26, 26, 0.05)", borderRadius: 4, padding: 16 },
+  danger: { borderWidth: 1, borderColor: alpha(t.colors.crimson, 0.4), backgroundColor: alpha(t.colors.crimson, 0.05), borderRadius: 4, padding: 16 },
 });

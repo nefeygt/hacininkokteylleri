@@ -7,7 +7,8 @@ import MemberGate from "@/components/MemberGate";
 import { Body, Heading, Label, Mono } from "@/components/Type";
 import type { Writer } from "@/lib/community";
 import { fetchMyRecipes, type OwnRecipe } from "@/lib/recipes";
-import { colors, fonts, readable } from "@/lib/theme";
+import { readable, type Theme } from "@/lib/theme";
+import { useStyles, useTheme } from "@/lib/theme-context";
 
 /** The member's own recipes, drafts and published, newest first (the site's /account/recipes). */
 export default function MyRecipesScreen() {
@@ -19,6 +20,8 @@ export default function MyRecipesScreen() {
 }
 
 function MyRecipes({ writer }: { writer: Writer }) {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   const [recipes, setRecipes] = useState<OwnRecipe[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -51,14 +54,14 @@ function MyRecipes({ writer }: { writer: Writer }) {
             await load();
             setRefreshing(false);
           }}
-          tintColor={colors.crimsonGlow}
+          tintColor={theme.colors.crimsonGlow}
         />
       }
     >
       <View style={readable}>
         <Label style={styles.eyebrow}>Rx · Tarifler</Label>
         <Heading style={styles.title}>Tariflerim</Heading>
-        <Mono style={styles.subtitle}>Yazdığın tarifler. Yayındakiler profilinde ve akışta görünür; taslakları yalnızca sen görürsün.</Mono>
+        <Body style={styles.subtitle}>Yazdığın tarifler. Yayındakiler profilinde ve akışta görünür; taslakları yalnızca sen görürsün.</Body>
         <View style={styles.new}>
           <Button title="+ Yeni tarif" onPress={() => router.push("/my-recipes/new")} />
         </View>
@@ -68,7 +71,7 @@ function MyRecipes({ writer }: { writer: Writer }) {
             <Mono style={styles.link}>Tarifler yüklenemedi. Tekrar dene</Mono>
           </Pressable>
         ) : recipes === null ? (
-          <ActivityIndicator color={colors.crimsonGlow} />
+          <ActivityIndicator color={theme.colors.crimsonGlow} />
         ) : recipes.length === 0 ? (
           <Mono style={styles.empty}>Henüz tarif yok. İlk tarifini yaz.</Mono>
         ) : (
@@ -96,7 +99,7 @@ function MyRecipes({ writer }: { writer: Writer }) {
                     </Mono>
                   </Pressable>
                   <View style={styles.badge}>
-                    {r.is_published ? <Globe size={11} color={colors.textMuted} /> : <Lock size={11} color={colors.textMuted} />}
+                    {r.is_published ? <Globe size={11} color={theme.colors.textMuted} /> : <Lock size={11} color={theme.colors.textMuted} />}
                     <Mono style={styles.small}>{r.is_published ? "Yayında" : "Taslak"}</Mono>
                   </View>
                   <Pressable
@@ -117,23 +120,23 @@ function MyRecipes({ writer }: { writer: Writer }) {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bgPrimary },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: t.colors.bgPrimary },
   content: { padding: 24, paddingBottom: 48 },
-  eyebrow: { color: colors.crimsonGlow, letterSpacing: 2.5, marginBottom: 8 },
+  eyebrow: { color: t.colors.crimsonGlow, letterSpacing: 2.5, marginBottom: 8 },
   title: { fontSize: 26 },
-  subtitle: { marginTop: 6, fontSize: 12, lineHeight: 18, color: colors.textMuted },
+  subtitle: { marginTop: 6, fontSize: 12, lineHeight: 18, color: t.colors.textMuted },
   new: { marginVertical: 24, alignSelf: "flex-start" },
-  link: { fontSize: 12, color: colors.crimsonGlow, textDecorationLine: "underline" },
-  empty: { fontSize: 12, lineHeight: 18, color: colors.textMuted },
+  link: { fontSize: 12, color: t.colors.crimsonGlow, textDecorationLine: "underline" },
+  empty: { fontSize: 12, lineHeight: 18, color: t.colors.textMuted },
   list: { gap: 8 },
   item: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bgCard,
+    borderColor: t.colors.border,
+    backgroundColor: t.colors.bgCard,
     borderRadius: 4,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -141,8 +144,8 @@ const styles = StyleSheet.create({
   hidden: { opacity: 0.7 },
   swatch: { width: 4, height: 32, borderRadius: 2 },
   itemText: { flex: 1, minWidth: 0 },
-  name: { fontFamily: fonts.sansBold, fontSize: 14 },
-  small: { fontSize: 10, color: colors.textMuted },
+  name: { fontFamily: t.fonts.sansBold, fontSize: 14 },
+  small: { fontSize: 10, color: t.colors.textMuted },
   badge: { flexDirection: "row", alignItems: "center", gap: 4 },
-  edit: { fontSize: 11, color: colors.crimsonGlow, textDecorationLine: "underline" },
+  edit: { fontSize: 11, color: t.colors.crimsonGlow, textDecorationLine: "underline" },
 });

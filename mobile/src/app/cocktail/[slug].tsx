@@ -8,13 +8,16 @@ import KeyboardScrollView from "@/components/KeyboardScrollView";
 import { Message, Notice } from "@/components/Form";
 import { FavoriteButton, LogButton } from "@/components/RecipeActions";
 import RecipeDetails from "@/components/RecipeDetails";
-import { Body, Heading, Label, Mono } from "@/components/Type";
+import { Body, Heading, Label } from "@/components/Type";
 import { useArchive } from "@/lib/archive";
 import { useFavorites } from "@/lib/favorites";
-import { colors } from "@/lib/theme";
+import { alpha, type Theme } from "@/lib/theme";
+import { useStyles, useTheme } from "@/lib/theme-context";
 
 /** One house recipe — the site's recipe card (/cocktails?cocktail={slug}) as a screen. */
 export default function CocktailScreen() {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const { archive, refresh } = useArchive();
   const { favorites, toggle, savedOnSignIn } = useFavorites();
@@ -24,7 +27,7 @@ export default function CocktailScreen() {
   if (!archive) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color={colors.crimsonGlow} />
+        <ActivityIndicator color={theme.colors.crimsonGlow} />
       </View>
     );
   }
@@ -32,7 +35,7 @@ export default function CocktailScreen() {
   if (!cocktail) {
     return (
       <View style={styles.center}>
-        <Body style={{ color: colors.textSecondary }}>Bu kokteyl bulunamadı.</Body>
+        <Body style={{ color: theme.colors.textSecondary }}>Bu kokteyl bulunamadı.</Body>
       </View>
     );
   }
@@ -50,7 +53,7 @@ export default function CocktailScreen() {
           </Label>
           {cocktail.vegan && (
             <View style={styles.vegan}>
-              <Leaf size={10} color={colors.vegan} />
+              <Leaf size={10} color={theme.colors.vegan} />
               <Label style={styles.veganText}>Vegan</Label>
             </View>
           )}
@@ -68,7 +71,7 @@ export default function CocktailScreen() {
         <LogButton slug={cocktail.slug} from={{ pathname: "/cocktail/[slug]", params: { slug: cocktail.slug } }} />
         {favoriteError && <Message error>{favoriteError}</Message>}
         {savedOnSignIn === cocktail.id && <Notice>Favorilerine eklendi.</Notice>}
-        <Mono style={styles.subtitle}>{cocktail.subtitle}</Mono>
+        <Body style={styles.subtitle}>{cocktail.subtitle}</Body>
 
         <View style={styles.details}>
           <RecipeDetails cocktail={cocktail} />
@@ -80,12 +83,12 @@ export default function CocktailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bgSecondary },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: t.colors.bgSecondary },
   content: { paddingBottom: 48 },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bgPrimary },
+  center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: t.colors.bgPrimary },
   accent: { height: 4 },
-  photo: { width: "100%", aspectRatio: 16 / 9, backgroundColor: colors.bgElevated },
+  photo: { width: "100%", aspectRatio: 16 / 9, backgroundColor: t.colors.bgElevated },
   body: { padding: 24 },
   metaRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 8 },
   meta: { letterSpacing: 2 },
@@ -93,12 +96,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: "rgba(20, 83, 45, 0.3)",
+    backgroundColor: alpha(t.colors.veganBg, 0.3),
     borderRadius: 4,
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
-  veganText: { fontSize: 9, color: colors.vegan, letterSpacing: 1 },
+  veganText: { fontSize: 9, color: t.colors.vegan, letterSpacing: 1 },
   nameRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
   name: { flex: 1, fontSize: 24 },
   subtitle: { marginTop: 4, fontSize: 14 },

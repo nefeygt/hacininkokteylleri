@@ -5,7 +5,8 @@ import { Keyboard, Pressable, StyleSheet, TextInput, View } from "react-native";
 import type { Writer } from "@/lib/community";
 import type { IngredientIcon } from "@/lib/content";
 import { deleteDrinkLog, leave, saveDrinkLog } from "@/lib/drink-logs";
-import { alpha, colors, fonts } from "@/lib/theme";
+import { alpha, type Theme } from "@/lib/theme";
+import { useStyles, useTheme } from "@/lib/theme-context";
 import DateField from "./DateField";
 import { Button, Checkbox, Field, Message } from "./Form";
 import OptionSheet from "./OptionSheet";
@@ -63,6 +64,8 @@ export default function LogForm({
   today: string;
   onDone: () => void;
 }) {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   const originalSteps = initial.recipe.instructions.join("\n");
   const [drunkOn, setDrunkOn] = useState(initial.drunkOn);
   const [rows, setRows] = useState<IngredientRow[]>(() => initial.recipe.ingredients.map(rowFrom));
@@ -142,7 +145,7 @@ export default function LogForm({
               onChangeText={(name) => setRow(row.key, { name })}
               maxLength={LOG_LIMITS.ingredientName}
               placeholder="Malzeme"
-              placeholderTextColor={colors.textMuted}
+              placeholderTextColor={theme.colors.textMuted}
               accessibilityLabel="Malzeme"
               style={[styles.small, styles.grow]}
             />
@@ -151,7 +154,7 @@ export default function LogForm({
               onChangeText={(amount) => setRow(row.key, { amount })}
               keyboardType="decimal-pad"
               placeholder="4"
-              placeholderTextColor={colors.textMuted}
+              placeholderTextColor={theme.colors.textMuted}
               accessibilityLabel="Miktar"
               style={[styles.small, styles.amount]}
             />
@@ -167,7 +170,7 @@ export default function LogForm({
               <Mono numberOfLines={1} style={[styles.unitText, !row.unit && styles.placeholder]}>
                 {row.unit || "birim"}
               </Mono>
-              <ChevronDown size={12} color={colors.textMuted} />
+              <ChevronDown size={12} color={theme.colors.textMuted} />
             </Pressable>
             <Pressable
               onPress={() => setRows((prev) => prev.filter((r) => r.key !== row.key))}
@@ -177,7 +180,7 @@ export default function LogForm({
               accessibilityRole="button"
               accessibilityLabel="Malzemeyi çıkar"
             >
-              <X size={16} color={colors.textMuted} />
+              <X size={16} color={theme.colors.textMuted} />
             </Pressable>
           </View>
         ))}
@@ -189,7 +192,7 @@ export default function LogForm({
             accessibilityRole="button"
             accessibilityLabel="Malzeme ekle"
           >
-            <Plus size={14} color={colors.textMuted} />
+            <Plus size={14} color={theme.colors.textMuted} />
             <Mono style={styles.addText}>Malzeme ekle</Mono>
           </Pressable>
         )}
@@ -212,7 +215,7 @@ export default function LogForm({
             </Pressable>
           ) : (
             <Pressable onPress={() => setEditingSteps(true)} hitSlop={8} style={styles.inline} accessibilityRole="button" accessibilityLabel="Hazırlanışı değiştir">
-              <Pencil size={11} color={colors.textMuted} />
+              <Pencil size={11} color={theme.colors.textMuted} />
               <Mono style={styles.link}>Değiştir</Mono>
             </Pressable>
           )}
@@ -231,7 +234,7 @@ export default function LogForm({
           </>
         ) : (
           <View style={styles.locked} accessible accessibilityLabel={`Hazırlanışı, değiştirilmedi: ${stepLines.join(". ")}`}>
-            <Lock size={12} color={colors.textMuted} style={styles.lockIcon} />
+            <Lock size={12} color={theme.colors.textMuted} style={styles.lockIcon} />
             {stepLines.length ? (
               stepLines.map((line, i) => (
                 <Body key={i} style={styles.lockedStep}>
@@ -311,64 +314,64 @@ export default function LogForm({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t: Theme) => StyleSheet.create({
   form: { gap: 22 },
   group: { gap: 8 },
-  label: { color: colors.textSecondary, fontSize: 11, letterSpacing: 1.5 },
-  hint: { fontSize: 11, lineHeight: 16, color: colors.textMuted },
+  label: { color: t.colors.textSecondary, fontSize: 11, letterSpacing: 1.5 },
+  hint: { fontSize: 11, lineHeight: 16, color: t.colors.textMuted },
   row: { flexDirection: "row", alignItems: "center", gap: 6 },
   small: {
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bgPrimary,
+    borderColor: t.colors.border,
+    backgroundColor: t.colors.bgPrimary,
     borderRadius: 4,
     paddingHorizontal: 8,
     paddingVertical: 8,
-    color: colors.textPrimary,
-    fontFamily: fonts.mono,
+    color: t.colors.textPrimary,
+    fontFamily: t.fonts.mono,
     fontSize: 13,
   },
   grow: { flex: 1, minWidth: 0 },
   amount: { width: 52, textAlign: "right" },
   unit: { width: 116, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 4 },
-  unitText: { flexShrink: 1, fontSize: 13, color: colors.textPrimary },
-  placeholder: { color: colors.textMuted },
+  unitText: { flexShrink: 1, fontSize: 13, color: t.colors.textPrimary },
+  placeholder: { color: t.colors.textMuted },
   remove: { width: 28, height: 32, alignItems: "center", justifyContent: "center" },
   add: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", marginTop: 4 },
-  addText: { fontSize: 12, color: colors.textMuted },
+  addText: { fontSize: 12, color: t.colors.textMuted },
   stepsHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   inline: { flexDirection: "row", alignItems: "center", gap: 4 },
   stepsInput: {
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bgPrimary,
+    borderColor: t.colors.border,
+    backgroundColor: t.colors.bgPrimary,
     borderRadius: 4,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    color: colors.textPrimary,
-    fontFamily: fonts.sans,
+    color: t.colors.textPrimary,
+    fontFamily: t.fonts.sans,
     fontSize: 15,
   },
   locked: {
     gap: 6,
     borderWidth: 1,
     borderStyle: "dashed",
-    borderColor: colors.border,
-    backgroundColor: alpha(colors.bgElevated, 0.35),
+    borderColor: t.colors.border,
+    backgroundColor: alpha(t.colors.bgElevated, 0.35),
     borderRadius: 4,
     paddingLeft: 12,
     paddingRight: 30,
     paddingVertical: 10,
   },
   lockIcon: { position: "absolute", top: 10, right: 10 },
-  lockedStep: { fontSize: 14, lineHeight: 20, color: colors.textMuted },
+  lockedStep: { fontSize: 14, lineHeight: 20, color: t.colors.textMuted },
   textarea: { minHeight: 96, textAlignVertical: "top" },
   ratingRow: { flexDirection: "row", alignItems: "center", gap: 14 },
-  link: { fontSize: 11, color: colors.textMuted, textDecorationLine: "underline" },
+  link: { fontSize: 11, color: t.colors.textMuted, textDecorationLine: "underline" },
   checkText: { fontSize: 12, lineHeight: 18 },
   footer: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  muted: { fontSize: 12, color: colors.textMuted },
+  muted: { fontSize: 12, color: t.colors.textMuted },
   underline: { textDecorationLine: "underline" },
-  danger: { fontSize: 12, color: colors.crimsonGlow },
+  danger: { fontSize: 12, color: t.colors.crimsonGlow },
   off: { opacity: 0.3 },
 });

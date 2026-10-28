@@ -6,7 +6,7 @@ import DrinkLogEntry from "@/components/DrinkLogEntry";
 import { Button } from "@/components/Form";
 import KeyboardScrollView from "@/components/KeyboardScrollView";
 import ShowcaseSection from "@/components/Showcase";
-import { Heading, Label, Mono } from "@/components/Type";
+import { Body, Heading, Label, Mono } from "@/components/Type";
 import { askToSignIn } from "@/lib/after-sign-in";
 import {
   fetchNewRecipes,
@@ -20,7 +20,8 @@ import {
 import { useFavorites } from "@/lib/favorites";
 import { useSession } from "@/lib/session";
 import { fetchFollowingLogs, type AuthoredLog } from "@/lib/social";
-import { alpha, colors, readable } from "@/lib/theme";
+import { alpha, readable, type Theme } from "@/lib/theme";
+import { useStyles, useTheme } from "@/lib/theme-context";
 
 // The community feed — the site's /feed (ADR-018): the showcase ("Vitrin",
 // ADR-019), members' popular and new recipes and the latest public logs of the
@@ -34,6 +35,8 @@ interface Recipes {
 }
 
 export default function FeedScreen() {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   const session = useSession();
   const memberId = session.state === "ok" ? session.profile.id : null;
   const [recipes, setRecipes] = useState<Recipes | null>(null);
@@ -103,7 +106,7 @@ export default function FeedScreen() {
             await Promise.all([loadRecipes(), loadShowcase(), loadFollowing()]);
             setRefreshing(false);
           }}
-          tintColor={colors.crimsonGlow}
+          tintColor={theme.colors.crimsonGlow}
         />
       }
     >
@@ -112,7 +115,7 @@ export default function FeedScreen() {
         <View style={styles.head}>
           <View style={styles.headText}>
             <Heading style={styles.title}>Akış</Heading>
-            <Mono style={styles.subtitle}>Üyelerin tarifleri ve takip ettiklerinin günlükleri.</Mono>
+            <Body style={styles.subtitle}>Üyelerin tarifleri ve takip ettiklerinin günlükleri.</Body>
           </View>
           <Button title="+ Tarif yaz" onPress={write} />
         </View>
@@ -124,7 +127,7 @@ export default function FeedScreen() {
             <Mono style={styles.link}>Tarifler yüklenemedi. Tekrar dene</Mono>
           </Pressable>
         ) : recipes === null ? (
-          <ActivityIndicator style={styles.section} color={colors.crimsonGlow} />
+          <ActivityIndicator style={styles.section} color={theme.colors.crimsonGlow} />
         ) : (
           <>
             {recipes.popular.length > 0 && (
@@ -173,6 +176,7 @@ export default function FeedScreen() {
 }
 
 function RecipeRow({ title, hint, recipes, empty }: { title: string; hint?: string; recipes: Cocktail[]; empty?: string }) {
+  const styles = useStyles(makeStyles);
   const { favorites } = useFavorites();
   return (
     <View style={styles.section}>
@@ -196,21 +200,21 @@ function RecipeRow({ title, hint, recipes, empty }: { title: string; hint?: stri
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bgPrimary },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: t.colors.bgPrimary },
   content: { padding: 16, paddingTop: 24, paddingBottom: 48 },
-  eyebrow: { color: colors.crimsonGlow, letterSpacing: 2.5, marginBottom: 8 },
+  eyebrow: { color: t.colors.crimsonGlow, letterSpacing: 2.5, marginBottom: 8 },
   head: { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 12 },
   headText: { flexShrink: 1 },
   title: { fontSize: 26 },
-  subtitle: { marginTop: 4, fontSize: 12, lineHeight: 18, color: colors.textMuted },
+  subtitle: { marginTop: 4, fontSize: 12, lineHeight: 18, color: t.colors.textMuted },
   section: { marginTop: 36 },
   sectionTitle: { fontSize: 11, letterSpacing: 1.5, marginBottom: 6 },
-  hint: { fontSize: 10, color: alpha(colors.textMuted, 0.8), marginBottom: 8 },
+  hint: { fontSize: 10, color: alpha(t.colors.textMuted, 0.8), marginBottom: 8 },
   cards: { marginTop: 8, gap: 16 },
   logs: { marginTop: 8, gap: 12 },
-  muted: { marginTop: 8, fontSize: 12, lineHeight: 18, color: colors.textMuted },
-  link: { fontSize: 12, color: colors.crimsonGlow, textDecorationLine: "underline" },
-  prompt: { marginTop: 8, gap: 12, alignItems: "flex-start", backgroundColor: alpha(colors.bgElevated, 0.5), borderRadius: 4, padding: 14 },
-  promptText: { fontSize: 12, lineHeight: 18, color: colors.textSecondary },
+  muted: { marginTop: 8, fontSize: 12, lineHeight: 18, color: t.colors.textMuted },
+  link: { fontSize: 12, color: t.colors.crimsonGlow, textDecorationLine: "underline" },
+  prompt: { marginTop: 8, gap: 12, alignItems: "flex-start", backgroundColor: alpha(t.colors.bgElevated, 0.5), borderRadius: 4, padding: 14 },
+  promptText: { fontSize: 12, lineHeight: 18, color: t.colors.textSecondary },
 });

@@ -6,10 +6,13 @@ import KeyboardScrollView from "@/components/KeyboardScrollView";
 import LogComments from "@/components/LogComments";
 import { Body, Heading, Label, Mono } from "@/components/Type";
 import { fetchPublicLog, type AuthoredLog } from "@/lib/social";
-import { colors, readable } from "@/lib/theme";
+import { readable, type Theme } from "@/lib/theme";
+import { useStyles, useTheme } from "@/lib/theme-context";
 
 /** One public drink log and its comments — the site's /logs/{id} (ADR-018). */
 export default function LogScreen() {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [log, setLog] = useState<AuthoredLog | null | undefined>(undefined);
   const [failed, setFailed] = useState(false);
@@ -38,7 +41,7 @@ export default function LogScreen() {
             <Mono style={styles.link}>Kayıt yüklenemedi. Tekrar dene</Mono>
           </Pressable>
         ) : (
-          <ActivityIndicator color={colors.crimsonGlow} />
+          <ActivityIndicator color={theme.colors.crimsonGlow} />
         )}
       </View>
     );
@@ -65,7 +68,7 @@ export default function LogScreen() {
             setRound((r) => r + 1);
             setRefreshing(false);
           }}
-          tintColor={colors.crimsonGlow}
+          tintColor={theme.colors.crimsonGlow}
         />
       }
     >
@@ -89,14 +92,14 @@ export default function LogScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bgPrimary },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: t.colors.bgPrimary },
   content: { padding: 24, paddingBottom: 48 },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24, backgroundColor: colors.bgPrimary },
-  muted: { color: colors.textSecondary, textAlign: "center" },
-  link: { fontSize: 12, color: colors.crimsonGlow, textDecorationLine: "underline" },
-  eyebrow: { color: colors.crimsonGlow, letterSpacing: 2.5, marginBottom: 8 },
+  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24, backgroundColor: t.colors.bgPrimary },
+  muted: { color: t.colors.textSecondary, textAlign: "center" },
+  link: { fontSize: 12, color: t.colors.crimsonGlow, textDecorationLine: "underline" },
+  eyebrow: { color: t.colors.crimsonGlow, letterSpacing: 2.5, marginBottom: 8 },
   head: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: 12, marginBottom: 16 },
   title: { flex: 1, fontSize: 22 },
-  profile: { fontSize: 11, color: colors.textMuted, textDecorationLine: "underline" },
+  profile: { fontSize: 11, color: t.colors.textMuted, textDecorationLine: "underline" },
 });

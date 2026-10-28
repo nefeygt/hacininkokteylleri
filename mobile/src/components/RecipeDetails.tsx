@@ -1,9 +1,10 @@
 import { Wine } from "lucide-react-native";
 import { StyleSheet, View } from "react-native";
 import type { Cocktail } from "@/lib/content";
-import { alpha, colors, fonts } from "@/lib/theme";
+import { alpha, type Theme } from "@/lib/theme";
+import { useStyles, useTheme } from "@/lib/theme-context";
 import GlossaryText from "./GlossaryText";
-import { Label, Mono } from "./Type";
+import { Body, Label, Mono } from "./Type";
 import VisualQuantity from "./VisualQuantity";
 
 /**
@@ -11,6 +12,8 @@ import VisualQuantity from "./VisualQuantity";
  * for house and members' recipes, as on the site (ADR-014).
  */
 export default function RecipeDetails({ cocktail }: { cocktail: Cocktail }) {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   return (
     <View>
       <View style={styles.divider}>
@@ -45,27 +48,27 @@ export default function RecipeDetails({ cocktail }: { cocktail: Cocktail }) {
 
       {cocktail.garnish ? (
         <View style={styles.garnish}>
-          <Mono style={styles.prescription}>
+          <Body style={styles.prescription}>
             <Mono style={styles.garnishLabel}>SÜSLEME: </Mono>
-            <Mono style={styles.stepText}>{cocktail.garnish}</Mono>
-          </Mono>
+            <Body style={styles.stepText}>{cocktail.garnish}</Body>
+          </Body>
         </View>
       ) : null}
 
       {cocktail.note ? (
         <View style={styles.note}>
-          <Wine size={16} strokeWidth={1.5} color={alpha(colors.crimsonGlow, 0.6)} />
-          <Mono style={styles.noteText}>{cocktail.note}</Mono>
+          <Wine size={16} strokeWidth={1.5} color={alpha(theme.colors.crimsonGlow, 0.6)} />
+          <Body style={styles.noteText}>{cocktail.note}</Body>
         </View>
       ) : null}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t: Theme) => StyleSheet.create({
   divider: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 24 },
-  rx: { fontSize: 22, color: colors.crimsonGlow },
-  rule: { flex: 1, height: 1, backgroundColor: colors.border },
+  rx: { fontSize: 22, color: t.colors.crimsonGlow },
+  rule: { flex: 1, height: 1, backgroundColor: t.colors.border },
   section: { marginBottom: 32 },
   sectionTitle: { fontSize: 12, letterSpacing: 1.8, marginBottom: 16 },
   ingredient: {
@@ -76,24 +79,24 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     marginBottom: 12,
   },
-  ingredientRule: { borderBottomWidth: 1, borderBottomColor: alpha("#2a2a2a", 0.5) },
+  ingredientRule: { borderBottomWidth: 1, borderBottomColor: alpha(t.colors.border, 0.5) },
   ingredientName: { flexDirection: "row", alignItems: "center", gap: 12, flexShrink: 1 },
-  index: { fontSize: 10, color: colors.textMuted },
-  prescription: { fontFamily: fonts.mono, fontSize: 14, lineHeight: 21, color: colors.textPrimary },
+  index: { fontSize: 10, color: t.colors.textMuted },
+  prescription: { fontFamily: t.fonts.sans, fontSize: 15, lineHeight: 21, color: t.colors.textPrimary },
   step: { flexDirection: "row", gap: 12, marginBottom: 12 },
   stepNumber: {
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: alpha(colors.crimson, 0.15),
+    backgroundColor: alpha(t.colors.crimson, 0.15),
     alignItems: "center",
     justifyContent: "center",
     marginTop: 1,
   },
-  stepNumberText: { fontSize: 10, color: colors.crimsonGlow },
-  stepText: { color: colors.textSecondary },
-  garnish: { marginBottom: 24, borderRadius: 4, backgroundColor: alpha(colors.bgElevated, 0.5), paddingHorizontal: 16, paddingVertical: 12 },
-  garnishLabel: { fontSize: 10, letterSpacing: 1, color: colors.textMuted },
-  note: { flexDirection: "row", gap: 12, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 24 },
-  noteText: { flex: 1, fontFamily: fonts.monoItalic, fontSize: 12, lineHeight: 19, color: colors.textMuted },
+  stepNumberText: { fontSize: 10, color: t.colors.crimsonGlow },
+  stepText: { color: t.colors.textSecondary },
+  garnish: { marginBottom: 24, borderRadius: 4, backgroundColor: alpha(t.colors.bgElevated, 0.5), paddingHorizontal: 16, paddingVertical: 12 },
+  garnishLabel: { fontSize: 10, letterSpacing: 1, color: t.colors.textMuted },
+  note: { flexDirection: "row", gap: 12, borderTopWidth: 1, borderTopColor: t.colors.border, paddingTop: 24 },
+  noteText: { flex: 1, fontFamily: t.fonts.sans, fontSize: 13, lineHeight: 20, color: t.colors.textMuted },
 });

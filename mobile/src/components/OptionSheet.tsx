@@ -1,5 +1,6 @@
 import { Modal, Pressable, ScrollView, StyleSheet } from "react-native";
-import { alpha, colors } from "@/lib/theme";
+import { alpha, type Theme } from "@/lib/theme";
+import { useStyles } from "@/lib/theme-context";
 import { Label, Mono } from "./Type";
 
 export interface Option {
@@ -24,6 +25,7 @@ export default function OptionSheet({
   onPick: (value: string) => void;
   onClose: () => void;
 }) {
+  const styles = useStyles(makeStyles);
   return (
     <Modal visible={current !== null} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Kapat">
@@ -52,23 +54,23 @@ export default function OptionSheet({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t: Theme) => StyleSheet.create({
   backdrop: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24, backgroundColor: "rgba(0, 0, 0, 0.6)" },
   sheet: {
     width: "100%",
     maxWidth: 320,
     maxHeight: "70%",
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bgSecondary,
+    borderColor: t.colors.border,
+    backgroundColor: t.colors.bgSecondary,
     borderRadius: 8,
     paddingVertical: 12,
   },
-  title: { color: colors.textSecondary, fontSize: 11, letterSpacing: 1.5, paddingHorizontal: 16, marginBottom: 6 },
+  title: { color: t.colors.textSecondary, fontSize: 11, letterSpacing: 1.5, paddingHorizontal: 16, marginBottom: 6 },
   list: { flexGrow: 0 },
   option: { paddingHorizontal: 16, paddingVertical: 11 },
-  optionOn: { backgroundColor: alpha(colors.crimson, 0.25) },
-  optionPressed: { backgroundColor: colors.bgElevated },
-  optionText: { fontSize: 14, color: colors.textSecondary },
-  optionTextOn: { color: colors.textPrimary },
+  optionOn: { backgroundColor: alpha(t.colors.crimson, 0.25) },
+  optionPressed: { backgroundColor: t.colors.bgElevated },
+  optionText: { fontSize: 14, color: t.colors.textSecondary },
+  optionTextOn: { color: t.colors.textPrimary },
 });

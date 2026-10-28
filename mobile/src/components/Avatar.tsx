@@ -1,11 +1,13 @@
 import { Image } from "expo-image";
 import { StyleSheet, Text, View } from "react-native";
 import { avatarUrl } from "@/lib/supabase";
-import { colors, fonts } from "@/lib/theme";
+import { type Theme } from "@/lib/theme";
+import { useStyles } from "@/lib/theme-context";
 import { upperTr } from "./Type";
 
 /** A member's picture, or the first letter of their name when they have none (the site's Avatar). */
 export default function Avatar({ path, name, size }: { path: string | null | undefined; name: string; size: number }) {
+  const styles = useStyles(makeStyles);
   const url = avatarUrl(path);
   const shape = { width: size, height: size, borderRadius: size / 2 };
 
@@ -18,8 +20,8 @@ export default function Avatar({ path, name, size }: { path: string | null | und
   );
 }
 
-const styles = StyleSheet.create({
-  frame: { borderWidth: 1, borderColor: colors.border, backgroundColor: colors.bgElevated },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  frame: { borderWidth: 1, borderColor: t.colors.border, backgroundColor: t.colors.bgElevated },
   initial: { alignItems: "center", justifyContent: "center" },
-  letter: { fontFamily: fonts.mono, color: colors.textMuted },
+  letter: { fontFamily: t.fonts.mono, color: t.colors.textMuted },
 });

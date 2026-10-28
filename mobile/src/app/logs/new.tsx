@@ -11,7 +11,8 @@ import type { Writer } from "@/lib/community";
 import { fetchRecipe, type Cocktail } from "@/lib/content";
 import { leave, recipeOf } from "@/lib/drink-logs";
 import type { Settings } from "@/lib/session";
-import { colors, fonts, readable } from "@/lib/theme";
+import { readable, type Theme } from "@/lib/theme";
+import { useStyles, useTheme } from "@/lib/theme-context";
 
 /**
  * A new drink log (the site's /account/logs/new). Opened from a recipe with
@@ -19,6 +20,8 @@ import { colors, fonts, readable } from "@/lib/theme";
  * one, the member picks a house recipe first.
  */
 export default function NewLogScreen() {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   const { cocktail: fromRecipe } = useLocalSearchParams<{ cocktail?: string }>();
   const [picked, setPicked] = useState<string | null>(null);
   const slug = fromRecipe ?? picked;
@@ -30,7 +33,7 @@ export default function NewLogScreen() {
         if (!archive) {
           return (
             <View style={styles.center}>
-              <ActivityIndicator color={colors.crimsonGlow} />
+              <ActivityIndicator color={theme.colors.crimsonGlow} />
             </View>
           );
         }
@@ -39,7 +42,7 @@ export default function NewLogScreen() {
           return (
             <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
               <View style={readable}>
-                <Mono style={styles.subtitle}>Hangi kokteyli yaptın ya da içtin?</Mono>
+                <Body style={styles.subtitle}>Hangi kokteyli yaptın ya da içtin?</Body>
                 <View style={styles.picker}>
                   {archive.cocktails.map((c) => (
                     <Pressable
@@ -100,6 +103,8 @@ function NewLog({
   fromRecipe: boolean;
   onPickAnother: () => void;
 }) {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   const [member, setMember] = useState<Cocktail | null | undefined>(house ? null : undefined);
 
   useEffect(() => {
@@ -117,7 +122,7 @@ function NewLog({
   if (cocktail === undefined) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color={colors.crimsonGlow} />
+        <ActivityIndicator color={theme.colors.crimsonGlow} />
       </View>
     );
   }
@@ -138,7 +143,7 @@ function NewLog({
       <Stack.Screen options={{ title: cocktail.name }} />
       <View style={readable}>
         <Heading style={styles.title}>{cocktail.name}</Heading>
-        <Mono style={styles.subtitle}>Günlüğe ekle — tarifi yaptığın gibi düzenle.</Mono>
+        <Body style={styles.subtitle}>Günlüğe ekle — tarifi yaptığın gibi düzenle.</Body>
         <View style={styles.form}>
           <LogForm
             writer={writer}
@@ -161,14 +166,14 @@ function NewLog({
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bgPrimary },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: t.colors.bgPrimary },
   content: { padding: 24, paddingBottom: 48 },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, backgroundColor: colors.bgPrimary },
-  muted: { color: colors.textSecondary },
-  link: { fontSize: 12, color: colors.crimsonGlow, textDecorationLine: "underline" },
+  center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, backgroundColor: t.colors.bgPrimary },
+  muted: { color: t.colors.textSecondary },
+  link: { fontSize: 12, color: t.colors.crimsonGlow, textDecorationLine: "underline" },
   title: { fontSize: 24 },
-  subtitle: { marginTop: 4, fontSize: 12, color: colors.textMuted },
+  subtitle: { marginTop: 4, fontSize: 12, color: t.colors.textMuted },
   form: { marginTop: 24 },
   picker: { marginTop: 16, gap: 6 },
   option: {
@@ -176,15 +181,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 12,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bgCard,
+    borderColor: t.colors.border,
+    backgroundColor: t.colors.bgCard,
     borderRadius: 4,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
-  pressed: { borderColor: colors.borderLight },
+  pressed: { borderColor: t.colors.borderLight },
   swatch: { width: 4, height: 24, borderRadius: 2 },
   optionText: { flex: 1, minWidth: 0 },
-  optionName: { fontFamily: fonts.sansBold, fontSize: 14 },
-  optionSubtitle: { fontSize: 11, color: colors.textMuted },
+  optionName: { fontFamily: t.fonts.sansBold, fontSize: 14 },
+  optionSubtitle: { fontSize: 11, color: t.colors.textMuted },
 });

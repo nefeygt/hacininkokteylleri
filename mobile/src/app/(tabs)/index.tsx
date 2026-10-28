@@ -16,10 +16,13 @@ import { Body, Heading, Label, Mono } from "@/components/Type";
 import { useArchive } from "@/lib/archive";
 import { useFavorites } from "@/lib/favorites";
 import { useSession } from "@/lib/session";
-import { alpha, colors, fonts } from "@/lib/theme";
+import { alpha, type Theme } from "@/lib/theme";
+import { useStyles, useTheme } from "@/lib/theme-context";
 
 /** The archive: Hacı's recipes with the site's search and filters (/cocktails). */
 export default function ArchiveScreen() {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   const { archive, error, refreshing, refresh } = useArchive();
   const [filters, setFilters] = useState<ArchiveFilters>(NO_FILTERS);
   const [showFilters, setShowFilters] = useState(false);
@@ -57,7 +60,7 @@ export default function ArchiveScreen() {
             </Pressable>
           </>
         ) : (
-          <ActivityIndicator color={colors.crimsonGlow} />
+          <ActivityIndicator color={theme.colors.crimsonGlow} />
         )}
       </View>
     );
@@ -75,20 +78,20 @@ export default function ArchiveScreen() {
 
       <View style={styles.searchRow}>
         <View style={styles.searchBox}>
-          <Search size={16} color={colors.textMuted} />
+          <Search size={16} color={theme.colors.textMuted} />
           <TextInput
             value={filters.search}
             onChangeText={(search) => set({ search })}
             placeholder="Kokteyl, malzeme ara"
             numberOfLines={1}
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={theme.colors.textMuted}
             style={styles.searchInput}
             autoCorrect={false}
             returnKeyType="search"
           />
           {filters.search ? (
             <Pressable onPress={() => set({ search: "" })} hitSlop={10} accessibilityLabel="Aramayı temizle">
-              <X size={14} color={colors.textMuted} />
+              <X size={14} color={theme.colors.textMuted} />
             </Pressable>
           ) : null}
         </View>
@@ -98,8 +101,8 @@ export default function ArchiveScreen() {
           accessibilityRole="button"
           accessibilityState={{ expanded: showFilters }}
         >
-          <SlidersHorizontal size={14} color={showFilters ? colors.crimsonGlow : colors.textSecondary} />
-          <Mono style={[styles.filterButtonText, showFilters && { color: colors.crimsonGlow }]}>Filtrele</Mono>
+          <SlidersHorizontal size={14} color={showFilters ? theme.colors.crimsonGlow : theme.colors.textSecondary} />
+          <Mono style={[styles.filterButtonText, showFilters && { color: theme.colors.crimsonGlow }]}>Filtrele</Mono>
         </Pressable>
       </View>
 
@@ -140,8 +143,8 @@ export default function ArchiveScreen() {
               >
                 <Heart
                   size={12}
-                  color={onlyFavorites ? colors.crimsonGlow : colors.textMuted}
-                  fill={onlyFavorites ? colors.crimsonGlow : "transparent"}
+                  color={onlyFavorites ? theme.colors.crimsonGlow : theme.colors.textMuted}
+                  fill={onlyFavorites ? theme.colors.crimsonGlow : "transparent"}
                 />
                 <Mono style={[styles.chipText, onlyFavorites && styles.chipTextOn]}>Favorilerim ({favorites.size})</Mono>
               </Pressable>
@@ -185,12 +188,13 @@ export default function ArchiveScreen() {
       contentContainerStyle={styles.list}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="on-drag"
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshAll} tintColor={colors.crimsonGlow} />}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refreshAll} tintColor={theme.colors.crimsonGlow} />}
     />
   );
 }
 
 function FilterRow({ label, children }: { label: string; children: ReactNode }) {
+  const styles = useStyles(makeStyles);
   return (
     <View style={styles.filterRow}>
       <Label style={styles.filterLabel}>{label}</Label>
@@ -200,6 +204,7 @@ function FilterRow({ label, children }: { label: string; children: ReactNode }) 
 }
 
 function Chip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+  const styles = useStyles(makeStyles);
   return (
     <Pressable
       onPress={onPress}
@@ -212,15 +217,15 @@ function Chip({ label, active, onPress }: { label: string; active: boolean; onPr
   );
 }
 
-const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, backgroundColor: colors.bgPrimary },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, backgroundColor: t.colors.bgPrimary },
   list: { padding: 16, paddingBottom: 32 },
   gap: { height: 16 },
   titleBlock: { marginTop: 8, marginBottom: 24 },
-  eyebrow: { color: colors.crimsonGlow, letterSpacing: 2.5, marginBottom: 6 },
+  eyebrow: { color: t.colors.crimsonGlow, letterSpacing: 2.5, marginBottom: 6 },
   title: { fontSize: 28 },
-  count: { marginTop: 6, color: colors.textMuted },
-  countNumber: { fontFamily: fonts.mono, color: colors.textSecondary },
+  count: { marginTop: 6, color: t.colors.textMuted },
+  countNumber: { fontFamily: t.fonts.mono, color: t.colors.textSecondary },
   searchRow: { flexDirection: "row", gap: 10, marginBottom: 16 },
   searchBox: {
     flex: 1,
@@ -228,45 +233,45 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bgCard,
+    borderColor: t.colors.border,
+    backgroundColor: t.colors.bgCard,
     borderRadius: 4,
     paddingHorizontal: 12,
   },
-  searchInput: { flex: 1, paddingVertical: 10, fontFamily: fonts.mono, fontSize: 13, color: colors.textPrimary },
+  searchInput: { flex: 1, paddingVertical: 10, fontFamily: t.fonts.mono, fontSize: 13, color: t.colors.textPrimary },
   filterButton: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bgCard,
+    borderColor: t.colors.border,
+    backgroundColor: t.colors.bgCard,
     borderRadius: 4,
     paddingHorizontal: 12,
   },
-  filterButtonOn: { borderColor: alpha(colors.crimson, 0.3), backgroundColor: alpha(colors.crimson, 0.1) },
+  filterButtonOn: { borderColor: alpha(t.colors.crimson, 0.3), backgroundColor: alpha(t.colors.crimson, 0.1) },
   filterButtonText: { fontSize: 12 },
   filters: {
     gap: 18,
     marginBottom: 20,
     padding: 16,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: alpha(colors.bgCard, 0.5),
+    borderColor: t.colors.border,
+    backgroundColor: alpha(t.colors.bgCard, 0.5),
     borderRadius: 4,
   },
   filterRow: { gap: 8 },
   filterLabel: { letterSpacing: 1.5 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  chip: { backgroundColor: colors.bgElevated, borderRadius: 2, paddingHorizontal: 12, paddingVertical: 6 },
+  chip: { backgroundColor: t.colors.bgElevated, borderRadius: 2, paddingHorizontal: 12, paddingVertical: 6 },
   favoriteChip: { flexDirection: "row", alignItems: "center", gap: 6 },
-  chipOn: { backgroundColor: alpha(colors.crimson, 0.2) },
-  chipText: { fontSize: 11, color: colors.textMuted },
-  chipTextOn: { color: colors.crimsonGlow },
+  chipOn: { backgroundColor: alpha(t.colors.crimson, 0.2) },
+  chipText: { fontSize: 11, color: t.colors.textMuted },
+  chipTextOn: { color: t.colors.crimsonGlow },
   clear: { textDecorationLine: "underline", letterSpacing: 1 },
   results: { marginBottom: 16, letterSpacing: 2 },
   empty: { alignItems: "center", gap: 8, paddingVertical: 60 },
-  muted: { color: colors.textSecondary },
+  muted: { color: t.colors.textSecondary },
   retry: { padding: 8 },
-  link: { color: colors.crimsonGlow, textDecorationLine: "underline" },
+  link: { color: t.colors.crimsonGlow, textDecorationLine: "underline" },
 });

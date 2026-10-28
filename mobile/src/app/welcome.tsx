@@ -10,7 +10,8 @@ import { Body, Heading, Mono } from "@/components/Type";
 import { leaveAfterSignIn } from "@/lib/after-sign-in";
 import { nameOf, useSession } from "@/lib/session";
 import { SITE_URL, supabase } from "@/lib/supabase";
-import { colors, readable } from "@/lib/theme";
+import { readable, type Theme } from "@/lib/theme";
+import { useStyles } from "@/lib/theme-context";
 
 /** The site's /welcome: the 18+ confirmation and privacy notice first, then the profile (ADR-014). */
 export default function WelcomeScreen() {
@@ -22,6 +23,7 @@ export default function WelcomeScreen() {
 }
 
 function OnboardingForm({ userId, name, reload }: { userId: string; name: string; reload: () => Promise<void> }) {
+  const styles = useStyles(makeStyles);
   const [username, setUsername] = useState(suggestUsername(name));
   const [displayName, setDisplayName] = useState(name.slice(0, DISPLAY_NAME_MAX));
   const [adult, setAdult] = useState(false);
@@ -101,13 +103,13 @@ function OnboardingForm({ userId, name, reload }: { userId: string; name: string
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bgPrimary },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: t.colors.bgPrimary },
   content: { padding: 24, paddingBottom: 48, ...readable },
   title: { fontSize: 26, marginBottom: 8 },
-  subtitle: { color: colors.textSecondary, lineHeight: 22, marginBottom: 24 },
+  subtitle: { color: t.colors.textSecondary, lineHeight: 22, marginBottom: 24 },
   stack: { gap: 16 },
-  consents: { gap: 12, borderWidth: 1, borderColor: colors.border, borderRadius: 4, padding: 12 },
-  consent: { fontSize: 12, lineHeight: 18, color: colors.textSecondary },
+  consents: { gap: 12, borderWidth: 1, borderColor: t.colors.border, borderRadius: 4, padding: 12 },
+  consent: { fontSize: 12, lineHeight: 18, color: t.colors.textSecondary },
   link: { textDecorationLine: "underline" },
 });

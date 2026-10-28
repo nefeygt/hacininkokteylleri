@@ -9,7 +9,8 @@ import MemberGate from "@/components/MemberGate";
 import { Body, Heading, Mono } from "@/components/Type";
 import type { Writer } from "@/lib/community";
 import { fetchMyLog, leave, type DrinkLog } from "@/lib/drink-logs";
-import { colors, readable } from "@/lib/theme";
+import { readable, type Theme } from "@/lib/theme";
+import { useStyles, useTheme } from "@/lib/theme-context";
 
 /** Edit or delete one of the member's own drink logs (the site's /account/logs/{id}). */
 export default function EditLogScreen() {
@@ -18,6 +19,8 @@ export default function EditLogScreen() {
 }
 
 function EditLog({ writer, id }: { writer: Writer; id: string }) {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   const [log, setLog] = useState<DrinkLog | null | undefined>(undefined);
   const [failed, setFailed] = useState(false);
 
@@ -42,7 +45,7 @@ function EditLog({ writer, id }: { writer: Writer; id: string }) {
             <Mono style={styles.link}>Kayıt yüklenemedi. Tekrar dene</Mono>
           </Pressable>
         ) : (
-          <ActivityIndicator color={colors.crimsonGlow} />
+          <ActivityIndicator color={theme.colors.crimsonGlow} />
         )}
       </View>
     );
@@ -63,7 +66,7 @@ function EditLog({ writer, id }: { writer: Writer; id: string }) {
       <Stack.Screen options={{ title: recipe.name }} />
       <View style={readable}>
         <Heading style={styles.title}>{recipe.name}</Heading>
-        <Mono style={styles.subtitle}>{formatLogDate(log.drunk_on)} kaydını düzenle.</Mono>
+        <Body style={styles.subtitle}>{formatLogDate(log.drunk_on)} kaydını düzenle.</Body>
         {log.hidden_at && (
           <View style={styles.notice}>
             <Notice>Bu kayıt bir yönetici tarafından gizlendi; yalnızca sen görüyorsun.</Notice>
@@ -90,14 +93,14 @@ function EditLog({ writer, id }: { writer: Writer; id: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bgPrimary },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: t.colors.bgPrimary },
   content: { padding: 24, paddingBottom: 48 },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bgPrimary },
-  muted: { color: colors.textSecondary },
-  link: { fontSize: 12, color: colors.crimsonGlow, textDecorationLine: "underline" },
+  center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: t.colors.bgPrimary },
+  muted: { color: t.colors.textSecondary },
+  link: { fontSize: 12, color: t.colors.crimsonGlow, textDecorationLine: "underline" },
   title: { fontSize: 24 },
-  subtitle: { marginTop: 4, fontSize: 12, color: colors.textMuted },
+  subtitle: { marginTop: 4, fontSize: 12, color: t.colors.textMuted },
   notice: { marginTop: 16 },
   form: { marginTop: 24 },
 });

@@ -6,7 +6,8 @@ import { askToSignIn } from "@/lib/after-sign-in";
 import type { Writer } from "@/lib/community";
 import { useSession } from "@/lib/session";
 import { addComment, deleteComment, fetchComments, formatCommentTime, type LogComment } from "@/lib/social";
-import { alpha, colors, fonts } from "@/lib/theme";
+import { alpha, type Theme } from "@/lib/theme";
+import { useStyles, useTheme } from "@/lib/theme-context";
 import Avatar from "./Avatar";
 import { Button, Message } from "./Form";
 import ReportButton from "./ReportButton";
@@ -18,6 +19,8 @@ import { Body, Label, Mono } from "./Type";
  * "kayıt sahibi", and may remove comments on their own log.
  */
 export default function LogComments({ logId, ownerId }: { logId: string; ownerId: string }) {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   const session = useSession();
   const writer: Writer | null = session.state === "ok" ? { id: session.profile.id, username: session.profile.username } : null;
   const memberId = writer?.id ?? null;
@@ -104,7 +107,7 @@ export default function LogComments({ logId, ownerId }: { logId: string; ownerId
               maxLength={LOG_COMMENT_MAX_LENGTH}
               multiline
               placeholder={memberId === ownerId ? "Yanıt yaz…" : "Yorum yaz…"}
-              placeholderTextColor={colors.textMuted}
+              placeholderTextColor={theme.colors.textMuted}
               accessibilityLabel="Yorum"
               style={styles.input}
             />
@@ -130,6 +133,7 @@ function CommentItem({
   canDelete: boolean;
   onDeleted: () => Promise<void>;
 }) {
+  const styles = useStyles(makeStyles);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -193,40 +197,40 @@ function CommentItem({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t: Theme) => StyleSheet.create({
   section: { marginTop: 32 },
   title: { fontSize: 11, letterSpacing: 1.5, marginBottom: 14 },
-  count: { fontSize: 11, color: colors.textMuted, opacity: 0.6 },
-  muted: { fontSize: 12, color: colors.textMuted },
+  count: { fontSize: 11, color: t.colors.textMuted, opacity: 0.6 },
+  muted: { fontSize: 12, color: t.colors.textMuted },
   list: { gap: 18 },
   item: { flexDirection: "row", gap: 12 },
   hidden: { opacity: 0.6 },
   itemBody: { flex: 1, minWidth: 0 },
   itemHead: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 8, rowGap: 4 },
-  name: { fontFamily: fonts.sansBold, fontSize: 14 },
-  ownerBadge: { backgroundColor: alpha(colors.crimson, 0.15), borderRadius: 3, paddingHorizontal: 6, paddingVertical: 2 },
-  ownerText: { fontSize: 9, letterSpacing: 1, color: colors.crimsonGlow },
-  time: { fontSize: 10, color: colors.textMuted },
-  text: { marginTop: 4, fontSize: 14, lineHeight: 20, color: colors.textSecondary },
-  hiddenNote: { marginTop: 4, fontSize: 11, color: colors.crimsonGlow },
+  name: { fontFamily: t.fonts.sansBold, fontSize: 14 },
+  ownerBadge: { backgroundColor: alpha(t.colors.crimson, 0.15), borderRadius: 3, paddingHorizontal: 6, paddingVertical: 2 },
+  ownerText: { fontSize: 9, letterSpacing: 1, color: t.colors.crimsonGlow },
+  time: { fontSize: 10, color: t.colors.textMuted },
+  text: { marginTop: 4, fontSize: 14, lineHeight: 20, color: t.colors.textSecondary },
+  hiddenNote: { marginTop: 4, fontSize: 11, color: t.colors.crimsonGlow },
   actions: { marginTop: 6, flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 16 },
-  action: { fontSize: 10, color: colors.textMuted, textDecorationLine: "underline" },
-  danger: { color: colors.crimsonGlow },
+  action: { fontSize: 10, color: t.colors.textMuted, textDecorationLine: "underline" },
+  danger: { color: t.colors.crimsonGlow },
   compose: { marginTop: 24 },
-  prompt: { gap: 12, alignItems: "flex-start", backgroundColor: alpha(colors.bgElevated, 0.5), borderRadius: 4, padding: 14 },
-  promptText: { fontSize: 12, color: colors.textSecondary },
-  form: { gap: 8, borderWidth: 1, borderColor: colors.border, backgroundColor: alpha(colors.bgElevated, 0.4), borderRadius: 4, padding: 12 },
+  prompt: { gap: 12, alignItems: "flex-start", backgroundColor: alpha(t.colors.bgElevated, 0.5), borderRadius: 4, padding: 14 },
+  promptText: { fontSize: 12, color: t.colors.textSecondary },
+  form: { gap: 8, borderWidth: 1, borderColor: t.colors.border, backgroundColor: alpha(t.colors.bgElevated, 0.4), borderRadius: 4, padding: 12 },
   input: {
     minHeight: 64,
     textAlignVertical: "top",
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bgCard,
+    borderColor: t.colors.border,
+    backgroundColor: t.colors.bgCard,
     borderRadius: 4,
     paddingHorizontal: 10,
     paddingVertical: 8,
-    color: colors.textPrimary,
-    fontFamily: fonts.sans,
+    color: t.colors.textPrimary,
+    fontFamily: t.fonts.sans,
     fontSize: 14,
   },
   send: { alignSelf: "flex-start" },

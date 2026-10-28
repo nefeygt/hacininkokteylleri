@@ -3,7 +3,8 @@ import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react-native";
 import { useState } from "react";
 import { Modal, Pressable, StyleSheet, View } from "react-native";
 import { shiftDate } from "@/lib/drink-logs";
-import { alpha, colors, fonts } from "@/lib/theme";
+import { alpha, type Theme } from "@/lib/theme";
+import { useStyles, useTheme } from "@/lib/theme-context";
 import { Label, Mono } from "./Type";
 
 const EARLIEST = "2000-01-01";
@@ -24,6 +25,8 @@ const isoOf = (year: number, month: number, day: number) => `${year}-${pad(month
  * after `today` (today in Turkey; ADR-017).
  */
 export default function DateField({ value, today, onChange }: { value: string; today: string; onChange: (date: string) => void }) {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   const [open, setOpen] = useState(false);
   const atEarliest = value <= EARLIEST;
   const atToday = value >= today;
@@ -40,7 +43,7 @@ export default function DateField({ value, today, onChange }: { value: string; t
           accessibilityRole="button"
           accessibilityLabel="Önceki gün"
         >
-          <ChevronLeft size={18} color={colors.textSecondary} />
+          <ChevronLeft size={18} color={theme.colors.textSecondary} />
         </Pressable>
         <Pressable
           onPress={() => setOpen(true)}
@@ -48,7 +51,7 @@ export default function DateField({ value, today, onChange }: { value: string; t
           accessibilityRole="button"
           accessibilityLabel={`Tarih: ${formatLogDate(value)}. Takvimi aç`}
         >
-          <CalendarDays size={14} color={colors.textMuted} />
+          <CalendarDays size={14} color={theme.colors.textMuted} />
           <Mono style={styles.date}>{formatLogDate(value)}</Mono>
         </Pressable>
         <Pressable
@@ -59,7 +62,7 @@ export default function DateField({ value, today, onChange }: { value: string; t
           accessibilityRole="button"
           accessibilityLabel="Sonraki gün"
         >
-          <ChevronRight size={18} color={colors.textSecondary} />
+          <ChevronRight size={18} color={theme.colors.textSecondary} />
         </Pressable>
       </View>
       <View style={styles.chips}>
@@ -100,6 +103,8 @@ export default function DateField({ value, today, onChange }: { value: string; t
 }
 
 function Calendar({ value, today, onPick }: { value: string; today: string; onPick: (date: string) => void }) {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   const [year, setYear] = useState(Number(value.slice(0, 4)));
   const [month, setMonth] = useState(Number(value.slice(5, 7)));
 
@@ -123,11 +128,11 @@ function Calendar({ value, today, onPick }: { value: string; today: string; onPi
     <View>
       <View style={styles.calendarHead}>
         <Pressable onPress={() => move(-1)} disabled={!canBack} hitSlop={8} style={[styles.step, !canBack && styles.off]} accessibilityRole="button" accessibilityLabel="Önceki ay">
-          <ChevronLeft size={18} color={colors.textSecondary} />
+          <ChevronLeft size={18} color={theme.colors.textSecondary} />
         </Pressable>
         <Mono style={styles.month}>{monthTitle(year, month)}</Mono>
         <Pressable onPress={() => move(1)} disabled={!canForward} hitSlop={8} style={[styles.step, !canForward && styles.off]} accessibilityRole="button" accessibilityLabel="Sonraki ay">
-          <ChevronRight size={18} color={colors.textSecondary} />
+          <ChevronRight size={18} color={theme.colors.textSecondary} />
         </Pressable>
       </View>
       <View style={styles.grid}>
@@ -162,45 +167,45 @@ function Calendar({ value, today, onPick }: { value: string; today: string; onPi
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t: Theme) => StyleSheet.create({
   group: { gap: 8 },
-  label: { color: colors.textSecondary, fontSize: 11, letterSpacing: 1.5 },
+  label: { color: t.colors.textSecondary, fontSize: 11, letterSpacing: 1.5 },
   row: {
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bgPrimary,
+    borderColor: t.colors.border,
+    backgroundColor: t.colors.bgPrimary,
     borderRadius: 4,
   },
   step: { paddingHorizontal: 12, paddingVertical: 10 },
   off: { opacity: 0.3 },
   dateButton: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 10 },
-  date: { fontSize: 14, color: colors.textPrimary },
+  date: { fontSize: 14, color: t.colors.textPrimary },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  chip: { borderRadius: 999, backgroundColor: colors.bgElevated, paddingHorizontal: 12, paddingVertical: 5 },
-  chipOn: { backgroundColor: alpha(colors.crimson, 0.3) },
-  chipText: { fontSize: 11, color: colors.textMuted },
-  chipTextOn: { color: colors.textPrimary },
+  chip: { borderRadius: 999, backgroundColor: t.colors.bgElevated, paddingHorizontal: 12, paddingVertical: 5 },
+  chipOn: { backgroundColor: alpha(t.colors.crimson, 0.3) },
+  chipText: { fontSize: 11, color: t.colors.textMuted },
+  chipTextOn: { color: t.colors.textPrimary },
   backdrop: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24, backgroundColor: "rgba(0, 0, 0, 0.6)" },
   sheet: {
     width: "100%",
     maxWidth: 360,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bgSecondary,
+    borderColor: t.colors.border,
+    backgroundColor: t.colors.bgSecondary,
     borderRadius: 8,
     padding: 12,
   },
   calendarHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 },
-  month: { fontFamily: fonts.mono, fontSize: 14, color: colors.textPrimary },
+  month: { fontFamily: t.fonts.mono, fontSize: 14, color: t.colors.textPrimary },
   grid: { flexDirection: "row", flexWrap: "wrap" },
   cell: { width: `${100 / 7}%`, aspectRatio: 1, alignItems: "center", justifyContent: "center" },
-  weekday: { fontSize: 10, color: colors.textMuted },
+  weekday: { fontSize: 10, color: t.colors.textMuted },
   day: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
-  daySelected: { backgroundColor: colors.crimson },
-  dayToday: { borderWidth: 1, borderColor: colors.borderLight },
-  dayText: { fontSize: 13, color: colors.textPrimary },
-  dayDisabled: { color: colors.textMuted, opacity: 0.4 },
+  daySelected: { backgroundColor: t.colors.crimson },
+  dayToday: { borderWidth: 1, borderColor: t.colors.borderLight },
+  dayText: { fontSize: 13, color: t.colors.textPrimary },
+  dayDisabled: { color: t.colors.textMuted, opacity: 0.4 },
   dayTextSelected: { color: "#fff" },
 });

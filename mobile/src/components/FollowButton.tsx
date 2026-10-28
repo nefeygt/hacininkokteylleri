@@ -3,7 +3,8 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { askToSignIn } from "@/lib/after-sign-in";
 import { useSession } from "@/lib/session";
 import { isFollowing, setFollow } from "@/lib/social";
-import { colors } from "@/lib/theme";
+import { type Theme } from "@/lib/theme";
+import { useStyles, useTheme } from "@/lib/theme-context";
 import { Mono } from "./Type";
 
 /**
@@ -12,6 +13,8 @@ import { Mono } from "./Type";
  * back to the profile. `onChanged` lets the screen reload the counts.
  */
 export default function FollowButton({ profile, onChanged }: { profile: { id: string; username: string }; onChanged: () => void }) {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   const session = useSession();
   const member = session.state === "ok" ? session.profile : null;
   const [following, setFollowing] = useState<boolean | null>(null);
@@ -44,7 +47,7 @@ export default function FollowButton({ profile, onChanged }: { profile: { id: st
     );
   }
 
-  if (following === null) return <ActivityIndicator size="small" color={colors.textMuted} />;
+  if (following === null) return <ActivityIndicator size="small" color={theme.colors.textMuted} />;
 
   async function toggle() {
     if (!member || following === null) return;
@@ -77,13 +80,13 @@ export default function FollowButton({ profile, onChanged }: { profile: { id: st
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t: Theme) => StyleSheet.create({
   wrap: { gap: 6, alignItems: "flex-start" },
   button: { borderRadius: 4, paddingHorizontal: 16, paddingVertical: 8 },
-  solid: { backgroundColor: colors.crimson },
+  solid: { backgroundColor: t.colors.crimson },
   solidText: { fontSize: 12, color: "#fff" },
-  outline: { borderWidth: 1, borderColor: colors.borderLight },
-  outlineText: { fontSize: 12, color: colors.textSecondary },
+  outline: { borderWidth: 1, borderColor: t.colors.borderLight },
+  outlineText: { fontSize: 12, color: t.colors.textSecondary },
   off: { opacity: 0.6 },
-  error: { fontSize: 10, color: colors.crimsonGlow },
+  error: { fontSize: 10, color: t.colors.crimsonGlow },
 });

@@ -5,7 +5,8 @@ import { StyleSheet, View } from "react-native";
 import { authErrorMessage, MIN_PASSWORD_LENGTH } from "@shared/account-config";
 import { appleAvailable, googleAvailable, signInWithApple, signInWithGoogle, type NativeSignInResult } from "@/lib/native-auth";
 import { SITE_URL, supabase } from "@/lib/supabase";
-import { colors, readable } from "@/lib/theme";
+import { readable, type Theme } from "@/lib/theme";
+import { useStyles } from "@/lib/theme-context";
 import { Button, Divider, Field, Message, Notice } from "./Form";
 import { Body, Heading, Label, Mono } from "./Type";
 
@@ -40,6 +41,7 @@ const TITLES: Record<Mode, string> = {
  * in here (ADR-020).
  */
 export default function SignIn() {
+  const styles = useStyles(makeStyles);
   const [error, setError] = useState<string | null>(null);
   const [nativePending, setNativePending] = useState<"google" | "apple" | null>(null);
   const [apple, setApple] = useState(false);
@@ -100,6 +102,7 @@ export default function SignIn() {
 }
 
 function EmailForm() {
+  const styles = useStyles(makeStyles);
   const [mode, setMode] = useState<Mode>("sign-in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -198,14 +201,14 @@ function EmailForm() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t: Theme) => StyleSheet.create({
   card: { padding: 24, ...readable },
-  eyebrow: { color: colors.crimsonGlow, letterSpacing: 2.5, marginBottom: 6 },
+  eyebrow: { color: t.colors.crimsonGlow, letterSpacing: 2.5, marginBottom: 6 },
   title: { fontSize: 26, marginBottom: 8 },
-  subtitle: { color: colors.textSecondary, lineHeight: 22, marginBottom: 24 },
+  subtitle: { color: t.colors.textSecondary, lineHeight: 22, marginBottom: 24 },
   stack: { gap: 16 },
   apple: { height: 44 },
   switches: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", gap: 8 },
-  legal: { fontSize: 11, lineHeight: 17, color: colors.textMuted },
-  link: { fontSize: 11, color: colors.textMuted, textDecorationLine: "underline" },
+  legal: { fontSize: 11, lineHeight: 17, color: t.colors.textMuted },
+  link: { fontSize: 11, color: t.colors.textMuted, textDecorationLine: "underline" },
 });

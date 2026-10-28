@@ -1,21 +1,22 @@
 import { Tabs } from "expo-router";
 import { BookOpen, Newspaper, UserRound } from "lucide-react-native";
-import { colors, fonts } from "@/lib/theme";
+import { useTheme } from "@/lib/theme-context";
 
 // The site's navbar as tabs: Kokteyller (the archive), Akış (the feed), Hesap.
 export default function TabLayout() {
+  const theme = useTheme();
   return (
     <Tabs
       screenOptions={{
-        headerStyle: { backgroundColor: colors.bgSecondary },
-        headerTintColor: colors.textPrimary,
-        headerTitleStyle: { fontFamily: fonts.sansBold },
+        headerStyle: { backgroundColor: theme.colors.bgSecondary },
+        headerTintColor: theme.colors.textPrimary,
+        headerTitleStyle: { fontFamily: theme.fonts.displayBold },
         headerShadowVisible: false,
-        tabBarStyle: { backgroundColor: colors.bgSecondary, borderTopColor: colors.border },
-        tabBarActiveTintColor: colors.crimsonGlow,
-        tabBarInactiveTintColor: colors.textMuted,
-        tabBarLabelStyle: { fontFamily: fonts.mono, fontSize: 10 },
-        sceneStyle: { backgroundColor: colors.bgPrimary },
+        tabBarStyle: { backgroundColor: theme.colors.bgSecondary, borderTopColor: theme.colors.border },
+        tabBarActiveTintColor: theme.colors.crimsonGlow,
+        tabBarInactiveTintColor: theme.colors.textMuted,
+        tabBarLabelStyle: { fontFamily: theme.fonts.mono, fontSize: 10 },
+        sceneStyle: { backgroundColor: theme.colors.bgPrimary },
       }}
     >
       <Tabs.Screen

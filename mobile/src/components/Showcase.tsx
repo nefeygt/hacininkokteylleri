@@ -17,7 +17,8 @@ import {
   type Eligible,
   type MyEntry,
 } from "@/lib/showcase";
-import { alpha, colors, fonts } from "@/lib/theme";
+import { alpha, type Theme } from "@/lib/theme";
+import { useStyles, useTheme } from "@/lib/theme-context";
 import CocktailCard from "./CocktailCard";
 import { Button, Message } from "./Form";
 import OptionSheet from "./OptionSheet";
@@ -40,6 +41,7 @@ export default function ShowcaseSection({
   winner: ShowcaseEntry | null;
   onChanged: () => void;
 }) {
+  const styles = useStyles(makeStyles);
   const { period, entries } = showcase;
   if (!period && !winner) return null;
   const state = period ? periodState(period) : null;
@@ -84,6 +86,8 @@ export default function ShowcaseSection({
 
 /** "Vitrine başvur" (the site's ShowcaseApply): one application per member per period, with a photo recipe and a pitch. */
 function ShowcaseApply({ period, onChanged }: { period: ShowcasePeriod; onChanged: () => void }) {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   const session = useSession();
   const writer: Writer | null = session.state === "ok" ? { id: session.profile.id, username: session.profile.username } : null;
   const memberId = writer?.id ?? null;
@@ -230,7 +234,7 @@ function ShowcaseApply({ period, onChanged }: { period: ShowcasePeriod; onChange
               <Body style={styles.selectText} numberOfLines={1}>
                 {chosen?.name ?? "Tarif seç"}
               </Body>
-              <ChevronDown size={16} color={colors.textMuted} />
+              <ChevronDown size={16} color={theme.colors.textMuted} />
             </Pressable>
           </View>
           <View style={styles.field}>
@@ -241,7 +245,7 @@ function ShowcaseApply({ period, onChanged }: { period: ShowcasePeriod; onChange
               maxLength={PITCH_MAX_LENGTH}
               multiline
               placeholder="Tarifini birkaç cümleyle tanıt."
-              placeholderTextColor={colors.textMuted}
+              placeholderTextColor={theme.colors.textMuted}
               accessibilityLabel="Neden vitrinde olmalı?"
               style={styles.input}
             />
@@ -275,6 +279,8 @@ function ShowcaseApply({ period, onChanged }: { period: ShowcasePeriod; onChange
 
 /** The approved entries with their upvotes (the site's ShowcaseEntries); the member's own votes are private. */
 function ShowcaseEntries({ period, entries, onChanged }: { period: ShowcasePeriod; entries: ShowcaseEntry[]; onChanged: () => void }) {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   const session = useSession();
   const { favorites } = useFavorites();
   const writer: Writer | null = session.state === "ok" ? { id: session.profile.id, username: session.profile.username } : null;
@@ -353,12 +359,12 @@ function ShowcaseEntries({ period, entries, onChanged }: { period: ShowcasePerio
                     accessibilityLabel={mine ? `Oyunu geri al, ${count} oy` : `Oy ver, ${count} oy`}
                     accessibilityState={{ selected: mine, busy: busy === entry.id }}
                   >
-                    <ArrowBigUp size={16} color={mine ? "#fff" : colors.textSecondary} fill={mine ? "#fff" : "transparent"} />
+                    <ArrowBigUp size={16} color={mine ? "#fff" : theme.colors.textSecondary} fill={mine ? "#fff" : "transparent"} />
                     <Mono style={[styles.voteText, mine && styles.voteTextOn]}>{count}</Mono>
                   </Pressable>
                 ) : (
                   <View style={styles.voteStatic}>
-                    <ArrowBigUp size={16} color={colors.textMuted} />
+                    <ArrowBigUp size={16} color={theme.colors.textMuted} />
                     <Mono style={styles.small}>{count} oy</Mono>
                   </View>
                 )}
@@ -373,97 +379,97 @@ function ShowcaseEntries({ period, entries, onChanged }: { period: ShowcasePerio
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t: Theme) => StyleSheet.create({
   section: {
     marginTop: 32,
     borderWidth: 1,
-    borderColor: alpha(colors.crimson, 0.3),
-    backgroundColor: alpha(colors.crimson, 0.03),
+    borderColor: alpha(t.colors.crimson, 0.3),
+    backgroundColor: alpha(t.colors.crimson, 0.03),
     borderRadius: 2,
     padding: 16,
   },
   head: { flexDirection: "row", alignItems: "baseline", flexWrap: "wrap", columnGap: 12, rowGap: 4 },
-  title: { fontSize: 11, letterSpacing: 1.5, color: colors.crimsonGlow },
-  period: { fontSize: 11, color: colors.textSecondary },
-  hint: { marginTop: 4, fontSize: 10, lineHeight: 15, color: alpha(colors.textMuted, 0.8) },
+  title: { fontSize: 11, letterSpacing: 1.5, color: t.colors.crimsonGlow },
+  period: { fontSize: 11, color: t.colors.textSecondary },
+  hint: { marginTop: 4, fontSize: 10, lineHeight: 15, color: alpha(t.colors.textMuted, 0.8) },
   block: { marginTop: 16, alignItems: "flex-start" },
   box: {
     alignItems: "stretch",
     gap: 10,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: alpha(colors.bgCard, 0.6),
+    borderColor: t.colors.border,
+    backgroundColor: alpha(t.colors.bgCard, 0.6),
     borderRadius: 4,
     padding: 14,
   },
   gap: { gap: 12 },
-  muted: { marginTop: 12, fontSize: 12, lineHeight: 18, color: colors.textMuted },
-  link: { fontSize: 12, color: colors.textSecondary, textDecorationLine: "underline" },
-  small: { fontSize: 11, color: colors.textMuted },
-  danger: { color: colors.crimsonGlow },
+  muted: { marginTop: 12, fontSize: 12, lineHeight: 18, color: t.colors.textMuted },
+  link: { fontSize: 12, color: t.colors.textSecondary, textDecorationLine: "underline" },
+  small: { fontSize: 11, color: t.colors.textMuted },
+  danger: { color: t.colors.crimsonGlow },
   row: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 12 },
   push: { flex: 1 },
   off: { opacity: 0.6 },
   mineHead: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 10 },
   mineLabel: { fontSize: 11, letterSpacing: 1.5 },
-  mineRecipe: { fontSize: 11, color: colors.textSecondary },
+  mineRecipe: { fontSize: 11, color: t.colors.textSecondary },
   badge: { borderRadius: 3, paddingHorizontal: 6, paddingVertical: 2 },
   badgeText: { fontSize: 11 },
-  approved: { backgroundColor: "rgba(20, 83, 45, 0.4)" },
-  approvedText: { color: colors.vegan },
-  rejected: { backgroundColor: alpha(colors.crimson, 0.15) },
-  rejectedText: { color: colors.crimsonGlow },
-  pending: { backgroundColor: colors.bgElevated },
-  pendingText: { color: colors.textSecondary },
-  pitch: { fontSize: 14, lineHeight: 20, color: colors.textSecondary },
+  approved: { backgroundColor: alpha(t.colors.veganBg, 0.4) },
+  approvedText: { color: t.colors.vegan },
+  rejected: { backgroundColor: alpha(t.colors.crimson, 0.15) },
+  rejectedText: { color: t.colors.crimsonGlow },
+  pending: { backgroundColor: t.colors.bgElevated },
+  pendingText: { color: t.colors.textSecondary },
+  pitch: { fontSize: 14, lineHeight: 20, color: t.colors.textSecondary },
   field: { gap: 6 },
-  fieldLabel: { color: colors.textSecondary, fontSize: 11, letterSpacing: 1.5 },
+  fieldLabel: { color: t.colors.textSecondary, fontSize: 11, letterSpacing: 1.5 },
   select: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bgCard,
+    borderColor: t.colors.border,
+    backgroundColor: t.colors.bgCard,
     borderRadius: 4,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
-  selectText: { flex: 1, fontSize: 14, color: colors.textPrimary },
+  selectText: { flex: 1, fontSize: 14, color: t.colors.textPrimary },
   input: {
     minHeight: 84,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bgCard,
+    borderColor: t.colors.border,
+    backgroundColor: t.colors.bgCard,
     borderRadius: 4,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    color: colors.textPrimary,
-    fontFamily: fonts.sans,
+    color: t.colors.textPrimary,
+    fontFamily: t.fonts.sans,
     fontSize: 14,
     textAlignVertical: "top",
   },
-  counter: { alignSelf: "flex-end", fontSize: 10, color: colors.textMuted },
-  note: { fontSize: 10, lineHeight: 15, color: colors.textMuted },
+  counter: { alignSelf: "flex-end", fontSize: 10, color: t.colors.textMuted },
+  note: { fontSize: 10, lineHeight: 15, color: t.colors.textMuted },
   entries: { marginTop: 20, gap: 16 },
   entryFoot: {
     gap: 12,
     borderWidth: 1,
     borderTopWidth: 0,
-    borderColor: colors.border,
-    backgroundColor: alpha(colors.bgCard, 0.6),
+    borderColor: t.colors.border,
+    backgroundColor: alpha(t.colors.bgCard, 0.6),
     borderBottomLeftRadius: 2,
     borderBottomRightRadius: 2,
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
   vote: { flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 4, paddingHorizontal: 12, paddingVertical: 6 },
-  voteOn: { backgroundColor: colors.crimson },
-  voteOff: { borderWidth: 1, borderColor: colors.border },
-  voteText: { fontSize: 12, color: colors.textSecondary },
+  voteOn: { backgroundColor: t.colors.crimson },
+  voteOff: { borderWidth: 1, borderColor: t.colors.border },
+  voteText: { fontSize: 12, color: t.colors.textSecondary },
   voteTextOn: { color: "#fff" },
   voteStatic: { flexDirection: "row", alignItems: "center", gap: 6 },
   winner: { marginTop: 20, flexDirection: "row", flexWrap: "wrap", alignItems: "baseline" },
-  winnerText: { fontSize: 11, color: colors.textMuted },
-  winnerName: { color: colors.textSecondary },
+  winnerText: { fontSize: 11, color: t.colors.textMuted },
+  winnerName: { color: t.colors.textSecondary },
 });

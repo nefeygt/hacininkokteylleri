@@ -4,8 +4,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Heart, Leaf, Star, Wine } from "lucide-react-native";
 import { Pressable, StyleSheet, View } from "react-native";
 import type { Cocktail } from "@/lib/content";
-import { alpha, colors } from "@/lib/theme";
-import { Heading, Label, Mono } from "./Type";
+import { alpha, type Theme } from "@/lib/theme";
+import { useStyles, useTheme } from "@/lib/theme-context";
+import { Body, Heading, Label, Mono } from "./Type";
 
 /** A recipe's poster, as in the site's archive grid. */
 export default function CocktailCard({
@@ -17,6 +18,8 @@ export default function CocktailCard({
   favorite?: boolean;
   onPress: () => void;
 }) {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   return (
     <Pressable
       onPress={onPress}
@@ -29,20 +32,20 @@ export default function CocktailCard({
           <Image source={cocktail.imageUrl} style={StyleSheet.absoluteFill} contentFit="cover" transition={200} />
         ) : (
           <View style={[StyleSheet.absoluteFill, styles.placeholder, { backgroundColor: alpha(cocktail.color, 0.12) }]}>
-            <Wine size={40} strokeWidth={1} color={alpha(colors.textMuted, 0.3)} />
+            <Wine size={40} strokeWidth={1} color={alpha(theme.colors.textMuted, 0.3)} />
           </View>
         )}
         <View style={[styles.strip, { backgroundColor: cocktail.color }]} />
-        <LinearGradient colors={["transparent", colors.bgCard]} style={styles.vignette} />
+        <LinearGradient colors={["transparent", theme.colors.bgCard]} style={styles.vignette} />
         <View style={styles.badges}>
           {cocktail.vegan && (
-            <View style={[styles.badge, { backgroundColor: colors.veganBg }]}>
-              <Leaf size={12} color={colors.vegan} />
+            <View style={[styles.badge, { backgroundColor: alpha(theme.colors.veganBg, 0.6) }]}>
+              <Leaf size={12} color={theme.colors.vegan} />
             </View>
           )}
           {favorite && (
             <View style={[styles.badge, { backgroundColor: "rgba(0,0,0,0.4)" }]}>
-              <Heart size={12} color={colors.crimsonGlow} fill={colors.crimsonGlow} />
+              <Heart size={12} color={theme.colors.crimsonGlow} fill={theme.colors.crimsonGlow} />
             </View>
           )}
         </View>
@@ -55,16 +58,16 @@ export default function CocktailCard({
           </Label>
           {cocktail.rating && (
             <View style={styles.rating} accessibilityLabel={`${cocktail.rating.count} değerlendirme`}>
-              <Star size={12} color={colors.crimsonGlow} fill={colors.crimsonGlow} />
+              <Star size={12} color={theme.colors.crimsonGlow} fill={theme.colors.crimsonGlow} />
               <Mono style={styles.ratingText}>{formatAverage(cocktail.rating.average)}</Mono>
               <Mono style={styles.ratingCount}>({cocktail.rating.count})</Mono>
             </View>
           )}
         </View>
         <Heading style={styles.name}>{cocktail.name}</Heading>
-        <Mono numberOfLines={2} style={styles.subtitle}>
+        <Body numberOfLines={2} style={styles.subtitle}>
           {cocktail.subtitle}
-        </Mono>
+        </Body>
         {cocktail.author && (
           <Mono numberOfLines={1} style={styles.author}>
             @{cocktail.author.username}
@@ -82,16 +85,16 @@ export default function CocktailCard({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t: Theme) => StyleSheet.create({
   card: {
     overflow: "hidden",
     borderRadius: 2,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bgCard,
+    borderColor: t.colors.border,
+    backgroundColor: t.colors.bgCard,
   },
-  pressed: { borderColor: colors.borderLight, opacity: 0.85 },
-  poster: { aspectRatio: 16 / 9, width: "100%", backgroundColor: colors.bgElevated },
+  pressed: { borderColor: t.colors.borderLight, opacity: 0.85 },
+  poster: { aspectRatio: 16 / 9, width: "100%", backgroundColor: t.colors.bgElevated },
   placeholder: { alignItems: "center", justifyContent: "center" },
   strip: { position: "absolute", top: 0, left: 0, right: 0, height: 2 },
   vignette: { position: "absolute", left: 0, right: 0, bottom: 0, height: 64 },
@@ -101,16 +104,16 @@ const styles = StyleSheet.create({
   meta: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 4 },
   metaText: { flexShrink: 1 },
   rating: { flexDirection: "row", alignItems: "center", gap: 4 },
-  ratingText: { fontSize: 10, color: colors.textSecondary },
-  ratingCount: { fontSize: 10, color: colors.textMuted },
+  ratingText: { fontSize: 10, color: t.colors.textSecondary },
+  ratingCount: { fontSize: 10, color: t.colors.textMuted },
   name: { marginBottom: 4 },
-  subtitle: { fontSize: 12, color: colors.textMuted },
+  subtitle: { fontSize: 12, color: t.colors.textMuted },
   author: { marginTop: 6, fontSize: 11 },
   tags: { flexDirection: "row", flexWrap: "wrap", gap: 4, marginTop: 12 },
   tag: {
     fontSize: 9,
     letterSpacing: 1,
-    backgroundColor: colors.bgElevated,
+    backgroundColor: t.colors.bgElevated,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 2,

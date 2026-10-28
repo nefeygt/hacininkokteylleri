@@ -82,7 +82,12 @@ each step; tick the step here; mark the items of "Web changes since 2026-10-15" 
    step 10). Audit: of the web list only the filter chips (ADR-026) are in the app; everything else is missing (marked in
    the list). The plan below.
 
-2. **[sonnet] Themes: the runtime and the six palettes** (ADR-028, ADR-033).
+2. ✅ **[sonnet] Themes: the runtime and the six palettes** (ADR-028, ADR-033) — done 2026-10-28: `lib/theme.ts` (`PALETTES`, `FONT_SETS`),
+   `lib/theme-context.tsx` (`ThemeProvider`, `useTheme`, `useStyles`), all 39 style files converted, `ThemePicker` on the Hesap tab
+   (also signed out). **In components the theme is `const theme = useTheme()`; `t` is reserved for the dictionary (step 3)** —
+   inside `makeStyles = (t: Theme) => …` `t` is the theme. Checked in Expo web (signed out: archive, recipe, feed, account;
+   contrast audit clean in Rx and Reçete Kâğıdı); the signed-in screens (forms, sheets, calendar, stars) are converted the same
+   way but **not yet seen** — look at them in step 9 with a temporary member. Original brief:
    - `mobile/src/lib/theme.ts`: keep `space`, `readable`, `alpha`. Replace the single `colors` with
      `PALETTES: Record<ThemeId, Palette>` — the 14 tokens of each theme copied **from `src/app/globals.css`** (Rx's new
      crimson glow `#d0453a`, greys `#b4b1ae` / `#7d7a78`; night-bar = night-serif; paper = paper-rx; `veganBg` is the CSS
@@ -273,7 +278,7 @@ Every other item below is **missing** and planned in the step named in brackets;
 - [step 5] **"Elimde ne var?"** (ADR-029): a screen (or a section on the archive tab) with chips from `ingredients`
   (`groupByCategory`) and `matchCocktails` from `@shared/ingredients`; the app's cocktail query must select
   `cocktail_ingredients.ingredient_id` and map it to `ingredientId`. Keep the choice in AsyncStorage.
-- [step 2] **Themes and readable type** (ADR-028): the app's `mobile/src/lib/theme.ts` copies Rx's new colours (brighter
+- ✅ [step 2, done] **Themes and readable type** (ADR-028): the app's `mobile/src/lib/theme.ts` copies Rx's new colours (brighter
   crimson glow `#d0453a`, greys `#b4b1ae` / `#7d7a78`); reading text in IBM Plex Sans, mono only for labels
   (`@expo-google-fonts/ibm-plex-sans`); a theme choice from `@shared/themes` (`THEMES`) on the account screen, kept in
   storage — or decide with the user that the app stays Rx only.

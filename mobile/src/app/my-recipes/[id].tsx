@@ -8,7 +8,8 @@ import RecipeForm from "@/components/RecipeForm";
 import { Body, Mono } from "@/components/Type";
 import type { Writer } from "@/lib/community";
 import { fetchMyRecipe, type EditableRecipe } from "@/lib/recipes";
-import { colors, readable } from "@/lib/theme";
+import { readable, type Theme } from "@/lib/theme";
+import { useStyles, useTheme } from "@/lib/theme-context";
 
 /** Edit or delete one of the member's own recipes (the site's /account/recipes/{id}). */
 export default function EditRecipeScreen() {
@@ -21,6 +22,8 @@ export default function EditRecipeScreen() {
 }
 
 function EditRecipe({ writer, id }: { writer: Writer; id: string }) {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   const [recipe, setRecipe] = useState<EditableRecipe | null | undefined>(undefined);
   const [failed, setFailed] = useState(false);
 
@@ -45,7 +48,7 @@ function EditRecipe({ writer, id }: { writer: Writer; id: string }) {
             <Mono style={styles.link}>Tarif yüklenemedi. Tekrar dene</Mono>
           </Pressable>
         ) : (
-          <ActivityIndicator color={colors.crimsonGlow} />
+          <ActivityIndicator color={theme.colors.crimsonGlow} />
         )}
       </View>
     );
@@ -86,13 +89,13 @@ function EditRecipe({ writer, id }: { writer: Writer; id: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.bgPrimary },
+const makeStyles = (t: Theme) => StyleSheet.create({
+  screen: { flex: 1, backgroundColor: t.colors.bgPrimary },
   content: { padding: 16, paddingBottom: 48 },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, backgroundColor: colors.bgPrimary },
-  muted: { color: colors.textSecondary },
-  link: { fontSize: 12, color: colors.crimsonGlow, textDecorationLine: "underline" },
+  center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12, backgroundColor: t.colors.bgPrimary },
+  muted: { color: t.colors.textSecondary },
+  link: { fontSize: 12, color: t.colors.crimsonGlow, textDecorationLine: "underline" },
   page: { alignSelf: "flex-end", marginBottom: 12 },
-  pageText: { fontSize: 11, color: colors.textMuted, textDecorationLine: "underline" },
+  pageText: { fontSize: 11, color: t.colors.textMuted, textDecorationLine: "underline" },
   notice: { marginBottom: 16 },
 });

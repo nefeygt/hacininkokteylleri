@@ -9,7 +9,8 @@ import type { Writer } from "@/lib/community";
 import type { IngredientIcon } from "@/lib/content";
 import { deleteRecipe, discardRecipePhoto, leaveRecipeForm, pickRecipePhoto, saveRecipe } from "@/lib/recipes";
 import { recipeImageUrl } from "@/lib/supabase";
-import { alpha, colors, fonts } from "@/lib/theme";
+import { alpha, type Theme } from "@/lib/theme";
+import { useStyles, useTheme } from "@/lib/theme-context";
 import { Button, Checkbox, Field, Message } from "./Form";
 import { unitOptions } from "./LogForm";
 import OptionSheet from "./OptionSheet";
@@ -76,6 +77,8 @@ export default function RecipeForm({
   id?: string;
   slug?: string;
 }) {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   const suggestions = useSuggestions();
   const [form, setForm] = useState(initial);
   const [tagsText, setTagsText] = useState(initial.tags.join(", "));
@@ -240,7 +243,7 @@ export default function RecipeForm({
             ))}
           </View>
           <View style={styles.hexRow}>
-            <View style={[styles.preview, { backgroundColor: /^#[0-9a-fA-F]{6}$/.test(form.color) ? form.color : colors.bgElevated }]} />
+            <View style={[styles.preview, { backgroundColor: /^#[0-9a-fA-F]{6}$/.test(form.color) ? form.color : theme.colors.bgElevated }]} />
             <TextInput
               value={form.color}
               onChangeText={(v) => set("color", v)}
@@ -273,7 +276,7 @@ export default function RecipeForm({
           )}
           {photoBusy && (
             <View style={styles.photoBusy}>
-              <ActivityIndicator color={colors.textPrimary} />
+              <ActivityIndicator color={theme.colors.textPrimary} />
             </View>
           )}
         </View>
@@ -283,7 +286,7 @@ export default function RecipeForm({
             title={photoUrl ? "Fotoğrafı değiştir" : "Fotoğraf yükle"}
             onPress={pickPhoto}
             disabled={photoBusy || pending}
-            icon={<ImagePlus size={14} color={colors.textPrimary} />}
+            icon={<ImagePlus size={14} color={theme.colors.textPrimary} />}
           />
           {photoUrl && <Button kind="link" title="Kaldır" onPress={() => setPhoto(null)} disabled={photoBusy || pending} />}
         </View>
@@ -298,7 +301,7 @@ export default function RecipeForm({
                 onChangeText={(name) => setRow(row.key, { name })}
                 maxLength={L.ingredientName}
                 placeholder="Malzeme"
-                placeholderTextColor={colors.textMuted}
+                placeholderTextColor={theme.colors.textMuted}
                 accessibilityLabel={`${i + 1}. malzeme`}
                 style={[styles.small, styles.grow]}
               />
@@ -307,7 +310,7 @@ export default function RecipeForm({
                 onChangeText={(amount) => setRow(row.key, { amount })}
                 keyboardType="decimal-pad"
                 placeholder="4"
-                placeholderTextColor={colors.textMuted}
+                placeholderTextColor={theme.colors.textMuted}
                 accessibilityLabel="Miktar"
                 style={[styles.small, styles.amount]}
               />
@@ -323,7 +326,7 @@ export default function RecipeForm({
                 <Mono numberOfLines={1} style={[styles.selectText, !row.unit && styles.placeholder]}>
                   {row.unit || "birim"}
                 </Mono>
-                <ChevronDown size={12} color={colors.textMuted} />
+                <ChevronDown size={12} color={theme.colors.textMuted} />
               </Pressable>
             </View>
             <View style={styles.row}>
@@ -339,16 +342,16 @@ export default function RecipeForm({
                 <Mono numberOfLines={1} style={styles.selectText}>
                   {INGREDIENT_ICONS.find((o) => o.value === row.icon)?.label ?? row.icon}
                 </Mono>
-                <ChevronDown size={12} color={colors.textMuted} />
+                <ChevronDown size={12} color={theme.colors.textMuted} />
               </Pressable>
               <IconButton label="Yukarı" disabled={i === 0} onPress={() => setRows((prev) => move(prev, i, i - 1))}>
-                <ArrowUp size={16} color={colors.textMuted} />
+                <ArrowUp size={16} color={theme.colors.textMuted} />
               </IconButton>
               <IconButton label="Aşağı" disabled={i === rows.length - 1} onPress={() => setRows((prev) => move(prev, i, i + 1))}>
-                <ArrowDown size={16} color={colors.textMuted} />
+                <ArrowDown size={16} color={theme.colors.textMuted} />
               </IconButton>
               <IconButton label="Malzemeyi çıkar" disabled={rows.length === 1} onPress={() => setRows((prev) => prev.filter((r) => r.key !== row.key))}>
-                <X size={16} color={colors.textMuted} />
+                <X size={16} color={theme.colors.textMuted} />
               </IconButton>
             </View>
           </View>
@@ -377,10 +380,10 @@ export default function RecipeForm({
             />
             <View>
               <IconButton label="Yukarı" disabled={i === 0} onPress={() => setSteps((prev) => move(prev, i, i - 1))}>
-                <ArrowUp size={16} color={colors.textMuted} />
+                <ArrowUp size={16} color={theme.colors.textMuted} />
               </IconButton>
               <IconButton label="Adımı sil" disabled={steps.length === 1} onPress={() => setSteps((prev) => prev.filter((s) => s.key !== step.key))}>
-                <X size={16} color={colors.textMuted} />
+                <X size={16} color={theme.colors.textMuted} />
               </IconButton>
             </View>
           </View>
@@ -457,6 +460,7 @@ export default function RecipeForm({
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  const styles = useStyles(makeStyles);
   return (
     <View style={styles.section}>
       <Label style={styles.sectionTitle}>{title}</Label>
@@ -467,6 +471,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 /** Values in use, tapped to fill the field above. */
 function Chips({ values, current, onPick }: { values: string[]; current: string; onPick: (value: string) => void }) {
+  const styles = useStyles(makeStyles);
   if (values.length === 0) return null;
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.chips}>
@@ -490,6 +495,7 @@ function Chips({ values, current, onPick }: { values: string[]; current: string;
 }
 
 function IconButton({ label, disabled, onPress, children }: { label: string; disabled: boolean; onPress: () => void; children: React.ReactNode }) {
+  const styles = useStyles(makeStyles);
   return (
     <Pressable
       onPress={onPress}
@@ -506,32 +512,34 @@ function IconButton({ label, disabled, onPress, children }: { label: string; dis
 }
 
 function AddButton({ label, onPress }: { label: string; onPress: () => void }) {
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
   return (
     <Pressable onPress={onPress} hitSlop={6} style={styles.add} accessibilityRole="button" accessibilityLabel={label}>
-      <Plus size={14} color={colors.textMuted} />
+      <Plus size={14} color={theme.colors.textMuted} />
       <Mono style={styles.addText}>{label}</Mono>
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t: Theme) => StyleSheet.create({
   form: { gap: 20 },
-  section: { borderWidth: 1, borderColor: colors.border, backgroundColor: colors.bgCard, borderRadius: 4, padding: 16 },
-  sectionTitle: { color: colors.textSecondary, fontSize: 11, letterSpacing: 1.5, marginBottom: 14 },
+  section: { borderWidth: 1, borderColor: t.colors.border, backgroundColor: t.colors.bgCard, borderRadius: 4, padding: 16 },
+  sectionTitle: { color: t.colors.textSecondary, fontSize: 11, letterSpacing: 1.5, marginBottom: 14 },
   sectionBody: { gap: 16 },
   group: { gap: 8 },
-  label: { color: colors.textSecondary, fontSize: 11, letterSpacing: 1.5 },
-  hint: { fontSize: 11, lineHeight: 16, color: colors.textMuted },
+  label: { color: t.colors.textSecondary, fontSize: 11, letterSpacing: 1.5 },
+  hint: { fontSize: 11, lineHeight: 16, color: t.colors.textMuted },
   chips: { gap: 6, paddingRight: 8 },
-  chip: { borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
-  chipOn: { borderColor: colors.crimson, backgroundColor: alpha(colors.crimson, 0.2) },
-  chipText: { fontSize: 11, color: colors.textMuted },
-  chipTextOn: { color: colors.textPrimary },
+  chip: { borderWidth: 1, borderColor: t.colors.border, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4 },
+  chipOn: { borderColor: t.colors.crimson, backgroundColor: alpha(t.colors.crimson, 0.2) },
+  chipText: { fontSize: 11, color: t.colors.textMuted },
+  chipTextOn: { color: t.colors.textPrimary },
   swatches: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   swatch: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: "transparent" },
-  swatchOn: { borderColor: colors.textPrimary },
+  swatchOn: { borderColor: t.colors.textPrimary },
   hexRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  preview: { width: 36, height: 36, borderRadius: 4, borderWidth: 1, borderColor: colors.border },
+  preview: { width: 36, height: 36, borderRadius: 4, borderWidth: 1, borderColor: t.colors.border },
   hex: { width: 110 },
   photo: {
     aspectRatio: 16 / 9,
@@ -540,35 +548,35 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bgElevated,
+    borderColor: t.colors.border,
+    backgroundColor: t.colors.bgElevated,
     borderRadius: 2,
   },
   photoBusy: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0, 0, 0, 0.6)" },
   inlineRow: { flexDirection: "row", alignItems: "center", gap: 16 },
-  ingredient: { gap: 6, paddingBottom: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+  ingredient: { gap: 6, paddingBottom: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.colors.border },
   row: { flexDirection: "row", alignItems: "center", gap: 6 },
   small: {
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bgPrimary,
+    borderColor: t.colors.border,
+    backgroundColor: t.colors.bgPrimary,
     borderRadius: 4,
     paddingHorizontal: 8,
     paddingVertical: 8,
-    color: colors.textPrimary,
-    fontFamily: fonts.mono,
+    color: t.colors.textPrimary,
+    fontFamily: t.fonts.mono,
     fontSize: 13,
   },
   grow: { flex: 1, minWidth: 0 },
   amount: { width: 56, textAlign: "right" },
   select: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 4 },
   unit: { width: 112 },
-  selectText: { flexShrink: 1, fontSize: 13, color: colors.textPrimary },
-  placeholder: { color: colors.textMuted },
+  selectText: { flexShrink: 1, fontSize: 13, color: t.colors.textPrimary },
+  placeholder: { color: t.colors.textMuted },
   iconButton: { width: 30, height: 32, alignItems: "center", justifyContent: "center" },
   off: { opacity: 0.3 },
   add: { flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start" },
-  addText: { fontSize: 12, color: colors.textMuted },
+  addText: { fontSize: 12, color: t.colors.textMuted },
   stepRow: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
   stepNumber: {
     marginTop: 10,
@@ -577,26 +585,26 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: alpha(colors.crimson, 0.15),
+    backgroundColor: alpha(t.colors.crimson, 0.15),
   },
-  stepNumberText: { fontSize: 10, color: colors.crimsonGlow },
+  stepNumberText: { fontSize: 10, color: t.colors.crimsonGlow },
   stepInput: {
     minHeight: 64,
     textAlignVertical: "top",
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bgPrimary,
+    borderColor: t.colors.border,
+    backgroundColor: t.colors.bgPrimary,
     borderRadius: 4,
     paddingHorizontal: 10,
     paddingVertical: 8,
-    color: colors.textPrimary,
-    fontFamily: fonts.sans,
+    color: t.colors.textPrimary,
+    fontFamily: t.fonts.sans,
     fontSize: 14,
   },
   textarea: { minHeight: 96, textAlignVertical: "top" },
-  checkText: { fontSize: 13, color: colors.textSecondary },
+  checkText: { fontSize: 13, color: t.colors.textSecondary },
   footer: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  muted: { fontSize: 12, color: colors.textMuted },
+  muted: { fontSize: 12, color: t.colors.textMuted },
   underline: { textDecorationLine: "underline" },
-  danger: { fontSize: 12, color: colors.crimsonGlow },
+  danger: { fontSize: 12, color: t.colors.crimsonGlow },
 });
