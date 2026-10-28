@@ -1,3 +1,4 @@
+import { sortCocktails } from "@shared/archive-filter";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, View } from "react-native";
@@ -8,6 +9,7 @@ import KeyboardScrollView from "@/components/KeyboardScrollView";
 import ShowcaseSection from "@/components/Showcase";
 import { Body, Heading, Label, Mono } from "@/components/Type";
 import { askToSignIn } from "@/lib/after-sign-in";
+import { useArchive } from "@/lib/archive";
 import {
   fetchNewRecipes,
   fetchPopularRecipes,
@@ -29,6 +31,7 @@ import { useLocale } from "@/lib/i18n";
 // people you follow.
 
 const SHOWN = 12;
+const PICKS_UNTIL = 3;
 
 interface Recipes {
   popular: Cocktail[];
@@ -40,6 +43,8 @@ export default function FeedScreen() {
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const session = useSession();
+  const { archive } = useArchive();
+  const { favorites } = useFavorites();
   const memberId = session.state === "ok" ? session.profile.id : null;
   const [recipes, setRecipes] = useState<Recipes | null>(null);
   const [failed, setFailed] = useState(false);
@@ -96,6 +101,9 @@ export default function FeedScreen() {
     else askToSignIn("/feed");
   };
 
+  // While members have written few recipes, Hacı's best-rated ones fill the space (the site's "housePicks").
+  const housePicks = recipes && recipes.latest.length < PICKS_UNTIL && archive ? sortCocktails(archive.cocktails, "rating").slice(0, 3) : [];
+
   return (
     <KeyboardScrollView
       style={styles.screen}
@@ -137,6 +145,27 @@ export default function FeedScreen() {
             )}
             <RecipeRow title={t.feed.newRecipes} recipes={recipes.latest} empty={t.feed.noRecipes} />
           </>
+        )}
+
+        {housePicks.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.pickHead}>
+              <Label style={styles.sectionTitle}>{t.feed.housePicks}</Label>
+              <Pressable onPress={() => router.push("/")} hitSlop={6} accessibilityRole="link">
+                <Mono style={styles.link}>{t.feed.wholeArchive}</Mono>
+              </Pressable>
+            </View>
+            <View style={styles.cards}>
+              {housePicks.map((c) => (
+                <CocktailCard
+                  key={c.id}
+                  cocktail={c}
+                  favorite={favorites.has(c.id)}
+                  onPress={() => router.push({ pathname: "/cocktail/[slug]", params: { slug: c.slug } })}
+                />
+              ))}
+            </View>
+          </View>
         )}
 
         <View style={styles.section}>
@@ -212,6 +241,7 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   subtitle: { marginTop: 4, fontSize: 12, lineHeight: 18, color: t.colors.textMuted },
   section: { marginTop: 36 },
   sectionTitle: { fontSize: 11, letterSpacing: 1.5, marginBottom: 6 },
+  pickHead: { flexDirection: "row", flexWrap: "wrap", alignItems: "baseline", columnGap: 12 },
   hint: { fontSize: 10, color: alpha(t.colors.textMuted, 0.8), marginBottom: 8 },
   cards: { marginTop: 8, gap: 16 },
   logs: { marginTop: 8, gap: 12 },

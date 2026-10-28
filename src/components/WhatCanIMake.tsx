@@ -6,9 +6,7 @@ import CocktailCard from "@/components/CocktailCard";
 import { useLocale } from "@/components/LocaleProvider";
 import { format } from "@/lib/i18n/format";
 import { recipeHref, type Cocktail } from "@/lib/content";
-import { groupByCategory, matchCocktails, type CatalogueIngredient } from "@/lib/ingredients";
-
-const PANTRY_KEY = "haci.pantry";
+import { PANTRY_KEY, groupByCategory, matchCocktails, type CatalogueIngredient } from "@/lib/ingredients";
 
 /** The visitor's picked ingredients, kept in localStorage; empty until read (and when storage is off). */
 function usePantry(known: Set<string>): [Set<string>, (change: (current: Set<string>) => Set<string>) => void] {

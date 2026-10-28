@@ -100,6 +100,7 @@ function RootNavigator() {
               <Stack.Screen name="my-recipes/index" options={{ title: t.recipesPage.title }} />
               <Stack.Screen name="my-recipes/new" options={{ title: t.recipesPage.newMeta }} />
               <Stack.Screen name="my-recipes/[id]" options={{ title: t.recipesPage.editMeta }} />
+              <Stack.Screen name="what-can-i-make" options={{ title: t.whatCanIMake.title }} />
               <Stack.Screen name="welcome" options={{ title: t.welcome.title }} />
             </Stack>
           </ArchiveProvider>

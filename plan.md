@@ -643,7 +643,9 @@ The admin panel stays web-only.
   - [x] 1 — state check, the user's answers (English, six themes, push), audit, plan (2026-10-28)
   - [x] 2 — themes: runtime, six palettes and font sets, picker, 39 style files converted (2026-10-28)
   - [x] 3 — languages: runtime, the app's own dictionary, every string converted, house recipes and glossary translated, language picker (2026-10-28)
-  - [ ] 4 recipe screens · 5 archive/feed · 6 forms · 7 community · 8 push · 9 sweep · 10 release readiness
+  - [x] 4 — recipe screens: servings, cl/oz, share, similar, rating breakdown (2026-10-28)
+  - [x] 5 — archive and feed: sort, cocktail of the day, "Elimde ne var?" screen, house picks (2026-10-28)
+  - [ ] 6 forms · 7 community · 8 push · 9 sweep · 10 release readiness
 - [ ] Step 7 — **store upload paused (ADR-024, 2026-10-15)**; starts after the parity pass (web changes since 2026-10-15, package updates, a new build), then: EAS production builds, store listings (Turkish), age rating 18+/17+,
   privacy forms (App Privacy, Data safety), Play's closed test, App Store review
 
@@ -812,6 +814,7 @@ While the store release waits (ADR-024), the site gets better first; every user-
 - **Our own auth domain** (e.g. `auth.hacininkokteylleri.tech`, Supabase custom domain, a paid
   add-on) plus Google brand verification, so Google's account chooser says `haci` instead of
   `qwvnhdghwycqlvsnlvlt.supabase.co` (seen live 2026-10-14). The user: "we'll buy it if it grows"
+- App: the collection chips (`collections` from `@shared/collections`) on the archive tab (skipped in parity step 5; the web pages are SEO-only)
 
 ---
 

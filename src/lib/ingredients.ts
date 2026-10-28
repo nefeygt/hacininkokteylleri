@@ -29,6 +29,9 @@ export const INGREDIENT_CATEGORIES: { value: IngredientCategory; label: string }
 
 export const CATALOGUE_NAME_MAX = 60;
 
+/** Where the visitor's picked ingredients are kept (localStorage on the site, AsyncStorage in the app). */
+export const PANTRY_KEY = "haci.pantry";
+
 /** The catalogue in category order, each group sorted by name. */
 export function groupByCategory<T extends { category: IngredientCategory; name: string }>(
   items: T[],

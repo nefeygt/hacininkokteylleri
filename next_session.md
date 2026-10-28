@@ -178,7 +178,11 @@ each step; tick the step here; mark the items of "Web changes since 2026-10-15" 
    - Check: servings 1 and 8, oz on and remembered after a reload, the share sheet text (web: `navigator.share` may be
      missing — no crash), similar cocktails present and tappable, a cocktail with and without reviews.
 
-5. **[sonnet] Archive tab and feed** (`(tabs)/index.tsx`, `(tabs)/feed.tsx`).
+5. ✅ **[sonnet] Archive tab and feed** — done 2026-10-28: three sorts in the filter panel, "Günün kokteyli" card above the list (hidden while
+   searching or filtering), a link to the new `what-can-i-make` screen (catalogue from `ingredients` + `ingredient_translations`, picks
+   under `PANTRY_KEY`, house + members' recipes, "missing one"), the feed's house picks while members have written fewer than 3
+   recipes. Seen in Expo web: pantry picks give the expected ready/one-missing split, sort row, day card. Collection chips skipped
+   (Icebox). Sorting has no visible effect yet — no reviews exist. Original brief:
    - Sort: three choices (`ArchiveSort`, `sortCocktails`; labels from the dictionary, not `SORT_LABELS`' Turkish) applied
      after `filterCocktails`.
    - "Günün kokteyli" at the top of the archive: `cocktailOfTheDay(cocktails, todayInTurkey())` from
@@ -285,7 +289,7 @@ Every other item below is **missing** and planned in the step named in brackets;
 - ✅ [step 4, done] **"Benzer kokteyller"** under house recipes: `similarCocktails(target, archive, 4)` from `@shared/archive-filter`.
 - The wordmark and the recipe JSON-LD are web-only (the app has its own header; no SEO).
 - **The Letterboxd icon is gone from the navbar** (the user, 2026-10-15). The app never had it — nothing to port.
-- [step 5] **"Elimde ne var?"** (ADR-029): a screen (or a section on the archive tab) with chips from `ingredients`
+- ✅ [step 5, done] **"Elimde ne var?"** (ADR-029): a screen (or a section on the archive tab) with chips from `ingredients`
   (`groupByCategory`) and `matchCocktails` from `@shared/ingredients`; the app's cocktail query must select
   `cocktail_ingredients.ingredient_id` and map it to `ingredientId`. Keep the choice in AsyncStorage.
 - ✅ [step 2, done] **Themes and readable type** (ADR-028): the app's `mobile/src/lib/theme.ts` copies Rx's new colours (brighter
@@ -302,9 +306,9 @@ Every other item below is **missing** and planned in the step named in brackets;
 - [step 7] **Notifications** (ADR-030): a screen with `NOTIFICATION_COLUMNS` and `describeNotification` from
   `@shared/notifications` (links map to the app's screens), a badge on the account tab with the unread count, mark
   read on opening. Push notifications are a separate decision.
-- [step 5, optional] **Collections and the glossary** (M9 C): web-only SEO pages; the app could later show the collection chips
+- [step 5, skipped → Icebox] **Collections and the glossary** (M9 C): web-only SEO pages; the app could later show the collection chips
   (`collections` from `@shared/collections`) on its archive tab — optional.
-- [step 5] **Sort and "Günün kokteyli"** (M9 D): the app's archive tab gets the three sort choices (`sortCocktails`,
+- ✅ [step 5, done] **Sort and "Günün kokteyli"** (M9 D): the app's archive tab gets the three sort choices (`sortCocktails`,
   `SORT_LABELS` from `@shared/archive-filter`); its home/feed could show `cocktailOfTheDay` and the house picks.
 - ✅ [step 4 done; follower lists step 7] **Rating breakdown** (M9): the app's recipe screen reads `half_star_counts` with the rating and draws the ten bars
   (`ratingBreakdown` from `@shared/community`). **Follower lists**: profile counts open two lists in the app.

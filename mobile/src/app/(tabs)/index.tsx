@@ -6,8 +6,12 @@ import {
   filterCocktails,
   hasActiveFilters,
   ingredientFilters,
+  sortCocktails,
+  type ArchiveSort,
   type ArchiveFilters,
 } from "@shared/archive-filter";
+import { cocktailOfTheDay } from "@shared/collections";
+import { todayInTurkey } from "@shared/drink-log";
 import { router } from "expo-router";
 import { Heart, Search, SlidersHorizontal, X } from "lucide-react-native";
 import { useMemo, useState, type ReactNode } from "react";
@@ -33,6 +37,7 @@ export default function ArchiveScreen() {
   const isMember = useSession().state === "ok";
   const { favorites, reload: reloadFavorites } = useFavorites();
   const [onlyFavorites, setOnlyFavorites] = useState(false);
+  const [sort, setSort] = useState<ArchiveSort>("default");
 
   const cocktails = archive?.cocktails ?? [];
   // "Favorilerim" reads the live set, so un-hearting a recipe drops it from the list.
@@ -40,7 +45,9 @@ export default function ArchiveScreen() {
     () => ({ ...filters, onlyFavorites: isMember && onlyFavorites ? favorites : null }),
     [filters, isMember, onlyFavorites, favorites]
   );
-  const filtered = useMemo(() => filterCocktails(cocktails, applied), [cocktails, applied]);
+  const filtered = useMemo(() => sortCocktails(filterCocktails(cocktails, applied), sort), [cocktails, applied, sort]);
+  // "Günün kokteyli": one house recipe a day (Turkey's calendar, like the site), shown while nothing is searched or filtered.
+  const pick = useMemo(() => cocktailOfTheDay(cocktails, todayInTurkey()), [cocktails]);
   const baseAlcohols = useMemo(() => baseChoices(cocktails), [cocktails]);
   const flavors = useMemo(() => flavorChoices(cocktails), [cocktails]);
   const active = hasActiveFilters(applied);
@@ -78,6 +85,9 @@ export default function ArchiveScreen() {
         <Mono style={styles.count}>
           {t.cocktails.approvedPrefix}<Mono style={styles.countNumber}>{cocktails.length}</Mono>{t.cocktails.approvedSuffix}
         </Mono>
+        <Pressable onPress={() => router.push("/what-can-i-make")} hitSlop={6} accessibilityRole="link" style={styles.makeLink}>
+          <Mono style={styles.link}>{t.cocktails.whatCanIMake}</Mono>
+        </Pressable>
       </View>
 
       <View style={styles.searchRow}>
@@ -112,6 +122,16 @@ export default function ArchiveScreen() {
 
       {showFilters && (
         <View style={styles.filters}>
+          <FilterRow label={t.cocktails.sortLabel}>
+            {(["default", "rating", "name"] as const).map((choice) => (
+              <Chip
+                key={choice}
+                label={{ default: t.archive.sortDefault, rating: t.archive.sortRating, name: t.archive.sortName }[choice]}
+                active={sort === choice}
+                onPress={() => setSort(choice)}
+              />
+            ))}
+          </FilterRow>
           <FilterRow label={t.cocktails.rowBase}>
             {baseAlcohols.map((b) => (
               <Chip key={b} label={b === ALL ? t.archive.all : b} active={filters.base === b} onPress={() => set({ base: b })} />
@@ -159,6 +179,17 @@ export default function ArchiveScreen() {
               <Label style={styles.clear}>{t.cocktails.clearFiltersUpper}</Label>
             </Pressable>
           )}
+        </View>
+      )}
+
+      {pick && !active && !filters.search.trim() && (
+        <View style={styles.dayBlock}>
+          <Label style={styles.dayLabel}>{t.home.dayLabel}</Label>
+          <CocktailCard
+            cocktail={pick}
+            favorite={favorites.has(pick.id)}
+            onPress={() => router.push({ pathname: "/cocktail/[slug]", params: { slug: pick.slug } })}
+          />
         </View>
       )}
 
@@ -273,6 +304,9 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   chipText: { fontSize: 11, color: t.colors.textMuted },
   chipTextOn: { color: t.colors.crimsonGlow },
   clear: { textDecorationLine: "underline", letterSpacing: 1 },
+  makeLink: { marginTop: 8, alignSelf: "flex-start" },
+  dayBlock: { marginBottom: 20, gap: 8 },
+  dayLabel: { fontSize: 10, letterSpacing: 2.5, color: t.colors.crimsonGlow },
   results: { marginBottom: 16, letterSpacing: 2 },
   empty: { alignItems: "center", gap: 8, paddingVertical: 60 },
   muted: { color: t.colors.textSecondary },

@@ -2,6 +2,7 @@
 // the app's twin of the site's src/lib/content.ts (which is server-side).
 
 import { DEFAULT_LOCALE, type Locale } from "@shared/i18n/locales";
+import type { CatalogueIngredient } from "@shared/ingredients";
 import { RATING_COLUMNS, toRating } from "@shared/community";
 import { COCKTAIL_TRANSLATION_COLUMNS, applyCocktailTranslation, type CocktailTranslationRow } from "@shared/translations";
 import type { ShowcasePeriod } from "@shared/showcase";
@@ -15,6 +16,8 @@ export interface Ingredient {
   amount: number;
   unit: string;
   iconType: IngredientIcon;
+  /** The catalogue ingredient this line names ("what can I make"); absent for a line the catalogue lacks. */
+  ingredientId?: string;
 }
 
 export interface Author {
@@ -57,7 +60,7 @@ export interface Cocktail {
 export type Glossary = Record<string, string>;
 
 const COCKTAIL_COLUMNS =
-  "id, slug, name, subtitle, base_alcohol, flavor, tags, color, image_path, instructions, garnish, glass, vegan, note, author_id, cocktail_ingredients(position, name, amount, unit, icon)";
+  "id, slug, name, subtitle, base_alcohol, flavor, tags, color, image_path, instructions, garnish, glass, vegan, note, author_id, cocktail_ingredients(position, name, amount, unit, icon, ingredient_id)";
 
 type CocktailRow = Pick<
   Database["public"]["Tables"]["cocktails"]["Row"],
@@ -66,7 +69,7 @@ type CocktailRow = Pick<
 > & {
   cocktail_ingredients: Pick<
     Database["public"]["Tables"]["cocktail_ingredients"]["Row"],
-    "position" | "name" | "amount" | "unit" | "icon"
+    "position" | "name" | "amount" | "unit" | "icon" | "ingredient_id"
   >[];
   profiles?: { id: string; username: string; display_name: string; avatar_path: string | null } | null;
 };
@@ -84,7 +87,7 @@ function toCocktail(row: CocktailRow): Cocktail {
     imageUrl: row.author_id ? recipeImageUrl(row.image_path) : cocktailImageUrl(row.image_path),
     ingredients: [...row.cocktail_ingredients]
       .sort((a, b) => a.position - b.position)
-      .map((i) => ({ name: i.name, amount: Number(i.amount), unit: i.unit, iconType: i.icon })),
+      .map((i) => ({ name: i.name, amount: Number(i.amount), unit: i.unit, iconType: i.icon, ingredientId: i.ingredient_id ?? undefined })),
     instructions: row.instructions,
     garnish: row.garnish,
     glass: row.glass,
@@ -175,6 +178,34 @@ export async function fetchPopularRecipes(limit: number): Promise<Cocktail[]> {
   if (recipesError) throw new Error(recipesError.message);
   const order = new Map(ids.map((id, i) => [id, i]));
   const rows = (data as CocktailRow[]).sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+  return withRatings(rows);
+}
+
+/** The ingredient catalogue (ADR-029), for "what can I make"; names in the language where translated. */
+export async function fetchIngredientCatalogue(locale: Locale = DEFAULT_LOCALE): Promise<CatalogueIngredient[]> {
+  const [{ data, error }, translations] = await Promise.all([
+    supabase.from("ingredients").select("id, name, category, always_at_hand").order("name"),
+    locale === DEFAULT_LOCALE
+      ? Promise.resolve({ data: [], error: null })
+      : supabase.from("ingredient_translations").select("ingredient_id, name").eq("locale", locale),
+  ]);
+  if (error) throw new Error(error.message);
+  if (translations.error) throw new Error(translations.error.message);
+  const names = new Map(translations.data.map((t) => [t.ingredient_id, t.name]));
+  return data.map((i) => ({ id: i.id, name: names.get(i.id) ?? i.name, category: i.category, alwaysAtHand: i.always_at_hand }));
+}
+
+/** Published members' recipes whose every line names a catalogue ingredient: they take part in "what can I make" (ADR-029). */
+export async function fetchMatchableRecipes(): Promise<Cocktail[]> {
+  const { data, error } = await supabase
+    .from("cocktails")
+    .select(RECIPE_COLUMNS)
+    .not("author_id", "is", null)
+    .eq("is_published", true)
+    .is("hidden_at", null)
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  const rows = (data as CocktailRow[]).filter((r) => r.cocktail_ingredients.length > 0 && r.cocktail_ingredients.every((i) => i.ingredient_id));
   return withRatings(rows);
 }
 
