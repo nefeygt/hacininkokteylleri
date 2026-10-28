@@ -6,16 +6,18 @@ import { Body } from "@/components/Type";
 import { NEW_RECIPE } from "@/lib/recipes";
 import { readable, type Theme } from "@/lib/theme";
 import { useStyles } from "@/lib/theme-context";
+import { useLocale } from "@/lib/i18n";
 
 /** A new recipe (the site's /account/recipes/new). */
 export default function NewRecipeScreen() {
+  const { a } = useLocale();
   const styles = useStyles(makeStyles);
   return (
-    <MemberGate from="/my-recipes/new" feature="Tarif yazmak">
+    <MemberGate from="/my-recipes/new" feature="recipes">
       {(writer) => (
         <KeyboardScrollView style={styles.screen} contentContainerStyle={styles.content}>
           <View style={readable}>
-            <Body style={styles.subtitle}>Kendi tarifini yaz. Yayınladığında profilinde ve akışta görünür.</Body>
+            <Body style={styles.subtitle}>{a.myRecipes.newSubtitle}</Body>
             <RecipeForm writer={writer} initial={NEW_RECIPE} />
           </View>
         </KeyboardScrollView>

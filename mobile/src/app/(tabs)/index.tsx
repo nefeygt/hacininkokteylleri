@@ -1,10 +1,11 @@
 import {
-  INGREDIENT_FILTERS,
+  ALL,
   baseChoices,
   flavorChoices,
   NO_FILTERS,
   filterCocktails,
   hasActiveFilters,
+  ingredientFilters,
   type ArchiveFilters,
 } from "@shared/archive-filter";
 import { router } from "expo-router";
@@ -18,9 +19,12 @@ import { useFavorites } from "@/lib/favorites";
 import { useSession } from "@/lib/session";
 import { alpha, type Theme } from "@/lib/theme";
 import { useStyles, useTheme } from "@/lib/theme-context";
+import { useLocale } from "@/lib/i18n";
+import { format } from "@shared/i18n/format";
 
 /** The archive: Hacı's recipes with the site's search and filters (/cocktails). */
 export default function ArchiveScreen() {
+  const { t, a } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const { archive, error, refreshing, refresh } = useArchive();
@@ -54,9 +58,9 @@ export default function ArchiveScreen() {
       <View style={styles.center}>
         {error ? (
           <>
-            <Body style={styles.muted}>Kokteyller yüklenemedi.</Body>
+            <Body style={styles.muted}>{a.archive.loadFailed}</Body>
             <Pressable onPress={refresh} style={styles.retry}>
-              <Mono style={styles.link}>Tekrar dene</Mono>
+              <Mono style={styles.link}>{t.status.retry}</Mono>
             </Pressable>
           </>
         ) : (
@@ -69,10 +73,10 @@ export default function ArchiveScreen() {
   const header = (
     <View>
       <View style={styles.titleBlock}>
-        <Label style={styles.eyebrow}>Arşiv</Label>
-        <Heading style={styles.title}>Kokteyller</Heading>
+        <Label style={styles.eyebrow}>{t.cocktails.eyebrow}</Label>
+        <Heading style={styles.title}>{t.cocktails.title}</Heading>
         <Mono style={styles.count}>
-          Hacı onaylı <Mono style={styles.countNumber}>{cocktails.length}</Mono> reçete.
+          {t.cocktails.approvedPrefix}<Mono style={styles.countNumber}>{cocktails.length}</Mono>{t.cocktails.approvedSuffix}
         </Mono>
       </View>
 
@@ -82,7 +86,7 @@ export default function ArchiveScreen() {
           <TextInput
             value={filters.search}
             onChangeText={(search) => set({ search })}
-            placeholder="Kokteyl, malzeme ara"
+            placeholder={a.archive.searchPlaceholder}
             numberOfLines={1}
             placeholderTextColor={theme.colors.textMuted}
             style={styles.searchInput}
@@ -90,7 +94,7 @@ export default function ArchiveScreen() {
             returnKeyType="search"
           />
           {filters.search ? (
-            <Pressable onPress={() => set({ search: "" })} hitSlop={10} accessibilityLabel="Aramayı temizle">
+            <Pressable onPress={() => set({ search: "" })} hitSlop={10} accessibilityLabel={t.cocktails.clearSearch}>
               <X size={14} color={theme.colors.textMuted} />
             </Pressable>
           ) : null}
@@ -102,24 +106,24 @@ export default function ArchiveScreen() {
           accessibilityState={{ expanded: showFilters }}
         >
           <SlidersHorizontal size={14} color={showFilters ? theme.colors.crimsonGlow : theme.colors.textSecondary} />
-          <Mono style={[styles.filterButtonText, showFilters && { color: theme.colors.crimsonGlow }]}>Filtrele</Mono>
+          <Mono style={[styles.filterButtonText, showFilters && { color: theme.colors.crimsonGlow }]}>{t.cocktails.filters}</Mono>
         </Pressable>
       </View>
 
       {showFilters && (
         <View style={styles.filters}>
-          <FilterRow label="Baz Alkol">
+          <FilterRow label={t.cocktails.rowBase}>
             {baseAlcohols.map((b) => (
-              <Chip key={b} label={b} active={filters.base === b} onPress={() => set({ base: b })} />
+              <Chip key={b} label={b === ALL ? t.archive.all : b} active={filters.base === b} onPress={() => set({ base: b })} />
             ))}
           </FilterRow>
-          <FilterRow label="Baskın Tat">
+          <FilterRow label={t.cocktails.rowFlavor}>
             {flavors.map((f) => (
-              <Chip key={f} label={f} active={filters.flavor === f} onPress={() => set({ flavor: f })} />
+              <Chip key={f} label={f === ALL ? t.archive.all : f} active={filters.flavor === f} onPress={() => set({ flavor: f })} />
             ))}
           </FilterRow>
-          <FilterRow label="Malzeme">
-            {INGREDIENT_FILTERS.map((ing) => {
+          <FilterRow label={t.cocktails.rowIngredient}>
+            {ingredientFilters(t).map((ing) => {
               const on = filters.ingredients.includes(ing);
               return (
                 <Chip
@@ -134,7 +138,7 @@ export default function ArchiveScreen() {
             })}
           </FilterRow>
           {isMember && (
-            <FilterRow label="Listem">
+            <FilterRow label={t.cocktails.rowList}>
               <Pressable
                 onPress={() => setOnlyFavorites(!onlyFavorites)}
                 style={[styles.chip, styles.favoriteChip, onlyFavorites && styles.chipOn]}
@@ -146,20 +150,20 @@ export default function ArchiveScreen() {
                   color={onlyFavorites ? theme.colors.crimsonGlow : theme.colors.textMuted}
                   fill={onlyFavorites ? theme.colors.crimsonGlow : "transparent"}
                 />
-                <Mono style={[styles.chipText, onlyFavorites && styles.chipTextOn]}>Favorilerim ({favorites.size})</Mono>
+                <Mono style={[styles.chipText, onlyFavorites && styles.chipTextOn]}>{format(t.cocktails.myFavorites, { n: favorites.size })}</Mono>
               </Pressable>
             </FilterRow>
           )}
           {active && (
             <Pressable onPress={clearFilters}>
-              <Label style={styles.clear}>Filtreleri Temizle</Label>
+              <Label style={styles.clear}>{t.cocktails.clearFiltersUpper}</Label>
             </Pressable>
           )}
         </View>
       )}
 
       <Label style={styles.results}>
-        {filtered.length} sonuç{active ? " (filtrelenmiş)" : ""}
+        {format(t.cocktails.results, { n: filtered.length })}{active ? t.cocktails.filteredSuffix : ""}
       </Label>
     </View>
   );
@@ -179,9 +183,9 @@ export default function ArchiveScreen() {
       ItemSeparatorComponent={() => <View style={styles.gap} />}
       ListEmptyComponent={
         <View style={styles.empty}>
-          <Body style={styles.muted}>Sonuç bulunamadı.</Body>
+          <Body style={styles.muted}>{t.cocktails.noResults}</Body>
           <Pressable onPress={clearFilters}>
-            <Mono style={styles.link}>Filtreleri temizle</Mono>
+            <Mono style={styles.link}>{t.cocktails.clearFilters}</Mono>
           </Pressable>
         </View>
       }

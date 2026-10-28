@@ -12,6 +12,8 @@ import { router } from "expo-router";
 import type { Writer } from "./community";
 import { revalidateSite } from "./revalidate";
 import { supabase } from "./supabase";
+import { format } from "@shared/i18n/format";
+import { words } from "@/lib/i18n";
 
 export const RECIPE_IMAGES_BUCKET = "recipe-images";
 
@@ -55,11 +57,11 @@ export const NEW_RECIPE: RecipeInput = {
 };
 
 function writeError(code: string | undefined, message: string): string {
-  if (message.includes("Daily recipe limit")) return "Bugün yeterince tarif ekledin. Yarın tekrar dene.";
-  if (code === "23514") return "Tarif geçersiz: alanları kontrol et.";
-  if (code === "P0002") return "Tarif bulunamadı.";
-  if (code === "23503") return "Katalogdaki bir malzeme bulunamadı. Tarifi kapatıp yeniden aç.";
-  return `Kaydedilemedi: ${message}`;
+  if (message.includes("Daily recipe limit")) return words().t.actions.dailyRecipe;
+  if (code === "23514") return words().t.actions.recipeInvalid;
+  if (code === "P0002") return words().t.actions.recipeNotFound;
+  if (code === "23503") return words().a.recipes.ingredientMissing;
+  return format(words().t.validation.saveFailed, { message });
 }
 
 /** The pages a recipe write changes — the site's revalidateRecipe(); "/" for the showcase's winner. */
@@ -123,12 +125,12 @@ export async function fetchMyRecipe(memberId: string, id: string): Promise<Edita
 export async function saveRecipe(writer: Writer, input: RecipeInput, id?: string): Promise<RecipeResult> {
   const recipe = cleanRecipeInput(input);
   if ("error" in recipe) return recipe;
-  if (recipe.imagePath && !recipe.imagePath.startsWith(`${writer.id}/`)) return { error: "Fotoğraf okunamadı." };
+  if (recipe.imagePath && !recipe.imagePath.startsWith(`${writer.id}/`)) return { error: words().t.actions.photoUnreadable };
 
   let previous: { slug: string; image_path: string | null } | null = null;
   if (id) {
     const { data } = await supabase.from("cocktails").select("slug, image_path").eq("id", id).eq("author_id", writer.id).maybeSingle();
-    if (!data) return { error: "Tarif bulunamadı." };
+    if (!data) return { error: words().t.actions.recipeNotFound };
     previous = data;
   }
 
@@ -166,7 +168,7 @@ export async function saveRecipe(writer: Writer, input: RecipeInput, id?: string
     }
     return { error: writeError(error.code, error.message) };
   }
-  if (!savedId) return { error: "Kaydedilemedi: kısa ad bulunamadı, adı biraz değiştirip tekrar dene." };
+  if (!savedId) return { error: words().t.actions.slugFailed };
 
   // The old photo is no longer referenced; photos are never overwritten in place (ADR-006).
   if (previous?.image_path && previous.image_path !== recipe.imagePath) {
@@ -179,7 +181,7 @@ export async function saveRecipe(writer: Writer, input: RecipeInput, id?: string
 
 export async function deleteRecipe(writer: Writer, id: string): Promise<RecipeResult> {
   const { data } = await supabase.from("cocktails").select("slug, image_path").eq("id", id).eq("author_id", writer.id).maybeSingle();
-  if (!data) return { error: "Tarif bulunamadı." };
+  if (!data) return { error: words().t.actions.recipeNotFound };
 
   const { error } = await supabase.from("cocktails").delete().eq("id", id).eq("author_id", writer.id);
   if (error) return { error: `Silinemedi: ${error.message}` };
@@ -215,13 +217,13 @@ export async function pickRecipePhoto(writer: Writer, slug: string | undefined):
     body = await (await fetch(saved.uri)).arrayBuffer();
     if (body.byteLength <= MAX_BYTES) break;
   }
-  if (!body || body.byteLength > MAX_BYTES) throw new Error("Fotoğraf çok büyük. Başka bir fotoğraf dene.");
+  if (!body || body.byteLength > MAX_BYTES) throw new Error(words().a.recipes.photoTooBig);
 
-  const name = `${writer.id}/${slug || "tarif"}-${Date.now().toString(36)}.webp`;
+  const name = `${writer.id}/${slug || words().t.actions.slugFallback}-${Date.now().toString(36)}.webp`;
   const { error } = await supabase.storage
     .from(RECIPE_IMAGES_BUCKET)
     .upload(name, body, { contentType: "image/webp", cacheControl: "31536000", upsert: false });
-  if (error) throw new Error("Yükleme başarısız.");
+  if (error) throw new Error(words().t.imageField.uploadFailed);
   return name;
 }
 

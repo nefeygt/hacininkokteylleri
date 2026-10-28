@@ -13,6 +13,7 @@ import * as SystemUI from "expo-system-ui";
 import { useEffect, useMemo } from "react";
 import { ArchiveProvider } from "@/lib/archive";
 import { FavoritesProvider } from "@/lib/favorites";
+import { LocaleProvider, useLocale } from "@/lib/i18n";
 import { SessionProvider } from "@/lib/session";
 import { ThemeProvider, useTheme } from "@/lib/theme-context";
 
@@ -22,13 +23,16 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   return (
     <ThemeProvider>
-      <RootNavigator />
+      <LocaleProvider>
+        <RootNavigator />
+      </LocaleProvider>
     </ThemeProvider>
   );
 }
 
 function RootNavigator() {
   const theme = useTheme();
+  const { t, a } = useLocale();
   const [loaded, error] = useFonts({
     IBMPlexSans_400Regular,
     IBMPlexSans_700Bold,
@@ -88,15 +92,15 @@ function RootNavigator() {
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="cocktail/[slug]" options={{ title: "" }} />
               <Stack.Screen name="u/[username]" options={{ title: "" }} />
-              <Stack.Screen name="logs/index" options={{ title: "İçki günlüğüm" }} />
-              <Stack.Screen name="logs/new" options={{ title: "Günlüğe ekle" }} />
-              <Stack.Screen name="logs/[id]" options={{ title: "Kaydı düzenle" }} />
-              <Stack.Screen name="log/[id]" options={{ title: "Günlük kaydı" }} />
+              <Stack.Screen name="logs/index" options={{ title: t.logsPage.title }} />
+              <Stack.Screen name="logs/new" options={{ title: t.logsPage.newTitle }} />
+              <Stack.Screen name="logs/[id]" options={{ title: t.logsPage.editMeta }} />
+              <Stack.Screen name="log/[id]" options={{ title: a.tabs.logEntry }} />
               <Stack.Screen name="recipes/[slug]" options={{ title: "" }} />
-              <Stack.Screen name="my-recipes/index" options={{ title: "Tariflerim" }} />
-              <Stack.Screen name="my-recipes/new" options={{ title: "Yeni tarif" }} />
-              <Stack.Screen name="my-recipes/[id]" options={{ title: "Tarifi düzenle" }} />
-              <Stack.Screen name="welcome" options={{ title: "Hoş geldin" }} />
+              <Stack.Screen name="my-recipes/index" options={{ title: t.recipesPage.title }} />
+              <Stack.Screen name="my-recipes/new" options={{ title: t.recipesPage.newMeta }} />
+              <Stack.Screen name="my-recipes/[id]" options={{ title: t.recipesPage.editMeta }} />
+              <Stack.Screen name="welcome" options={{ title: t.welcome.title }} />
             </Stack>
           </ArchiveProvider>
         </FavoritesProvider>

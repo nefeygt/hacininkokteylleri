@@ -10,18 +10,20 @@ import type { Writer } from "@/lib/community";
 import { fetchMyRecipe, type EditableRecipe } from "@/lib/recipes";
 import { readable, type Theme } from "@/lib/theme";
 import { useStyles, useTheme } from "@/lib/theme-context";
+import { useLocale } from "@/lib/i18n";
 
 /** Edit or delete one of the member's own recipes (the site's /account/recipes/{id}). */
 export default function EditRecipeScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   return (
-    <MemberGate from={{ pathname: "/my-recipes/[id]", params: { id } }} feature="Tarif yazmak">
+    <MemberGate from={{ pathname: "/my-recipes/[id]", params: { id } }} feature="recipes">
       {(writer) => <EditRecipe writer={writer} id={id} />}
     </MemberGate>
   );
 }
 
 function EditRecipe({ writer, id }: { writer: Writer; id: string }) {
+  const { t, a } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const [recipe, setRecipe] = useState<EditableRecipe | null | undefined>(undefined);
@@ -45,7 +47,7 @@ function EditRecipe({ writer, id }: { writer: Writer; id: string }) {
       <View style={styles.center}>
         {failed ? (
           <Pressable onPress={load}>
-            <Mono style={styles.link}>Tarif yüklenemedi. Tekrar dene</Mono>
+            <Mono style={styles.link}>{a.load.recipe}</Mono>
           </Pressable>
         ) : (
           <ActivityIndicator color={theme.colors.crimsonGlow} />
@@ -57,7 +59,7 @@ function EditRecipe({ writer, id }: { writer: Writer; id: string }) {
   if (recipe === null) {
     return (
       <View style={styles.center}>
-        <Body style={styles.muted}>Bu tarif bulunamadı.</Body>
+        <Body style={styles.muted}>{a.notFound.recipe}</Body>
         <Pressable onPress={() => router.replace("/my-recipes")}>
           <Mono style={styles.link}>Tariflerim</Mono>
         </Pressable>
@@ -75,12 +77,12 @@ function EditRecipe({ writer, id }: { writer: Writer; id: string }) {
             style={styles.page}
             accessibilityRole="link"
           >
-            <Mono style={styles.pageText}>Tarif sayfası →</Mono>
+            <Mono style={styles.pageText}>{t.recipesPage.recipePage}</Mono>
           </Pressable>
         )}
         {recipe.hidden && (
           <View style={styles.notice}>
-            <Notice>Bu tarif bir yönetici tarafından gizlendi; yalnızca sen görüyorsun.</Notice>
+            <Notice>{t.recipesPage.hiddenBanner}</Notice>
           </View>
         )}
         <RecipeForm writer={writer} initial={recipe.input} id={recipe.id} slug={recipe.slug} />

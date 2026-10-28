@@ -22,6 +22,7 @@ import { useSession } from "@/lib/session";
 import { fetchFollowingLogs, type AuthoredLog } from "@/lib/social";
 import { alpha, readable, type Theme } from "@/lib/theme";
 import { useStyles, useTheme } from "@/lib/theme-context";
+import { useLocale } from "@/lib/i18n";
 
 // The community feed — the site's /feed (ADR-018): the showcase ("Vitrin",
 // ADR-019), members' popular and new recipes and the latest public logs of the
@@ -35,6 +36,7 @@ interface Recipes {
 }
 
 export default function FeedScreen() {
+  const { t, a } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const session = useSession();
@@ -111,56 +113,56 @@ export default function FeedScreen() {
       }
     >
       <View style={readable}>
-        <Label style={styles.eyebrow}>Rx · Akış</Label>
+        <Label style={styles.eyebrow}>{t.feed.eyebrow}</Label>
         <View style={styles.head}>
           <View style={styles.headText}>
-            <Heading style={styles.title}>Akış</Heading>
-            <Body style={styles.subtitle}>Üyelerin tarifleri ve takip ettiklerinin günlükleri.</Body>
+            <Heading style={styles.title}>{t.feed.title}</Heading>
+            <Body style={styles.subtitle}>{t.feed.subtitle}</Body>
           </View>
-          <Button title="+ Tarif yaz" onPress={write} />
+          <Button title={t.feed.writeRecipe} onPress={write} />
         </View>
 
         {showcase && <ShowcaseSection showcase={showcase.showcase} winner={showcase.winner} onChanged={loadShowcase} />}
 
         {failed ? (
           <Pressable onPress={loadRecipes} style={styles.section}>
-            <Mono style={styles.link}>Tarifler yüklenemedi. Tekrar dene</Mono>
+            <Mono style={styles.link}>{a.feed.recipesLoadFailed}</Mono>
           </Pressable>
         ) : recipes === null ? (
           <ActivityIndicator style={styles.section} color={theme.colors.crimsonGlow} />
         ) : (
           <>
             {recipes.popular.length > 0 && (
-              <RecipeRow title="Bu ay popüler" hint="Son 30 günün en çok değerlendirilen ve favorilenen tarifleri" recipes={recipes.popular} />
+              <RecipeRow title={t.feed.popular} hint={t.feed.popularHint} recipes={recipes.popular} />
             )}
-            <RecipeRow title="Yeni tarifler" recipes={recipes.latest} empty="Henüz üye tarifi yok. İlk tarifi sen yaz." />
+            <RecipeRow title={t.feed.newRecipes} recipes={recipes.latest} empty={t.feed.noRecipes} />
           </>
         )}
 
         <View style={styles.section}>
-          <Label style={styles.sectionTitle}>Takip ettiklerinden</Label>
+          <Label style={styles.sectionTitle}>{t.feed.fromFollowing}</Label>
           {session.state === "loading" ? (
-            <Mono style={styles.muted}>Yükleniyor…</Mono>
+            <Mono style={styles.muted}>{t.common.loading}</Mono>
           ) : session.state !== "ok" ? (
             <View style={styles.prompt}>
               <Mono style={styles.promptText}>
                 {session.state === "onboarding"
-                  ? "Takip ettiğin kişilerin günlükleri için önce profilini tamamla."
-                  : "Takip ettiğin kişilerin içki günlüklerini burada görmek için giriş yap."}
+                  ? a.feed.completeProfileFirst
+                  : a.feed.signInToSee}
               </Mono>
               <Button
                 kind="secondary"
-                title={session.state === "onboarding" ? "Profilini tamamla" : "Giriş yap"}
+                title={session.state === "onboarding" ? a.account.completeProfile : t.login.signIn}
                 onPress={() => askToSignIn("/feed")}
               />
             </View>
           ) : following === null ? (
-            <Mono style={styles.muted}>Yükleniyor…</Mono>
+            <Mono style={styles.muted}>{t.common.loading}</Mono>
           ) : following.logs.length === 0 ? (
             <Mono style={styles.muted}>
               {following.followsNobody
-                ? "Henüz kimseyi takip etmiyorsun. Bir tarifin sahibinin ya da bir yorumcunun profiline gidip “Takip et”e dokun."
-                : "Takip ettiklerin henüz herkese açık bir kayıt paylaşmadı."}
+                ? t.feedLogs.followsNobody
+                : t.feedLogs.nothingShared}
             </Mono>
           ) : (
             <View style={styles.logs}>

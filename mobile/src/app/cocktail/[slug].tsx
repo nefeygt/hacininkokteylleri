@@ -13,9 +13,11 @@ import { useArchive } from "@/lib/archive";
 import { useFavorites } from "@/lib/favorites";
 import { alpha, type Theme } from "@/lib/theme";
 import { useStyles, useTheme } from "@/lib/theme-context";
+import { useLocale } from "@/lib/i18n";
 
 /** One house recipe — the site's recipe card (/cocktails?cocktail={slug}) as a screen. */
 export default function CocktailScreen() {
+  const { t, a } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const { slug } = useLocalSearchParams<{ slug: string }>();
@@ -35,7 +37,7 @@ export default function CocktailScreen() {
   if (!cocktail) {
     return (
       <View style={styles.center}>
-        <Body style={{ color: theme.colors.textSecondary }}>Bu kokteyl bulunamadı.</Body>
+        <Body style={{ color: theme.colors.textSecondary }}>{t.logsPage.notFoundSubtitle}</Body>
       </View>
     );
   }
@@ -54,7 +56,7 @@ export default function CocktailScreen() {
           {cocktail.vegan && (
             <View style={styles.vegan}>
               <Leaf size={10} color={theme.colors.vegan} />
-              <Label style={styles.veganText}>Vegan</Label>
+              <Label style={styles.veganText}>{t.cocktails.vegan}</Label>
             </View>
           )}
         </View>
@@ -70,7 +72,7 @@ export default function CocktailScreen() {
         </View>
         <LogButton slug={cocktail.slug} from={{ pathname: "/cocktail/[slug]", params: { slug: cocktail.slug } }} />
         {favoriteError && <Message error>{favoriteError}</Message>}
-        {savedOnSignIn === cocktail.id && <Notice>Favorilerine eklendi.</Notice>}
+        {savedOnSignIn === cocktail.id && <Notice>{a.recipe.savedToFavorites}</Notice>}
         <Body style={styles.subtitle}>{cocktail.subtitle}</Body>
 
         <View style={styles.details}>

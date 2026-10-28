@@ -13,9 +13,11 @@ import { useSession } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
 import { readable, type Theme } from "@/lib/theme";
 import { useStyles, useTheme } from "@/lib/theme-context";
+import { useLocale } from "@/lib/i18n";
 
 /** The Hesap tab: sign-in, onboarding's way in, or the account (the site's /login, /welcome, /account). */
 export default function AccountScreen() {
+  const { t, a } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const session = useSession();
@@ -68,13 +70,13 @@ export default function AccountScreen() {
         )}
         {session.state === "onboarding" && (
           <View style={styles.card}>
-            <Heading style={styles.title}>Son bir adım</Heading>
-            <Body style={styles.text}>Kullanıcı adını seç ve 18 yaşından büyük olduğunu onayla.</Body>
+            <Heading style={styles.title}>{a.account.lastStep}</Heading>
+            <Body style={styles.text}>{a.account.lastStepBody}</Body>
             <View style={styles.actions}>
-              <Button title="Profilini tamamla" onPress={() => router.push("/welcome")} />
+              <Button title={a.account.completeProfile} onPress={() => router.push("/welcome")} />
               <Button
                 kind="secondary"
-                title="Çıkış yap"
+                title={t.account.signOut}
                 onPress={async () => {
                   await signOutOfGoogle();
                   await supabase.auth.signOut();

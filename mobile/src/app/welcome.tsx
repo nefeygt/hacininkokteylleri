@@ -12,6 +12,8 @@ import { nameOf, useSession } from "@/lib/session";
 import { SITE_URL, supabase } from "@/lib/supabase";
 import { readable, type Theme } from "@/lib/theme";
 import { useStyles } from "@/lib/theme-context";
+import { localePath } from "@shared/i18n/locales";
+import { useLocale } from "@/lib/i18n";
 
 /** The site's /welcome: the 18+ confirmation and privacy notice first, then the profile (ADR-014). */
 export default function WelcomeScreen() {
@@ -23,6 +25,7 @@ export default function WelcomeScreen() {
 }
 
 function OnboardingForm({ userId, name, reload }: { userId: string; name: string; reload: () => Promise<void> }) {
+  const { t, locale } = useLocale();
   const styles = useStyles(makeStyles);
   const [username, setUsername] = useState(suggestUsername(name));
   const [displayName, setDisplayName] = useState(name.slice(0, DISPLAY_NAME_MAX));
@@ -33,9 +36,9 @@ function OnboardingForm({ userId, name, reload }: { userId: string; name: string
 
   async function submit() {
     setError(null);
-    if (!adult) return setError("Devam etmek için 18 yaşından büyük olmalısın.");
-    if (!privacy) return setError("Devam etmek için aydınlatma metnini onayla.");
-    const fields = checkProfile({ username, displayName });
+    if (!adult) return setError(t.actions.adultRequired);
+    if (!privacy) return setError(t.actions.privacyRequired);
+    const fields = checkProfile({ username, displayName }, t.validation);
     if ("error" in fields) return setError(fields.error);
 
     setPending(true);
@@ -53,7 +56,7 @@ function OnboardingForm({ userId, name, reload }: { userId: string; name: string
       .insert({ id: userId, username: fields.username, display_name: fields.displayName });
     if (error) {
       setPending(false);
-      return setError(profileError(error.code, error.message));
+      return setError(profileError(error.code, error.message, t.validation));
     }
 
     // The Hesap tab now holds the account; the member goes back to where they were.
@@ -63,14 +66,14 @@ function OnboardingForm({ userId, name, reload }: { userId: string; name: string
 
   return (
     <KeyboardScrollView style={styles.screen} contentContainerStyle={styles.content}>
-        <Heading style={styles.title}>Hoş geldin</Heading>
+        <Heading style={styles.title}>{t.welcome.title}</Heading>
         <Body style={styles.subtitle}>
-          Son bir adım: herkesin göreceği adını seç. Bunları sonra hesabından değiştirebilirsin.
+          {t.welcome.subtitle}
         </Body>
 
         <View style={styles.stack}>
           <Field
-            label="Kullanıcı adı"
+            label={t.welcome.username}
             prefix="@"
             value={username}
             onChangeText={(text) => setUsername(text.toLowerCase())}
@@ -78,26 +81,27 @@ function OnboardingForm({ userId, name, reload }: { userId: string; name: string
             autoCapitalize="none"
             autoCorrect={false}
             autoComplete="username"
-            hint="3–20 karakter: küçük harf, rakam, alt çizgi."
+            hint={t.welcome.usernameHint}
           />
-          <Field label="Görünen ad" value={displayName} onChangeText={setDisplayName} maxLength={DISPLAY_NAME_MAX} />
+          <Field label={t.welcome.displayName} value={displayName} onChangeText={setDisplayName} maxLength={DISPLAY_NAME_MAX} />
 
           <View style={styles.consents}>
-            <Checkbox checked={adult} onChange={setAdult} label="18 yaşından büyüğüm.">
-              <Mono style={styles.consent}>18 yaşından büyüğüm.</Mono>
+            <Checkbox checked={adult} onChange={setAdult} label={t.welcome.adult}>
+              <Mono style={styles.consent}>{t.welcome.adult}</Mono>
             </Checkbox>
-            <Checkbox checked={privacy} onChange={setPrivacy} label="Aydınlatma metnini okudum.">
+            <Checkbox checked={privacy} onChange={setPrivacy} label={`${t.welcome.privacyPrefix}${t.welcome.privacyLink}${t.welcome.privacySuffix}`}>
               <Mono style={styles.consent}>
-                <Mono style={[styles.consent, styles.link]} onPress={() => WebBrowser.openBrowserAsync(`${SITE_URL}/privacy`)}>
-                  Aydınlatma metnini
-                </Mono>{" "}
-                okudum.
+                {t.welcome.privacyPrefix}
+                <Mono style={[styles.consent, styles.link]} onPress={() => WebBrowser.openBrowserAsync(`${SITE_URL}${localePath(locale, "/privacy")}`)}>
+                  {t.welcome.privacyLink}
+                </Mono>
+                {t.welcome.privacySuffix}
               </Mono>
             </Checkbox>
           </View>
 
           {error && <Message error>{error}</Message>}
-          <Button title="Hesabımı oluştur" onPress={submit} pending={pending} />
+          <Button title={t.welcome.submit} onPress={submit} pending={pending} />
         </View>
     </KeyboardScrollView>
   );

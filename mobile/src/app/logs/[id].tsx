@@ -11,6 +11,8 @@ import type { Writer } from "@/lib/community";
 import { fetchMyLog, leave, type DrinkLog } from "@/lib/drink-logs";
 import { readable, type Theme } from "@/lib/theme";
 import { useStyles, useTheme } from "@/lib/theme-context";
+import { useLocale } from "@/lib/i18n";
+import { format } from "@shared/i18n/format";
 
 /** Edit or delete one of the member's own drink logs (the site's /account/logs/{id}). */
 export default function EditLogScreen() {
@@ -19,6 +21,7 @@ export default function EditLogScreen() {
 }
 
 function EditLog({ writer, id }: { writer: Writer; id: string }) {
+  const { t, a, locale } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const [log, setLog] = useState<DrinkLog | null | undefined>(undefined);
@@ -42,7 +45,7 @@ function EditLog({ writer, id }: { writer: Writer; id: string }) {
       <View style={styles.center}>
         {failed ? (
           <Pressable onPress={load}>
-            <Mono style={styles.link}>Kayıt yüklenemedi. Tekrar dene</Mono>
+            <Mono style={styles.link}>{a.load.log}</Mono>
           </Pressable>
         ) : (
           <ActivityIndicator color={theme.colors.crimsonGlow} />
@@ -54,7 +57,7 @@ function EditLog({ writer, id }: { writer: Writer; id: string }) {
   if (log === null) {
     return (
       <View style={styles.center}>
-        <Body style={styles.muted}>Bu kayıt bulunamadı.</Body>
+        <Body style={styles.muted}>{a.notFound.log}</Body>
       </View>
     );
   }
@@ -66,10 +69,10 @@ function EditLog({ writer, id }: { writer: Writer; id: string }) {
       <Stack.Screen options={{ title: recipe.name }} />
       <View style={readable}>
         <Heading style={styles.title}>{recipe.name}</Heading>
-        <Body style={styles.subtitle}>{formatLogDate(log.drunk_on)} kaydını düzenle.</Body>
+        <Body style={styles.subtitle}>{format(t.logsPage.editSubtitle, { date: formatLogDate(log.drunk_on, locale) })}</Body>
         {log.hidden_at && (
           <View style={styles.notice}>
-            <Notice>Bu kayıt bir yönetici tarafından gizlendi; yalnızca sen görüyorsun.</Notice>
+            <Notice>{t.logsPage.hidden}</Notice>
           </View>
         )}
         <View style={styles.form}>

@@ -8,6 +8,7 @@ import { type Theme } from "@/lib/theme";
 import { useStyles, useTheme } from "@/lib/theme-context";
 import { Button } from "./Form";
 import { Body } from "./Type";
+import { useLocale } from "@/lib/i18n";
 
 /**
  * A screen only members use (the site's requireMember): a visitor without a
@@ -16,13 +17,14 @@ import { Body } from "./Type";
  */
 export default function MemberGate({
   from,
-  feature = "İçki günlüğü",
+  feature = "logs",
   children,
 }: {
   from: Href;
-  feature?: string;
+  feature?: "logs" | "recipes";
   children: (writer: Writer, settings: Settings) => ReactNode;
 }) {
+  const { t, a } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const session = useSession();
@@ -40,9 +42,9 @@ export default function MemberGate({
     return (
       <View style={styles.center}>
         <Body style={styles.text}>
-          {onboarding ? `${feature} için önce profilini tamamla.` : `${feature} için giriş yap.`}
+          {a.gate[`${feature}${onboarding ? "Finish" : "SignIn"}`]}
         </Body>
-        <Button title={onboarding ? "Profilini tamamla" : "Giriş yap"} onPress={() => askToSignIn(from)} />
+        <Button title={onboarding ? a.account.completeProfile : t.login.signIn} onPress={() => askToSignIn(from)} />
       </View>
     );
   }

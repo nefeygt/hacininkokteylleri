@@ -16,9 +16,11 @@ import { useFavorites } from "@/lib/favorites";
 import { useSession } from "@/lib/session";
 import { alpha, type Theme } from "@/lib/theme";
 import { useStyles, useTheme } from "@/lib/theme-context";
+import { useLocale } from "@/lib/i18n";
 
 /** A member's recipe — the site's /recipes/{slug} (RecipeView) as a screen (ADR-018). */
 export default function RecipeScreen() {
+  const { t, a } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const { slug } = useLocalSearchParams<{ slug: string }>();
@@ -49,7 +51,7 @@ export default function RecipeScreen() {
       <View style={styles.center}>
         {failed ? (
           <Pressable onPress={load}>
-            <Mono style={styles.link}>Tarif yüklenemedi. Tekrar dene</Mono>
+            <Mono style={styles.link}>{a.load.recipe}</Mono>
           </Pressable>
         ) : (
           <ActivityIndicator color={theme.colors.crimsonGlow} />
@@ -61,7 +63,7 @@ export default function RecipeScreen() {
   if (recipe === null) {
     return (
       <View style={styles.center}>
-        <Body style={styles.muted}>Bu tarif bulunamadı.</Body>
+        <Body style={styles.muted}>{a.notFound.recipe}</Body>
       </View>
     );
   }
@@ -77,13 +79,13 @@ export default function RecipeScreen() {
       {recipe.imageUrl && <Image source={recipe.imageUrl} style={styles.photo} contentFit="cover" />}
 
       <View style={styles.body}>
-        <Label style={styles.eyebrow}>Rx · Üye tarifi</Label>
+        <Label style={styles.eyebrow}>{t.cocktails.memberRecipe}</Label>
         <View style={styles.metaRow}>
           <Label style={styles.meta}>{[recipe.baseAlcohol, recipe.flavor, recipe.glass].filter(Boolean).join(" · ")}</Label>
           {recipe.vegan && (
             <View style={styles.vegan}>
               <Leaf size={10} color={theme.colors.vegan} />
-              <Label style={styles.veganText}>Vegan</Label>
+              <Label style={styles.veganText}>{t.cocktails.vegan}</Label>
             </View>
           )}
         </View>
@@ -99,7 +101,7 @@ export default function RecipeScreen() {
         </View>
         <LogButton slug={recipe.slug} from={here} />
         {favoriteError && <Message error>{favoriteError}</Message>}
-        {savedOnSignIn === recipe.id && <Notice>Favorilerine eklendi.</Notice>}
+        {savedOnSignIn === recipe.id && <Notice>{a.recipe.savedToFavorites}</Notice>}
         {recipe.subtitle ? <Body style={styles.subtitle}>{recipe.subtitle}</Body> : null}
 
         {author && (
@@ -123,13 +125,13 @@ export default function RecipeScreen() {
                 hitSlop={8}
                 style={styles.edit}
                 accessibilityRole="button"
-                accessibilityLabel="Tarifi düzenle"
+                accessibilityLabel={t.recipesPage.editMeta}
               >
                 <Pencil size={11} color={theme.colors.crimsonGlow} />
-                <Mono style={styles.editText}>Düzenle</Mono>
+                <Mono style={styles.editText}>{t.common.edit}</Mono>
               </Pressable>
             ) : (
-              <ReportButton targetType="cocktail" targetId={recipe.id} ownerId={author.id} label="Tarifi bildir" />
+              <ReportButton targetType="cocktail" targetId={recipe.id} ownerId={author.id} label={t.cocktails.reportRecipe} />
             )}
           </View>
         )}

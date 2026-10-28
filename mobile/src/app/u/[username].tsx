@@ -16,6 +16,9 @@ import { countComments } from "@/lib/social";
 import { supabase } from "@/lib/supabase";
 import { readable, type Theme } from "@/lib/theme";
 import { useStyles, useTheme } from "@/lib/theme-context";
+import { useLocale } from "@/lib/i18n";
+import { format } from "@shared/i18n/format";
+import { INTL_LOCALES } from "@shared/i18n/locales";
 
 // A member's public profile — the site's /u/{username}: avatar, bio, follow
 // counts and "Takip et", the member's recipes, favourites, public drink logs
@@ -87,6 +90,7 @@ function openCocktail(c: CocktailLink) {
 }
 
 export default function ProfileScreen() {
+  const { t, a, locale } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const { username } = useLocalSearchParams<{ username: string }>();
@@ -114,7 +118,7 @@ export default function ProfileScreen() {
         <Stack.Screen options={{ title: `@${username}` }} />
         {failed ? (
           <Pressable onPress={load}>
-            <Mono style={styles.link}>Profil yüklenemedi. Tekrar dene</Mono>
+            <Mono style={styles.link}>{a.load.profile}</Mono>
           </Pressable>
         ) : (
           <ActivityIndicator color={theme.colors.crimsonGlow} />
@@ -127,13 +131,13 @@ export default function ProfileScreen() {
     return (
       <View style={styles.center}>
         <Stack.Screen options={{ title: `@${username}` }} />
-        <Body style={styles.muted}>Bu profil bulunamadı.</Body>
+        <Body style={styles.muted}>{a.notFound.profile}</Body>
       </View>
     );
   }
 
   const { profile, favorites, logs, commentCounts, recipes, reviews, followers, following } = data;
-  const joined = new Date(profile.created_at).toLocaleDateString("tr-TR", { month: "long", year: "numeric" });
+  const joined = new Date(profile.created_at).toLocaleDateString(INTL_LOCALES[locale], { month: "long", year: "numeric" });
 
   return (
     <ScrollView
@@ -153,7 +157,7 @@ export default function ProfileScreen() {
     >
       <Stack.Screen options={{ title: `@${profile.username}` }} />
       <View style={readable}>
-        <Label style={styles.eyebrow}>Rx · Profil</Label>
+        <Label style={styles.eyebrow}>{t.follow.profileEyebrow}</Label>
         <View style={styles.identity}>
           <Avatar path={profile.avatar_path} name={profile.display_name} size={72} />
           <View style={styles.names}>
@@ -164,19 +168,19 @@ export default function ProfileScreen() {
         {profile.bio && <Body style={styles.bio}>{profile.bio}</Body>}
         <View style={styles.followRow}>
           <Mono style={styles.counts}>
-            <Mono style={styles.strong}>{followers}</Mono> takipçi · <Mono style={styles.strong}>{following}</Mono> takip
+            <Mono style={styles.strong}>{followers}</Mono>{t.profilePage.followersSuffix} · <Mono style={styles.strong}>{following}</Mono>{t.profilePage.followingSuffix}
           </Mono>
           <FollowButton profile={profile} onChanged={load} />
         </View>
         <View style={styles.metaRow}>
-          <Mono style={styles.joined}>{joined} tarihinden beri üye</Mono>
-          <ReportButton targetType="profile" targetId={profile.id} ownerId={profile.id} label="Profili bildir" />
+          <Mono style={styles.joined}>{format(t.profilePage.memberSince, { date: joined })}</Mono>
+          <ReportButton targetType="profile" targetId={profile.id} ownerId={profile.id} label={t.report.reportProfile} />
         </View>
 
         {recipes.length > 0 && (
           <View style={styles.section}>
             <Label style={styles.sectionTitle}>
-              Tarifler <Label style={styles.sectionCount}>({recipes.length})</Label>
+              {t.profilePage.recipes} <Label style={styles.sectionCount}>({recipes.length})</Label>
             </Label>
             <View style={styles.recipes}>
               {recipes.map((recipe) => (
@@ -193,10 +197,10 @@ export default function ProfileScreen() {
 
         <View style={styles.section}>
           <Label style={styles.sectionTitle}>
-            Favoriler <Label style={styles.sectionCount}>({favorites.length})</Label>
+            {t.profilePage.favorites} <Label style={styles.sectionCount}>({favorites.length})</Label>
           </Label>
           {favorites.length === 0 ? (
-            <Mono style={styles.empty}>Henüz favori yok.</Mono>
+            <Mono style={styles.empty}>{t.profilePage.noFavorites}</Mono>
           ) : (
             <View style={styles.favorites}>
               {favorites.map((c) => (
@@ -225,7 +229,7 @@ export default function ProfileScreen() {
         {logs.length > 0 && (
           <View style={styles.section}>
             <Label style={styles.sectionTitle}>
-              İçki günlüğü <Label style={styles.sectionCount}>({logs.length})</Label>
+              {t.profilePage.drinkLog} <Label style={styles.sectionCount}>({logs.length})</Label>
             </Label>
             <View style={styles.logs}>
               {logs.map((log) => (
@@ -237,10 +241,10 @@ export default function ProfileScreen() {
 
         <View style={styles.section}>
           <Label style={styles.sectionTitle}>
-            Değerlendirmeler <Label style={styles.sectionCount}>({reviews.length})</Label>
+            {t.reviews.heading} <Label style={styles.sectionCount}>({reviews.length})</Label>
           </Label>
           {reviews.length === 0 ? (
-            <Mono style={styles.empty}>Henüz değerlendirme yok.</Mono>
+            <Mono style={styles.empty}>{t.profilePage.noReviews}</Mono>
           ) : (
             reviews.map((review, i) => (
               <View key={review.id} style={[styles.review, i < reviews.length - 1 && styles.reviewRule]}>

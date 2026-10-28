@@ -9,6 +9,8 @@ import type { Database } from "@shared/supabase/database.types";
 import type { Writer } from "./community";
 import { revalidateSite } from "./revalidate";
 import { supabase } from "./supabase";
+import { format } from "@shared/i18n/format";
+import { words } from "@/lib/i18n";
 
 export type ShowcaseResult = { ok?: boolean; error?: string };
 
@@ -60,15 +62,15 @@ export async function fetchMyVotes(memberId: string, entryIds: string[]): Promis
 
 export async function applyToShowcase(writer: Writer, periodId: string, cocktailId: string, pitch: string): Promise<ShowcaseResult> {
   const text = pitch.trim();
-  if (!text) return { error: "Tarifini neden vitrinde görmek istediğini birkaç cümleyle anlat." };
-  if (text.length > PITCH_MAX_LENGTH) return { error: `Tanıtım en fazla ${PITCH_MAX_LENGTH} karakter olabilir.` };
+  if (!text) return { error: words().t.actions.pitchRequired };
+  if (text.length > PITCH_MAX_LENGTH) return { error: format(words().t.actions.pitchMax, { max: PITCH_MAX_LENGTH }) };
 
   const { error } = await supabase
     .from("showcase_entries")
     .insert({ period_id: periodId, cocktail_id: cocktailId, user_id: writer.id, pitch: text });
   if (error) {
-    if (error.code === "23505") return { error: "Bu döneme zaten başvurdun." };
-    if (error.code === "42501") return { error: "Başvurulamadı: tarif yayında ve fotoğraflı olmalı, dönem de bitmemiş olmalı." };
+    if (error.code === "23505") return { error: words().t.actions.alreadyApplied };
+    if (error.code === "42501") return { error: words().t.actions.cannotApply };
     return { error: `Kaydedilemedi: ${error.message}` };
   }
   // A pending application is on no static page, so nothing to refresh (as on the site).
@@ -78,7 +80,7 @@ export async function applyToShowcase(writer: Writer, periodId: string, cocktail
 /** Withdraws the member's own application; its votes go with it. */
 export async function withdrawShowcaseEntry(writer: Writer, entryId: string): Promise<ShowcaseResult> {
   const { error } = await supabase.from("showcase_entries").delete().eq("id", entryId).eq("user_id", writer.id);
-  if (error) return { error: `Geri çekilemedi: ${error.message}` };
+  if (error) return { error: format(words().t.actions.withdrawFailed, { message: error.message }) };
   revalidateSite(["/feed", "/"]);
   return { ok: true };
 }
@@ -90,7 +92,7 @@ export async function setShowcaseVote(writer: Writer, entryId: string, vote: boo
     : await supabase.from("showcase_votes").delete().eq("entry_id", entryId).eq("user_id", writer.id);
   // Voting twice (the site and the app) is not an error.
   if (error && error.code !== "23505") {
-    if (error.code === "42501") return { error: "Oylama şu an kapalı." };
+    if (error.code === "42501") return { error: words().t.actions.votingClosed };
     return { error: `Kaydedilemedi: ${error.message}` };
   }
   revalidateSite(["/feed"]);

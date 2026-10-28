@@ -9,17 +9,20 @@ import type { Writer } from "@/lib/community";
 import { fetchMyRecipes, type OwnRecipe } from "@/lib/recipes";
 import { readable, type Theme } from "@/lib/theme";
 import { useStyles, useTheme } from "@/lib/theme-context";
+import { useLocale } from "@/lib/i18n";
+import { format } from "@shared/i18n/format";
 
 /** The member's own recipes, drafts and published, newest first (the site's /account/recipes). */
 export default function MyRecipesScreen() {
   return (
-    <MemberGate from="/my-recipes" feature="Tarif yazmak">
+    <MemberGate from="/my-recipes" feature="recipes">
       {(writer) => <MyRecipes writer={writer} />}
     </MemberGate>
   );
 }
 
 function MyRecipes({ writer }: { writer: Writer }) {
+  const { t, a } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const [recipes, setRecipes] = useState<OwnRecipe[] | null>(null);
@@ -59,21 +62,21 @@ function MyRecipes({ writer }: { writer: Writer }) {
       }
     >
       <View style={readable}>
-        <Label style={styles.eyebrow}>Rx · Tarifler</Label>
+        <Label style={styles.eyebrow}>{t.recipesPage.eyebrow}</Label>
         <Heading style={styles.title}>Tariflerim</Heading>
-        <Body style={styles.subtitle}>Yazdığın tarifler. Yayındakiler profilinde ve akışta görünür; taslakları yalnızca sen görürsün.</Body>
+        <Body style={styles.subtitle}>{t.recipesPage.subtitle}</Body>
         <View style={styles.new}>
-          <Button title="+ Yeni tarif" onPress={() => router.push("/my-recipes/new")} />
+          <Button title={t.recipesPage.newRecipe} onPress={() => router.push("/my-recipes/new")} />
         </View>
 
         {failed ? (
           <Pressable onPress={load}>
-            <Mono style={styles.link}>Tarifler yüklenemedi. Tekrar dene</Mono>
+            <Mono style={styles.link}>{a.load.recipes}</Mono>
           </Pressable>
         ) : recipes === null ? (
           <ActivityIndicator color={theme.colors.crimsonGlow} />
         ) : recipes.length === 0 ? (
-          <Mono style={styles.empty}>Henüz tarif yok. İlk tarifini yaz.</Mono>
+          <Mono style={styles.empty}>{t.recipesPage.empty}</Mono>
         ) : (
           <View style={styles.list}>
             {recipes.map((r) => {
@@ -95,20 +98,20 @@ function MyRecipes({ writer }: { writer: Writer }) {
                       {r.name}
                     </Body>
                     <Mono numberOfLines={1} style={styles.small}>
-                      {r.hidden_at ? "Yöneticiler tarafından gizlendi; yalnızca sen görüyorsun." : r.subtitle}
+                      {r.hidden_at ? t.recipesPage.hidden : r.subtitle}
                     </Mono>
                   </Pressable>
                   <View style={styles.badge}>
                     {r.is_published ? <Globe size={11} color={theme.colors.textMuted} /> : <Lock size={11} color={theme.colors.textMuted} />}
-                    <Mono style={styles.small}>{r.is_published ? "Yayında" : "Taslak"}</Mono>
+                    <Mono style={styles.small}>{r.is_published ? t.recipesPage.published : t.recipesPage.draft}</Mono>
                   </View>
                   <Pressable
                     onPress={() => router.push({ pathname: "/my-recipes/[id]", params: { id: r.id } })}
                     hitSlop={8}
                     accessibilityRole="button"
-                    accessibilityLabel={`${r.name} tarifini düzenle`}
+                    accessibilityLabel={format(a.myRecipes.editLabel, { name: r.name })}
                   >
-                    <Mono style={styles.edit}>Düzenle</Mono>
+                    <Mono style={styles.edit}>{t.common.edit}</Mono>
                   </Pressable>
                 </View>
               );

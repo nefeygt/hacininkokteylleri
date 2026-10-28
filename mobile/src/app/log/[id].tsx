@@ -8,9 +8,12 @@ import { Body, Heading, Label, Mono } from "@/components/Type";
 import { fetchPublicLog, type AuthoredLog } from "@/lib/social";
 import { readable, type Theme } from "@/lib/theme";
 import { useStyles, useTheme } from "@/lib/theme-context";
+import { useLocale } from "@/lib/i18n";
+import { format } from "@shared/i18n/format";
 
 /** One public drink log and its comments — the site's /logs/{id} (ADR-018). */
 export default function LogScreen() {
+  const { t, a } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -38,7 +41,7 @@ export default function LogScreen() {
       <View style={styles.center}>
         {failed ? (
           <Pressable onPress={load}>
-            <Mono style={styles.link}>Kayıt yüklenemedi. Tekrar dene</Mono>
+            <Mono style={styles.link}>{a.load.log}</Mono>
           </Pressable>
         ) : (
           <ActivityIndicator color={theme.colors.crimsonGlow} />
@@ -50,7 +53,7 @@ export default function LogScreen() {
   if (log === null) {
     return (
       <View style={styles.center}>
-        <Body style={styles.muted}>Bu kayıt bulunamadı ya da artık herkese açık değil.</Body>
+        <Body style={styles.muted}>{a.notFound.logPublic}</Body>
       </View>
     );
   }
@@ -74,9 +77,9 @@ export default function LogScreen() {
     >
       <Stack.Screen options={{ title: `@${log.profiles.username}` }} />
       <View style={readable}>
-        <Label style={styles.eyebrow}>Rx · Günlük kaydı</Label>
+        <Label style={styles.eyebrow}>{t.logPage.eyebrow}</Label>
         <View style={styles.head}>
-          <Heading style={styles.title}>{log.profiles.display_name} günlüğünden</Heading>
+          <Heading style={styles.title}>{format(t.logPage.titleFrom, { name: log.profiles.display_name })}</Heading>
           <Pressable
             onPress={() => router.push({ pathname: "/u/[username]", params: { username: log.profiles.username } })}
             hitSlop={8}

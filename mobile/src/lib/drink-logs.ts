@@ -11,6 +11,8 @@ import type { Writer } from "./community";
 import type { Cocktail } from "./content";
 import { revalidateSite } from "./revalidate";
 import { supabase } from "./supabase";
+import { format } from "@shared/i18n/format";
+import { words } from "@/lib/i18n";
 
 export type LogResult = { ok?: boolean; error?: string; id?: string };
 
@@ -43,10 +45,10 @@ export interface LogInput {
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 function writeError(code: string | undefined, message: string): string {
-  if (message.includes("Daily drink log limit")) return "Bugün yeterince kayıt ekledin. Yarın tekrar dene.";
-  if (code === "23514") return "Kayıt geçersiz: tarihi ve tarifi kontrol et.";
-  if (code === "42501") return "Bu kokteyl için kayıt eklenemez.";
-  return `Kaydedilemedi: ${message}`;
+  if (message.includes("Daily drink log limit")) return words().t.actions.dailyLog;
+  if (code === "23514") return words().t.actions.logInvalid;
+  if (code === "42501") return words().t.actions.logNotAllowed;
+  return format(words().t.validation.saveFailed, { message });
 }
 
 function logPages(username: string, id: string): string[] {
@@ -103,7 +105,7 @@ export function recipeOf(cocktail: Cocktail): LogRecipe {
 
 /** Adds a log (no id) or edits the member's own log. */
 export async function saveDrinkLog(writer: Writer, input: LogInput, id?: string): Promise<LogResult> {
-  if (!DATE.test(input.drunkOn)) return { error: "Geçerli bir tarih seç." };
+  if (!DATE.test(input.drunkOn)) return { error: words().t.actions.pickDate };
   if (input.rating !== null && !isValidRating(input.rating)) return { error: RATING_ERROR };
   const note = input.note.trim();
   if (note.length > LOG_NOTE_MAX_LENGTH) return { error: `Not en fazla ${LOG_NOTE_MAX_LENGTH} karakter olabilir.` };
@@ -121,7 +123,7 @@ export async function saveDrinkLog(writer: Writer, input: LogInput, id?: string)
   if (id) {
     const { data, error } = await supabase.from("drink_logs").update(fields).eq("id", id).eq("user_id", writer.id).select("id");
     if (error) return { error: writeError(error.code, error.message) };
-    if (!data.length) return { error: "Kayıt bulunamadı." };
+    if (!data.length) return { error: words().t.actions.logNotFound };
   } else {
     const { data, error } = await supabase
       .from("drink_logs")

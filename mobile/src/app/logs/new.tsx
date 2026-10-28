@@ -13,6 +13,7 @@ import { leave, recipeOf } from "@/lib/drink-logs";
 import type { Settings } from "@/lib/session";
 import { readable, type Theme } from "@/lib/theme";
 import { useStyles, useTheme } from "@/lib/theme-context";
+import { useLocale } from "@/lib/i18n";
 
 /**
  * A new drink log (the site's /account/logs/new). Opened from a recipe with
@@ -20,6 +21,7 @@ import { useStyles, useTheme } from "@/lib/theme-context";
  * one, the member picks a house recipe first.
  */
 export default function NewLogScreen() {
+  const { t } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const { cocktail: fromRecipe } = useLocalSearchParams<{ cocktail?: string }>();
@@ -42,7 +44,7 @@ export default function NewLogScreen() {
           return (
             <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
               <View style={readable}>
-                <Body style={styles.subtitle}>Hangi kokteyli yaptın ya da içtin?</Body>
+                <Body style={styles.subtitle}>{t.logsPage.newPickSubtitle}</Body>
                 <View style={styles.picker}>
                   {archive.cocktails.map((c) => (
                     <Pressable
@@ -103,6 +105,7 @@ function NewLog({
   fromRecipe: boolean;
   onPickAnother: () => void;
 }) {
+  const { t } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const [member, setMember] = useState<Cocktail | null | undefined>(house ? null : undefined);
@@ -129,9 +132,9 @@ function NewLog({
   if (cocktail === null) {
     return (
       <View style={styles.center}>
-        <Body style={styles.muted}>Bu kokteyl bulunamadı.</Body>
+        <Body style={styles.muted}>{t.logsPage.notFoundSubtitle}</Body>
         <Pressable onPress={onPickAnother}>
-          <Mono style={styles.link}>Başka bir kokteyl seç</Mono>
+          <Mono style={styles.link}>{t.logsPage.pickAnother}</Mono>
         </Pressable>
       </View>
     );
@@ -143,7 +146,7 @@ function NewLog({
       <Stack.Screen options={{ title: cocktail.name }} />
       <View style={readable}>
         <Heading style={styles.title}>{cocktail.name}</Heading>
-        <Body style={styles.subtitle}>Günlüğe ekle — tarifi yaptığın gibi düzenle.</Body>
+        <Body style={styles.subtitle}>{t.logsPage.formSubtitle}</Body>
         <View style={styles.form}>
           <LogForm
             writer={writer}

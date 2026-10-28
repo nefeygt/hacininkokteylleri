@@ -7,6 +7,8 @@ import { RATING_ERROR, REPORT_REASON_MAX_LENGTH, REVIEW_MAX_LENGTH, isValidRatin
 import type { Database } from "@shared/supabase/database.types";
 import { revalidateSite } from "./revalidate";
 import { supabase } from "./supabase";
+import { format } from "@shared/i18n/format";
+import { words } from "@/lib/i18n";
 
 export type CommunityResult = { ok?: boolean; error?: string };
 
@@ -22,9 +24,9 @@ function communityPages(username: string): string[] {
 }
 
 function writeError(message: string): string {
-  if (message.includes("Daily review limit")) return "Bugün yeterince değerlendirme yazdın. Yarın tekrar dene.";
-  if (message.includes("Daily report limit")) return "Bugün yeterince bildirim gönderdin. Yarın tekrar dene.";
-  return `Kaydedilemedi: ${message}`;
+  if (message.includes("Daily review limit")) return words().t.actions.dailyReview;
+  if (message.includes("Daily report limit")) return words().t.actions.dailyReport;
+  return format(words().t.validation.saveFailed, { message });
 }
 
 export interface Review {
@@ -79,7 +81,7 @@ export async function saveReview(writer: Writer, cocktailId: string, rating: num
       .from("reviews")
       .insert({ cocktail_id: cocktailId, user_id: writer.id, rating, body: text || null });
     if (error) {
-      if (error.code === "42501") return { error: "Bu kokteyl değerlendirilemez." };
+      if (error.code === "42501") return { error: words().t.actions.cannotReview };
       return { error: writeError(error.message) };
     }
   }
@@ -115,7 +117,7 @@ export type ReportableTarget = Extract<ReportTarget, "review" | "profile" | "dri
 export async function reportContent(writer: Writer, targetType: ReportableTarget, targetId: string, reason: string): Promise<CommunityResult> {
   const text = reason.trim();
   if (text.length > REPORT_REASON_MAX_LENGTH) {
-    return { error: `Açıklama en fazla ${REPORT_REASON_MAX_LENGTH} karakter olabilir.` };
+    return { error: format(words().t.actions.reasonMax, { max: REPORT_REASON_MAX_LENGTH }) };
   }
 
   const { error } = await supabase

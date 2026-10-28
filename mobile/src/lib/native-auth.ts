@@ -1,6 +1,7 @@
 import * as AppleAuthentication from "expo-apple-authentication";
 import { Platform } from "react-native";
 import { supabase } from "./supabase";
+import { words } from "@/lib/i18n";
 
 // Native sign-in: the provider's own sheet gives an ID token, Supabase Auth
 // checks it and opens a session (ADR-020). No browser round trip.
@@ -37,22 +38,22 @@ export async function signInWithGoogle(): Promise<NativeSignInResult> {
       const response = await GoogleSignin.signIn();
       if (!isSuccessResponse(response)) return { cancelled: true };
       const token = response.data.idToken;
-      if (!token) return { error: "Google bir kimlik vermedi. Tekrar dene." };
+      if (!token) return { error: words().a.nativeAuth.googleNoToken };
 
       const { error } = await supabase.auth.signInWithIdToken({ provider: "google", token });
-      if (error) return { error: "Google ile giriş tamamlanamadı. Tekrar dene." };
+      if (error) return { error: words().t.login.googleFailed };
       return { ok: true };
     } catch (e) {
       if (isErrorWithCode(e) && (e.code === statusCodes.SIGN_IN_CANCELLED || e.code === statusCodes.IN_PROGRESS)) {
         return { cancelled: true };
       }
       if (isErrorWithCode(e) && e.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
-        return { error: "Bu cihazda Google Play hizmetleri yok." };
+        return { error: words().a.nativeAuth.noPlayServices };
       }
-      return { error: "Google ile giriş tamamlanamadı. Tekrar dene." };
+      return { error: words().t.login.googleFailed };
     }
   } catch {
-    return { error: "Google ile giriş bu sürümde çalışmıyor." };
+    return { error: words().a.nativeAuth.googleUnavailable };
   }
 }
 
@@ -81,10 +82,10 @@ export async function signInWithApple(): Promise<NativeSignInResult> {
         AppleAuthentication.AppleAuthenticationScope.EMAIL,
       ],
     });
-    if (!credential.identityToken) return { error: "Apple bir kimlik vermedi. Tekrar dene." };
+    if (!credential.identityToken) return { error: words().a.nativeAuth.appleNoToken };
 
     const { error } = await supabase.auth.signInWithIdToken({ provider: "apple", token: credential.identityToken });
-    if (error) return { error: "Apple ile giriş tamamlanamadı. Tekrar dene." };
+    if (error) return { error: words().a.nativeAuth.appleFailed };
 
     // Apple shares the name only on the first sign-in; keep it for onboarding's suggestions.
     const name = [credential.fullName?.givenName, credential.fullName?.familyName].filter(Boolean).join(" ");
@@ -92,6 +93,6 @@ export async function signInWithApple(): Promise<NativeSignInResult> {
     return { ok: true };
   } catch (e) {
     if (e && typeof e === "object" && "code" in e && e.code === "ERR_REQUEST_CANCELED") return { cancelled: true };
-    return { error: "Apple ile giriş tamamlanamadı. Tekrar dene." };
+    return { error: words().a.nativeAuth.appleFailed };
   }
 }

@@ -9,6 +9,8 @@ import type { Writer } from "./community";
 import { LOG_COLUMNS, type DrinkLog } from "./drink-logs";
 import { revalidateSite } from "./revalidate";
 import { supabase } from "./supabase";
+import { format } from "@shared/i18n/format";
+import { words } from "@/lib/i18n";
 
 export type SocialResult = { ok?: boolean; error?: string };
 
@@ -26,13 +28,13 @@ export async function isFollowing(memberId: string, profileId: string): Promise<
 
 /** Follows or unfollows; both profiles' counts are on static pages, so both are revalidated. */
 export async function setFollow(writer: Writer, followee: { id: string; username: string }, follow: boolean): Promise<SocialResult> {
-  if (followee.id === writer.id) return { error: "Kendini takip edemezsin." };
+  if (followee.id === writer.id) return { error: words().t.actions.followSelf };
   const { error } = follow
     ? await supabase.from("follows").insert({ follower_id: writer.id, followee_id: followee.id })
     : await supabase.from("follows").delete().eq("follower_id", writer.id).eq("followee_id", followee.id);
   // Following twice (the site and the app) is not an error.
   if (error && error.code !== "23505") {
-    if (error.message.includes("Daily follow limit")) return { error: "Bugün yeterince kişiyi takip ettin. Yarın tekrar dene." };
+    if (error.message.includes("Daily follow limit")) return { error: words().t.actions.dailyFollow };
     return { error: `Kaydedilemedi: ${error.message}` };
   }
   revalidateSite([`/u/${followee.username}`, `/u/${writer.username}`]);
@@ -118,14 +120,14 @@ export async function fetchComments(logId: string): Promise<LogComment[]> {
 
 export async function addComment(writer: Writer, logId: string, body: string): Promise<SocialResult> {
   const text = body.trim();
-  if (!text) return { error: "Bir şey yaz." };
+  if (!text) return { error: words().t.actions.writeSomething };
   if (text.length > LOG_COMMENT_MAX_LENGTH) return { error: `Yorum en fazla ${LOG_COMMENT_MAX_LENGTH} karakter olabilir.` };
 
   const { error } = await supabase.from("log_comments").insert({ log_id: logId, user_id: writer.id, body: text });
   if (error) {
-    if (error.message.includes("Daily comment limit")) return { error: "Bugün yeterince yorum yazdın. Yarın tekrar dene." };
-    if (error.code === "42501") return { error: "Bu kayda yorum yazılamaz." };
-    return { error: `Gönderilemedi: ${error.message}` };
+    if (error.message.includes("Daily comment limit")) return { error: words().t.actions.dailyComment };
+    if (error.code === "42501") return { error: words().t.actions.cannotCommentLog };
+    return { error: format(words().t.actions.sendFailed, { message: error.message }) };
   }
   // Comments are read in the browser on the site, so no page needs refreshing.
   return { ok: true };
@@ -134,7 +136,7 @@ export async function addComment(writer: Writer, logId: string, body: string): P
 export async function deleteComment(id: string): Promise<SocialResult> {
   const { data, error } = await supabase.from("log_comments").delete().eq("id", id).select("id");
   if (error) return { error: `Silinemedi: ${error.message}` };
-  if (!data.length) return { error: "Bu yorumu silemezsin." };
+  if (!data.length) return { error: words().t.actions.cannotDeleteComment };
   return { ok: true };
 }
 
