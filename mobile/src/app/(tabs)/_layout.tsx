@@ -8,9 +8,11 @@ import { useNotifications } from "@/lib/notifications";
 export default function TabLayout() {
   const { t, a } = useLocale();
   const theme = useTheme();
-  const { unread } = useNotifications();
+  const { unread, refresh } = useNotifications();
   return (
     <Tabs
+      // The count is read again whenever a tab shows, as the site's navbar does on each page change.
+      screenListeners={{ focus: () => void refresh() }}
       screenOptions={{
         headerStyle: { backgroundColor: theme.colors.bgSecondary },
         headerTintColor: theme.colors.textPrimary,
