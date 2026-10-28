@@ -55,6 +55,7 @@ export const PRIVACY_NOTICE: Record<Locale, PrivacyNotice> = {
       "Tariflerin: yazdığın kokteyl tarifleri ve yüklersen fotoğrafları. Yayındakiler profilinde ve akışta herkese görünür; taslaklarını yalnızca sen görürsün.",
       "Takip ve yorumlar: kimi takip ettiğin ve seni kimlerin takip ettiği (profilinde takipçi ve takip sayıların görünür) ile herkese açık günlük kayıtlarına yazdığın yorumlar.",
       "Vitrin: başvurduğun tarif ve tanıtım yazın; bir yönetici onaylarsa akışta herkese görünür, kazanırsa ana sayfada da. Verdiğin oyları yalnızca sen görürsün; herkes yalnızca toplam oy sayısını görür.",
+      "Telefon bildirimleri: uygulamada telefon bildirimlerini açarsan, bildirimleri cihazına gönderebilmek için cihazının bildirim anahtarı (push token) ve türü (iOS ya da Android). Çıkış yaptığında ya da hesabını sildiğinde silinir; ayardan kapattığında artık bildirim gönderilmez.",
       "Teknik kayıtlar: oturumunu açık tutan çerezler; sunucu kayıtlarında IP adresin ve tarayıcı bilgin.",
     ],
     purposesTitle: "3. Neden işliyoruz ve hukuki sebebi ne?",
@@ -71,6 +72,7 @@ export const PRIVACY_NOTICE: Record<Locale, PrivacyNotice> = {
       "Vercel: sitenin barındırılması ve çerezsiz, anonim ziyaret istatistikleri (hangi sayfanın kaç kez açıldığı); ABD merkezli.",
       "Google: yalnızca Google ile giriş yapmayı seçersen, kimliğini doğrulamak için.",
       "Resend: üye olursan doğrulama ve şifre sıfırlama e-postalarını, ayrıca kapatmadığın sürece okunmamış bildirimlerinin özetini göndermek için; sunucular İrlanda.",
+      "Expo (650 Industries): uygulamada telefon bildirimlerini açarsan, bildirimlerini cihazına iletmek için; bildirimler Google (Firebase Cloud Messaging) ve Apple (Apple Push Notification service) üzerinden ulaşır; ABD merkezli.",
       "ImprovMX: {contact} adresine yazdığın e-postaları bize iletmek için; ABD merkezli.",
     ],
     transfers:
@@ -113,6 +115,7 @@ export const PRIVACY_NOTICE: Record<Locale, PrivacyNotice> = {
       "Your recipes: the cocktail recipes you write and, if you upload them, their photos. Published ones are visible to everyone on your profile and in the feed; only you see your drafts.",
       "Follows and comments: who you follow and who follows you (your follower and following counts show on your profile), and the comments you write on public log entries.",
       "Showcase: the recipe you apply with and your pitch. If an admin approves it, everyone can see it in the feed, and if it wins, on the home page too. Only you see the votes you give; everyone else sees only the total number of votes.",
+      "Phone notifications: if you turn on phone notifications in the app, your device's notification key (push token) and type (iOS or Android), so notifications can be sent to it. It is deleted when you sign out or delete your account; when you turn the setting off, no more notifications are sent.",
       "Technical records: cookies that keep you signed in; your IP address and browser details in server logs.",
     ],
     purposesTitle: "3. Why do we process it, and on what legal basis?",
@@ -129,6 +132,7 @@ export const PRIVACY_NOTICE: Record<Locale, PrivacyNotice> = {
       "Vercel: hosting the site, and cookieless, anonymous visit statistics (how many times each page was opened); based in the USA.",
       "Google: only if you choose to sign in with Google, to verify your identity.",
       "Resend: if you become a member, to send verification and password-reset e-mails and, unless you turn it off, a digest of your unread notifications; servers in Ireland.",
+      "Expo (650 Industries): if you turn on phone notifications in the app, to deliver your notifications to your device; they reach it through Google (Firebase Cloud Messaging) and Apple (Apple Push Notification service); based in the US.",
       "ImprovMX: to forward the e-mails you send to {contact} to us; based in the USA.",
     ],
     transfers:

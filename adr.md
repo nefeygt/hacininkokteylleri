@@ -1319,3 +1319,24 @@ Inside components the theme variable is `theme` and the site's dictionary is `t`
 is the theme. The language key is `haci.locale` in AsyncStorage; `setLocale` also writes `account_settings.locale` when
 signed in. House recipes and glossary terms come through `applyCocktailTranslation` (`src/lib/translations.ts`, used by
 the site and the app). The app's own words live in `mobile/src/lib/i18n/{tr,en}.ts`; a missing English key fails typecheck.
+
+**Update 2026-10-28 (steps 7–8 built).** Community: the app reads notifications as the site does; the Hesap tab's badge
+counts unread rows on every tab focus and on return to the app; `appRoute()` (`mobile/src/lib/notifications.tsx`) maps
+the site paths `describeNotification` gives to app screens, so the site's wording and links stay the one source.
+Push, decided while building:
+- **Permission is asked only from the account's "Telefon bildirimleri" switch**, never at launch or sign-in. The switch is
+  on only when `account_settings.push_notifications` is on *and* the phone allows it; off stops pushes to all devices.
+- **A token belongs to whoever registered it last.** Inserts and updates go through `register_push_token()` (security
+  definer, takes the token over for the caller; the advisor's warning on it is expected): a phone handed from one member
+  to another must not keep showing the first member's notifications. Sign-out deletes the device's row; a re-sign-in
+  registers it again silently when permission was given before.
+- **Claim, then send.** The trigger only wakes the function (statement-level, only when a recipient has a device);
+  `claim_push_notifications()` stamps `pushed_at` and returns the rows in one statement, so a stray or repeated call never
+  pushes twice. Rows Expo refuses are released (`pushed_at` back to null); `DeviceNotRegistered` tokens are deleted.
+  Expo's delivery receipts are not read (a later improvement if pushes go missing).
+- **A pushed notification is not e-mailed.** `pending_notification_emails()` skips rows with `pushed_at`: the phone
+  already told the member; the digest is for members without push.
+- **The wording is a third copy** (the site's dictionaries, the e-mail function, the push function): Deno functions are
+  deployed alone and cannot import `src/lib`. A change to `notificationTexts` must be copied to
+  `supabase/functions/send-push-notifications/index.ts`.
+- `/privacy` names push tokens and Expo (the user approved the text, version `2026-10-28`).

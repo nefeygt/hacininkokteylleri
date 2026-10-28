@@ -4,14 +4,15 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-28 (parity pass steps 2–6, [sonnet]) · Themes, languages, the recipe screens, the archive/feed
-additions and the forms are in the app (ADR-033); **next is step 7 [opus] (community: notifications, follower lists, comment
-editing)**, then 8 push [opus], 9 sweep [sonnet], 10 release readiness [opus]. The store upload still waits for the Apple account or the user's two other Play apps (ADR-024).
-`main` is pushed and deployed.
+**Prepared by session:** 2026-10-28 (parity pass steps 7–8, [opus]) · Step 7 (community) is done and checked signed in. Step 8
+(push) is **built** — schema, sender function, the app's switch, `/privacy` (approved) — and waits for **the user's Firebase/FCM
+setup and a development build** before the phone test. **Next is step 9 [sonnet] (the sweep)**; step 8's phone test can happen
+whenever the user has done the console steps (any model; the checklist is under step 8). Then 10 release readiness [opus].
+The store upload still waits for the Apple account or the user's two other Play apps (ADR-024). `main` is pushed and deployed.
 
 **Model split (the user, 2026-10-26):** the parity pass runs over several chats. Each step below is tagged
 **[opus]** or **[sonnet]**; a session works through consecutive steps of its own tag and stops before a step with the
-other tag (see "Model handoff"). **Steps 1–6 are done; the next session is [opus]** (steps 7–8).
+other tag (see "Model handoff"). **Steps 1–7 are done, 8 waits for the user; the next session is [sonnet]** (step 9).
 ---
 
 ## 📋 Prompt to Copy
@@ -215,35 +216,30 @@ each step; tick the step here; mark the items of "Web changes since 2026-10-15" 
    - Check: create and edit a log and a member's recipe with a glass and linked lines (temporary `@example.test` member,
      deleted afterwards); the recipe then appears in "Elimde ne var?".
 
-7. **[opus] Community** — notifications, follower lists, comment editing (ADR-030).
-   - Notifications screen `mobile/src/app/notifications.tsx`: `NOTIFICATION_COLUMNS`, `NOTIFICATIONS_SHOWN`,
-     `describeNotification(row, t)`; map its `href` (`/u/x`, `/logs/id`, `/account`, recipe paths) to app routes;
-     mark read on opening (the site's `NotificationsSeen` shows the update); a badge with the unread count on the Hesap tab
-     (`tabBarBadge`), refreshed on focus.
-   - Follower lists: the profile's counts open two lists (the site's `FollowList.tsx` and its query).
-   - Comment editing in `LogComments`: "Düzenle", save → `edited_at`, "düzenlendi" — the RLS policy
-     `log_comments_one_update_policy` decides what may change.
-   - The app writes straight to the database: check every write against its policy; test signed in with a temporary
-     `@example.test` member (delete it afterwards).
+7. ✅ **[opus] Community** — done 2026-10-28: `mobile/src/lib/notifications.tsx` (`NotificationsProvider` / `useNotifications()` with the
+   unread count, `fetchNotifications`, `markAllRead`, `appRoute(href)` site path → app route, `openNotificationLink` — tabs are navigated,
+   not pushed), the screen `notifications.tsx` (marks read on opening), the Hesap tab's `tabBarBadge` (re-counted on every tab focus and on
+   return to the app), a "Bildirimler" row + the e-mail digest switch on the account screen, `follows/[username]?kind=followers|following`
+   (opened from the profile counts), comment editing in `LogComments` (`editComment` in `social.ts`; the database stamps `edited_at`).
+   `MemberGate` takes `feature="notifications"`. Checked signed in with two temporary members (deleted): badge 1 → 2 without a reload,
+   English list, taps open the profile and the log, edit + "· edited", RLS refuses editing someone else's comment, 320 px light theme.
 
-8. **[opus] Push notifications** (ADR-033).
-   - **The user first:** a Firebase project with Android FCM (google-services.json in `mobile/`, the FCM V1 service-account
-     key uploaded to EAS credentials) — the user does the console steps in their Chrome; iOS waits for the Apple account.
-   - `npx expo install expo-notifications`; `app.json` plugin; ask permission only after sign-in and on a clear action (not
-     on launch); `getExpoPushTokenAsync({ projectId })` → upsert.
-   - Schema (ADR-009, migration + types + advisors): `push_tokens (token text primary key, user_id uuid not null references
-     auth.users on delete cascade, platform text check in ('ios','android'), created_at, last_seen_at)` with RLS — members
-     select/insert/update/delete only their own rows; `account_settings.push_notifications boolean not null default true`
-     (+ grant update) and a switch on the account screen next to the e-mail switch.
-   - Sender: an Edge Function `send-push-notifications` called by an `after insert` trigger on `notifications` through
-     `pg_net` (as the e-mail schedule calls its function) — it reads the row and the member's tokens with the service
-     role inside the function (never in the app, ADR-007), builds the text with `describeNotification` in the member's
-     `account_settings.locale`, posts to `https://exp.host/--/api/v2/push/send`, and deletes tokens Expo reports as
-     `DeviceNotRegistered`. Decide whether a pushed notification skips the e-mail digest (record it in ADR-033).
-   - Tapping a push opens the same route as the notifications screen.
-   - The privacy notice gets a line about push tokens (both languages; **the user approves the text**; bump
-     `PRIVACY_NOTICE_VERSION` only if the policy says so).
-   - Check: a development build on the user's phone receives a push from a follow by the temporary member.
+8. **[opus] Push notifications** (ADR-033) — **built 2026-10-28, not yet received on a phone.** Done: migration
+   `20261028090812_push_notifications` (`push_tokens` + `register_push_token()`, `account_settings.push_notifications`,
+   `notifications.pushed_at`, `claim_push_notifications()`, trigger `notifications_wake_push_sender`, the e-mail digest skips pushed
+   rows); Edge Function `send-push-notifications` (deployed, verify_jwt on; a call with nothing pending answers `{"sent":0}`); the app's
+   `mobile/src/lib/push.ts` and the "Telefon bildirimleri" switch (native only — hidden on Expo web), token synced on sign-in and
+   deleted on sign-out, a tapped push opens its screen (`usePushResponses` in the tab layout); `expo-notifications` plugin in `app.json`;
+   `/privacy` lines approved by the user (version `2026-10-28`). **Left:**
+   - **The user (console):** a Firebase project (any name, e.g. `haci`) → add an Android app with package
+     `tech.hacininkokteylleri.haci` → download `google-services.json` into `mobile/`; Firebase → Project settings → Service accounts →
+     generate a key → `eas credentials` (Android → Push Notifications: FCM V1) uploads it. The key JSON is a secret: never commit it.
+   - **Then the agent:** `"googleServicesFile": "./google-services.json"` under `android` in `app.json` (the file itself is public config
+     per Expo's guidance, ADR-008 — commit it); `eas build -p android --profile development`; the user installs it.
+   - **The phone test:** sign in on the phone, turn on "Telefon bildirimleri" (the permission prompt appears), check a row in
+     `push_tokens`; a temporary `@example.test` member follows the user's test account → a push arrives within seconds; tapping it
+     opens the follower's profile; `notifications.pushed_at` is set; sign out → the token row is gone. Delete the temporary member.
+   - iOS waits for the Apple account (APNs key via `eas credentials`).
 
 9. **[sonnet] Sweep** — run the whole app once in each of the 6 themes × 2 languages at 320 and 390 px; fix what is off;
    empty the "Web changes" list (every item done or "web-only").
@@ -257,6 +253,18 @@ as you go, so the list ends empty.
 
 **Waiting for the user (do not block on them):** notifications signed in; Search Console sitemap (now with `/en` alternates);
 the first run/schedule of `cleanup-photos.yml`; **`RESEND_API_KEY`** in Supabase secrets (the `/privacy` digest line is live since 2026-10-26); Rx crimson labels for AA. **Videos: dropped** (the user).
+
+**Things that bite (parity pass, steps 7–8):**
+- **`npx expo install` while the Expo web server runs** leaves Metro with a stale view of `node_modules` ("main module field could
+  not be resolved"): stop the server (`preview_stop`) and start it again.
+- **New routes need typed routes regenerated:** typecheck fails on a new `router.push("/new-screen")` until `expo start` has run once
+  (it rewrites `mobile/.expo/types/router.d.ts`).
+- **Seeding a member by SQL skips onboarding**, so no `account_settings` row exists and the switches update nothing. Insert one
+  (`user_id`, `privacy_notice_version`) with the test member. The auto-mode classifier refuses creating `auth.users` rows until the
+  user says yes in chat — ask first.
+- **Notification wording lives in three places** (site dictionaries, `send-notification-emails`, `send-push-notifications`) — change
+  all three together (ADR-033 update).
+- Expo web has no push: the switch is hidden there; test push only on a development build.
 
 **Things that bite (parity pass, steps 2–6):**
 - **Theme and words in components:** `const theme = useTheme()` (colours, fonts), `const { t, a, locale } = useLocale()` (t = the
@@ -319,16 +327,16 @@ Every other item below is **missing** and planned in the step named in brackets;
   `@shared/i18n` dictionaries and `cocktail_translations` — decide with the user in the parity pass.
 - **Share cards and 404/error screens** (M9 A, 2026-10-26): web-only (the app has no link previews); the app's own
   error states are already its own.
-- [step 7] **Notifications** (ADR-030): a screen with `NOTIFICATION_COLUMNS` and `describeNotification` from
+- ✅ [step 7, done; push built in step 8] **Notifications** (ADR-030): a screen with `NOTIFICATION_COLUMNS` and `describeNotification` from
   `@shared/notifications` (links map to the app's screens), a badge on the account tab with the unread count, mark
   read on opening. Push notifications are a separate decision.
 - [step 5, skipped → Icebox] **Collections and the glossary** (M9 C): web-only SEO pages; the app could later show the collection chips
   (`collections` from `@shared/collections`) on its archive tab — optional.
 - ✅ [step 5, done] **Sort and "Günün kokteyli"** (M9 D): the app's archive tab gets the three sort choices (`sortCocktails`,
   `SORT_LABELS` from `@shared/archive-filter`); its home/feed could show `cocktailOfTheDay` and the house picks.
-- ✅ [step 4 done; follower lists step 7] **Rating breakdown** (M9): the app's recipe screen reads `half_star_counts` with the rating and draws the ten bars
+- ✅ [step 4 done; follower lists done in step 7] **Rating breakdown** (M9): the app's recipe screen reads `half_star_counts` with the rating and draws the ten bars
   (`ratingBreakdown` from `@shared/community`). **Follower lists**: profile counts open two lists in the app.
-- [step 7] **Comment editing** (M9): the app's log comments get "Düzenle" and "düzenlendi" (`edited_at`).
+- ✅ [step 7, done] **Comment editing** (M9): the app's log comments get "Düzenle" and "düzenlendi" (`edited_at`).
 - ✅ [step 6, built — not yet seen] **Glass picker** (M9): the app's log and recipe forms pick the glass by drawing (`GLASSES`, `glassKind` from
   `@shared/glasses`; the 13 paths of `GlassIcon.tsx` move to react-native-svg).
 - ✅ [step 4, done] **"cl | oz"** on recipes (ADR-027): a toggle beside "Kaç kişilik?" with `convertAmount`, `formatOunces`,
@@ -345,7 +353,7 @@ store account (packages, a production build, listing drafts) can follow it. Then
 ### State check (when resuming)
 
 `git status` — clean, `main` in step with `origin/main`. **Tools:** the Supabase MCP (`list_migrations` on
-`qwvnhdghwycqlvsnlvlt` → 32, the latest `20261026100157_translations_en_names_glossary_dedupe`) and a browser: **Claude in Chrome was
+`qwvnhdghwycqlvsnlvlt` → 33, the latest `20261028090812_push_notifications`) and a browser: **Claude in Chrome was
 disconnected most of 2026-10-15; the user reconnected it at the end** — try `tabs_context_mcp`; if it still fails, use the built-in browser
 (`mcp__Claude_Browser__*`; it reaches `localhost:8081`; read the DOM, screenshots lag). Store consoles (Play Console,
 expo.dev) need the user's signed-in Chrome — ask them to reconnect Claude in Chrome for those. The built-in browser holds the
@@ -390,14 +398,13 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
 - Hacı's own first admin sign-in (question 5).
 - Not yet seen in the app: a showcase entry card with a real recipe photo (everything else of steps 5–6 was checked with
   a seeded second member on 2026-10-15).
-- Icebox (plan.md §9): follower lists, notifications, comment editing, tuning "popular", a showcase
-  archive of past winners.
+- Icebox (plan.md §9): tuning "popular", a showcase archive of past winners.
 
 ---
 
 ## 🙋 Questions for the User
 
-None open. Step 8 needs the user's Firebase/FCM console steps; the privacy line for push needs their approval.
+None open. Step 8's phone test needs the user's Firebase/FCM console steps (listed under step 8).
 
 ---
 

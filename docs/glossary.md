@@ -221,6 +221,7 @@ A new house recipe with a Turkish name gets a row here and an English name in th
 | Giriş | Sign in |
 | Çıkış yap | Sign out |
 | Bildirimler | Notifications |
+| Telefon bildirimleri | Phone notifications *(push; "push token" in the privacy notice is "notification key (push token)")* |
 | Kaç kişilik? | How many glasses? |
 | Benzer kokteyller | Similar cocktails |
 | Günün kokteyli | Cocktail of the day |
