@@ -38,6 +38,11 @@
 | 026 | M9 quick wins: filters read the data, a flavour is a set of notes, recipes scale and describe themselves | ✅ Accepted | 2026-10-15 |
 | 027 | A weekly backup of house content through a GitHub Action; recipes switch between cl and oz at 1 oz = 3 cl | ✅ Accepted | 2026-10-15 |
 | 028 | Six site themes, "Rx" the default; reading text leaves the monospace font | ✅ Accepted | 2026-10-15 |
+| 029 | An ingredient catalogue in the database; "Elimde ne var?" matches house recipes against it | ✅ Accepted | 2026-10-15 |
+| 030 | Notifications written by database triggers; a bell on the site | ✅ Accepted | 2026-10-26 |
+| 031 | Notification e-mails: a digest from an Edge Function, scheduled by pg_cron, sent through Resend | ✅ Accepted | 2026-10-26 |
+| 032 | Languages: a [lang] tree, Turkish at the root, typed dictionaries, translation rows per language | ✅ Accepted | 2026-10-26 |
+| 033 | The app gets English, all six themes and push notifications; foundations before screens | ✅ Accepted | 2026-10-28 |
 
 ---
 
@@ -1280,3 +1285,30 @@ the app's parity pass.
 - (+) A new language is a dictionary file, translation rows and one line in `locales.ts`; no schema change.
 - (+) Turkish URLs and caching are untouched (checked live after the move).
 - (−) Every page and component must take its words from the dictionary; until English is complete it stays unpublished.
+
+---
+
+## ADR-033 — The app gets English, all six themes and push notifications; foundations before screens
+
+**Context.** The mobile parity pass (M8, 2026-10-28) asked the user three questions whose defaults were "Turkish only",
+"Rx only" and "the in-app list only" for the first store release. The user chose the full set: English, the six site
+themes (ADR-028) and push notifications.
+
+**Decision.**
+- **Order:** the theme runtime first, then the language runtime, then the feature screens — so every ported screen is
+  written themed and bilingual once. The 39 files with module-level styles move to `useStyles((t) => StyleSheet.create(...))`.
+- **Themes:** the app copies the site's palettes and font sets per theme (`globals.css` is the source); the choice lives
+  in the phone's storage under the site's key (`haci.theme`), not on the server. The app ignores the phone's light/dark
+  setting, like the site.
+- **Languages:** the app uses the site's typed dictionaries through `@shared/i18n` for every string they already hold,
+  and its own typed `tr`/`en` dictionary only for app-only words. The first language follows the phone (Turkish → `tr`,
+  anything else → `en`); a choice is stored on the phone and, for members, in `account_settings.locale`. House recipes
+  are translated by the same merge the site uses, moved to a shared pure module.
+- **Push:** Expo push tokens in a `push_tokens` table with own-row RLS, a per-member switch in `account_settings`, and an
+  Edge Function sender triggered on new notifications through `pg_net`; the service role stays inside the function
+  (ADR-007). Android first (FCM); iOS with the Apple account. The privacy notice names push tokens (the user approves).
+
+**Consequences.**
+- (+) The first release matches the site; no second pass over every screen later.
+- (−) More to check: 6 themes × 2 languages; seven font families add to the bundle.
+- (−) Push needs a Firebase project and a new development build before it can be tested.
