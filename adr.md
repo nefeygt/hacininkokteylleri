@@ -1312,3 +1312,10 @@ themes (ADR-028) and push notifications.
 - (+) The first release matches the site; no second pass over every screen later.
 - (−) More to check: 6 themes × 2 languages; seven font families add to the bundle.
 - (−) Push needs a Firebase project and a new development build before it can be tested.
+
+**Update 2026-10-28 (steps 2–3 built).** The app's runtime is in place: `useTheme()` / `useStyles(makeStyles)` and
+`useLocale()` → `{ locale, t, a, setLocale }`; plain modules (`lib/*.ts`) read the current words through `words()`.
+Inside components the theme variable is `theme` and the site's dictionary is `t`; inside `makeStyles = (t: Theme)` `t`
+is the theme. The language key is `haci.locale` in AsyncStorage; `setLocale` also writes `account_settings.locale` when
+signed in. House recipes and glossary terms come through `applyCocktailTranslation` (`src/lib/translations.ts`, used by
+the site and the app). The app's own words live in `mobile/src/lib/i18n/{tr,en}.ts`; a missing English key fails typecheck.

@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { useLocale } from "@/lib/i18n";
 import { fetchArchive, type Archive } from "./content";
 
 interface ArchiveState {
@@ -19,18 +20,20 @@ export function ArchiveProvider({ children }: { children: ReactNode }) {
   const [archive, setArchive] = useState<Archive | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const { locale } = useLocale();
 
+  // A language change loads the archive again, in the new language.
   const refresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      setArchive(await fetchArchive());
+      setArchive(await fetchArchive(locale));
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
       setRefreshing(false);
     }
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     refresh();

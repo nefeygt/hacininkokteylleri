@@ -9,7 +9,7 @@
 > **Language rule (ADR-002):** everything we write — docs, code, comments, commits, SQL — is
 > **English**. Everything visitors and admins read — UI strings, recipes — is **Turkish**.
 
-**Last updated:** 2026-10-28 (parity pass step 1: the app gets English, six themes and push — ADR-033; plan in next_session.md) · **Active milestone:** **M8 — Mobile app: the parity pass** (port the web changes since 2026-10-15 to `mobile/`, then production readiness; the store upload itself still waits for the Apple account or the user's two other Play apps, ADR-024) · **M9 — Web improvements** done 2026-10-26 · M6 and M7 done · **Brand:** `haci` (ADR-015)
+**Last updated:** 2026-10-28 (parity pass steps 2–3 done: themes and languages in the app — ADR-033; next is step 4) · **Active milestone:** **M8 — Mobile app: the parity pass** (port the web changes since 2026-10-15 to `mobile/`, then production readiness; the store upload itself still waits for the Apple account or the user's two other Play apps, ADR-024) · **M9 — Web improvements** done 2026-10-26 · M6 and M7 done · **Brand:** `haci` (ADR-015)
 
 ---
 
@@ -641,7 +641,9 @@ The admin panel stays web-only.
 - [ ] **Parity pass — in progress (the user's go, 2026-10-26):** every item of next_session.md's "Web changes since 2026-10-15",
   package updates, a new development build, a phone pass; aim: production-ready. 10 steps in next_session.md (ADR-033):
   - [x] 1 — state check, the user's answers (English, six themes, push), audit, plan (2026-10-28)
-  - [ ] 2 themes · 3 languages · 4 recipe screens · 5 archive/feed · 6 forms · 7 community · 8 push · 9 sweep · 10 release readiness
+  - [x] 2 — themes: runtime, six palettes and font sets, picker, 39 style files converted (2026-10-28)
+  - [x] 3 — languages: runtime, the app's own dictionary, every string converted, house recipes and glossary translated, language picker (2026-10-28)
+  - [ ] 4 recipe screens · 5 archive/feed · 6 forms · 7 community · 8 push · 9 sweep · 10 release readiness
 - [ ] Step 7 — **store upload paused (ADR-024, 2026-10-15)**; starts after the parity pass (web changes since 2026-10-15, package updates, a new build), then: EAS production builds, store listings (Turkish), age rating 18+/17+,
   privacy forms (App Privacy, Data safety), Play's closed test, App Store review
 
@@ -817,6 +819,7 @@ While the store release waits (ADR-024), the site gets better first; every user-
 
 | Date | Session | Outcome |
 |---|---|---|
+| 2026-10-28 | Parity pass, steps 2–3 (Sonnet) | Step 2: `theme.ts` (six palettes, font sets), `theme-context.tsx` (`useTheme`, `useStyles`), a codemod converted the 39 style files, `ThemePicker`, reading text in the body face; Expo web checked in Rx and Reçete Kâğıdı (contrast audit clean). Step 3: `i18n.tsx` (`useLocale`, `words()` for plain modules), the app's own `tr.ts`/`en.ts`, every Turkish string moved to the site's dictionary or the app's, shared `translations.ts` (site `content.ts` uses it), archive and glossary load in the language, `LanguagePicker`; checked in Turkish and English at 375 and 320 px. Site build and the three bundles pass. Signed-in screens not yet seen (step 9). |
 | 2026-10-28 | Parity pass, step 1 (Opus) | The user's pasted prompt was stale (translation already live) — reported, then the user said go. State check: clean, 32 migrations, 5 Expo patch releases waiting. The user's answers: English, all six themes and push notifications in the app (ADR-033). Audit: only the filter chips are in the app. Plan rewritten as 10 steps, foundations first (themes, languages), then screens, community, push, sweep, release. Docs only |
 | 2026-10-15 | M9 members' recipes in "Elimde ne var?" | The user's request from last session (amends ADR-029). Migration `recipe_ingredient_links` (`save_recipe` keeps `ingredient_id`), a catalogue select per line in the member form, only fully linked recipes match, the page adds published members' recipes, revalidation from member/app saves and moderation; the app carries the links through its form. Found on the way: the app's form rebuilt lines and would have dropped the links — fixed. Checked in Claude in Chrome on localhost with the user signed in as `ahmet_kafa` (test recipe deleted afterwards) |
 | 2026-10-15 | M9 "Elimde ne var?" | The user picked "what can I make", then the database catalogue (not groups in code), its own page, ready + one missing, house recipes only → ADR-029. Migrations `ingredient_catalogue` (+ `_drafts` for an unpublished draft's lower-case lines), panel select + "Malzemeler" page, `/what-can-i-make`. Bug found in the browser and fixed: quick taps lost a choice (stale state). A build failed once on a next/font fetch (network); the retry passed. Then the live check: the user signed in to the panel (Claude in Chrome had no haci session until then); recipe save, catalogue add/delete and the live page passed |

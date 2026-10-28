@@ -1,6 +1,8 @@
 // The shapes the app's screens draw, mapped from database rows in one place —
 // the app's twin of the site's src/lib/content.ts (which is server-side).
 
+import { DEFAULT_LOCALE, type Locale } from "@shared/i18n/locales";
+import { COCKTAIL_TRANSLATION_COLUMNS, applyCocktailTranslation, type CocktailTranslationRow } from "@shared/translations";
 import type { ShowcasePeriod } from "@shared/showcase";
 import type { Database } from "@shared/supabase/database.types";
 import { cocktailImageUrl, recipeImageUrl, supabase } from "./supabase";
@@ -178,23 +180,44 @@ export interface Archive {
   glossary: Glossary;
 }
 
-/** Hacı's published recipes in display order, with their ratings, and the glossary. */
-export async function fetchArchive(): Promise<Archive> {
-  const [cocktails, ratings, glossary] = await Promise.all([
+/**
+ * Hacı's published recipes in display order, with their ratings, and the glossary, in a language: the translation
+ * rows (shared `applyCocktailTranslation`) replace the Turkish text where filled in; members' recipes stay as written.
+ */
+export async function fetchArchive(locale: Locale = DEFAULT_LOCALE): Promise<Archive> {
+  const translated = locale !== DEFAULT_LOCALE;
+  const [cocktails, ratings, glossary, cocktailTranslations, glossaryTranslations] = await Promise.all([
     supabase.from("cocktails").select(COCKTAIL_COLUMNS).eq("is_published", true).is("author_id", null).order("sort_order"),
     supabase.from("cocktail_ratings").select("cocktail_id, review_count, average_rating"),
     supabase.from("glossary_terms").select("term, definition"),
+    translated
+      ? supabase.from("cocktail_translations").select(COCKTAIL_TRANSLATION_COLUMNS).eq("locale", locale)
+      : Promise.resolve(null),
+    translated
+      ? supabase.from("glossary_term_translations").select("translated_term, definition").eq("locale", locale)
+      : Promise.resolve(null),
   ]);
   if (cocktails.error) throw new Error(cocktails.error.message);
   if (ratings.error) throw new Error(ratings.error.message);
   if (glossary.error) throw new Error(glossary.error.message);
+  if (cocktailTranslations?.error) throw new Error(cocktailTranslations.error.message);
+  if (glossaryTranslations?.error) throw new Error(glossaryTranslations.error.message);
 
+  const rows = new Map(
+    ((cocktailTranslations?.data ?? []) as unknown as CocktailTranslationRow[]).map((row) => [row.cocktail_id, row])
+  );
   const byCocktail = new Map(
     ratings.data.map((r) => [r.cocktail_id, { average: Number(r.average_rating), count: r.review_count ?? 0 }])
   );
   return {
-    cocktails: (cocktails.data as CocktailRow[]).map((row) => ({ ...toCocktail(row), rating: byCocktail.get(row.id) })),
-    glossary: Object.fromEntries(glossary.data.map((t) => [t.term, t.definition])),
+    cocktails: (cocktails.data as CocktailRow[]).map((row) =>
+      applyCocktailTranslation({ ...toCocktail(row), rating: byCocktail.get(row.id) }, rows.get(row.id))
+    ),
+    // Members' recipes stay in the language they were written in, so the Turkish terms keep their tooltips.
+    glossary: {
+      ...Object.fromEntries(glossary.data.map((t) => [t.term, t.definition])),
+      ...Object.fromEntries((glossaryTranslations?.data ?? []).map((t) => [t.translated_term, t.definition])),
+    },
   };
 }
 

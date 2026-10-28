@@ -24,6 +24,8 @@ import { Button, Message } from "./Form";
 import OptionSheet from "./OptionSheet";
 import ReportButton from "./ReportButton";
 import { Body, Label, Mono } from "./Type";
+import { useLocale } from "@/lib/i18n";
+import { format } from "@shared/i18n/format";
 
 const openRecipe = (slug: string) => router.push({ pathname: "/recipes/[slug]", params: { slug } });
 
@@ -41,6 +43,7 @@ export default function ShowcaseSection({
   winner: ShowcaseEntry | null;
   onChanged: () => void;
 }) {
+  const { t, locale } = useLocale();
   const styles = useStyles(makeStyles);
   const { period, entries } = showcase;
   if (!period && !winner) return null;
@@ -49,14 +52,14 @@ export default function ShowcaseSection({
   return (
     <View style={styles.section}>
       <View style={styles.head}>
-        <Label style={styles.title}>Vitrin</Label>
-        {period && <Mono style={styles.period}>{formatPeriod(period)}</Mono>}
+        <Label style={styles.title}>{t.feed.showcase}</Label>
+        {period && <Mono style={styles.period}>{formatPeriod(period, locale)}</Mono>}
       </View>
       {period && (
         <Mono style={styles.hint}>
           {state === "open"
-            ? `Oylama ${formatLastDay(period)} günü sonunda bitiyor · en çok oyu alan tarif ana sayfada`
-            : `Başvurular açık · oylama ${formatFirstDay(period)} tarihinde başlıyor`}
+            ? format(t.feed.votingEnds, { day: formatLastDay(period, locale) })
+            : format(t.feed.applicationsOpen, { day: formatFirstDay(period, locale) })}
         </Mono>
       )}
 
@@ -66,17 +69,17 @@ export default function ShowcaseSection({
           <ShowcaseEntries period={period} entries={entries} onChanged={onChanged} />
         </>
       ) : (
-        <Mono style={styles.muted}>Şu an açık bir vitrin dönemi yok.</Mono>
+        <Mono style={styles.muted}>{t.feed.noPeriod}</Mono>
       )}
 
       {winner && (
         <View style={styles.winner}>
-          <Mono style={styles.winnerText}>Son kazanan: </Mono>
+          <Mono style={styles.winnerText}>{t.feed.lastWinner}</Mono>
           <Pressable onPress={() => openRecipe(winner.recipe.slug)} accessibilityRole="link" hitSlop={6}>
             <Mono style={[styles.winnerText, styles.winnerName]}>{winner.recipe.name}</Mono>
           </Pressable>
           <Mono style={styles.winnerText}>
-            {winner.recipe.author ? ` · @${winner.recipe.author.username}` : ""} · {winner.voteCount} oy
+            {winner.recipe.author ? ` · @${winner.recipe.author.username}` : ""} · {format(t.showcase.votes, { n: winner.voteCount })}
           </Mono>
         </View>
       )}
@@ -86,6 +89,7 @@ export default function ShowcaseSection({
 
 /** "Vitrine başvur" (the site's ShowcaseApply): one application per member per period, with a photo recipe and a pitch. */
 function ShowcaseApply({ period, onChanged }: { period: ShowcasePeriod; onChanged: () => void }) {
+  const { t, a } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const session = useSession();
@@ -128,7 +132,7 @@ function ShowcaseApply({ period, onChanged }: { period: ShowcasePeriod; onChange
   if (session.state === "signed-out") {
     return (
       <View style={styles.block}>
-        <Button kind="secondary" title="Başvurmak için giriş yap" onPress={() => askToSignIn("/feed")} />
+        <Button kind="secondary" title={t.showcase.signInToApply} onPress={() => askToSignIn("/feed")} />
       </View>
     );
   }
@@ -170,9 +174,9 @@ function ShowcaseApply({ period, onChanged }: { period: ShowcasePeriod; onChange
     return (
       <View style={[styles.block, styles.box]}>
         <View style={styles.mineHead}>
-          <Label style={styles.mineLabel}>Başvurun</Label>
+          <Label style={styles.mineLabel}>{t.showcase.yourEntry}</Label>
           <View style={[styles.badge, badge]}>
-            <Mono style={[styles.badgeText, badgeText]}>{STATUS_LABELS[mine.status]}</Mono>
+            <Mono style={[styles.badgeText, badgeText]}>{t.showcaseStatus[mine.status]}</Mono>
           </View>
           {mine.cocktails && (
             <Pressable onPress={() => openRecipe(mine.cocktails!.slug)} accessibilityRole="link" hitSlop={6}>
@@ -185,17 +189,17 @@ function ShowcaseApply({ period, onChanged }: { period: ShowcasePeriod; onChange
         <View style={styles.row}>
           {confirming ? (
             <>
-              <Mono style={styles.small}>Başvuru ve aldığı oylar silinecek.</Mono>
-              <Pressable onPress={withdraw} disabled={pending} hitSlop={6} accessibilityRole="button" accessibilityLabel="Evet, geri çek">
-                <Mono style={[styles.small, styles.danger]}>{pending ? "Siliniyor…" : "Evet, geri çek"}</Mono>
+              <Mono style={styles.small}>{t.showcase.withdrawWarning}</Mono>
+              <Pressable onPress={withdraw} disabled={pending} hitSlop={6} accessibilityRole="button" accessibilityLabel={t.showcase.yesWithdraw}>
+                <Mono style={[styles.small, styles.danger]}>{pending ? t.common.deleting : t.showcase.yesWithdraw}</Mono>
               </Pressable>
-              <Pressable onPress={() => setConfirming(false)} disabled={pending} hitSlop={6} accessibilityRole="button" accessibilityLabel="Vazgeç">
-                <Mono style={styles.small}>Vazgeç</Mono>
+              <Pressable onPress={() => setConfirming(false)} disabled={pending} hitSlop={6} accessibilityRole="button" accessibilityLabel={t.common.cancel}>
+                <Mono style={styles.small}>{t.common.cancel}</Mono>
               </Pressable>
             </>
           ) : (
-            <Pressable onPress={() => setConfirming(true)} hitSlop={6} accessibilityRole="button" accessibilityLabel="Başvuruyu geri çek">
-              <Mono style={styles.small}>Başvuruyu geri çek</Mono>
+            <Pressable onPress={() => setConfirming(true)} hitSlop={6} accessibilityRole="button" accessibilityLabel={t.showcase.withdraw}>
+              <Mono style={styles.small}>{t.showcase.withdraw}</Mono>
             </Pressable>
           )}
         </View>
@@ -206,7 +210,7 @@ function ShowcaseApply({ period, onChanged }: { period: ShowcasePeriod; onChange
   if (!open) {
     return (
       <View style={styles.block}>
-        <Button title="Vitrine başvur" onPress={() => setOpen(true)} />
+        <Button title={t.showcase.apply} onPress={() => setOpen(true)} />
       </View>
     );
   }
@@ -216,9 +220,9 @@ function ShowcaseApply({ period, onChanged }: { period: ShowcasePeriod; onChange
     <View style={[styles.block, styles.box]}>
       {eligible.length === 0 ? (
         <View style={styles.gap}>
-          <Mono style={styles.muted}>Başvurmak için yayında ve fotoğraflı bir tarifin olmalı.</Mono>
+          <Mono style={styles.muted}>{t.showcase.needRecipe}</Mono>
           <Pressable onPress={() => router.push("/my-recipes")} accessibilityRole="link" hitSlop={6}>
-            <Mono style={styles.link}>Tariflerine git</Mono>
+            <Mono style={styles.link}>{t.showcase.toRecipes}</Mono>
           </Pressable>
         </View>
       ) : (
@@ -229,42 +233,42 @@ function ShowcaseApply({ period, onChanged }: { period: ShowcasePeriod; onChange
               onPress={() => setPicking(true)}
               style={styles.select}
               accessibilityRole="button"
-              accessibilityLabel={`Tarif: ${chosen?.name ?? "seç"}`}
+              accessibilityLabel={`${t.showcase.recipe}: ${chosen?.name ?? a.showcase.pickRecipe}`}
             >
               <Body style={styles.selectText} numberOfLines={1}>
-                {chosen?.name ?? "Tarif seç"}
+                {chosen?.name ?? a.showcase.pickRecipe}
               </Body>
               <ChevronDown size={16} color={theme.colors.textMuted} />
             </Pressable>
           </View>
           <View style={styles.field}>
-            <Label style={styles.fieldLabel}>Neden vitrinde olmalı?</Label>
+            <Label style={styles.fieldLabel}>{t.showcase.whyTitle}</Label>
             <TextInput
               value={pitch}
               onChangeText={setPitch}
               maxLength={PITCH_MAX_LENGTH}
               multiline
-              placeholder="Tarifini birkaç cümleyle tanıt."
+              placeholder={t.showcase.pitchPlaceholder}
               placeholderTextColor={theme.colors.textMuted}
-              accessibilityLabel="Neden vitrinde olmalı?"
+              accessibilityLabel={t.showcase.whyTitle}
               style={styles.input}
             />
             <Mono style={styles.counter}>
               {pitch.length}/{PITCH_MAX_LENGTH}
             </Mono>
           </View>
-          <Mono style={styles.note}>Her dönem bir başvuru. Bir yönetici onayladıktan sonra başvurun herkese görünür ve oylanır.</Mono>
+          <Mono style={styles.note}>{t.showcase.rules}</Mono>
         </View>
       )}
       {error && <Message error>{error}</Message>}
       <View style={styles.row}>
         {eligible.length > 0 && (
-          <Button title={pending ? "Gönderiliyor…" : "Başvur"} onPress={submit} pending={pending} disabled={!pitch.trim() || !cocktailId} />
+          <Button title={pending ? t.common.sending : t.showcase.submit} onPress={submit} pending={pending} disabled={!pitch.trim() || !cocktailId} />
         )}
-        <Button kind="link" title="Vazgeç" onPress={() => setOpen(false)} disabled={pending} />
+        <Button kind="link" title={t.common.cancel} onPress={() => setOpen(false)} disabled={pending} />
       </View>
       <OptionSheet
-        title="Tarif"
+        title={t.showcase.recipe}
         options={eligible.map((r) => ({ value: r.id, label: r.name }))}
         current={picking ? cocktailId : null}
         onPick={(value) => {
@@ -279,6 +283,7 @@ function ShowcaseApply({ period, onChanged }: { period: ShowcasePeriod; onChange
 
 /** The approved entries with their upvotes (the site's ShowcaseEntries); the member's own votes are private. */
 function ShowcaseEntries({ period, entries, onChanged }: { period: ShowcasePeriod; entries: ShowcaseEntry[]; onChanged: () => void }) {
+  const { t } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const session = useSession();
@@ -336,7 +341,7 @@ function ShowcaseEntries({ period, entries, onChanged }: { period: ShowcasePerio
     onChanged();
   }
 
-  if (entries.length === 0) return <Mono style={styles.muted}>Henüz onaylanmış başvuru yok.</Mono>;
+  if (entries.length === 0) return <Mono style={styles.muted}>{t.showcase.noEntries}</Mono>;
 
   return (
     <View style={styles.entries}>
@@ -356,7 +361,7 @@ function ShowcaseEntries({ period, entries, onChanged }: { period: ShowcasePerio
                     disabled={busy !== null}
                     style={[styles.vote, mine ? styles.voteOn : styles.voteOff, busy === entry.id && styles.off]}
                     accessibilityRole="button"
-                    accessibilityLabel={mine ? `Oyunu geri al, ${count} oy` : `Oy ver, ${count} oy`}
+                    accessibilityLabel={`${mine ? t.showcase.undoVote : t.showcase.vote}, ${format(t.showcase.votes, { n: count })}`}
                     accessibilityState={{ selected: mine, busy: busy === entry.id }}
                   >
                     <ArrowBigUp size={16} color={mine ? "#fff" : theme.colors.textSecondary} fill={mine ? "#fff" : "transparent"} />
@@ -365,7 +370,7 @@ function ShowcaseEntries({ period, entries, onChanged }: { period: ShowcasePerio
                 ) : (
                   <View style={styles.voteStatic}>
                     <ArrowBigUp size={16} color={theme.colors.textMuted} />
-                    <Mono style={styles.small}>{count} oy</Mono>
+                    <Mono style={styles.small}>{format(t.showcase.votes, { n: count })}</Mono>
                   </View>
                 )}
                 <View style={styles.push} />

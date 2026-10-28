@@ -30,7 +30,7 @@ export const en: AppDictionary = {
   },
   archive: {
     loadFailed: "Couldn't load the cocktails.",
-    searchPlaceholder: "Search cocktails, ingredients",
+    searchPlaceholder: "Search recipes",
   },
   load: {
     log: "Couldn't load the entry. Try again",
@@ -85,5 +85,19 @@ export const en: AppDictionary = {
   },
   profile: {
     of: "{name}'s profile",
+  },
+  showcase: {
+    pickRecipe: "Pick a recipe",
+  },
+  logForm: {
+    unitNone: "none selected",
+    stepsLocked: "Preparation, unchanged: {steps}",
+    halfStarTip: "For a half star, tap the left half of a star.",
+    unitShort: "unit",
+  },
+  recipeForm: {
+    colorCode: "Color code",
+    stepLabel: "Step {n}",
+    removeStep: "Delete the step",
   },
 };

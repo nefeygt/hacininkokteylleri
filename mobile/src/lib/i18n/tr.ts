@@ -87,6 +87,20 @@ export const tr = {
   profile: {
     of: "{name} profili",
   },
+  showcase: {
+    pickRecipe: "Tarif seç",
+  },
+  logForm: {
+    unitNone: "seçilmedi",
+    stepsLocked: "Hazırlanışı, değiştirilmedi: {steps}",
+    halfStarTip: "Yarım yıldız için yıldızın sol yarısına dokun.",
+    unitShort: "birim",
+  },
+  recipeForm: {
+    colorCode: "Renk kodu",
+    stepLabel: "{n}. adım",
+    removeStep: "Adımı sil",
+  },
 };
 
 export type AppDictionary = Strings<typeof tr>;

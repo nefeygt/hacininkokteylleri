@@ -14,8 +14,8 @@ const iconMap = {
   topup: Beer,
 } as const;
 
-/** An amount drawn as icons — two shots are two glasses (the site's VisualQuantity). */
-export default function VisualQuantity({ ingredient }: { ingredient: Ingredient }) {
+/** An amount drawn as icons — two shots are two glasses (the site's VisualQuantity); `label` is the amount as text in the language. */
+export default function VisualQuantity({ ingredient, label }: { ingredient: Ingredient; label?: string }) {
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const Icon = iconMap[ingredient.iconType];
@@ -28,7 +28,7 @@ export default function VisualQuantity({ ingredient }: { ingredient: Ingredient 
       <View style={styles.row}>
         <Icon size={16} color={theme.colors.crimsonGlow} />
         <Mono style={styles.big}>
-          {ingredient.amount} {ingredient.unit}
+          {label ?? `${ingredient.amount} ${ingredient.unit}`}
         </Mono>
       </View>
     );
@@ -43,8 +43,7 @@ export default function VisualQuantity({ ingredient }: { ingredient: Ingredient 
         {hasFraction && <Icon size={14} color={alpha(theme.colors.crimsonGlow, 0.4)} />}
       </View>
       <Mono style={styles.small}>
-        {ingredient.amount}
-        {ingredient.unit}
+        {label ?? `${ingredient.amount}${ingredient.unit}`}
       </Mono>
     </View>
   );

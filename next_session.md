@@ -4,14 +4,13 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-28 (parity pass step 1, [opus]) · The user answered the three questions: the app gets
-**English, all six themes and push notifications** (ADR-033). The audit and a per-screen plan are below; **next is step 2
-[sonnet] (themes)**. The store upload still waits for the Apple account or the user's two other Play apps (ADR-024).
+**Prepared by session:** 2026-10-28 (parity pass steps 2–3, [sonnet]) · Themes and languages are in the app (ADR-033);
+**next is step 4 [sonnet] (recipe screens)**, then 5 and 6 — the same model. The store upload still waits for the Apple account or the user's two other Play apps (ADR-024).
 `main` is pushed and deployed.
 
 **Model split (the user, 2026-10-26):** the parity pass runs over several chats. Each step below is tagged
 **[opus]** or **[sonnet]**; a session works through consecutive steps of its own tag and stops before a step with the
-other tag (see "Model handoff"). **Step 1 is done; the next session is [sonnet]** (steps 2–6).
+other tag (see "Model handoff"). **Steps 1–3 are done; the next session is [sonnet]** (steps 4–6).
 ---
 
 ## 📋 Prompt to Copy
@@ -120,7 +119,14 @@ each step; tick the step here; mark the items of "Web changes since 2026-10-15" 
      placeholders, the tab bar, the headers, `OptionSheet`, `DateField`'s calendar, `Stars`. Rx must look as before except
      the brighter crimson, the greys and the reading font.
 
-3. **[sonnet] Languages: the runtime, the words and the content** (ADR-032, ADR-033).
+3. ✅ **[sonnet] Languages: the runtime, the words and the content** (ADR-032, ADR-033) — done 2026-10-28. `lib/i18n.tsx`
+   (`useLocale()` → `{ locale, t, a, setLocale }`; `words()` for plain modules), `lib/i18n/{tr,en}.ts` (app-only words), a codemod-like
+   runner converted every string, `src/lib/translations.ts` is shared, `fetchArchive(locale)` loads translated recipes and glossary,
+   `LanguagePicker` next to `ThemePicker` (also signed out). Checked in Expo web: Turkish and English at 375 and 320 px, no Turkish
+   left in English except "Türkçe" and members' content. **Not yet seen:** signed-in screens in English (forms, comments,
+   showcase apply, account) — step 9. Known small leftovers: `a.tabs.logEntry` is a misnamed key (it is the log screen's title);
+   `MemberGate`'s `feature` is now `"logs" | "recipes"`; the e-mail links the app asks for carry the language
+   (`/en/account`, `/en/reset-password`) — worth a real e-mail test. Original brief:
    - `npx expo install expo-localization`. New `mobile/src/lib/i18n.tsx`: `LocaleProvider` — the language from AsyncStorage
      key `haci.locale`, else the phone's (`getLocales()[0].languageCode === "tr"` → `tr`, anything else → `en`), only
      `PUBLISHED_LOCALES`; `useLocale()` → `{ locale, t, a, setLocale }` where `t = getDictionary(locale)` (from
@@ -285,7 +291,7 @@ Every other item below is **missing** and planned in the step named in brackets;
 - [step 6] **Members' recipes in "Elimde ne var?"** (ADR-029 amendment): the app's recipe form needs the catalogue select per
   line ("Katalogda yok", the hint and the counter, `isFullyLinked` from `@shared/ingredients`); catalogue from
   `ingredients` (`groupByCategory`). It already keeps `ingredientId` through an edit and revalidates `/what-can-i-make`.
-- [step 3] **Languages** (ADR-032, English live 2026-10-26): the app is Turkish only; for parity it could read
+- ✅ [step 3, done] **Languages** (ADR-032, English live 2026-10-26): the app is Turkish only; for parity it could read
   `@shared/i18n` dictionaries and `cocktail_translations` — decide with the user in the parity pass.
 - **Share cards and 404/error screens** (M9 A, 2026-10-26): web-only (the app has no link previews); the app's own
   error states are already its own.

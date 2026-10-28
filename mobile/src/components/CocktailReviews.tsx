@@ -146,13 +146,13 @@ function OwnReview({
         <View style={styles.boxHead}>
           <Label>{t.reviews.yours}</Label>
           <Pressable onPress={() => setEditing(true)} hitSlop={8} accessibilityRole="button" accessibilityLabel={t.common.edit}>
-            <Mono style={styles.link}>Düzenle</Mono>
+            <Mono style={styles.link}>{t.common.edit}</Mono>
           </Pressable>
         </View>
         <Stars value={own.rating} />
         {own.body && <Body style={styles.reviewBody}>{own.body}</Body>}
         {own.hidden_at && (
-          <Mono style={styles.hiddenNote}>Bu değerlendirme yöneticiler tarafından gizlendi; yalnızca sen görüyorsun.</Mono>
+          <Mono style={styles.hiddenNote}>{t.reviews.hiddenOwn}</Mono>
         )}
       </View>
     );

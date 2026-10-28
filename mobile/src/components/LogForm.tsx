@@ -1,4 +1,5 @@
-import { LOG_LIMITS, LOG_NOTE_MAX_LENGTH, unitChoices, type LogRecipe } from "@shared/drink-log";
+import { LOG_LIMITS, LOG_NOTE_MAX_LENGTH, unitChoices, unitLabel, type LogRecipe } from "@shared/drink-log";
+import type { Dictionary } from "@shared/i18n/dictionaries";
 import { ChevronDown, Lock, Pencil, Plus, X } from "lucide-react-native";
 import { useState } from "react";
 import { Keyboard, Pressable, StyleSheet, TextInput, View } from "react-native";
@@ -12,6 +13,8 @@ import { Button, Checkbox, Field, Message } from "./Form";
 import OptionSheet from "./OptionSheet";
 import Stars from "./Stars";
 import { Body, Label, Mono } from "./Type";
+import { useLocale } from "@/lib/i18n";
+import { format } from "@shared/i18n/format";
 
 interface IngredientRow {
   key: number;
@@ -22,8 +25,8 @@ interface IngredientRow {
 }
 
 /** The shared unit list (ADR-023); an older or house unit outside it is offered first. */
-export function unitOptions(current: string) {
-  return unitChoices(current).map((unit) => ({ value: unit, label: unit }));
+export function unitOptions(current: string, t: Dictionary) {
+  return unitChoices(current).map((unit) => ({ value: unit, label: unitLabel(unit, 1, t) }));
 }
 
 export interface LogFormValues {
@@ -64,6 +67,7 @@ export default function LogForm({
   today: string;
   onDone: () => void;
 }) {
+  const { t, a } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const originalSteps = initial.recipe.instructions.join("\n");
@@ -136,17 +140,17 @@ export default function LogForm({
       <DateField value={drunkOn} today={today} onChange={setDrunkOn} />
 
       <View style={styles.group}>
-        <Label style={styles.label}>Malzemeler — yaptığın gibi</Label>
-        <Mono style={styles.hint}>Tarifi değiştirdiysen burada değiştir: votka yerine cin, daha az şurup…</Mono>
+        <Label style={styles.label}>{t.logForm.ingredientsLegend}</Label>
+        <Mono style={styles.hint}>{t.logForm.ingredientsHint}</Mono>
         {rows.map((row) => (
           <View key={row.key} style={styles.row}>
             <TextInput
               value={row.name}
               onChangeText={(name) => setRow(row.key, { name })}
               maxLength={LOG_LIMITS.ingredientName}
-              placeholder="Malzeme"
+              placeholder={t.logForm.ingredient}
               placeholderTextColor={theme.colors.textMuted}
-              accessibilityLabel="Malzeme"
+              accessibilityLabel={t.logForm.ingredient}
               style={[styles.small, styles.grow]}
             />
             <TextInput
@@ -155,7 +159,7 @@ export default function LogForm({
               keyboardType="decimal-pad"
               placeholder="4"
               placeholderTextColor={theme.colors.textMuted}
-              accessibilityLabel="Miktar"
+              accessibilityLabel={t.logForm.amount}
               style={[styles.small, styles.amount]}
             />
             <Pressable
@@ -165,10 +169,10 @@ export default function LogForm({
               }}
               style={[styles.small, styles.unit]}
               accessibilityRole="button"
-              accessibilityLabel={`Birim: ${row.unit || "seçilmedi"}`}
+              accessibilityLabel={`${t.logForm.unit}: ${row.unit ? unitLabel(row.unit, Number(row.amount.replace(",", ".")) || 1, t) : a.logForm.unitNone}`}
             >
               <Mono numberOfLines={1} style={[styles.unitText, !row.unit && styles.placeholder]}>
-                {row.unit || "birim"}
+                {row.unit ? unitLabel(row.unit, Number(row.amount.replace(",", ".")) || 1, t) : a.logForm.unitShort}
               </Mono>
               <ChevronDown size={12} color={theme.colors.textMuted} />
             </Pressable>
@@ -178,7 +182,7 @@ export default function LogForm({
               hitSlop={6}
               style={[styles.remove, rows.length === 1 && styles.off]}
               accessibilityRole="button"
-              accessibilityLabel="Malzemeyi çıkar"
+              accessibilityLabel={t.logForm.removeIngredient}
             >
               <X size={16} color={theme.colors.textMuted} />
             </Pressable>
@@ -190,7 +194,7 @@ export default function LogForm({
             hitSlop={6}
             style={styles.add}
             accessibilityRole="button"
-            accessibilityLabel="Malzeme ekle"
+            accessibilityLabel={t.logForm.addIngredient}
           >
             <Plus size={14} color={theme.colors.textMuted} />
             <Mono style={styles.addText}>Malzeme ekle</Mono>
@@ -200,7 +204,7 @@ export default function LogForm({
 
       <View style={styles.group}>
         <View style={styles.stepsHead}>
-          <Label style={styles.label}>Hazırlanışı</Label>
+          <Label style={styles.label}>{t.logForm.preparation}</Label>
           {editingSteps ? (
             <Pressable
               onPress={() => {
@@ -209,14 +213,14 @@ export default function LogForm({
               }}
               hitSlop={8}
               accessibilityRole="button"
-              accessibilityLabel="Orijinaline dön"
+              accessibilityLabel={t.logForm.backToOriginal}
             >
-              <Mono style={styles.link}>Orijinaline dön</Mono>
+              <Mono style={styles.link}>{t.logForm.backToOriginal}</Mono>
             </Pressable>
           ) : (
-            <Pressable onPress={() => setEditingSteps(true)} hitSlop={8} style={styles.inline} accessibilityRole="button" accessibilityLabel="Hazırlanışı değiştir">
+            <Pressable onPress={() => setEditingSteps(true)} hitSlop={8} style={styles.inline} accessibilityRole="button" accessibilityLabel={t.logForm.change}>
               <Pencil size={11} color={theme.colors.textMuted} />
-              <Mono style={styles.link}>Değiştir</Mono>
+              <Mono style={styles.link}>{t.logForm.change}</Mono>
             </Pressable>
           )}
         </View>
@@ -227,13 +231,13 @@ export default function LogForm({
               onChangeText={setSteps}
               multiline
               autoFocus
-              accessibilityLabel="Hazırlanışı, her satır bir adım"
+              accessibilityLabel={t.logForm.stepsLabel}
               style={[styles.stepsInput, styles.textarea]}
             />
-            <Mono style={styles.hint}>Her satır bir adım. Farklı yaptıysan burada yaz.</Mono>
+            <Mono style={styles.hint}>{t.logForm.stepsHint}</Mono>
           </>
         ) : (
-          <View style={styles.locked} accessible accessibilityLabel={`Hazırlanışı, değiştirilmedi: ${stepLines.join(". ")}`}>
+          <View style={styles.locked} accessible accessibilityLabel={format(a.logForm.stepsLocked, { steps: stepLines.join(". ") })}>
             <Lock size={12} color={theme.colors.textMuted} style={styles.lockIcon} />
             {stepLines.length ? (
               stepLines.map((line, i) => (
@@ -242,45 +246,45 @@ export default function LogForm({
                 </Body>
               ))
             ) : (
-              <Mono style={styles.hint}>Adım yok.</Mono>
+              <Mono style={styles.hint}>{t.logForm.noSteps}</Mono>
             )}
           </View>
         )}
       </View>
 
-      <Field label="Süsleme" value={garnish} onChangeText={setGarnish} maxLength={LOG_LIMITS.garnish} />
-      <Field label="Bardak" value={glass} onChangeText={setGlass} maxLength={LOG_LIMITS.glass} />
+      <Field label={t.logForm.garnish} value={garnish} onChangeText={setGarnish} maxLength={LOG_LIMITS.garnish} />
+      <Field label={t.logForm.glass} value={glass} onChangeText={setGlass} maxLength={LOG_LIMITS.glass} />
 
       <View style={styles.group}>
-        <Label style={styles.label}>O akşamın puanı (isteğe bağlı)</Label>
+        <Label style={styles.label}>{t.logForm.eveningRating}</Label>
         <View style={styles.ratingRow}>
           <Stars value={rating ?? 0} onChange={setRating} />
           {rating !== null && (
-            <Pressable onPress={() => setRating(null)} hitSlop={8} accessibilityRole="button" accessibilityLabel="Puanı kaldır">
-              <Mono style={styles.link}>Kaldır</Mono>
+            <Pressable onPress={() => setRating(null)} hitSlop={8} accessibilityRole="button" accessibilityLabel={t.logForm.removeRating}>
+              <Mono style={styles.link}>{t.imageField.remove}</Mono>
             </Pressable>
           )}
         </View>
-        <Mono style={styles.hint}>Yarım yıldız için yıldızın sol yarısına dokun. Bu puan yalnızca bu kayda ait; kokteylin ortalamasına sayılmaz.</Mono>
+        <Mono style={styles.hint}>{a.logForm.halfStarTip} {t.logForm.ratingHint}</Mono>
       </View>
 
       <Field
-        label="Not (isteğe bağlı)"
+        label={t.logForm.note}
         value={note}
         onChangeText={setNote}
         maxLength={LOG_NOTE_MAX_LENGTH}
         multiline
-        placeholder="Nerede, kiminle, nasıldı?"
+        placeholder={t.logForm.notePlaceholder}
         style={styles.textarea}
       />
 
-      <Checkbox checked={isPublic} onChange={setIsPublic} label="Herkese açık">
-        <Mono style={styles.checkText}>Herkese açık — profilinde görünsün. İşaretlemezsen yalnızca sen görürsün.</Mono>
+      <Checkbox checked={isPublic} onChange={setIsPublic} label={t.drinkLog.public}>
+        <Mono style={styles.checkText}>{t.logForm.publicCheck}</Mono>
       </Checkbox>
 
       <OptionSheet
-        title="Birim"
-        options={unitOptions(rows.find((r) => r.key === unitFor)?.unit ?? "")}
+        title={t.logForm.unit}
+        options={unitOptions(rows.find((r) => r.key === unitFor)?.unit ?? "", t)}
         current={rows.find((r) => r.key === unitFor)?.unit ?? null}
         onPick={(unit) => {
           if (unitFor !== null) setRow(unitFor, { unit });
@@ -291,10 +295,10 @@ export default function LogForm({
 
       {error && <Message error>{error}</Message>}
 
-      <Button title={id ? "Kaydı güncelle" : "Günlüğe ekle"} onPress={save} pending={pending} />
+      <Button title={id ? t.logForm.update : t.logForm.add} onPress={save} pending={pending} />
       <View style={styles.footer}>
-        <Pressable onPress={leave} disabled={pending} hitSlop={8} accessibilityRole="button" accessibilityLabel="Vazgeç">
-          <Mono style={styles.muted}>Vazgeç</Mono>
+        <Pressable onPress={leave} disabled={pending} hitSlop={8} accessibilityRole="button" accessibilityLabel={t.common.cancel}>
+          <Mono style={styles.muted}>{t.common.cancel}</Mono>
         </Pressable>
         {id && (
           <Pressable
@@ -302,10 +306,10 @@ export default function LogForm({
             disabled={pending}
             hitSlop={8}
             accessibilityRole="button"
-            accessibilityLabel={confirmingDelete ? "Emin misin? Evet, sil" : "Kaydı sil"}
+            accessibilityLabel={confirmingDelete ? t.common.confirmDelete : t.logForm.deleteEntry}
           >
             <Mono style={[styles.underline, confirmingDelete ? styles.danger : styles.muted]}>
-              {confirmingDelete ? "Emin misin? Evet, sil" : "Kaydı sil"}
+              {confirmingDelete ? t.common.confirmDelete : t.logForm.deleteEntry}
             </Mono>
           </Pressable>
         )}

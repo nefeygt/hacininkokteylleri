@@ -1,3 +1,4 @@
+import { unitLabel } from "@shared/drink-log";
 import { INGREDIENT_ICONS, RECIPE_LIMITS, type RecipeInput } from "@shared/recipe";
 import { Image } from "expo-image";
 import { router } from "expo-router";
@@ -15,6 +16,8 @@ import { Button, Checkbox, Field, Message } from "./Form";
 import { unitOptions } from "./LogForm";
 import OptionSheet from "./OptionSheet";
 import { Label, Mono } from "./Type";
+import { useLocale } from "@/lib/i18n";
+import { format } from "@shared/i18n/format";
 
 interface IngredientRow {
   key: number;
@@ -36,7 +39,6 @@ let nextKey = 0;
 /** Accent colours to tap instead of typing a hex code (the site has a colour input). */
 const SWATCHES = ["#8b1a1a", "#c0392b", "#e67e22", "#d4a017", "#27ae60", "#16a085", "#2e86c1", "#8e44ad", "#c2185b", "#5d4037"];
 
-const ICON_OPTIONS = INGREDIENT_ICONS.map((i) => ({ value: i.value, label: i.label }));
 
 function move<T>(list: T[], from: number, to: number): T[] {
   if (to < 0 || to >= list.length) return list;
@@ -77,6 +79,7 @@ export default function RecipeForm({
   id?: string;
   slug?: string;
 }) {
+  const { t, a } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const suggestions = useSuggestions();
@@ -132,7 +135,7 @@ export default function RecipeForm({
       const path = await pickRecipePhoto(writer, slug);
       if (path) await setPhoto(path);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Yükleme başarısız.");
+      setError(e instanceof Error ? e.message : t.imageField.uploadFailed);
     } finally {
       setPhotoBusy(false);
     }
@@ -157,7 +160,7 @@ export default function RecipeForm({
     const result = await saveRecipe(writer, input, id);
     setPending(false);
     if (result.error || !result.id || !result.slug) {
-      setError(result.error ?? "Kaydedilemedi.");
+      setError(result.error ?? t.account.saveFallback);
       return;
     }
     unsavedPhoto.current = null;
@@ -206,25 +209,25 @@ export default function RecipeForm({
 
   return (
     <View style={styles.form}>
-      <Section title="Tarif">
-        <Field label="Ad" value={form.name} onChangeText={(v) => set("name", v)} maxLength={L.name} />
+      <Section title={t.recipeForm.sectionRecipe}>
+        <Field label={t.recipeForm.name} value={form.name} onChangeText={(v) => set("name", v)} maxLength={L.name} />
         <Field
-          label="Kısa açıklama (isteğe bağlı)"
+          label={t.recipeForm.subtitle}
           value={form.subtitle}
           onChangeText={(v) => set("subtitle", v)}
           maxLength={L.subtitle}
-          placeholder="Taze fesleğenli, hafif ekşi bir cin kokteyli"
+          placeholder={t.recipeForm.subtitlePlaceholder}
         />
         <View style={styles.group}>
-          <Field label="Baz alkol" value={form.baseAlcohol} onChangeText={(v) => set("baseAlcohol", v)} maxLength={L.baseAlcohol} />
+          <Field label={t.recipeForm.base} value={form.baseAlcohol} onChangeText={(v) => set("baseAlcohol", v)} maxLength={L.baseAlcohol} />
           <Chips values={suggestions.baseAlcohols} current={form.baseAlcohol} onPick={(v) => set("baseAlcohol", v)} />
         </View>
         <View style={styles.group}>
-          <Field label="Baskın tat" value={form.flavor} onChangeText={(v) => set("flavor", v)} maxLength={L.flavor} />
+          <Field label={t.recipeForm.flavor} value={form.flavor} onChangeText={(v) => set("flavor", v)} maxLength={L.flavor} />
           <Chips values={suggestions.flavors} current={form.flavor} onPick={(v) => set("flavor", v)} />
         </View>
         <View style={styles.group}>
-          <Field label="Bardak (isteğe bağlı)" value={form.glass} onChangeText={(v) => set("glass", v)} maxLength={L.glass} />
+          <Field label={t.recipeForm.glass} value={form.glass} onChangeText={(v) => set("glass", v)} maxLength={L.glass} />
           <Chips values={suggestions.glasses} current={form.glass} onPick={(v) => set("glass", v)} />
         </View>
         <View style={styles.group}>
@@ -250,29 +253,29 @@ export default function RecipeForm({
               autoCapitalize="none"
               autoCorrect={false}
               maxLength={7}
-              accessibilityLabel="Renk kodu"
+              accessibilityLabel={a.recipeForm.colorCode}
               style={[styles.small, styles.hex]}
             />
           </View>
         </View>
         <Field
-          label="Etiketler (virgülle ayır)"
+          label={t.recipeForm.tags}
           value={tagsText}
           onChangeText={(v) => {
             setTagsText(v);
             setSaved(false);
           }}
           maxLength={L.tagsText}
-          placeholder="Ferah, Yaz, Bitkisel"
+          placeholder={t.recipeForm.tagsPlaceholder}
         />
       </Section>
 
-      <Section title="Fotoğraf (isteğe bağlı)">
+      <Section title={t.recipeForm.sectionPhoto}>
         <View style={styles.photo}>
           {photoUrl ? (
             <Image source={photoUrl} style={StyleSheet.absoluteFill} contentFit="cover" />
           ) : (
-            <Mono style={styles.hint}>Fotoğraf yok</Mono>
+            <Mono style={styles.hint}>{t.imageField.noPhoto}</Mono>
           )}
           {photoBusy && (
             <View style={styles.photoBusy}>
@@ -283,16 +286,16 @@ export default function RecipeForm({
         <View style={styles.inlineRow}>
           <Button
             kind="secondary"
-            title={photoUrl ? "Fotoğrafı değiştir" : "Fotoğraf yükle"}
+            title={photoUrl ? t.imageField.change : t.imageField.upload}
             onPress={pickPhoto}
             disabled={photoBusy || pending}
             icon={<ImagePlus size={14} color={theme.colors.textPrimary} />}
           />
-          {photoUrl && <Button kind="link" title="Kaldır" onPress={() => setPhoto(null)} disabled={photoBusy || pending} />}
+          {photoUrl && <Button kind="link" title={t.imageField.remove} onPress={() => setPhoto(null)} disabled={photoBusy || pending} />}
         </View>
       </Section>
 
-      <Section title="Malzemeler">
+      <Section title={t.recipeForm.sectionIngredients}>
         {rows.map((row, i) => (
           <View key={row.key} style={styles.ingredient}>
             <View style={styles.row}>
@@ -300,7 +303,7 @@ export default function RecipeForm({
                 value={row.name}
                 onChangeText={(name) => setRow(row.key, { name })}
                 maxLength={L.ingredientName}
-                placeholder="Malzeme"
+                placeholder={t.recipeForm.ingredient}
                 placeholderTextColor={theme.colors.textMuted}
                 accessibilityLabel={`${i + 1}. malzeme`}
                 style={[styles.small, styles.grow]}
@@ -311,7 +314,7 @@ export default function RecipeForm({
                 keyboardType="decimal-pad"
                 placeholder="4"
                 placeholderTextColor={theme.colors.textMuted}
-                accessibilityLabel="Miktar"
+                accessibilityLabel={t.recipeForm.amount}
                 style={[styles.small, styles.amount]}
               />
               <Pressable
@@ -321,10 +324,10 @@ export default function RecipeForm({
                 }}
                 style={[styles.small, styles.select, styles.unit]}
                 accessibilityRole="button"
-                accessibilityLabel={`Birim: ${row.unit || "seçilmedi"}`}
+                accessibilityLabel={`${t.recipeForm.unit}: ${row.unit ? unitLabel(row.unit, Number(row.amount.replace(",", ".")) || 1, t) : a.logForm.unitNone}`}
               >
                 <Mono numberOfLines={1} style={[styles.selectText, !row.unit && styles.placeholder]}>
-                  {row.unit || "birim"}
+                  {row.unit ? unitLabel(row.unit, Number(row.amount.replace(",", ".")) || 1, t) : a.logForm.unitShort}
                 </Mono>
                 <ChevronDown size={12} color={theme.colors.textMuted} />
               </Pressable>
@@ -344,13 +347,13 @@ export default function RecipeForm({
                 </Mono>
                 <ChevronDown size={12} color={theme.colors.textMuted} />
               </Pressable>
-              <IconButton label="Yukarı" disabled={i === 0} onPress={() => setRows((prev) => move(prev, i, i - 1))}>
+              <IconButton label={t.recipeForm.up} disabled={i === 0} onPress={() => setRows((prev) => move(prev, i, i - 1))}>
                 <ArrowUp size={16} color={theme.colors.textMuted} />
               </IconButton>
-              <IconButton label="Aşağı" disabled={i === rows.length - 1} onPress={() => setRows((prev) => move(prev, i, i + 1))}>
+              <IconButton label={t.recipeForm.down} disabled={i === rows.length - 1} onPress={() => setRows((prev) => move(prev, i, i + 1))}>
                 <ArrowDown size={16} color={theme.colors.textMuted} />
               </IconButton>
-              <IconButton label="Malzemeyi çıkar" disabled={rows.length === 1} onPress={() => setRows((prev) => prev.filter((r) => r.key !== row.key))}>
+              <IconButton label={t.logForm.removeIngredient} disabled={rows.length === 1} onPress={() => setRows((prev) => prev.filter((r) => r.key !== row.key))}>
                 <X size={16} color={theme.colors.textMuted} />
               </IconButton>
             </View>
@@ -358,13 +361,13 @@ export default function RecipeForm({
         ))}
         {rows.length < L.ingredients && (
           <AddButton
-            label="Malzeme ekle"
+            label={t.recipeForm.addIngredient}
             onPress={() => setRows((prev) => [...prev, { key: nextKey++, name: "", amount: "1", unit: "cl", icon: "shot" }])}
           />
         )}
       </Section>
 
-      <Section title="Hazırlanışı">
+      <Section title={t.recipeForm.sectionSteps}>
         {steps.map((step, i) => (
           <View key={step.key} style={styles.stepRow}>
             <View style={styles.stepNumber}>
@@ -375,57 +378,57 @@ export default function RecipeForm({
               onChangeText={(text) => setStep(step.key, text)}
               multiline
               maxLength={L.step}
-              accessibilityLabel={`${i + 1}. adım`}
+              accessibilityLabel={format(a.recipeForm.stepLabel, { n: i + 1 })}
               style={[styles.stepInput, styles.grow]}
             />
             <View>
-              <IconButton label="Yukarı" disabled={i === 0} onPress={() => setSteps((prev) => move(prev, i, i - 1))}>
+              <IconButton label={t.recipeForm.up} disabled={i === 0} onPress={() => setSteps((prev) => move(prev, i, i - 1))}>
                 <ArrowUp size={16} color={theme.colors.textMuted} />
               </IconButton>
-              <IconButton label="Adımı sil" disabled={steps.length === 1} onPress={() => setSteps((prev) => prev.filter((s) => s.key !== step.key))}>
+              <IconButton label={a.recipeForm.removeStep} disabled={steps.length === 1} onPress={() => setSteps((prev) => prev.filter((s) => s.key !== step.key))}>
                 <X size={16} color={theme.colors.textMuted} />
               </IconButton>
             </View>
           </View>
         ))}
         {steps.length < L.instructions && (
-          <AddButton label="Adım ekle" onPress={() => setSteps((prev) => [...prev, { key: nextKey++, text: "" }])} />
+          <AddButton label={t.recipeForm.addStep} onPress={() => setSteps((prev) => [...prev, { key: nextKey++, text: "" }])} />
         )}
       </Section>
 
-      <Section title="Ayrıntılar">
-        <Field label="Süsleme (isteğe bağlı)" value={form.garnish} onChangeText={(v) => set("garnish", v)} maxLength={L.garnish} />
+      <Section title={t.recipeForm.sectionDetails}>
+        <Field label={t.recipeForm.garnish} value={form.garnish} onChangeText={(v) => set("garnish", v)} maxLength={L.garnish} />
         <Field
-          label="Not (isteğe bağlı)"
+          label={t.recipeForm.note}
           value={form.note}
           onChangeText={(v) => set("note", v)}
           maxLength={L.note}
           multiline
           style={styles.textarea}
         />
-        <Checkbox checked={form.vegan} onChange={(v) => set("vegan", v)} label="Vegan">
-          <Mono style={styles.checkText}>Vegan</Mono>
+        <Checkbox checked={form.vegan} onChange={(v) => set("vegan", v)} label={t.recipeForm.vegan}>
+          <Mono style={styles.checkText}>{t.recipeForm.vegan}</Mono>
         </Checkbox>
-        <Checkbox checked={form.isPublished} onChange={(v) => set("isPublished", v)} label="Yayında">
-          <Mono style={styles.checkText}>Yayında</Mono>
+        <Checkbox checked={form.isPublished} onChange={(v) => set("isPublished", v)} label={t.recipeForm.published}>
+          <Mono style={styles.checkText}>{t.recipeForm.published}</Mono>
           <Mono style={styles.hint}>
-            Yayındaki tarifler profilinde ve akışta herkese görünür. İşaretli değilse taslak olarak yalnızca sende kalır.
+            {t.recipeForm.publishedHint}
           </Mono>
         </Checkbox>
       </Section>
 
       {error && <Message error>{error}</Message>}
-      {saved && <Message>Kaydedildi.</Message>}
+      {saved && <Message>{t.recipeForm.saved}</Message>}
 
       <Button
-        title={id ? "Kaydet" : form.isPublished ? "Yayınla" : "Taslak olarak kaydet"}
+        title={id ? t.recipeForm.save : form.isPublished ? t.recipeForm.publish : t.recipeForm.saveDraft}
         onPress={save}
         pending={pending}
         disabled={photoBusy}
       />
       <View style={styles.footer}>
-        <Pressable onPress={cancel} disabled={pending} hitSlop={8} accessibilityRole="button" accessibilityLabel="Vazgeç">
-          <Mono style={styles.muted}>Vazgeç</Mono>
+        <Pressable onPress={cancel} disabled={pending} hitSlop={8} accessibilityRole="button" accessibilityLabel={t.common.cancel}>
+          <Mono style={styles.muted}>{t.common.cancel}</Mono>
         </Pressable>
         {id && (
           <Pressable
@@ -433,21 +436,21 @@ export default function RecipeForm({
             disabled={pending}
             hitSlop={8}
             accessibilityRole="button"
-            accessibilityLabel={confirmingDelete ? "Emin misin? Evet, sil" : "Tarifi sil"}
+            accessibilityLabel={confirmingDelete ? t.common.confirmDelete : t.recipeForm.sectionDelete}
           >
             <Mono style={[styles.underline, confirmingDelete ? styles.danger : styles.muted]}>
-              {confirmingDelete ? "Emin misin? Evet, sil" : "Tarifi sil"}
+              {confirmingDelete ? t.common.confirmDelete : t.recipeForm.sectionDelete}
             </Mono>
           </Pressable>
         )}
       </View>
       {id && confirmingDelete && (
-        <Mono style={styles.hint}>Tarif, fotoğrafı ve ona yazılan değerlendirmeler kalıcı olarak silinir. Günlük kayıtları kendi kopyalarını korur.</Mono>
+        <Mono style={styles.hint}>{t.recipeForm.deleteWarning}</Mono>
       )}
 
       <OptionSheet
-        title={sheet?.kind === "icon" ? "Simge" : "Birim"}
-        options={sheet?.kind === "icon" ? ICON_OPTIONS : unitOptions(sheetRow?.unit ?? "")}
+        title={sheet?.kind === "icon" ? t.recipeForm.icon : t.recipeForm.unit}
+        options={sheet?.kind === "icon" ? INGREDIENT_ICONS.map((i) => ({ value: i.value, label: t.recipeIcons[i.value] })) : unitOptions(sheetRow?.unit ?? "", t)}
         current={sheetRow ? (sheet?.kind === "icon" ? sheetRow.icon : sheetRow.unit) : null}
         onPick={(value) => {
           if (sheet) setRow(sheet.key, sheet.kind === "icon" ? { icon: value as IngredientIcon } : { unit: value });

@@ -4,14 +4,17 @@ import type { Cocktail } from "@/lib/content";
 import { alpha, type Theme } from "@/lib/theme";
 import { useStyles, useTheme } from "@/lib/theme-context";
 import GlossaryText from "./GlossaryText";
-import { Body, Label, Mono } from "./Type";
+import { formatAmount } from "@shared/drink-log";
+import { Body, Label, Mono, upperCase } from "./Type";
 import VisualQuantity from "./VisualQuantity";
+import { useLocale } from "@/lib/i18n";
 
 /**
  * The prescription itself: ingredients, steps, garnish and note — one renderer
  * for house and members' recipes, as on the site (ADR-014).
  */
 export default function RecipeDetails({ cocktail }: { cocktail: Cocktail }) {
+  const { t, locale } = useLocale();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   return (
@@ -22,20 +25,20 @@ export default function RecipeDetails({ cocktail }: { cocktail: Cocktail }) {
       </View>
 
       <View style={styles.section}>
-        <Label style={styles.sectionTitle}>Malzemeler</Label>
+        <Label style={styles.sectionTitle}>{t.cocktails.ingredients}</Label>
         {cocktail.ingredients.map((ing, i) => (
           <View key={i} style={[styles.ingredient, i < cocktail.ingredients.length - 1 && styles.ingredientRule]}>
             <View style={styles.ingredientName}>
               <Mono style={styles.index}>{String(i + 1).padStart(2, "0")}</Mono>
               <GlossaryText text={ing.name} style={styles.prescription} />
             </View>
-            <VisualQuantity ingredient={ing} />
+            <VisualQuantity ingredient={ing} label={formatAmount(ing, locale, t)} />
           </View>
         ))}
       </View>
 
       <View style={styles.section}>
-        <Label style={styles.sectionTitle}>Hazırlanışı</Label>
+        <Label style={styles.sectionTitle}>{t.cocktails.preparation}</Label>
         {cocktail.instructions.map((step, i) => (
           <View key={i} style={styles.step}>
             <View style={styles.stepNumber}>
@@ -49,7 +52,7 @@ export default function RecipeDetails({ cocktail }: { cocktail: Cocktail }) {
       {cocktail.garnish ? (
         <View style={styles.garnish}>
           <Body style={styles.prescription}>
-            <Mono style={styles.garnishLabel}>SÜSLEME: </Mono>
+            <Mono style={styles.garnishLabel}>{upperCase(t.cocktails.garnish, locale)} </Mono>
             <Body style={styles.stepText}>{cocktail.garnish}</Body>
           </Body>
         </View>

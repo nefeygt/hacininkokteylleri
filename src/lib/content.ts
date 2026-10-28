@@ -4,6 +4,7 @@ import { cocktailImageUrl, recipeImageUrl } from "@/lib/supabase/config";
 import { createPublicClient } from "@/lib/supabase/public";
 import type { ShowcasePeriod } from "@/lib/showcase";
 import type { CatalogueIngredient } from "@/lib/ingredients";
+import { COCKTAIL_TRANSLATION_COLUMNS, applyCocktailTranslation, type CocktailTranslationRow } from "@/lib/translations";
 
 // The shapes the site's components draw. Database rows are mapped into these
 // in one place, so a column rename touches this file and nothing else.
@@ -169,37 +170,20 @@ export async function getIngredientCatalogue(locale: Locale = DEFAULT_LOCALE): P
 }
 
 /**
- * House recipes in another language (ADR-032): the translation row's fields replace the Turkish ones where
- * they are filled in; a missing row, an empty field or a missing position keeps the Turkish text. Members'
- * recipes stay as written. The cocktail's name changes only when the row has one.
+ * House recipes in another language (ADR-032): the translation rows are applied by `applyCocktailTranslation`
+ * (shared with the app). Members' recipes stay as written.
  */
 async function translateCocktails(cocktails: Cocktail[], locale: Locale): Promise<Cocktail[]> {
   const ids = cocktails.filter((c) => !c.author).map((c) => c.id);
   if (locale === DEFAULT_LOCALE || ids.length === 0) return cocktails;
   const { data, error } = await createPublicClient()
     .from("cocktail_translations")
-    .select("cocktail_id, name, subtitle, base_alcohol, flavor, tags, garnish, glass, note, instructions, ingredient_names")
+    .select(COCKTAIL_TRANSLATION_COLUMNS)
     .eq("locale", locale)
     .in("cocktail_id", ids);
   if (error) throw new Error(`Could not load translations: ${error.message}`);
-  const byId = new Map(data.map((row) => [row.cocktail_id, row]));
-  return cocktails.map((c) => {
-    const tx = byId.get(c.id);
-    if (!tx) return c;
-    return {
-      ...c,
-      name: tx.name || c.name,
-      subtitle: tx.subtitle || c.subtitle,
-      baseAlcohol: tx.base_alcohol || c.baseAlcohol,
-      flavor: tx.flavor || c.flavor,
-      tags: tx.tags.length > 0 ? tx.tags : c.tags,
-      garnish: tx.garnish || c.garnish,
-      glass: tx.glass || c.glass,
-      note: tx.note || c.note,
-      instructions: tx.instructions.length > 0 ? tx.instructions : c.instructions,
-      ingredients: c.ingredients.map((ingredient, i) => ({ ...ingredient, name: tx.ingredient_names[i] || ingredient.name })),
-    };
-  });
+  const byId = new Map((data as unknown as CocktailTranslationRow[]).map((row) => [row.cocktail_id, row]));
+  return cocktails.map((c) => applyCocktailTranslation(c, byId.get(c.id)));
 }
 
 async function withRatings(rows: CocktailRow[]): Promise<Cocktail[]> {
