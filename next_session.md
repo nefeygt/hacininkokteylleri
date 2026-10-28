@@ -6,13 +6,13 @@
 
 **Prepared by session:** 2026-10-28 (parity pass steps 7–8, [opus]) · Step 7 (community) is done and checked signed in. Step 8
 (push) is **built** — schema, sender function, the app's switch, `/privacy` (approved) — and waits for **the user's Firebase/FCM
-setup and a development build** before the phone test. **Next is step 9 [sonnet] (the sweep)**; step 8's phone test can happen
+setup and a development build** before the phone test. **Step 9 (the sweep) is done 2026-10-28; next is step 10 [opus]**; step 8's phone test can happen
 whenever the user has done the console steps (any model; the checklist is under step 8). Then 10 release readiness [opus].
 The store upload still waits for the Apple account or the user's two other Play apps (ADR-024). `main` is pushed and deployed.
 
 **Model split (the user, 2026-10-26):** the parity pass runs over several chats. Each step below is tagged
 **[opus]** or **[sonnet]**; a session works through consecutive steps of its own tag and stops before a step with the
-other tag (see "Model handoff"). **Steps 1–7 are done, 8 waits for the user; the next session is [sonnet]** (step 9).
+other tag (see "Model handoff"). **Steps 1–7 and 9 are done, 8 waits for the user; the next session is [opus]** (step 10).
 ---
 
 ## 📋 Prompt to Copy
@@ -241,7 +241,7 @@ each step; tick the step here; mark the items of "Web changes since 2026-10-15" 
      opens the follower's profile; `notifications.pushed_at` is set; sign out → the token row is gone. Delete the temporary member.
    - iOS waits for the Apple account (APNs key via `eas credentials`).
 
-9. **[sonnet] Sweep** — run the whole app once in each of the 6 themes × 2 languages at 320 and 390 px; fix what is off;
+9. ✅ **[sonnet] Sweep** — done 2026-10-28, no code change: signed out and signed in (temporary members, deleted), 6 themes × 2 languages at 320/390 px clean; log with glass, rating breakdown and catalogue sheet seen. Original brief: run the whole app once in each of the 6 themes × 2 languages at 320 and 390 px; fix what is off;
    empty the "Web changes" list (every item done or "web-only").
 
 10. **[opus] Release readiness:** `npx expo install --check` (the 5 patch releases), `npx expo-doctor`, `app.json`
