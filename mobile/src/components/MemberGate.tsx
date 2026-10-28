@@ -13,7 +13,7 @@ import { useLocale } from "@/lib/i18n";
 /**
  * A screen only members use (the site's requireMember): a visitor without a
  * profile is offered the Hesap tab and comes back to `from` afterwards (ADR-022).
- * `feature` names what needs the account ("İçki günlüğü", "Tarif yazmak").
+ * `feature` names what needs the account ("İçki günlüğü", "Tarif yazmak", "Bildirimler").
  */
 export default function MemberGate({
   from,
@@ -21,7 +21,7 @@ export default function MemberGate({
   children,
 }: {
   from: Href;
-  feature?: "logs" | "recipes";
+  feature?: "logs" | "recipes" | "notifications";
   children: (writer: Writer, settings: Settings) => ReactNode;
 }) {
   const { t, a } = useLocale();

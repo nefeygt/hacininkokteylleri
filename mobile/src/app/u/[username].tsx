@@ -167,9 +167,29 @@ export default function ProfileScreen() {
         </View>
         {profile.bio && <Body style={styles.bio}>{profile.bio}</Body>}
         <View style={styles.followRow}>
-          <Mono style={styles.counts}>
-            <Mono style={styles.strong}>{followers}</Mono>{t.profilePage.followersSuffix} · <Mono style={styles.strong}>{following}</Mono>{t.profilePage.followingSuffix}
-          </Mono>
+          <View style={styles.countLinks}>
+            <Pressable
+              onPress={() => router.push({ pathname: "/follows/[username]", params: { username: profile.username, kind: "followers" } })}
+              hitSlop={6}
+              accessibilityRole="link"
+            >
+              <Mono style={styles.counts}>
+                <Mono style={styles.strong}>{followers}</Mono>
+                {t.profilePage.followersSuffix}
+              </Mono>
+            </Pressable>
+            <Mono style={styles.counts}>·</Mono>
+            <Pressable
+              onPress={() => router.push({ pathname: "/follows/[username]", params: { username: profile.username, kind: "following" } })}
+              hitSlop={6}
+              accessibilityRole="link"
+            >
+              <Mono style={styles.counts}>
+                <Mono style={styles.strong}>{following}</Mono>
+                {t.profilePage.followingSuffix}
+              </Mono>
+            </Pressable>
+          </View>
           <FollowButton profile={profile} onChanged={load} />
         </View>
         <View style={styles.metaRow}>
@@ -278,7 +298,8 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   username: { marginTop: 2, color: t.colors.textMuted },
   bio: { marginTop: 18, lineHeight: 23, color: t.colors.textSecondary },
   followRow: { marginTop: 18, flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 },
-  counts: { fontSize: 12 },
+  countLinks: { flexDirection: "row", alignItems: "center", gap: 6 },
+  counts: { fontSize: 12, textDecorationLine: "none" },
   strong: { fontSize: 12, color: t.colors.textPrimary },
   metaRow: { marginTop: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 },
   joined: { fontSize: 11, color: t.colors.textMuted },

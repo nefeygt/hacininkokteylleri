@@ -41,6 +41,8 @@ export const tr = {
     profile: "Profil yüklenemedi. Tekrar dene",
     reviews: "Değerlendirmeler yüklenemedi. Tekrar dene",
     comments: "Yorumlar yüklenemedi. Tekrar dene",
+    notifications: "Bildirimler yüklenemedi. Tekrar dene",
+    people: "Liste yüklenemedi. Tekrar dene",
   },
   notFound: {
     log: "Bu kayıt bulunamadı.",
@@ -53,6 +55,8 @@ export const tr = {
     logsFinish: "İçki günlüğü için önce profilini tamamla.",
     recipesSignIn: "Tarif yazmak için giriş yap.",
     recipesFinish: "Tarif yazmak için önce profilini tamamla.",
+    notificationsSignIn: "Bildirimlerini görmek için giriş yap.",
+    notificationsFinish: "Bildirimlerin için önce profilini tamamla.",
   },
   myRecipes: {
     newSubtitle: "Kendi tarifini yaz. Yayınladığında profilinde ve akışta görünür.",

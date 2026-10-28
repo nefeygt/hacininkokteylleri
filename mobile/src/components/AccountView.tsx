@@ -1,11 +1,12 @@
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { ImagePlus, X } from "lucide-react-native";
-import { useState } from "react";
-import { ActivityIndicator, StyleSheet, Switch, View } from "react-native";
+import { useCallback, useState } from "react";
+import { ActivityIndicator, Pressable, StyleSheet, Switch, View } from "react-native";
 import { BIO_MAX, checkProfile, DISPLAY_NAME_MAX, profileError } from "@shared/profile";
 import { signOutOfGoogle } from "@/lib/native-auth";
+import { useNotifications } from "@/lib/notifications";
 import { revalidateSite } from "@/lib/revalidate";
 import type { Profile, Settings } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
@@ -49,6 +50,11 @@ export default function AccountView({
           <Notice>{t.account.hidden}</Notice>
         </View>
       )}
+
+      <View style={[styles.section, styles.stack]}>
+        <NotificationsRow />
+        <EmailNotificationsToggle userId={profile.id} initial={settings.email_notifications} reload={reload} />
+      </View>
 
       <View style={styles.section}>
         <View style={styles.sectionHead}>
@@ -292,6 +298,82 @@ function LogsDefaultToggle({ userId, initial, reload }: { userId: string; initia
   );
 }
 
+/** The way to the notifications, with the unread count (the site's row on /account, ADR-030). */
+function NotificationsRow() {
+  const { t } = useLocale();
+  const styles = useStyles(makeStyles);
+  const { unread, refresh } = useNotifications();
+
+  // The count may have changed while the tab was away.
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
+
+  return (
+    <Pressable
+      onPress={() => router.push("/notifications")}
+      style={({ pressed }) => [styles.notifications, pressed && styles.notificationsPressed]}
+      accessibilityRole="link"
+      accessibilityLabel={unread ? `${t.account.notifications}, ${format(t.account.newCount, { n: unread })}` : t.account.notifications}
+    >
+      <Label style={styles.notificationsLabel}>{t.account.notifications}</Label>
+      <View style={styles.notificationsState}>
+        {unread ? (
+          <View style={styles.newPill}>
+            <Mono style={styles.newPillText}>{format(t.account.newCount, { n: unread })}</Mono>
+          </View>
+        ) : (
+          <Mono style={styles.muted}>{t.account.noNew}</Mono>
+        )}
+        <Mono style={styles.muted}>→</Mono>
+      </View>
+    </Pressable>
+  );
+}
+
+/** Whether unread notifications reach the member by e-mail, one digest at most every 15 minutes (ADR-031). */
+function EmailNotificationsToggle({ userId, initial, reload }: { userId: string; initial: boolean; reload: () => Promise<void> }) {
+  const { t } = useLocale();
+  const styles = useStyles(makeStyles);
+  const theme = useTheme();
+  const [checked, setChecked] = useState(initial);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function change(next: boolean) {
+    setChecked(next);
+    setError(null);
+    setPending(true);
+    const { error } = await supabase.from("account_settings").update({ email_notifications: next }).eq("user_id", userId);
+    setPending(false);
+    if (error) {
+      setChecked(!next);
+      setError(format(t.validation.saveFailed, { message: error.message }));
+      return;
+    }
+    await reload();
+  }
+
+  return (
+    <View style={styles.stack}>
+      <View style={styles.toggleRow}>
+        <Mono style={[styles.muted, styles.toggleText]}>{t.account.emailDigest}</Mono>
+        <Switch
+          value={checked}
+          onValueChange={change}
+          disabled={pending}
+          accessibilityLabel={t.account.emailDigest}
+          trackColor={{ true: theme.colors.crimson, false: theme.colors.borderLight }}
+          thumbColor={theme.colors.textPrimary}
+        />
+      </View>
+      {error && <Message error>{error}</Message>}
+    </View>
+  );
+}
+
 function SignOutButton() {
   const { t } = useLocale();
   const [pending, setPending] = useState(false);
@@ -400,6 +482,23 @@ const makeStyles = (t: Theme) => StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
   muted: { fontSize: 12, lineHeight: 18, color: t.colors.textMuted },
   stack: { gap: 16 },
+  notifications: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    borderWidth: 1,
+    borderColor: t.colors.border,
+    backgroundColor: alpha(t.colors.bgElevated, 0.4),
+    borderRadius: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  notificationsPressed: { backgroundColor: t.colors.bgElevated },
+  notificationsLabel: { fontSize: 12, letterSpacing: 1.5, color: t.colors.textSecondary },
+  notificationsState: { flexDirection: "row", alignItems: "center", gap: 8 },
+  newPill: { backgroundColor: t.colors.crimson, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
+  newPillText: { fontSize: 11, color: "#fff" },
   avatarRow: { flexDirection: "row", alignItems: "center", gap: 16 },
   avatarBusy: {
     ...StyleSheet.absoluteFill,

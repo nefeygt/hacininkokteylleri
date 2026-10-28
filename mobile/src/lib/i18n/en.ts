@@ -40,6 +40,8 @@ export const en: AppDictionary = {
     profile: "Couldn't load the profile. Try again",
     reviews: "Couldn't load the reviews. Try again",
     comments: "Couldn't load the comments. Try again",
+    notifications: "Couldn't load the notifications. Try again",
+    people: "Couldn't load the list. Try again",
   },
   notFound: {
     log: "This entry wasn't found.",
@@ -52,6 +54,8 @@ export const en: AppDictionary = {
     logsFinish: "Complete your profile first to use the drink log.",
     recipesSignIn: "Sign in to write recipes.",
     recipesFinish: "Complete your profile first to write recipes.",
+    notificationsSignIn: "Sign in to see your notifications.",
+    notificationsFinish: "Complete your profile first to see your notifications.",
   },
   myRecipes: {
     newSubtitle: "Write your own recipe. Once it's published it shows on your profile and in the feed.",

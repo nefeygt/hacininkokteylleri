@@ -36,10 +36,41 @@ export async function setFollow(writer: Writer, followee: { id: string; username
   // Following twice (the site and the app) is not an error.
   if (error && error.code !== "23505") {
     if (error.message.includes("Daily follow limit")) return { error: words().t.actions.dailyFollow };
-    return { error: `Kaydedilemedi: ${error.message}` };
+    return { error: format(words().t.validation.saveFailed, { message: error.message }) };
   }
   revalidateSite([`/u/${followee.username}`, `/u/${writer.username}`]);
   return { ok: true };
+}
+
+export type FollowListKind = "followers" | "following";
+
+export interface FollowPerson {
+  username: string;
+  display_name: string;
+  avatar_path: string | null;
+  bio: string | null;
+}
+
+/** How many people a list shows; the screen says when there are more (the site's FollowList). */
+const FOLLOW_LIST_SHOWN = 200;
+
+/** A profile's followers or the people they follow, newest follow first; hidden profiles left out (RLS). */
+export async function fetchFollowList(profileId: string, kind: FollowListKind): Promise<{ people: FollowPerson[]; total: number }> {
+  const columns = "username, display_name, avatar_path, bio";
+  const query =
+    kind === "followers"
+      ? supabase
+          .from("follows")
+          .select(`created_at, person:profiles!follows_follower_id_fkey (${columns})`, { count: "exact" })
+          .eq("followee_id", profileId)
+      : supabase
+          .from("follows")
+          .select(`created_at, person:profiles!follows_followee_id_fkey (${columns})`, { count: "exact" })
+          .eq("follower_id", profileId);
+  const { data, count, error } = await query.order("created_at", { ascending: false }).limit(FOLLOW_LIST_SHOWN);
+  if (error) throw new Error(error.message);
+  const people = (data as unknown as { person: FollowPerson | null }[]).flatMap((row) => (row.person ? [row.person] : []));
+  return { people, total: count ?? people.length };
 }
 
 // ---------------------------------------------------------------- public logs
@@ -100,12 +131,13 @@ export interface LogComment {
   id: string;
   body: string;
   created_at: string;
+  edited_at: string | null;
   hidden_at: string | null;
   user_id: string;
   profiles: { username: string; display_name: string; avatar_path: string | null };
 }
 
-const COMMENT_COLUMNS = "id, body, created_at, hidden_at, user_id, profiles!inner(username, display_name, avatar_path)";
+const COMMENT_COLUMNS = "id, body, created_at, edited_at, hidden_at, user_id, profiles!inner(username, display_name, avatar_path)";
 
 /** The thread, oldest first. A commenter also reads their own hidden comments (RLS), marked as such. */
 export async function fetchComments(logId: string): Promise<LogComment[]> {
@@ -121,8 +153,8 @@ export async function fetchComments(logId: string): Promise<LogComment[]> {
 
 export async function addComment(writer: Writer, logId: string, body: string): Promise<SocialResult> {
   const text = body.trim();
-  if (!text) return { error: words().t.actions.writeSomething };
-  if (text.length > LOG_COMMENT_MAX_LENGTH) return { error: `Yorum en fazla ${LOG_COMMENT_MAX_LENGTH} karakter olabilir.` };
+  const invalid = checkComment(text);
+  if (invalid) return { error: invalid };
 
   const { error } = await supabase.from("log_comments").insert({ log_id: logId, user_id: writer.id, body: text });
   if (error) {
@@ -136,9 +168,30 @@ export async function addComment(writer: Writer, logId: string, body: string): P
 
 export async function deleteComment(id: string): Promise<SocialResult> {
   const { data, error } = await supabase.from("log_comments").delete().eq("id", id).select("id");
-  if (error) return { error: `Silinemedi: ${error.message}` };
+  if (error) return { error: format(words().t.actions.deleteFailed, { message: error.message }) };
   if (!data.length) return { error: words().t.actions.cannotDeleteComment };
   return { ok: true };
+}
+
+/**
+ * The commenter edits their own visible comment; the database stamps
+ * `edited_at` and the policy refuses anyone else (or a hidden comment).
+ */
+export async function editComment(id: string, body: string): Promise<SocialResult> {
+  const text = body.trim();
+  const invalid = checkComment(text);
+  if (invalid) return { error: invalid };
+
+  const { data, error } = await supabase.from("log_comments").update({ body: text }).eq("id", id).select("id");
+  if (error) return { error: format(words().t.validation.saveFailed, { message: error.message }) };
+  if (!data.length) return { error: words().t.actions.cannotEditComment };
+  return { ok: true };
+}
+
+function checkComment(text: string): string | null {
+  if (!text) return words().t.actions.writeSomething;
+  if (text.length > LOG_COMMENT_MAX_LENGTH) return format(words().t.actions.commentMax, { max: LOG_COMMENT_MAX_LENGTH });
+  return null;
 }
 
 /** "15 Ekim 21:40". */

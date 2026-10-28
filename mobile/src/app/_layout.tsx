@@ -12,6 +12,7 @@ import { StatusBar } from "expo-status-bar";
 import * as SystemUI from "expo-system-ui";
 import { useEffect, useMemo } from "react";
 import { ArchiveProvider } from "@/lib/archive";
+import { NotificationsProvider } from "@/lib/notifications";
 import { FavoritesProvider } from "@/lib/favorites";
 import { LocaleProvider, useLocale } from "@/lib/i18n";
 import { SessionProvider } from "@/lib/session";
@@ -79,32 +80,36 @@ function RootNavigator() {
     <NavigationThemeProvider value={navigationTheme}>
       <StatusBar style={theme.light ? "dark" : "light"} />
       <SessionProvider>
-        <FavoritesProvider>
-          <ArchiveProvider>
-            <Stack
-              screenOptions={{
-                headerStyle: { backgroundColor: theme.colors.bgSecondary },
-                headerTintColor: theme.colors.textPrimary,
-                headerTitleStyle: { fontFamily: theme.fonts.displayBold },
-                contentStyle: { backgroundColor: theme.colors.bgPrimary },
-              }}
-            >
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="cocktail/[slug]" options={{ title: "" }} />
-              <Stack.Screen name="u/[username]" options={{ title: "" }} />
-              <Stack.Screen name="logs/index" options={{ title: t.logsPage.title }} />
-              <Stack.Screen name="logs/new" options={{ title: t.logsPage.newTitle }} />
-              <Stack.Screen name="logs/[id]" options={{ title: t.logsPage.editMeta }} />
-              <Stack.Screen name="log/[id]" options={{ title: a.tabs.logEntry }} />
-              <Stack.Screen name="recipes/[slug]" options={{ title: "" }} />
-              <Stack.Screen name="my-recipes/index" options={{ title: t.recipesPage.title }} />
-              <Stack.Screen name="my-recipes/new" options={{ title: t.recipesPage.newMeta }} />
-              <Stack.Screen name="my-recipes/[id]" options={{ title: t.recipesPage.editMeta }} />
-              <Stack.Screen name="what-can-i-make" options={{ title: t.whatCanIMake.title }} />
-              <Stack.Screen name="welcome" options={{ title: t.welcome.title }} />
-            </Stack>
-          </ArchiveProvider>
-        </FavoritesProvider>
+        <NotificationsProvider>
+          <FavoritesProvider>
+            <ArchiveProvider>
+              <Stack
+                screenOptions={{
+                  headerStyle: { backgroundColor: theme.colors.bgSecondary },
+                  headerTintColor: theme.colors.textPrimary,
+                  headerTitleStyle: { fontFamily: theme.fonts.displayBold },
+                  contentStyle: { backgroundColor: theme.colors.bgPrimary },
+                }}
+              >
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="cocktail/[slug]" options={{ title: "" }} />
+                <Stack.Screen name="u/[username]" options={{ title: "" }} />
+                <Stack.Screen name="logs/index" options={{ title: t.logsPage.title }} />
+                <Stack.Screen name="logs/new" options={{ title: t.logsPage.newTitle }} />
+                <Stack.Screen name="logs/[id]" options={{ title: t.logsPage.editMeta }} />
+                <Stack.Screen name="log/[id]" options={{ title: a.tabs.logEntry }} />
+                <Stack.Screen name="recipes/[slug]" options={{ title: "" }} />
+                <Stack.Screen name="my-recipes/index" options={{ title: t.recipesPage.title }} />
+                <Stack.Screen name="my-recipes/new" options={{ title: t.recipesPage.newMeta }} />
+                <Stack.Screen name="my-recipes/[id]" options={{ title: t.recipesPage.editMeta }} />
+                <Stack.Screen name="notifications" options={{ title: t.notificationsPage.title }} />
+                <Stack.Screen name="follows/[username]" options={{ title: "" }} />
+                <Stack.Screen name="what-can-i-make" options={{ title: t.whatCanIMake.title }} />
+                <Stack.Screen name="welcome" options={{ title: t.welcome.title }} />
+              </Stack>
+            </ArchiveProvider>
+          </FavoritesProvider>
+        </NotificationsProvider>
       </SessionProvider>
     </NavigationThemeProvider>
   );

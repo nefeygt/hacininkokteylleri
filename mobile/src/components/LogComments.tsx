@@ -5,7 +5,7 @@ import { Keyboard, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { askToSignIn } from "@/lib/after-sign-in";
 import type { Writer } from "@/lib/community";
 import { useSession } from "@/lib/session";
-import { addComment, deleteComment, fetchComments, formatCommentTime, type LogComment } from "@/lib/social";
+import { addComment, deleteComment, editComment, fetchComments, formatCommentTime, type LogComment } from "@/lib/social";
 import { alpha, type Theme } from "@/lib/theme";
 import { useStyles, useTheme } from "@/lib/theme-context";
 import Avatar from "./Avatar";
@@ -84,7 +84,8 @@ export default function LogComments({ logId, ownerId }: { logId: string; ownerId
               comment={comment}
               isLogOwner={comment.user_id === ownerId}
               canDelete={memberId !== null && (memberId === comment.user_id || memberId === ownerId)}
-              onDeleted={load}
+              canEdit={memberId !== null && memberId === comment.user_id && !comment.hidden_at}
+              onChanged={load}
             />
           ))}
         </View>
@@ -129,16 +130,21 @@ function CommentItem({
   comment,
   isLogOwner,
   canDelete,
-  onDeleted,
+  canEdit,
+  onChanged,
 }: {
   comment: LogComment;
   isLogOwner: boolean;
   canDelete: boolean;
-  onDeleted: () => Promise<void>;
+  canEdit: boolean;
+  onChanged: () => Promise<void>;
 }) {
   const { t, a, locale } = useLocale();
   const styles = useStyles(makeStyles);
+  const theme = useTheme();
   const [confirming, setConfirming] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(comment.body);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const profile = comment.profiles;
@@ -157,7 +163,27 @@ function CommentItem({
       setConfirming(false);
       return;
     }
-    await onDeleted();
+    await onChanged();
+  }
+
+  async function save() {
+    Keyboard.dismiss();
+    setError(null);
+    setPending(true);
+    const result = await editComment(comment.id, draft);
+    setPending(false);
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+    setEditing(false);
+    await onChanged();
+  }
+
+  function cancel() {
+    setEditing(false);
+    setDraft(comment.body);
+    setError(null);
   }
 
   return (
@@ -175,14 +201,49 @@ function CommentItem({
               <Label style={styles.ownerText}>{t.logComments.owner}</Label>
             </View>
           )}
-          <Mono style={styles.time}>{formatCommentTime(comment.created_at, locale)}</Mono>
+          <Mono style={styles.time}>
+            {formatCommentTime(comment.created_at, locale)}
+            {comment.edited_at ? t.logComments.edited : ""}
+          </Mono>
         </View>
-        <Body style={styles.text}>{comment.body}</Body>
+        {editing ? (
+          <View style={styles.editForm}>
+            <TextInput
+              value={draft}
+              onChangeText={setDraft}
+              maxLength={LOG_COMMENT_MAX_LENGTH}
+              multiline
+              autoFocus
+              accessibilityLabel={t.logComments.editLabel}
+              placeholderTextColor={theme.colors.textMuted}
+              style={styles.input}
+            />
+            <View style={styles.editActions}>
+              <Button
+                title={pending ? t.common.saving : t.common.save}
+                onPress={save}
+                pending={pending}
+                disabled={!draft.trim() || draft.trim() === comment.body}
+              />
+              <Pressable onPress={cancel} disabled={pending} hitSlop={6} accessibilityRole="button">
+                <Mono style={styles.action}>{t.common.cancel}</Mono>
+              </Pressable>
+            </View>
+          </View>
+        ) : (
+          <Body style={styles.text}>{comment.body}</Body>
+        )}
         {comment.hidden_at && (
           <Mono style={styles.hiddenNote}>{t.logComments.hiddenOwn}</Mono>
         )}
         {error && <Message error>{error}</Message>}
+        {!editing && (
         <View style={styles.actions}>
+          {canEdit && (
+            <Pressable onPress={() => setEditing(true)} hitSlop={6} accessibilityRole="button">
+              <Mono style={styles.action}>{t.common.edit}</Mono>
+            </Pressable>
+          )}
           {canDelete && (
             <Pressable
               onPress={remove}
@@ -196,6 +257,7 @@ function CommentItem({
           )}
           <ReportButton targetType="log_comment" targetId={comment.id} ownerId={comment.user_id} />
         </View>
+        )}
       </View>
     </View>
   );
@@ -238,4 +300,6 @@ const makeStyles = (t: Theme) => StyleSheet.create({
     fontSize: 14,
   },
   send: { alignSelf: "flex-start" },
+  editForm: { marginTop: 6, gap: 8 },
+  editActions: { flexDirection: "row", alignItems: "center", gap: 16 },
 });
