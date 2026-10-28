@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "309645965310",
+    "project_id": "haci-1def7",
+    "storage_bucket": "haci-1def7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:309645965310:android:0239e4231d0aad3950b2af",
+        "android_client_info": {
+          "package_name": "tech.hacininkokteylleri.haci"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCy6WGG6eQFmSB0EZduC2aQ1syQMM0UAxc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

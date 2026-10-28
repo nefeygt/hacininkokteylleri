@@ -18,6 +18,7 @@
     },
     "android": {
       "package": "tech.hacininkokteylleri.haci",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#141414",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
