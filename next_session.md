@@ -88,7 +88,8 @@ or the user's two other Play apps are ready to share a closed test — the user 
       no R8 mapping file) and saved to the publishing overview (15 changes) — **not sent** (2026-10-29).
    e. ✅ The user sent the 15 changes for review (2026-10-29); Play shows them "in review". The user decided (2026-10-29) to release
       Android **without waiting for the Apple account**.
-5. **[opus] After Play approves the closed test:** install from the test link on a phone; check Google sign-in (the Play
+5. **[opus] After Play approves the closed test** (checked 2026-10-29, later the same day: still "in review"; look at
+   `/console/u/1/developers/5700526618273156081/app/4972245001464131404/publishing` first): install from the test link on a phone; check Google sign-in (the Play
    client ID) and push (the Play SHA-1 on the Firebase key) in the Play-installed build. 14 days with 12+ testers, then the
    production-access form (it asks how testers engaged).
 
