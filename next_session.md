@@ -10,8 +10,8 @@ Data safety form (draft). The closed test track has release `2 (1.0.0)` saved as
 app-signing SHA-1 is on a new OAuth client and on the Firebase key. `docs/play-store.md` §9 has every value. `main` is pushed.
 
 **Model split:** steps below are tagged **[opus]** or **[sonnet]**; a session works through consecutive steps of its own tag and
-stops before a step with the other tag (see "Model handoff"). **The next session is [opus]** (steps 1–3 done; step 4 is mostly the
-user's, then [opus] finishes the forms).
+stops before a step with the other tag (see "Model handoff"). **The next session is [opus]** (steps 1–4 d done; the user sends for review, then
+step 5).
 ---
 
 ## 📋 Prompt to Copy
@@ -84,9 +84,13 @@ or the user's two other Play apps are ready to share a closed test — the user 
    a. ✅ Supabase's Google provider has the Play client ID (fourth in the list, 2026-10-29). Store tags set (Recipes, Social).
    b. ✅ App access saved (`test@haci.com`, instructions in `docs/play-store.md` §9), advertising ID / government / finance /
       health declarations, target audience 18+, Data safety saved — App content has nothing left (2026-10-29).
-   d. **The user:** the testers list (e-mail list or Google Group) on the closed test track.
-   e. **[opus] with the user's yes:** publishing overview → send for review. Then install from the test link and check Google
-      sign-in and push on a Play-installed build.
+   d. ✅ Testers: the user's e-mail list "Waio Test Tayfa" (45); feedback `contact@`. Release reviewed (one harmless warning:
+      no R8 mapping file) and saved to the publishing overview (15 changes) — **not sent** (2026-10-29).
+   e. **The user:** publishing overview → "15 değişikliği incelemeye gönder". The user decided (2026-10-29) to release
+      Android **without waiting for the Apple account**.
+5. **[opus] After Play approves the closed test:** install from the test link on a phone; check Google sign-in (the Play
+   client ID) and push (the Play SHA-1 on the Firebase key) in the Play-installed build. 14 days with 12+ testers, then the
+   production-access form (it asks how testers engaged).
 
 **Things that bite (store prep):**
 - **The Firebase API key in `mobile/google-services.json` is public by design** (it ships in every APK). GitHub secret scanning
@@ -190,7 +194,6 @@ or the user's two other Play apps are ready to share a closed test — the user 
 ## 🙋 Questions for the User
 
 1. **GitHub alert 1 (Google API Key):** closed by the user as "won't fix"?
-2. **Testers:** the Fiverr service — when, and as an e-mail list or a Google Group?
 
 ---
 

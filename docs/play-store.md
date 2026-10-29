@@ -211,6 +211,13 @@ Done:
   optional and not required for review."
 - Target audience: 18 and over only. Data safety: saved (no longer a draft). App content shows nothing left to do.
 
-Left (in order):
-1. Testers: an e-mail list or Google Group for the closed test (the user's 12 testers).
-2. Publishing overview → send for review (with the user's yes).
+- Testers: the user's existing e-mail list "Waio Test Tayfa" (45 people; the user tells them); feedback address
+  `contact@hacininkokteylleri.tech`.
+- Release `2 (1.0.0)` reviewed: no errors, one warning (no R8 deobfuscation file — expected, the Expo build is not minified);
+  saved to the publishing overview, which lists 15 changes. **Not sent for review.**
+
+Left:
+1. Publishing overview → "15 değişikliği incelemeye gönder" — the user presses it (Play first runs its quick checks, up to ~14
+   minutes).
+2. After approval: the testers join through the web link on the track's Testers tab; check Google sign-in and push on a
+   Play-installed build; 14 days with 12+ testers, then apply for production.
