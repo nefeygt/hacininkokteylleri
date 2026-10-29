@@ -10,7 +10,7 @@ yet.** The user does anything that needs their password or a payment.
 |---|---|
 | App name | `haci` |
 | Package | `tech.hacininkokteylleri.haci` |
-| Default language | Turkish (tr-TR); English (en-US) as a translation |
+| Default language | **English (en-US) only** (the user, 2026-10-29: the store entry and the screenshots are entirely English); the Turkish listing below is kept as an unused draft |
 | App or game | App |
 | Free or paid | Free |
 | Category | Food & Drink |
@@ -20,7 +20,7 @@ yet.** The user does anything that needs their password or a payment.
 | Privacy policy URL | `https://hacininkokteylleri.tech/privacy` |
 | Account deletion URL | `https://hacininkokteylleri.tech/privacy#delete-account` |
 
-## 2. Store listing — Turkish (the default)
+## 2. Store listing — Turkish (unused draft; the listing is English only)
 
 **App name** (30 characters at most): `haci — kokteyl tarifleri`
 
@@ -96,13 +96,17 @@ YOUR APP
 haci is for people over 18 only. Please drink responsibly.
 ```
 
-## 4. Graphics (to make)
+## 4. Graphics (made 2026-10-29, English only)
 
-| Asset | Spec | Source |
+| Asset | Spec | File |
 |---|---|---|
-| App icon | 512 × 512 PNG, 32-bit | `scripts/export-brand.mjs` (add a 512 px output) |
-| Feature graphic | 1024 × 500 PNG/JPEG, required | new — the wordmark on the Rx background |
-| Phone screenshots | 2–8, 9:16 or 16:9, 320–3840 px per side | the phone (`adb exec-out screencap -p`) in Rx: archive, recipe with servings, "Elimde ne var?", log form with the glass picker, feed, profile; a set per language |
+| App icon | 512 × 512 PNG | `public/brand/haci-play-store-512.png` (`scripts/export-brand.mjs`) |
+| Feature graphic | 1024 × 500 PNG | `store/feature-graphic.png` (`scripts/export-brand.mjs`: the light wordmark on the Rx background) |
+| Phone screenshots | 1080 × 1824 PNG, Rx, English UI | `store/screenshots/en-1-archive.png`, `en-2-recipe.png`, `en-3-ingredients.png`, `en-4-what-do-i-have.png` |
+
+The screenshots come from the development build over adb at 1080 × 1920 with the status bar cropped (it showed
+personal notification icons). The user approves the set; the feed and signed-in screens (log form, profile) are not
+included because the test device is signed out and the feed has no member recipes yet — add them once there is content.
 
 ## 5. Data safety form
 

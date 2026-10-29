@@ -47,3 +47,12 @@ await sharp({ create: { ...canvas, width: 96, height: 96 } })
   .png()
   .toFile(app("notification-icon.png"));
 console.log("mobile/assets/images: icon, favicon, splash-icon, android-icon-foreground, android-icon-monochrome, notification-icon");
+
+// Google Play's feature graphic (1024 x 500): the light wordmark centred on the Rx background.
+// Store material, not an app asset, so it goes to store/ (docs/play-store.md §4).
+const wordmark = await sharp(brand("haci-wordmark-light.svg"), { density: 600 }).resize({ height: 260 }).png().toBuffer();
+await sharp({ create: { width: 1024, height: 500, channels: 3, background: "#0d0d0d" } })
+  .composite([{ input: wordmark, gravity: "centre" }])
+  .png()
+  .toFile("store/feature-graphic.png");
+console.log("store/feature-graphic.png (1024x500)");

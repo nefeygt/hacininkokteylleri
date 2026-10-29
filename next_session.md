@@ -11,7 +11,7 @@ English, Data safety, content rating, declarations) — **nothing approved or su
 account or the user's two other Play apps (ADR-024). `main` is pushed and deployed.
 
 **Model split:** steps below are tagged **[opus]** or **[sonnet]**; a session works through consecutive steps of its own tag and
-stops before a step with the other tag (see "Model handoff"). **The next session is [opus]** (step 1 done; step 2 is [sonnet]).
+stops before a step with the other tag (see "Model handoff"). **The next session is [opus]** (steps 1–2 done; step 3 is [opus] and waits for the user's trigger).
 ---
 
 ## 📋 Prompt to Copy
@@ -72,10 +72,10 @@ or the user's two other Play apps are ready to share a closed test — the user 
    (`#delete-account`, the Play deletion URL; version unchanged). The production build `2df42d3d` finished (`.aab`).
    **Left for the user:** create the Play reviewers' test account (sign up, finish onboarding) and keep the credentials for
    the console — the agent does not create accounts or set passwords.
-2. **[sonnet] Graphics** (`docs/play-store.md` §4): a 512 px icon output in `scripts/export-brand.mjs`; a 1024 × 500 feature graphic
-   (the wordmark on the Rx background, also rendered by the script); phone screenshots in Rx, Turkish and English (the phone over
-   adb, or Expo web at 1080 × 1920 if no phone is attached), saved under `store/` or a folder the user picks — they are not app
-   assets. The user approves the set.
+2. ✅ **[sonnet] Graphics** (2026-10-29): the user decided the store entry and screenshots are **entirely English** (`docs/play-store.md` §1:
+   default language en-US; the Turkish listing is an unused draft). `store/feature-graphic.png` (from `scripts/export-brand.mjs`),
+   `store/screenshots/en-1…4` (Rx, English, 1080 × 1824, status bar cropped), the 512 px icon in `public/brand/`. **The user approves the set**
+   (no feed or signed-in shots yet — the test device is signed out and the feed has no member recipes; add them later if wanted).
 3. **[opus] When ADR-024's trigger comes (the user says so):** Play Console (the user's "KZN" account; the user does anything that
    needs their password or a payment) — create the app `haci`, paste the approved texts, upload graphics, the forms, upload the
    AAB to the closed test track; then Play's app-signing SHA-1 → a further Android OAuth client in Google Cloud `haci-511515` and
