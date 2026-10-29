@@ -198,6 +198,10 @@ Done:
   and to the Firebase "Android key" in `haci-1def7` (both fingerprints now: EAS upload key and Play).
 
 - Supabase → Auth → Google provider: the new client ID added as the fourth client ID (2026-10-29, checked after a reload).
+- Advertising ID: no (the AAB's manifest has no `AD_ID` permission); government app: no; financial features: none; health
+  features: none (all 2026-10-29).
+- Reviewers' account `test@haci.com` (made by the user; e-mail confirmed by SQL since the address can't receive mail;
+  signed in and onboarded as `test`, checked in the database). `haci.com` belongs to someone else — never send it mail.
 
 Left (in order):
 1. App access: the reviewers' test account (the user's).
