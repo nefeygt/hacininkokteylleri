@@ -4,16 +4,15 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-28 (parity pass step 10, part 1, [opus]; stopped at the end of the user's workday — they continue
-from home). **Step 10 is half done:** Expo packages updated (4 patch releases), expo-doctor 21/21, all three bundles build, Android
-permissions trimmed, a notification icon added. **Left in step 10: the development build and the user's phone pass** — and the
-build should wait for **the user's Firebase/FCM setup** (step 8), so one build carries push and the phone pass covers it too. Ask
-the user first whether Firebase is done (question below). The store upload still waits for the Apple account or the user's two
-other Play apps (ADR-024). `main` is pushed and deployed.
+**Prepared by session:** 2026-10-29 (parity pass step 8 finished and step 10's development build, [opus]). **Push works on
+Android:** Firebase (`haci-1def7`) set up by the user, the FCM V1 key on EAS, a development build with FCM installed on the user's
+S25 Ultra over adb, and the phone test passed end to end (token → push in 0.5 s → tap opens the profile → sign-out removes the
+token). **Left in step 10: the user's phone pass through the new screens** (c), then the store prep (d). The store upload still
+waits for the Apple account or the user's two other Play apps (ADR-024). `main` is pushed and deployed.
 
 **Model split (the user, 2026-10-26):** the parity pass runs over several chats. Each step below is tagged
 **[opus]** or **[sonnet]**; a session works through consecutive steps of its own tag and stops before a step with the
-other tag (see "Model handoff"). **Steps 1–7 and 9 are done, 8 waits for the user, 10 is half done; the next session is [opus]** (finish step 10).
+other tag (see "Model handoff"). **Steps 1–9 are done, 10 is in its last part; the next session is [opus]** (finish step 10).
 ---
 
 ## 📋 Prompt to Copy
@@ -225,7 +224,8 @@ each step; tick the step here; mark the items of "Web changes since 2026-10-15" 
    `MemberGate` takes `feature="notifications"`. Checked signed in with two temporary members (deleted): badge 1 → 2 without a reload,
    English list, taps open the profile and the log, edit + "· edited", RLS refuses editing someone else's comment, 320 px light theme.
 
-8. **[opus] Push notifications** (ADR-033) — **built 2026-10-28, not yet received on a phone.** Done: migration
+8. ✅ **[opus] Push notifications** (ADR-033) — **done 2026-10-29: the phone test passed on Android** (the steps below were all run;
+   the user's account was `ahmet_kafa`, the temporary member `push_test` deleted). iOS waits for the Apple account. Done: migration
    `20261028090812_push_notifications` (`push_tokens` + `register_push_token()`, `account_settings.push_notifications`,
    `notifications.pushed_at`, `claim_push_notifications()`, trigger `notifications_wake_push_sender`, the e-mail digest skips pushed
    rows); Edge Function `send-push-notifications` (deployed, verify_jwt on; a call with nothing pending answers `{"sent":0}`); the app's
@@ -253,10 +253,8 @@ each step; tick the step here; mark the items of "Web changes since 2026-10-15" 
     SDK 32 (older phones' gallery), **SYSTEM_ALERT_WINDOW now blocked** (`android.blockedPermissions`); POST_NOTIFICATIONS comes
     from expo-notifications' own manifest. **New `mobile/assets/images/notification-icon.png`** (white cherry, 96 px, rendered by
     `scripts/export-brand.mjs`) set as the expo-notifications `icon` — without it Android shows a white square.
-    **Left:** (a) ask the user whether Firebase is set up (step 8's list); if yes, add `googleServicesFile` and build; if not,
-    build anyway only if the user wants the phone pass now (push then needs another build later);
-    (b) `npx eas-cli build -p android --profile development` (~20 min queue on the free plan; run in the background, the
-    CLI on this machine is signed in as `nefeygt` — on another machine `npx eas-cli login` first); (c) the user's phone pass
+    **Part 2 done 2026-10-29:** (a) `googleServicesFile` in `app.json`, `google-services.json` committed; (b) development build
+    `e7338328` (with FCM) installed on the user's S25 Ultra over adb, the app opens and loads from Metro. **Left:** (c) the user's phone pass
     through every new screen (themes, English, servings/oz, share, "Elimde ne var?", glass picker, notifications, push);
     (d) then the store steps under the parked section (a production AAB, listing drafts).
 
@@ -265,6 +263,18 @@ as you go, so the list ends empty.
 
 **Waiting for the user (do not block on them):** notifications signed in; Search Console sitemap (now with `/en` alternates);
 the first run/schedule of `cleanup-photos.yml`; **`RESEND_API_KEY`** in Supabase secrets (the `/privacy` digest line is live since 2026-10-26); Rx crimson labels for AA. **Videos: dropped** (the user).
+
+**Things that bite (parity pass, step 10 — the home laptop, 2026-10-29):**
+- **The project folder was copied as a zip:** `.git/objects` and dotted/odd files were lost. Restored from a bare clone of GitHub;
+  if git says "not a git repository" with a `.git` folder present, check for `.git/objects` first.
+- **EAS sign-in without a password:** `npx eas-cli login --device --non-interactive` prints a code and a resume id; the user approves
+  on expo.dev (signed in in Chrome), then `--resume <id> --match <number shown>`. Browser login fails in the agent's shell.
+- **Metro in the background exits** unless started with `CI=1 npx expo start --dev-client --port 8081`. With the phone on USB:
+  `adb reverse tcp:8081 tcp:8081` (again after the adb daemon restarts), open with
+  `adb shell am start -a android.intent.action.VIEW -d "exp+haci://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081"`,
+  look with `adb exec-out screencap -p`. The development build reads `.env` through Metro — no EAS environment variables needed.
+- The FCM key is uploaded on expo.dev → project → Credentials → Android → FCM V1 service account key (the user did it; the key
+  file is a secret and stays out of the repo).
 
 **Things that bite (parity pass, steps 7–8):**
 - **`npx expo install` while the Expo web server runs** leaves Metro with a stale view of `node_modules` ("main module field could
@@ -413,9 +423,7 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
 
 ## 🙋 Questions for the User
 
-1. **Is Firebase set up?** (step 8's console list: Firebase project → Android app `tech.hacininkokteylleri.haci` →
-   `google-services.json` into `mobile/` → FCM V1 service-account key via `eas credentials`.) The next development build
-   waits for it unless the user wants the phone pass without push first.
+1. **The phone pass (step 10 c):** has the user been through the new screens on the development build — anything off?
 
 ---
 
