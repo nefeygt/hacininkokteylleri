@@ -79,6 +79,19 @@ export default async function PrivacyPage({ params }: { params: Promise<{ lang: 
         <List items={t.rights} className="mt-2" />
         <p className="mt-3">{fill(t.rightsOutro, { contact: <Mail /> })}</p>
       </Section>
+
+      <Section id="delete-account" title={fill(t.deleteTitle, { brand: <span className="normal-case">{BRAND}</span> })}>
+        <p>
+          {fill(t.deleteBody, {
+            account: (
+              <Link href={localePath(lang, "/account")} className="text-text-primary underline underline-offset-2 hover:text-crimson-glow">
+                {t.deleteAccountLink}
+              </Link>
+            ),
+            contact: <Mail />,
+          })}
+        </p>
+      </Section>
     </article>
   );
 }
@@ -106,9 +119,9 @@ function Mail() {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ id, title, children }: { id?: string; title: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className="mb-8">
+    <section id={id} className="mb-8 scroll-mt-24">
       <h2 className="mb-3 font-mono text-sm font-bold uppercase tracking-[0.1em] text-text-primary">{title}</h2>
       {children}
     </section>

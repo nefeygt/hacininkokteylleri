@@ -11,7 +11,7 @@ English, Data safety, content rating, declarations) — **nothing approved or su
 account or the user's two other Play apps (ADR-024). `main` is pushed and deployed.
 
 **Model split:** steps below are tagged **[opus]** or **[sonnet]**; a session works through consecutive steps of its own tag and
-stops before a step with the other tag (see "Model handoff"). **The next session is [opus]** (step 1 needs the user).
+stops before a step with the other tag (see "Model handoff"). **The next session is [opus]** (step 1 done; step 2 is [sonnet]).
 ---
 
 ## 📋 Prompt to Copy
@@ -67,16 +67,11 @@ The parity pass (ADR-033) is closed: the app does everything the site does, in s
 Android. What remains before a store is the store material itself. **The upload waits** until the Apple Developer account is open,
 or the user's two other Play apps are ready to share a closed test — the user decides (ADR-024). Everything below needs no upload.
 
-1. **[opus] The user's review of `docs/play-store.md`** — walk the user through it (in Turkish, they chat in Turkish) and settle:
-   - the listing texts (§2 Turkish, §3 English): approve or change; Play limits are 30 / 80 / 4,000 characters;
-   - the Data safety answers (§5), including the open IP-address point;
-   - the IARC answers (§6) and the declarations (§7);
-   - **the account deletion web link (§7, open):** Play wants a page outside the app that names the app and gives the steps. Either
-     the existing `/privacy` (§5 says how), or a short section on `/privacy` naming haci with the steps (a text change → the user
-     approves the Turkish and English, bump `PRIVACY_NOTICE_VERSION` only if the substance changes).
-   - Check the production build: `npx eas-cli build:view 2df42d3d-bf6b-45a3-9c6b-651bca1a9339` (in `mobile/`) → finished, an
-     `.aab` artifact. If it failed, read the logs on expo.dev and rebuild (`eas build -p android --profile production
-     --non-interactive --no-wait`; versionCode auto-increments).
+1. ✅ **[opus] The user's review of `docs/play-store.md`** (2026-10-29): listing texts (Turkish and English), Data safety (IP not
+   declared), content rating and declarations approved as written. `/privacy` got section 7 "haci hesabını silmek"
+   (`#delete-account`, the Play deletion URL; version unchanged). The production build `2df42d3d` finished (`.aab`).
+   **Left for the user:** create the Play reviewers' test account (sign up, finish onboarding) and keep the credentials for
+   the console — the agent does not create accounts or set passwords.
 2. **[sonnet] Graphics** (`docs/play-store.md` §4): a 512 px icon output in `scripts/export-brand.mjs`; a 1024 × 500 feature graphic
    (the wordmark on the Rx background, also rendered by the script); phone screenshots in Rx, Turkish and English (the phone over
    adb, or Expo web at 1080 × 1920 if no phone is attached), saved under `store/` or a folder the user picks — they are not app
@@ -182,10 +177,9 @@ or the user's two other Play apps are ready to share a closed test — the user 
 
 ## 🙋 Questions for the User
 
-1. **Play drafts (`docs/play-store.md`):** does the user approve the listing texts and the form answers?
-2. **GitHub alert 1 (Google API Key):** closed by the user as "won't fix"?
-3. **Account deletion web link:** `/privacy` as it is, or a short "delete your haci account" section on it?
-4. **IP addresses in server logs:** not declared in Data safety (not used for location) — agreed?
+1. **GitHub alert 1 (Google API Key):** closed by the user as "won't fix"?
+2. **Play reviewers' test account:** created (e-mail + password, onboarding done)?
+3. **ADR-024's trigger:** the Apple account or the two other Play apps — any date yet?
 
 ---
 

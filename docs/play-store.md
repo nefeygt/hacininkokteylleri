@@ -1,8 +1,8 @@
-# Google Play — store listing and forms (drafts)
+# Google Play — store listing and forms
 
 Drafts for M8 step 7 (ADR-024), written 2026-10-29 from `/privacy` (version `2026-10-28`) and the app as it is after the
-parity pass. **Nothing here is submitted.** The user approves the listing texts and every form answer before they go into
-the Play Console; the user does anything that needs their password or a payment.
+parity pass. **Approved by the user on 2026-10-29** (§1–3 and §5–7 as written; §4 still to make). **Nothing is submitted
+yet.** The user does anything that needs their password or a payment.
 
 ## 1. App details
 
@@ -18,6 +18,7 @@ the Play Console; the user does anything that needs their password or a payment.
 | Contact e-mail | `contact@hacininkokteylleri.tech` |
 | Website | `https://hacininkokteylleri.tech` |
 | Privacy policy URL | `https://hacininkokteylleri.tech/privacy` |
+| Account deletion URL | `https://hacininkokteylleri.tech/privacy#delete-account` |
 
 ## 2. Store listing — Turkish (the default)
 
@@ -112,7 +113,7 @@ to make public is user-initiated, so **no data is shared**.
 - Does the app collect or share any of the required user data types? **Yes**
 - Is all user data encrypted in transit? **Yes** (HTTPS to Supabase and the site)
 - Do you provide a way for users to request that their data is deleted? **Yes** (in the app: Hesap → delete account;
-  on the web: see §7)
+  on the web: `/privacy#delete-account`)
 
 | Category → type | Collected | Shared | Required or optional | Purposes |
 |---|---|---|---|---|
@@ -128,8 +129,8 @@ Not collected: location, financial info, health, messages, contacts, calendar, a
 apps, search history, crash logs or diagnostics (no crash reporter in the app). The password is not "collected" by the
 app as a data type of its own (it is part of signing in; stored only as a hash by Supabase Auth).
 
-Open point for the user: Supabase's server logs hold IP addresses (`/privacy` §2 "Technical records"). Play asks about IP
-only when it is used to derive location; haci does not, so it is not declared — confirm.
+Supabase's server logs hold IP addresses (`/privacy` §2 "Technical records"). Play asks about IP only when it is used to
+derive location; haci does not, so it is not declared (the user agreed, 2026-10-29).
 
 ## 6. Content rating (IARC questionnaire)
 
@@ -149,19 +150,19 @@ only when it is used to derive location; haci does not, so it is not declared �
 - **Target audience:** 18 and over only (the app asks every new member to confirm they are over 18). Not designed for
   children; no Families programme.
 - **Ads:** the app contains no ads.
-- **App access:** some features need an account. Play's reviewers get a test account made for them — **the user creates
-  it** (a normal member with e-mail and password, no admin rights) and pastes the credentials into the console; they are
-  not stored in this repository.
-- **Account deletion (web link):** Play wants a page outside the app that names the app and tells how to delete the
-  account. `https://hacininkokteylleri.tech/account` lets a signed-in member delete their account, but a signed-out
-  visitor lands on the sign-in page with no instructions. **Open — decide with the user:** link `/privacy` (§5 tells how
-  to delete) or add a short section on `/privacy` that names haci and gives the steps.
+- **App access:** some features need an account. Play's reviewers get a test account — **the user creates it** by signing
+  up on the site or in the app (e-mail + password, a normal member, no admin rights, onboarding finished so a profile
+  exists) and pastes the credentials into the console. The agent does not create accounts or set passwords; the
+  credentials are never stored in this repository.
+- **Account deletion (web link):** `https://hacininkokteylleri.tech/privacy#delete-account` — section 7 of the privacy
+  notice, "haci hesabını silmek" (added 2026-10-29, text approved by the user): the steps in the app and on the site, and
+  e-mail to `contact@` for members who can't sign in. No new processing, so `PRIVACY_NOTICE_VERSION` stays `2026-10-28`.
 - **News, health, financial features, government, COVID-19:** none.
 - **Alcohol policy:** the app does not sell or facilitate the sale of alcohol — recipes only.
 
 ## 8. Before the upload
 
-1. The production AAB: build `2df42d3d-bf6b-45a3-9c6b-651bca1a9339` (versionCode 2, 2026-10-29) on EAS.
+1. The production AAB: build `2df42d3d-bf6b-45a3-9c6b-651bca1a9339` (versionCode 2, 2026-10-29) on EAS — finished, `.aab` ready.
 2. The upload itself waits for ADR-024's trigger (the Apple account, or the user's two other Play apps for a shared
    closed test).
 3. After the first upload: Play's app-signing SHA-1 → a further Android OAuth client in Google Cloud `haci-511515` and its

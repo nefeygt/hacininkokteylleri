@@ -31,6 +31,10 @@ export type PrivacyNotice = {
   rightsIntro: string;
   rights: string[];
   rightsOutro: string;
+  /** How to delete the account; Google Play links here (`/privacy#delete-account`). "{account}" links to /account; "{brand}" in the title stays lowercase. */
+  deleteTitle: string;
+  deleteBody: string;
+  deleteAccountLink: string;
 };
 
 export const PRIVACY_NOTICE: Record<Locale, PrivacyNotice> = {
@@ -92,6 +96,10 @@ export const PRIVACY_NOTICE: Record<Locale, PrivacyNotice> = {
     ],
     rightsOutro:
       'Profilini istediğin zaman "Hesabım" sayfasından düzeltebilir ya da hesabını silebilirsin. Diğer talepler için {contact} adresine yaz; en geç 30 gün içinde yanıtlarız.',
+    deleteTitle: "7. {brand} hesabını silmek",
+    deleteBody:
+      'haci hesabını istediğin zaman kendin silebilirsin: uygulamada Hesap sekmesinde, sitede {account} sayfasında "Hesabı sil" bölümünden. Hesabın, profilin ve yazdığın her şey hemen ve kalıcı olarak silinir; bu geri alınamaz. Giriş yapamıyorsan hesabının e-posta adresinden {contact} adresine yaz; en geç 30 gün içinde sileriz.',
+    deleteAccountLink: "Hesabım",
   },
   en: {
     metaTitle: "Privacy notice",
@@ -152,5 +160,9 @@ export const PRIVACY_NOTICE: Record<Locale, PrivacyNotice> = {
     ],
     rightsOutro:
       'You can correct your profile or delete your account on the "Account" page at any time. For other requests, write to {contact}. We reply within 30 days at the latest.',
+    deleteTitle: "7. Deleting your {brand} account",
+    deleteBody:
+      "You can delete your haci account yourself at any time: in the app on the Account tab, on the site on the {account} page, under \"Delete account\". Your account, your profile and everything you wrote are deleted immediately and permanently; this can't be undone. If you can't sign in, write to {contact} from your account's e-mail address; we delete it within 30 days at the latest.",
+    deleteAccountLink: "Account",
   },
 };
