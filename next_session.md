@@ -82,10 +82,8 @@ or the user's two other Play apps are ready to share a closed test — the user 
    "Android key" (`haci-1def7`). Details: `docs/play-store.md` §9.
 4. **[user, then opus] Finish and send the closed test:**
    a. ✅ Supabase's Google provider has the Play client ID (fourth in the list, 2026-10-29). Store tags set (Recipes, Social).
-   b. **The user:** (account `test@haci.com` exists, confirmed and onboarded; advertising ID, government, finance and health
-      declarations are done) App content → App access ("Oturum açma bilgileri"): "Yes, restricted" + the reviewers' account credentials.
-   c. **[opus]** Target audience: 18+ only, not for children; then submit the Data safety draft (both locked until b is
-      saved — on 2026-10-29 App access still had no answer).
+   b. ✅ App access saved (`test@haci.com`, instructions in `docs/play-store.md` §9), advertising ID / government / finance /
+      health declarations, target audience 18+, Data safety saved — App content has nothing left (2026-10-29).
    d. **The user:** the testers list (e-mail list or Google Group) on the closed test track.
    e. **[opus] with the user's yes:** publishing overview → send for review. Then install from the test link and check Google
       sign-in and push on a Play-installed build.
@@ -192,8 +190,7 @@ or the user's two other Play apps are ready to share a closed test — the user 
 ## 🙋 Questions for the User
 
 1. **GitHub alert 1 (Google API Key):** closed by the user as "won't fix"?
-2. **App access:** saved in Play Console with `test@haci.com`? (on 2026-10-29 it was still unsaved)
-3. **Testers:** the Fiverr service — when, and as an e-mail list or a Google Group?
+2. **Testers:** the Fiverr service — when, and as an e-mail list or a Google Group?
 
 ---
 

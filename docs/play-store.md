@@ -203,8 +203,14 @@ Done:
 - Reviewers' account `test@haci.com` (made by the user; e-mail confirmed by SQL since the address can't receive mail;
   signed in and onboarded as `test`, checked in the database). `haci.com` belongs to someone else — never send it mail.
 
+- App access: "Yes, restricted", one entry "Kullanıcı Hesabı" (the user typed `test@haci.com` and its password) with these
+  instructions (written by the agent): "The recipe archive works without an account. To reach the member features (drink log,
+  reviews, favorites, own recipes, feed, showcase, notifications): open the last tab at the bottom, "Account" ("Hesap" when the
+  phone is set to Turkish), and sign in with e-mail and password using the username and password above. The account is a
+  normal member with onboarding already finished; no two-step verification, codes or payments are needed. Google sign-in is
+  optional and not required for review."
+- Target audience: 18 and over only. Data safety: saved (no longer a draft). App content shows nothing left to do.
+
 Left (in order):
-1. App access: the reviewers' test account (the user's).
-2. Target audience: 18 and over only (unlocks after app access); then submit Data safety.
-3. Testers: an e-mail list or Google Group for the closed test (the user's 12 testers).
-4. Publishing overview → send for review.
+1. Testers: an e-mail list or Google Group for the closed test (the user's 12 testers).
+2. Publishing overview → send for review (with the user's yes).
