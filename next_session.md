@@ -4,15 +4,14 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-29 (parity pass step 8 finished and step 10's development build, [opus]). **Push works on
-Android:** Firebase (`haci-1def7`) set up by the user, the FCM V1 key on EAS, a development build with FCM installed on the user's
-S25 Ultra over adb, and the phone test passed end to end (token → push in 0.5 s → tap opens the profile → sign-out removes the
-token). **Left in step 10: the user's phone pass through the new screens** (c), then the store prep (d). The store upload still
-waits for the Apple account or the user's two other Play apps (ADR-024). `main` is pushed and deployed.
+**Prepared by session:** 2026-10-29 (parity pass closed, store prep started, [opus]). **The parity pass is done:** the user went
+through every new screen on the development build — all fine. **First production Android build** on EAS
+(`2df42d3d-bf6b-45a3-9c6b-651bca1a9339`, AAB, versionCode 2). **Play drafts** in `docs/play-store.md` (listing texts in Turkish and
+English, Data safety, content rating, declarations) — **nothing approved or submitted yet**. The upload still waits for the Apple
+account or the user's two other Play apps (ADR-024). `main` is pushed and deployed.
 
-**Model split (the user, 2026-10-26):** the parity pass runs over several chats. Each step below is tagged
-**[opus]** or **[sonnet]**; a session works through consecutive steps of its own tag and stops before a step with the
-other tag (see "Model handoff"). **Steps 1–9 are done, 10 is in its last part; the next session is [opus]** (finish step 10).
+**Model split:** steps below are tagged **[opus]** or **[sonnet]**; a session works through consecutive steps of its own tag and
+stops before a step with the other tag (see "Model handoff"). **The next session is [opus]** (step 1 needs the user).
 ---
 
 ## 📋 Prompt to Copy
@@ -62,209 +61,43 @@ AT THE END OF THE SESSION (before context fills, even if work is unfinished):
 
 ---
 
-## 🎯 This Session's Task — the mobile parity pass (M8, toward production)
+## 🎯 This Session's Task — M8 step 7: store prep, Android first (ADR-024)
 
-The user (2026-10-26): "close M9, move to the mobile parity pass and get production-ready." The app (`mobile/`, Expo SDK
-57) did everything the site did on 2026-10-15; since then the site gained everything in **"Web changes since
-2026-10-15"** below. Port it, then make the app release-ready.
+The parity pass (ADR-033) is closed: the app does everything the site does, in six themes and two languages, with push on
+Android. What remains before a store is the store material itself. **The upload waits** until the Apple Developer account is open,
+or the user's two other Play apps are ready to share a closed test — the user decides (ADR-024). Everything below needs no upload.
 
-**The user's answers (2026-10-28, step 1, ADR-033):** the app gets **English**, **all six themes** and **push
-notifications** in this pass. So the order is foundations first — themes, then languages — and every feature screen
-after them is written themed and bilingual once, not twice.
+1. **[opus] The user's review of `docs/play-store.md`** — walk the user through it (in Turkish, they chat in Turkish) and settle:
+   - the listing texts (§2 Turkish, §3 English): approve or change; Play limits are 30 / 80 / 4,000 characters;
+   - the Data safety answers (§5), including the open IP-address point;
+   - the IARC answers (§6) and the declarations (§7);
+   - **the account deletion web link (§7, open):** Play wants a page outside the app that names the app and gives the steps. Either
+     the existing `/privacy` (§5 says how), or a short section on `/privacy` naming haci with the steps (a text change → the user
+     approves the Turkish and English, bump `PRIVACY_NOTICE_VERSION` only if the substance changes).
+   - Check the production build: `npx eas-cli build:view 2df42d3d-bf6b-45a3-9c6b-651bca1a9339` (in `mobile/`) → finished, an
+     `.aab` artifact. If it failed, read the logs on expo.dev and rebuild (`eas build -p android --profile production
+     --non-interactive --no-wait`; versionCode auto-increments).
+2. **[sonnet] Graphics** (`docs/play-store.md` §4): a 512 px icon output in `scripts/export-brand.mjs`; a 1024 × 500 feature graphic
+   (the wordmark on the Rx background, also rendered by the script); phone screenshots in Rx, Turkish and English (the phone over
+   adb, or Expo web at 1080 × 1920 if no phone is attached), saved under `store/` or a folder the user picks — they are not app
+   assets. The user approves the set.
+3. **[opus] When ADR-024's trigger comes (the user says so):** Play Console (the user's "KZN" account; the user does anything that
+   needs their password or a payment) — create the app `haci`, paste the approved texts, upload graphics, the forms, upload the
+   AAB to the closed test track; then Play's app-signing SHA-1 → a further Android OAuth client in Google Cloud `haci-511515` and
+   its client ID in Supabase's Google provider (else Google sign-in fails in Play-installed builds). The 12 testers for 14 days are
+   the user's (Fiverr plan).
 
-**Every step's check:** `npm run typecheck` in `mobile/`; the site's `npm run build` when a shared `src/lib` module
-changes; the bundles build (`npx expo export ...`, plan.md §5.4); and the changed screens seen in Expo web at phone width
-(`npx expo start --web --port 8081`, the built-in browser — read the DOM, screenshots lag) in **Rx and Reçete Kâğıdı**
-(one dark, one light) and, from step 3 on, **in Turkish and English**. "Typecheck passed" alone is not done. Commit after
-each step; tick the step here; mark the items of "Web changes since 2026-10-15" as you finish them.
+**Things that bite (store prep):**
+- The production build reads the public settings from the committed `mobile/.env` (EAS uploads it; there are no EAS environment
+  variables, and none are needed). A new `EXPO_PUBLIC_*` setting goes into `.env`, never a secret (ADR-008).
+- `versionCode` lives on EAS (`appVersionSource: remote`, `autoIncrement` on production): every production build takes the next
+  number — don't set it in `app.json`.
+- Store consoles (Play Console, expo.dev) need the user's signed-in Chrome — Claude in Chrome; ask the user to reconnect it if the
+  tools fail.
 
-1. ✅ **[opus] State check, audit and plan** (2026-10-28). State: `main` clean, 1 docs commit ahead of `origin`; 32
-   migrations, the latest `20261026100157_translations_en_names_glossary_dedupe`; 5 Expo patch releases waiting (update in
-   step 10). Audit: of the web list only the filter chips (ADR-026) are in the app; everything else is missing (marked in
-   the list). The plan below.
+**Things that bite (parity pass, kept for app work):**
 
-2. ✅ **[sonnet] Themes: the runtime and the six palettes** (ADR-028, ADR-033) — done 2026-10-28: `lib/theme.ts` (`PALETTES`, `FONT_SETS`),
-   `lib/theme-context.tsx` (`ThemeProvider`, `useTheme`, `useStyles`), all 39 style files converted, `ThemePicker` on the Hesap tab
-   (also signed out). **In components the theme is `const theme = useTheme()`; `t` is reserved for the dictionary (step 3)** —
-   inside `makeStyles = (t: Theme) => …` `t` is the theme. Checked in Expo web (signed out: archive, recipe, feed, account;
-   contrast audit clean in Rx and Reçete Kâğıdı); the signed-in screens (forms, sheets, calendar, stars) are converted the same
-   way but **not yet seen** — look at them in step 9 with a temporary member. Original brief:
-   - `mobile/src/lib/theme.ts`: keep `space`, `readable`, `alpha`. Replace the single `colors` with
-     `PALETTES: Record<ThemeId, Palette>` — the 14 tokens of each theme copied **from `src/app/globals.css`** (Rx's new
-     crimson glow `#d0453a`, greys `#b4b1ae` / `#7d7a78`; night-bar = night-serif; paper = paper-rx; `veganBg` is the CSS
-     `--color-vegan-bg` hex) — and `FONT_SETS: Record<ThemeId, { display; displayBold; sans; sansBold; mono; monoItalic }>`
-     per globals.css lines 28–110: rx and paper-rx Plex Sans / Plex Sans / JetBrains Mono; night-bar Bricolage Grotesque /
-     Source Sans 3 / JetBrains Mono; negroni Bricolage / Atkinson Hyperlegible / IBM Plex Mono; paper and night-serif
-     Instrument Serif / Atkinson / IBM Plex Mono (Instrument Serif has one weight: its `displayBold` is the regular face).
-     `export type Theme = { id: ThemeId; light: boolean; colors: Palette; fonts: FontSet }`.
-   - New `mobile/src/lib/theme-context.tsx`: `ThemeProvider` (reads `THEME_STORAGE_KEY` from `@shared/themes` in
-     AsyncStorage, `isThemeId`, default `DEFAULT_THEME`; holds the splash until read), `useTheme()` → `Theme & { setTheme }`,
-     and `useStyles(make: (t: Theme) => Styles)` = `useMemo(() => StyleSheet.create(make(t)), [t])`.
-   - Fonts: `npx expo install @expo-google-fonts/ibm-plex-sans @expo-google-fonts/ibm-plex-mono
-     @expo-google-fonts/bricolage-grotesque @expo-google-fonts/source-sans-3 @expo-google-fonts/atkinson-hyperlegible
-     @expo-google-fonts/instrument-serif`; load 400 + 700 of the sans/display faces and 400 + 400 italic of the monos in
-     `_layout.tsx`; remove `@expo-google-fonts/inter` once nothing uses it.
-   - **Convert all 39 files with a module-level `StyleSheet.create`** (`grep -rln "StyleSheet.create" mobile/src`) to
-     `const makeStyles = (t: Theme) => StyleSheet.create({...})` + `const styles = useStyles(makeStyles)` inside the
-     component; inline `colors.x` → `t.colors.x` from `useTheme()`. Hard-coded rgba colours (`"rgba(20, 83, 45, 0.3)"` in
-     `cocktail/[slug].tsx` and others: `grep -rn "rgba(" mobile/src`) → `alpha(t.colors.…)` or `t.colors.veganBg`.
-   - `_layout.tsx` / `(tabs)/_layout.tsx`: the navigation theme from `DarkTheme` or `DefaultTheme` by `t.light`;
-     `StatusBar style={t.light ? "dark" : "light"}`; `expo-system-ui` `setBackgroundColorAsync(t.colors.bgPrimary)` on change;
-     `app.json` `userInterfaceStyle` stays as is (the app picks its own theme, not the phone's).
-   - `Type.tsx`: `Heading` → `fonts.displayBold`, `Body` → `fonts.sans` (Plex Sans in Rx: the readable type),
-     `Mono`/`Label` → `fonts.mono`. Then go through `Mono` uses: reading text (subtitles, instructions, notes, comments,
-     bios, review text) becomes `Body`; amounts, labels, dates, counters stay `Mono` (ADR-028: "mono only for labels").
-   - The picker: a "Görünüm" section on the account screen (`AccountView`, also shown to signed-out visitors on the Hesap
-     tab) — the six `THEMES` as rows with their two `swatch` colours, name and hint, the current one marked. Words from
-     `THEMES` for now (step 3 moves them to `t.themes[id]`).
-   - Check: every screen in Rx and Reçete Kâğıdı (light!) — no unreadable text, no leftover dark-only colour; the photo
-     placeholders, the tab bar, the headers, `OptionSheet`, `DateField`'s calendar, `Stars`. Rx must look as before except
-     the brighter crimson, the greys and the reading font.
-
-3. ✅ **[sonnet] Languages: the runtime, the words and the content** (ADR-032, ADR-033) — done 2026-10-28. `lib/i18n.tsx`
-   (`useLocale()` → `{ locale, t, a, setLocale }`; `words()` for plain modules), `lib/i18n/{tr,en}.ts` (app-only words), a codemod-like
-   runner converted every string, `src/lib/translations.ts` is shared, `fetchArchive(locale)` loads translated recipes and glossary,
-   `LanguagePicker` next to `ThemePicker` (also signed out). Checked in Expo web: Turkish and English at 375 and 320 px, no Turkish
-   left in English except "Türkçe" and members' content. **Not yet seen:** signed-in screens in English (forms, comments,
-   showcase apply, account) — step 9. Known small leftovers: `a.tabs.logEntry` is a misnamed key (it is the log screen's title);
-   `MemberGate`'s `feature` is now `"logs" | "recipes"`; the e-mail links the app asks for carry the language
-   (`/en/account`, `/en/reset-password`) — worth a real e-mail test. Original brief:
-   - `npx expo install expo-localization`. New `mobile/src/lib/i18n.tsx`: `LocaleProvider` — the language from AsyncStorage
-     key `haci.locale`, else the phone's (`getLocales()[0].languageCode === "tr"` → `tr`, anything else → `en`), only
-     `PUBLISHED_LOCALES`; `useLocale()` → `{ locale, t, a, setLocale }` where `t = getDictionary(locale)` (from
-     `@shared/i18n/dictionaries`, already Next-free) and `a` is the app's own dictionary. `setLocale` also writes
-     `account_settings.locale` when signed in (the column and its grant exist; e-mails follow it), like the site's switcher.
-   - App-only words: `mobile/src/lib/i18n/tr.ts` (the source, `export const tr = {...}`, `export type AppDictionary = typeof
-     tr`) and `en.ts` (`export const en: AppDictionary`) — a missing key fails typecheck. **Use the site's dictionary key
-     whenever the Turkish text is the same** (nav, recipe, reviews, logs, account, auth, validation, themes,
-     notifications…); only app-only strings go to `a`. English follows `docs/glossary.md` (a new term goes there first).
-   - **Convert every Turkish string** (~300 in 41 files: `grep -rlP "[ğüşıöçĞÜŞİÖÇ]" mobile/src`), including the
-     `Stack.Screen` titles in `_layout.tsx`, the tab titles, `Alert` texts and placeholders. Shared helpers take the
-     words: `authErrorMessage(msg, t.auth)`, `formatLogDate(d, locale)`, `formatAverage(x, locale)`, `formatRating`,
-     `formatAmount(i, locale, t)`, `unitLabel(u, n, t)`, `profileError`, `cleanRecipe(..., t.validation)`; counts through
-     `format()` ("one|other" — no literal "|" in a template with `{n}`).
-   - **`Label`'s `upperTr` must follow the language:** the Turkish rule turns English "drink" into "DRİNK". Use
-     `toLocaleUpperCase(INTL_LOCALES[locale])` with the Turkish i→İ fix only for `tr`.
-   - Content: `mobile/src/lib/content.ts` / `archive.tsx` load house recipes in the language — extract the site's
-     `translateCocktails` merge (`src/lib/content.ts:176`) into a pure, shared `applyCocktailTranslation(cocktail, row)`
-     in a new `src/lib/translations.ts` (no Next imports; the site's `content.ts` uses it too → site `npm run build`), and
-     a shared `COCKTAIL_TRANSLATION_COLUMNS`. The app reads `cocktail_translations` (and `glossary_term_translations`
-     for `GlossaryText`) with the publishable key when `locale !== "tr"`; `ArchiveProvider` reloads on a language change.
-     Members' recipes stay as written. A new log of a house recipe starts from the shown language (as on the site).
-   - Links to the site carry the language: `localePath(locale, "/privacy")` in `welcome.tsx` and anywhere `SITE_URL`
-     is joined (`grep -rn SITE_URL mobile/src`).
-   - The picker: a "Dil / Language" row on the account screen next to "Görünüm" (`LOCALE_NAMES`). Theme names and hints
-     now come from `t.themes[id]`.
-   - Check: every screen in English — no Turkish left except members' content and stored log snapshots; dates and
-     ratings in English format; labels uppercased correctly ("İ" in Turkish, "I" in English); 320 px-wide text that
-     grew in English still fits (buttons, tab labels, chips).
-
-4. ✅ **[sonnet] Recipe screens** — done 2026-10-28: servings 1–8 and the cl/oz toggle (key `haci.volume-unit`, now `VOLUME_UNIT_KEY`
-   in `@shared/recipe`), `ShareButton` (house `/cocktails/{slug}`, members' `/recipes/{slug}`, in the language), "similar" under house
-   recipes, `RatingBreakdown` (shared `RATING_COLUMNS`/`toRating` moved to `src/lib/community.ts`). Seen in Expo web: servings,
-   oz remembered after reload, similar, share pill. **Not seen:** the breakdown bars (no reviews exist) — check with a
-   temporary member in step 9. No `/cocktails?cocktail=` links remain in the app. Original brief:
-   - "Kaç kişilik?" stepper 1–`SERVINGS_MAX` (`@shared/recipe`), amounts through `scaleAmount`; the "cl | oz" toggle
-     beside it (`isConvertibleUnit`, `convertAmount`, `formatOunces`), the choice in AsyncStorage under the site's key
-     (`VOLUME_UNIT_KEY`, `src/components/RecipeDetails.tsx:185` — move it to `@shared/recipe` if it is not exported).
-     Words from the site's dictionary (the web `RecipeDetails` shows which keys).
-   - "Paylaş": `Share.share({ message: name + url, url })` with `SITE_URL + localePath(locale, "/cocktails/{slug}")`
-     (house) or `"/recipes/{slug}"` (members').
-   - "Benzer kokteyller" under house recipes: `similarCocktails(cocktail, archive.cocktails, 4)` from
-     `@shared/archive-filter`, as `CocktailCard`s linking to `cocktail/[slug]`.
-   - Rating breakdown: `withRatings` selects `half_star_counts` too (use the site's `RATING_COLUMNS` / `toRating` —
-     share them if they are in the server module), `Rating` gets `halfStars?: number[]`; ten bars from
-     `ratingBreakdown()` (`@shared/community`) in `CocktailReviews`, like the web `RatingBreakdown.tsx`.
-   - Links the app builds to house recipes open `cocktail/[slug]`, never `/cocktails?cocktail=`
-     (`grep -rn "cocktail=" mobile/src`).
-   - Check: servings 1 and 8, oz on and remembered after a reload, the share sheet text (web: `navigator.share` may be
-     missing — no crash), similar cocktails present and tappable, a cocktail with and without reviews.
-
-5. ✅ **[sonnet] Archive tab and feed** — done 2026-10-28: three sorts in the filter panel, "Günün kokteyli" card above the list (hidden while
-   searching or filtering), a link to the new `what-can-i-make` screen (catalogue from `ingredients` + `ingredient_translations`, picks
-   under `PANTRY_KEY`, house + members' recipes, "missing one"), the feed's house picks while members have written fewer than 3
-   recipes. Seen in Expo web: pantry picks give the expected ready/one-missing split, sort row, day card. Collection chips skipped
-   (Icebox). Sorting has no visible effect yet — no reviews exist. Original brief:
-   - Sort: three choices (`ArchiveSort`, `sortCocktails`; labels from the dictionary, not `SORT_LABELS`' Turkish) applied
-     after `filterCocktails`.
-   - "Günün kokteyli" at the top of the archive: `cocktailOfTheDay(cocktails, todayInTurkey())` from
-     `@shared/collections` — a large card; and the house picks the site's home shows (check `src/app/[lang]/(site)/page.tsx`
-     for what it lists) — only if they fit without crowding; otherwise note it here.
-   - "Elimde ne var?": a new screen `mobile/src/app/what-can-i-make.tsx` opened from a button on the archive tab.
-     Catalogue from `ingredients` (+ `ingredient_translations` in English, as the site's `getIngredientCatalogue`),
-     chips grouped by `groupByCategory`; results from `matchCocktails` (`@shared/ingredients`) over house recipes **and
-     published members' recipes**, showing "can make" and "missing one" like the web `WhatCanIMake.tsx`. The archive
-     query selects `cocktail_ingredients.ingredient_id` → `ingredientId`. Picks in AsyncStorage under the site's
-     `PANTRY_KEY`. Register the screen title in `_layout.tsx`.
-   - Collection chips: skip (optional; note it in the Icebox if not done).
-   - Check: each sort, the cocktail of the day matches the site's for today, picking 3 ingredients gives the same result
-     as the site.
-
-6. ✅ **[sonnet] Forms** — built 2026-10-28, **typecheck + bundles only, not seen**: `GlassIcon` (react-native-svg) and `GlassPicker`
-   (grid of the 13 glasses + "Other" text field) in the log form and the recipe form; the catalogue select per ingredient line in
-   `RecipeForm` (`OptionSheet` now takes `group` headings; "Katalogda yok" first; intro with a link to "Elimde ne var?"; the
-   all/some-matched counter). **Check in step 9 with a temporary `@example.test` member (ask the user first — the built-in browser's admin
-   login is in use):** create and edit a log and a member's recipe with a glass and linked lines; the recipe then shows in "Elimde ne var?".
-   Original brief:
-   - Glass picker: new `mobile/src/components/GlassIcon.tsx` — the 13 paths of `src/components/GlassIcon.tsx` in
-     `react-native-svg` (already installed), stroke `t.colors.textSecondary`, selected `crimsonGlow` — and
-     `GlassPicker.tsx` (a horizontal row/grid of the 13 `GLASSES` from `@shared/glasses` with names from the dictionary;
-     `glassKind()` reads a stored free-text value). Used in the log form and the recipe form instead of the free text.
-   - The catalogue select per ingredient line in `RecipeForm`: an `OptionSheet` of the catalogue (`groupByCategory`),
-     "Katalogda yok" as the empty choice, the hint and the "{n}/{total} malzeme katalogda" counter (`isFullyLinked`),
-     words from the site's dictionary (the web recipe form shows which). `ingredientId` already survives an edit.
-   - Check: create and edit a log and a member's recipe with a glass and linked lines (temporary `@example.test` member,
-     deleted afterwards); the recipe then appears in "Elimde ne var?".
-
-7. ✅ **[opus] Community** — done 2026-10-28: `mobile/src/lib/notifications.tsx` (`NotificationsProvider` / `useNotifications()` with the
-   unread count, `fetchNotifications`, `markAllRead`, `appRoute(href)` site path → app route, `openNotificationLink` — tabs are navigated,
-   not pushed), the screen `notifications.tsx` (marks read on opening), the Hesap tab's `tabBarBadge` (re-counted on every tab focus and on
-   return to the app), a "Bildirimler" row + the e-mail digest switch on the account screen, `follows/[username]?kind=followers|following`
-   (opened from the profile counts), comment editing in `LogComments` (`editComment` in `social.ts`; the database stamps `edited_at`).
-   `MemberGate` takes `feature="notifications"`. Checked signed in with two temporary members (deleted): badge 1 → 2 without a reload,
-   English list, taps open the profile and the log, edit + "· edited", RLS refuses editing someone else's comment, 320 px light theme.
-
-8. ✅ **[opus] Push notifications** (ADR-033) — **done 2026-10-29: the phone test passed on Android** (the steps below were all run;
-   the user's account was `ahmet_kafa`, the temporary member `push_test` deleted). iOS waits for the Apple account. Done: migration
-   `20261028090812_push_notifications` (`push_tokens` + `register_push_token()`, `account_settings.push_notifications`,
-   `notifications.pushed_at`, `claim_push_notifications()`, trigger `notifications_wake_push_sender`, the e-mail digest skips pushed
-   rows); Edge Function `send-push-notifications` (deployed, verify_jwt on; a call with nothing pending answers `{"sent":0}`); the app's
-   `mobile/src/lib/push.ts` and the "Telefon bildirimleri" switch (native only — hidden on Expo web), token synced on sign-in and
-   deleted on sign-out, a tapped push opens its screen (`usePushResponses` in the tab layout); `expo-notifications` plugin in `app.json`;
-   `/privacy` lines approved by the user (version `2026-10-28`). **Left:**
-   - **The user (console):** a Firebase project (any name, e.g. `haci`) → add an Android app with package
-     `tech.hacininkokteylleri.haci` → download `google-services.json` into `mobile/`; Firebase → Project settings → Service accounts →
-     generate a key → `eas credentials` (Android → Push Notifications: FCM V1) uploads it. The key JSON is a secret: never commit it.
-   - **Then the agent:** `"googleServicesFile": "./google-services.json"` under `android` in `app.json` (the file itself is public config
-     per Expo's guidance, ADR-008 — commit it); `eas build -p android --profile development`; the user installs it.
-   - **The phone test:** sign in on the phone, turn on "Telefon bildirimleri" (the permission prompt appears), check a row in
-     `push_tokens`; a temporary `@example.test` member follows the user's test account → a push arrives within seconds; tapping it
-     opens the follower's profile; `notifications.pushed_at` is set; sign out → the token row is gone. Delete the temporary member.
-   - iOS waits for the Apple account (APNs key via `eas credentials`).
-
-9. ✅ **[sonnet] Sweep** — done 2026-10-28, no code change: signed out and signed in (temporary members, deleted), 6 themes × 2 languages at 320/390 px clean; log with glass, rating breakdown and catalogue sheet seen. Original brief: run the whole app once in each of the 6 themes × 2 languages at 320 and 390 px; fix what is off;
-   empty the "Web changes" list (every item done or "web-only").
-
-10. **[opus] Release readiness** — **part 1 done 2026-10-28:** `npx expo install --fix` (`expo` 57.0.31, `expo-router` 57.0.29,
-    `expo-linking` 57.0.13, `@expo/ui` 57.0.26; one of the five waiting ones was already current), typecheck, expo-doctor 21/21,
-    the three bundles. `app.json`: version `1.0.0` stays; `versionCode`/`buildNumber` are remote on EAS
-    (`appVersionSource: remote`, production `autoIncrement`) — nothing to set. Permissions checked with
-    `npx expo config --type introspect`: CAMERA and RECORD_AUDIO already removed by the image-picker plugin, storage capped at
-    SDK 32 (older phones' gallery), **SYSTEM_ALERT_WINDOW now blocked** (`android.blockedPermissions`); POST_NOTIFICATIONS comes
-    from expo-notifications' own manifest. **New `mobile/assets/images/notification-icon.png`** (white cherry, 96 px, rendered by
-    `scripts/export-brand.mjs`) set as the expo-notifications `icon` — without it Android shows a white square.
-    **Part 2 done 2026-10-29:** (a) `googleServicesFile` in `app.json`, `google-services.json` committed; (b) development build
-    `e7338328` (with FCM) installed on the user's S25 Ultra over adb, the app opens and loads from Metro. **Left:** (c) the user's phone pass
-    through every new screen (themes, English, servings/oz, share, "Elimde ne var?", glass picker, notifications, push);
-    (d) then the store steps under the parked section (a production AAB, listing drafts).
-
-**While porting:** keep `@shared/*` modules free of Next imports; mark each item of the list below done (or "web-only")
-as you go, so the list ends empty.
-
-**Waiting for the user (do not block on them):** notifications signed in; Search Console sitemap (now with `/en` alternates);
-the first run/schedule of `cleanup-photos.yml`; **`RESEND_API_KEY`** in Supabase secrets (the `/privacy` digest line is live since 2026-10-26); Rx crimson labels for AA. **Videos: dropped** (the user).
-
-**Things that bite (parity pass, step 10 — the home laptop, 2026-10-29):**
+*The home laptop, 2026-10-29:*
 - **The project folder was copied as a zip:** `.git/objects` and dotted/odd files were lost. Restored from a bare clone of GitHub;
   if git says "not a git repository" with a `.git` folder present, check for `.git/objects` first.
 - **EAS sign-in without a password:** `npx eas-cli login --device --non-interactive` prints a code and a resume id; the user approves
@@ -318,88 +151,7 @@ the first run/schedule of `cleanup-photos.yml`; **`RESEND_API_KEY`** in Supabase
 **While doing web work:** add user-visible changes to the list below (the app's checklist); a change in a shared
 `src/lib` module must keep `mobile/` compiling (`npx tsc --noEmit` there).
 
-### Web changes since 2026-10-15 (for the parity pass)
-
-**Audit 2026-10-28 (step 1):** only the filter chips are in the app (typecheck only — see them in Expo web in step 2).
-Every other item below is **missing** and planned in the step named in brackets; web-only items are marked so.
-
-- ✅ [step 4, done] **House recipe pages `/cocktails/{slug}`** (ADR-025). The app already has a recipe screen (`cocktail/[slug]`); for
-  parity: a "share" link should use the site's URL, and links the app opens to house recipes should point here,
-  not to `/cocktails?cocktail=`. The magnifier/quick card is a web-only pattern.
-- **Filter chips from the data** (ADR-026) — **already in the app**: `(tabs)/index.tsx` uses `baseChoices` /
-  `flavorChoices`, and the shared `filterCocktails` matches flavour notes. Typecheck passed; not yet seen in Expo web.
-- ✅ [step 4, done] **"Kaç kişilik?"** (1–8 glasses) on the recipe: port to the app's recipe screens with `SERVINGS_MAX` and
-  `scaleAmount` from `@shared/recipe`.
-- ✅ [step 4, done] **"Paylaş"** on recipes: React Native's `Share.share({ message, url })` with the site's URL
-  (`/cocktails/{slug}` or `/recipes/{slug}`).
-- ✅ [step 4, done] **"Benzer kokteyller"** under house recipes: `similarCocktails(target, archive, 4)` from `@shared/archive-filter`.
-- The wordmark and the recipe JSON-LD are web-only (the app has its own header; no SEO).
-- **The Letterboxd icon is gone from the navbar** (the user, 2026-10-15). The app never had it — nothing to port.
-- ✅ [step 5, done] **"Elimde ne var?"** (ADR-029): a screen (or a section on the archive tab) with chips from `ingredients`
-  (`groupByCategory`) and `matchCocktails` from `@shared/ingredients`; the app's cocktail query must select
-  `cocktail_ingredients.ingredient_id` and map it to `ingredientId`. Keep the choice in AsyncStorage.
-- ✅ [step 2, done] **Themes and readable type** (ADR-028): the app's `mobile/src/lib/theme.ts` copies Rx's new colours (brighter
-  crimson glow `#d0453a`, greys `#b4b1ae` / `#7d7a78`); reading text in IBM Plex Sans, mono only for labels
-  (`@expo-google-fonts/ibm-plex-sans`); a theme choice from `@shared/themes` (`THEMES`) on the account screen, kept in
-  storage — or decide with the user that the app stays Rx only.
-- ✅ [step 6, built — not yet seen] **Members' recipes in "Elimde ne var?"** (ADR-029 amendment): the app's recipe form needs the catalogue select per
-  line ("Katalogda yok", the hint and the counter, `isFullyLinked` from `@shared/ingredients`); catalogue from
-  `ingredients` (`groupByCategory`). It already keeps `ingredientId` through an edit and revalidates `/what-can-i-make`.
-- ✅ [step 3, done] **Languages** (ADR-032, English live 2026-10-26): the app is Turkish only; for parity it could read
-  `@shared/i18n` dictionaries and `cocktail_translations` — decide with the user in the parity pass.
-- **Share cards and 404/error screens** (M9 A, 2026-10-26): web-only (the app has no link previews); the app's own
-  error states are already its own.
-- ✅ [step 7, done; push built in step 8] **Notifications** (ADR-030): a screen with `NOTIFICATION_COLUMNS` and `describeNotification` from
-  `@shared/notifications` (links map to the app's screens), a badge on the account tab with the unread count, mark
-  read on opening. Push notifications are a separate decision.
-- [step 5, skipped → Icebox] **Collections and the glossary** (M9 C): web-only SEO pages; the app could later show the collection chips
-  (`collections` from `@shared/collections`) on its archive tab — optional.
-- ✅ [step 5, done] **Sort and "Günün kokteyli"** (M9 D): the app's archive tab gets the three sort choices (`sortCocktails`,
-  `SORT_LABELS` from `@shared/archive-filter`); its home/feed could show `cocktailOfTheDay` and the house picks.
-- ✅ [step 4 done; follower lists done in step 7] **Rating breakdown** (M9): the app's recipe screen reads `half_star_counts` with the rating and draws the ten bars
-  (`ratingBreakdown` from `@shared/community`). **Follower lists**: profile counts open two lists in the app.
-- ✅ [step 7, done] **Comment editing** (M9): the app's log comments get "Düzenle" and "düzenlendi" (`edited_at`).
-- ✅ [step 6, built — not yet seen] **Glass picker** (M9): the app's log and recipe forms pick the glass by drawing (`GLASSES`, `glassKind` from
-  `@shared/glasses`; the 13 paths of `GlassIcon.tsx` move to react-native-svg).
-- ✅ [step 4, done] **"cl | oz"** on recipes (ADR-027): a toggle beside "Kaç kişilik?" with `convertAmount`, `formatOunces`,
-  `isConvertibleUnit` from `@shared/recipe`; remember the choice (AsyncStorage or the app's existing storage).
-
 ---
-
-## 📦 After the parity pass — M8 step 7: the store release, Android first (ADR-024)
-
-**The upload waits** until the Apple Developer account is open, or the user's two other Play apps are ready to share a
-closed test — the user decides. **The parity pass (this session's task) comes first**; everything below that needs no
-store account (packages, a production build, listing drafts) can follow it. Then:
-
-### State check (when resuming)
-
-`git status` — clean, `main` in step with `origin/main`. **Tools:** the Supabase MCP (`list_migrations` on
-`qwvnhdghwycqlvsnlvlt` → 33, the latest `20261028090812_push_notifications`) and a browser: **Claude in Chrome was
-disconnected most of 2026-10-15; the user reconnected it at the end** — try `tabs_context_mcp`; if it still fails, use the built-in browser
-(`mcp__Claude_Browser__*`; it reaches `localhost:8081`; read the DOM, screenshots lag). Store consoles (Play Console,
-expo.dev) need the user's signed-in Chrome — ask them to reconnect Claude in Chrome for those. The built-in browser holds the
-**owner admin's login** (`n.efeyigit@outlook.com`) **without a profile** (it opens onboarding); ask before making a temporary
-member, delete it afterwards. SQL: profiles `ahmet_kafa` (the user) and **`mustafa_hayat` — the user's friend, never touch
-their rows**. Every community table was empty at the end of 2026-10-15. **Port 8081:** `Get-NetTCPConnection -LocalPort 8081`
-→ stop an old Expo server by PID, then `npx expo start --web --port 8081`.
-
-### Store steps (plan.md §6), what can start without Apple
-
-1. **The user's go and a phone pass first:** the app has every feature now; the user should run the development build (or a
-   preview APK) on their phone through the new screens (members' recipes, the feed, the showcase) before anything reaches a
-   store. Their feedback may come first.
-2. ✅ **Packages** (2026-10-28): updated, typecheck, expo-doctor 21/21.
-3. **A production Android build** (`eas build -p android --profile production`, an AAB; the Android keystore is on EAS).
-   Check `app.json` (version, `versionCode`, permissions — photos only) before it.
-4. **Play Console** (the user's "KZN" account; the user does anything that needs their password or a payment): create the app
-   `haci`, the Turkish store listing (draft the texts — **the user approves**), screenshots from Expo web at phone width or the
-   phone, content rating (alcohol → the questionnaire's answers; 18+), the Data safety form (drafted from `/privacy`: e-mail,
-   name/username, photos, user content; Supabase, Vercel, Google, Resend), the privacy policy URL `/privacy`, account deletion
-   URL (in-app deletion exists; Play also wants a web route — `/account` works for signed-in members; check the requirement).
-   Then the closed test track — the user sources the 12 testers.
-5. **Play's app-signing SHA-1** → a further Android OAuth client in Google Cloud `haci-511515` and its client ID in Supabase's
-   Google provider, otherwise Google sign-in fails in Play-installed builds.
 
 ### Also open (not blocking)
 
@@ -423,7 +175,9 @@ their rows**. Every community table was empty at the end of 2026-10-15. **Port 8
 
 ## 🙋 Questions for the User
 
-1. **The phone pass (step 10 c):** has the user been through the new screens on the development build — anything off?
+1. **Play drafts (`docs/play-store.md`):** does the user approve the listing texts and the form answers?
+2. **Account deletion web link:** `/privacy` as it is, or a short "delete your haci account" section on it?
+3. **IP addresses in server logs:** not declared in Data safety (not used for location) — agreed?
 
 ---
 
