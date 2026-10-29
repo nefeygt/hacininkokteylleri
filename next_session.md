@@ -81,12 +81,10 @@ or the user's two other Play apps are ready to share a closed test — the user 
    Play's app-signing SHA-1 → OAuth client "haci Android (Play app signing)" `533154070020-h8ffpq…` (`haci-511515`) and the Firebase
    "Android key" (`haci-1def7`). Details: `docs/play-store.md` §9.
 4. **[user, then opus] Finish and send the closed test:**
-   a. **The user:** Supabase → Authentication → Sign In / Providers → Google → add
-      `533154070020-h8ffpqjsuhuse4qmsgoi2vin0uehcpul.apps.googleusercontent.com` to the client IDs (comma-separated, keep the
-      others) — or sign Chrome in to Supabase and let the agent do it. Without it, Google sign-in fails in Play-installed builds.
+   a. ✅ Supabase's Google provider has the Play client ID (fourth in the list, 2026-10-29). Store tags set (Recipes, Social).
    b. **The user:** App content → App access ("Oturum açma bilgileri"): "Yes, restricted" + the reviewers' account credentials.
-   c. **[opus]** Target audience: 18+ only, not for children; then submit the Data safety draft; optionally the store tags
-      (Recipes, Cocktails, Drinks, Social).
+   c. **[opus]** Target audience: 18+ only, not for children; then submit the Data safety draft (both locked until b is
+      saved — on 2026-10-29 App access still had no answer).
    d. **The user:** the testers list (e-mail list or Google Group) on the closed test track.
    e. **[opus] with the user's yes:** publishing overview → send for review. Then install from the test link and check Google
       sign-in and push on a Play-installed build.

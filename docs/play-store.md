@@ -183,7 +183,8 @@ App `haci — cocktail recipes`, app ID `4972245001464131404`, developer account
 
 Done:
 - Store listing (en-US): §3 texts, icon, feature graphic, the four screenshots; no AI-generated-asset label. Store settings:
-  Food & Drink, `contact@hacininkokteylleri.tech`, `https://hacininkokteylleri.tech`. Tags not set.
+  Food & Drink, `contact@hacininkokteylleri.tech`, `https://hacininkokteylleri.tech`. Tags: "Yemek Tarifi" (Recipes) and
+  "Sosyal" (Social) — Play's fixed list has no cocktail or drinks tag.
 - Privacy policy URL; ads: none; content rating (§6 — alcohol reference and use, frequent; users interact, reports yes,
   "chat moderated" yes, no blocking; not a store for others' content; not focused on promoting alcohol) → IARC 16+,
   PEGI 16, ESRB 13+, USK 12, ClassInd 12.
@@ -196,9 +197,10 @@ Done:
   added to a new OAuth client "haci Android (Play app signing)" `533154070020-h8ffpqjsuhuse4qmsgoi2vin0uehcpul` in `haci-511515`,
   and to the Firebase "Android key" in `haci-1def7` (both fingerprints now: EAS upload key and Play).
 
+- Supabase → Auth → Google provider: the new client ID added as the fourth client ID (2026-10-29, checked after a reload).
+
 Left (in order):
-1. Supabase → Auth → Google provider: add the new client ID to the client IDs list (Chrome was signed out of Supabase).
-2. App access: the reviewers' test account (the user's).
-3. Target audience: 18 and over only (unlocks after app access); then submit Data safety.
-4. Testers: an e-mail list or Google Group for the closed test (the user's 12 testers).
-5. Publishing overview → send for review.
+1. App access: the reviewers' test account (the user's).
+2. Target audience: 18 and over only (unlocks after app access); then submit Data safety.
+3. Testers: an e-mail list or Google Group for the closed test (the user's 12 testers).
+4. Publishing overview → send for review.
