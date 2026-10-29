@@ -217,7 +217,6 @@ Done:
   saved to the publishing overview, which lists 15 changes. **Not sent for review.**
 
 Left:
-1. Publishing overview → "15 değişikliği incelemeye gönder" — the user presses it (Play first runs its quick checks, up to ~14
-   minutes).
+1. ✅ Sent for review by the user on 2026-10-29 (publishing overview: "İncelenmekte olan değişiklikler", 15 changes).
 2. After approval: the testers join through the web link on the track's Testers tab; check Google sign-in and push on a
    Play-installed build; 14 days with 12+ testers, then apply for production.

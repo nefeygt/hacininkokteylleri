@@ -10,8 +10,8 @@ Data safety form (draft). The closed test track has release `2 (1.0.0)` saved as
 app-signing SHA-1 is on a new OAuth client and on the Firebase key. `docs/play-store.md` §9 has every value. `main` is pushed.
 
 **Model split:** steps below are tagged **[opus]** or **[sonnet]**; a session works through consecutive steps of its own tag and
-stops before a step with the other tag (see "Model handoff"). **The next session is [opus]** (steps 1–4 d done; the user sends for review, then
-step 5).
+stops before a step with the other tag (see "Model handoff"). **The next session is [opus]** (steps 1–4 done, in Play's review; step 5 starts when
+Play approves — the user will say).
 ---
 
 ## 📋 Prompt to Copy
@@ -86,7 +86,7 @@ or the user's two other Play apps are ready to share a closed test — the user 
       health declarations, target audience 18+, Data safety saved — App content has nothing left (2026-10-29).
    d. ✅ Testers: the user's e-mail list "Waio Test Tayfa" (45); feedback `contact@`. Release reviewed (one harmless warning:
       no R8 mapping file) and saved to the publishing overview (15 changes) — **not sent** (2026-10-29).
-   e. **The user:** publishing overview → "15 değişikliği incelemeye gönder". The user decided (2026-10-29) to release
+   e. ✅ The user sent the 15 changes for review (2026-10-29); Play shows them "in review". The user decided (2026-10-29) to release
       Android **without waiting for the Apple account**.
 5. **[opus] After Play approves the closed test:** install from the test link on a phone; check Google sign-in (the Play
    client ID) and push (the Play SHA-1 on the Firebase key) in the Play-installed build. 14 days with 12+ testers, then the
