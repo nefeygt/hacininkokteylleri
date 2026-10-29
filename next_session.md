@@ -4,14 +4,14 @@
 > account, another computer, or a different agent). **Copy the prompt below and paste
 > it — you shouldn't need to explain anything else.**
 
-**Prepared by session:** 2026-10-29 (parity pass closed, store prep started, [opus]). **The parity pass is done:** the user went
-through every new screen on the development build — all fine. **First production Android build** on EAS
-(`2df42d3d-bf6b-45a3-9c6b-651bca1a9339`, AAB, versionCode 2). **Play drafts** in `docs/play-store.md` (listing texts in Turkish and
-English, Data safety, content rating, declarations) — **nothing approved or submitted yet**. The upload still waits for the Apple
-account or the user's two other Play apps (ADR-024). `main` is pushed and deployed.
+**Prepared by session:** 2026-10-29 (Play Console setup, [opus]). **The user called ADR-024's trigger.** The app `haci` exists in
+Play Console (KZN) with the English listing, graphics, privacy policy, ads, content rating (IARC 16+), store settings and a filled
+Data safety form (draft). The closed test track has release `2 (1.0.0)` saved as a **draft — nothing is sent for review**. Play's
+app-signing SHA-1 is on a new OAuth client and on the Firebase key. `docs/play-store.md` §9 has every value. `main` is pushed.
 
 **Model split:** steps below are tagged **[opus]** or **[sonnet]**; a session works through consecutive steps of its own tag and
-stops before a step with the other tag (see "Model handoff"). **The next session is [opus]** (steps 1–2 done; step 3 is [opus] and waits for the user's trigger).
+stops before a step with the other tag (see "Model handoff"). **The next session is [opus]** (steps 1–3 done; step 4 is mostly the
+user's, then [opus] finishes the forms).
 ---
 
 ## 📋 Prompt to Copy
@@ -76,12 +76,20 @@ or the user's two other Play apps are ready to share a closed test — the user 
    default language en-US; the Turkish listing is an unused draft). `store/feature-graphic.png` (from `scripts/export-brand.mjs`),
    `store/screenshots/en-1…4` (Rx, English, 1080 × 1824, status bar cropped), the 512 px icon in `public/brand/`. **The user approves the set**
    (no feed or signed-in shots yet — the test device is signed out and the feed has no member recipes; add them later if wanted).
-3. **[opus] When ADR-024's trigger comes (the user says so):** Play Console (the user's "KZN" account; the user does anything that
-   needs their password or a payment) — create the app `haci`, paste the approved texts, upload graphics, the forms, upload the
-   AAB to the closed test track; then Play's app-signing SHA-1 → a further Android OAuth client in Google Cloud `haci-511515` and
-   its client ID in Supabase's Google provider (else Google sign-in fails in Play-installed builds), **and the same SHA-1 on the
-   Firebase "Android key" in Google Cloud `haci-1def7`** (else push fails in Play-installed builds — `docs/play-store.md` §8). The 12 testers for 14 days are
-   the user's (Fiverr plan).
+3. ✅ **[opus] Play Console setup** (2026-10-29): app created (ID `4972245001464131404`), listing + graphics, store settings,
+   privacy policy, ads, content rating, Data safety (draft), closed test track (178 countries) with release `2 (1.0.0)` as a draft;
+   Play's app-signing SHA-1 → OAuth client "haci Android (Play app signing)" `533154070020-h8ffpq…` (`haci-511515`) and the Firebase
+   "Android key" (`haci-1def7`). Details: `docs/play-store.md` §9.
+4. **[user, then opus] Finish and send the closed test:**
+   a. **The user:** Supabase → Authentication → Sign In / Providers → Google → add
+      `533154070020-h8ffpqjsuhuse4qmsgoi2vin0uehcpul.apps.googleusercontent.com` to the client IDs (comma-separated, keep the
+      others) — or sign Chrome in to Supabase and let the agent do it. Without it, Google sign-in fails in Play-installed builds.
+   b. **The user:** App content → App access ("Oturum açma bilgileri"): "Yes, restricted" + the reviewers' account credentials.
+   c. **[opus]** Target audience: 18+ only, not for children; then submit the Data safety draft; optionally the store tags
+      (Recipes, Cocktails, Drinks, Social).
+   d. **The user:** the testers list (e-mail list or Google Group) on the closed test track.
+   e. **[opus] with the user's yes:** publishing overview → send for review. Then install from the test link and check Google
+      sign-in and push on a Play-installed build.
 
 **Things that bite (store prep):**
 - **The Firebase API key in `mobile/google-services.json` is public by design** (it ships in every APK). GitHub secret scanning
@@ -94,6 +102,13 @@ or the user's two other Play apps are ready to share a closed test — the user 
   variables, and none are needed). A new `EXPO_PUBLIC_*` setting goes into `.env`, never a secret (ADR-008).
 - `versionCode` lives on EAS (`appVersionSource: remote`, `autoIncrement` on production): every production build takes the next
   number — don't set it in `app.json`.
+- **Play Console lives at `/console/u/1/`** in the user's Chrome (`n.efeyigit@gmail.com`); `u/0` (wowcubey@) has no developer
+  account. Google Cloud `haci-511515` is also `authuser=1`; `haci-1def7` is `authuser=0`. Supabase was signed out in Chrome.
+- **Claude in Chrome uploads at most 10 MB per call:** the AAB (83 MB) has to be dragged in by the user (`build/haci-2.aab`,
+  git-ignored; or download again from the build's EAS page). The page can't fetch it from expo.dev (CORS).
+- Play Console's pages render slowly and screenshots sometimes time out; `javascript_tool` on `document.body.innerText` and
+  clicking buttons by their text was reliable. The app-signing SHA-1 is only behind a copy button (read it by wrapping
+  `navigator.clipboard.writeText`).
 - Store consoles (Play Console, expo.dev) need the user's signed-in Chrome — Claude in Chrome; ask the user to reconnect it if the
   tools fail.
 
@@ -178,8 +193,8 @@ or the user's two other Play apps are ready to share a closed test — the user 
 ## 🙋 Questions for the User
 
 1. **GitHub alert 1 (Google API Key):** closed by the user as "won't fix"?
-2. **Play reviewers' test account:** created (e-mail + password, onboarding done)?
-3. **ADR-024's trigger:** the Apple account or the two other Play apps — any date yet?
+2. **Play reviewers' test account:** created? (needed for App access)
+3. **Testers:** the Fiverr service — when, and as an e-mail list or a Google Group?
 
 ---
 

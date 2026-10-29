@@ -1,8 +1,9 @@
 # Google Play — store listing and forms
 
 Drafts for M8 step 7 (ADR-024), written 2026-10-29 from `/privacy` (version `2026-10-28`) and the app as it is after the
-parity pass. **Approved by the user on 2026-10-29** (§1–3 and §5–7 as written; §4 still to make). **Nothing is submitted
-yet.** The user does anything that needs their password or a payment.
+parity pass. **Approved by the user on 2026-10-29** (§1–3 and §5–7 as written; §4 made the same day). **Entered in Play Console on
+2026-10-29** (§9 lists what is done and what is left); nothing is sent for review yet. The user does anything that needs their
+password or a payment.
 
 ## 1. App details
 
@@ -174,3 +175,30 @@ derive location; haci does not, so it is not declared (the user agreed, 2026-10-
    Firebase "Android key"** (Google Cloud `haci-1def7` → Credentials → Android key → Android restrictions → Add, package
    `tech.hacininkokteylleri.haci`), or push notifications fail in Play-installed builds: the key is restricted to the app's
    signing certificates since 2026-10-29.
+
+## 9. In Play Console (2026-10-29)
+
+App `haci — cocktail recipes`, app ID `4972245001464131404`, developer account KZN (`5700526618273156081`), signed in as
+`n.efeyigit@gmail.com` (Chrome profile index `u/1`; `u/0` has no developer account).
+
+Done:
+- Store listing (en-US): §3 texts, icon, feature graphic, the four screenshots; no AI-generated-asset label. Store settings:
+  Food & Drink, `contact@hacininkokteylleri.tech`, `https://hacininkokteylleri.tech`. Tags not set.
+- Privacy policy URL; ads: none; content rating (§6 — alcohol reference and use, frequent; users interact, reports yes,
+  "chat moderated" yes, no blocking; not a store for others' content; not focused on promoting alcohol) → IARC 16+,
+  PEGI 16, ESRB 13+, USK 12, ClassInd 12.
+- Data safety (§5) filled and **saved as a draft**: account creation "username and password" + OAuth, deletion URL
+  `/privacy#delete-account`, the optional "delete some data without the account" question left unanswered. Play submits it
+  only after target audience is done.
+- Closed test track "Kapalı test - Alpha": 178 countries; release `2 (1.0.0)` (`build/haci-2.aab`, git-ignored) with release
+  notes, **saved as a draft**.
+- Play app signing is on (Google-generated key). App-signing SHA-1 `16:86:12:54:E2:C2:D1:9F:CB:69:05:7E:BC:6C:CB:9E:DA:7F:63:F3`:
+  added to a new OAuth client "haci Android (Play app signing)" `533154070020-h8ffpqjsuhuse4qmsgoi2vin0uehcpul` in `haci-511515`,
+  and to the Firebase "Android key" in `haci-1def7` (both fingerprints now: EAS upload key and Play).
+
+Left (in order):
+1. Supabase → Auth → Google provider: add the new client ID to the client IDs list (Chrome was signed out of Supabase).
+2. App access: the reviewers' test account (the user's).
+3. Target audience: 18 and over only (unlocks after app access); then submit Data safety.
+4. Testers: an e-mail list or Google Group for the closed test (the user's 12 testers).
+5. Publishing overview → send for review.
