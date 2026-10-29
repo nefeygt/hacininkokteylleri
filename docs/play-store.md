@@ -165,4 +165,7 @@ only when it is used to derive location; haci does not, so it is not declared �
 2. The upload itself waits for ADR-024's trigger (the Apple account, or the user's two other Play apps for a shared
    closed test).
 3. After the first upload: Play's app-signing SHA-1 → a further Android OAuth client in Google Cloud `haci-511515` and its
-   client ID in Supabase's Google provider, or Google sign-in fails in Play-installed builds.
+   client ID in Supabase's Google provider, or Google sign-in fails in Play-installed builds. **The same SHA-1 also goes on the
+   Firebase "Android key"** (Google Cloud `haci-1def7` → Credentials → Android key → Android restrictions → Add, package
+   `tech.hacininkokteylleri.haci`), or push notifications fail in Play-installed builds: the key is restricted to the app's
+   signing certificates since 2026-10-29.

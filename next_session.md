@@ -84,10 +84,17 @@ or the user's two other Play apps are ready to share a closed test — the user 
 3. **[opus] When ADR-024's trigger comes (the user says so):** Play Console (the user's "KZN" account; the user does anything that
    needs their password or a payment) — create the app `haci`, paste the approved texts, upload graphics, the forms, upload the
    AAB to the closed test track; then Play's app-signing SHA-1 → a further Android OAuth client in Google Cloud `haci-511515` and
-   its client ID in Supabase's Google provider (else Google sign-in fails in Play-installed builds). The 12 testers for 14 days are
+   its client ID in Supabase's Google provider (else Google sign-in fails in Play-installed builds), **and the same SHA-1 on the
+   Firebase "Android key" in Google Cloud `haci-1def7`** (else push fails in Play-installed builds — `docs/play-store.md` §8). The 12 testers for 14 days are
    the user's (Fiverr plan).
 
 **Things that bite (store prep):**
+- **The Firebase API key in `mobile/google-services.json` is public by design** (it ships in every APK). GitHub secret scanning
+  flagged it (alert 1, 2026-10-29); the key is now restricted in Google Cloud `haci-1def7` to Android app
+  `tech.hacininkokteylleri.haci` + the EAS SHA-1 `01:AE:…:58:A7` and the 25 Firebase APIs — checked: 403 without the app's
+  identity, 200 with it. **Every new signing certificate (Play's app signing) must be added to that key.** Closing the GitHub
+  alert as "won't fix" was left to the user (the agent's write was refused). Don't move the file out of the repo: the key stays
+  in history and in every APK anyway.
 - The production build reads the public settings from the committed `mobile/.env` (EAS uploads it; there are no EAS environment
   variables, and none are needed). A new `EXPO_PUBLIC_*` setting goes into `.env`, never a secret (ADR-008).
 - `versionCode` lives on EAS (`appVersionSource: remote`, `autoIncrement` on production): every production build takes the next
@@ -176,8 +183,9 @@ or the user's two other Play apps are ready to share a closed test — the user 
 ## 🙋 Questions for the User
 
 1. **Play drafts (`docs/play-store.md`):** does the user approve the listing texts and the form answers?
-2. **Account deletion web link:** `/privacy` as it is, or a short "delete your haci account" section on it?
-3. **IP addresses in server logs:** not declared in Data safety (not used for location) — agreed?
+2. **GitHub alert 1 (Google API Key):** closed by the user as "won't fix"?
+3. **Account deletion web link:** `/privacy` as it is, or a short "delete your haci account" section on it?
+4. **IP addresses in server logs:** not declared in Data safety (not used for location) — agreed?
 
 ---
 
